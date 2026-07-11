@@ -1,0 +1,194 @@
+═══════════════════════════════════════════════════════════════════════════
+ATLAS OS v3.0 + ATLAS GSD PROTOCOL - Archivos Descargables
+═══════════════════════════════════════════════════════════════════════════
+
+📋 LEE EN ESTE ORDEN (Total: 82 KB, ~90 minutos)
+───────────────────────────────────────────────────────────────────────────
+
+1. 00_READ_ME_FIRST.md (8.0K) ⭐⭐⭐ EMPIEZA AQUÍ
+   └─ Qué es esto, estructura, pasos inmediatos, FAQ
+
+2. QUICK_START.md (6.1K)
+   └─ Setup en tu máquina, ritual diario, próximos 6 pasos
+
+3. INDEX.md (7.3K)
+   └─ Arquitectura completa (13 módulos), nucleos, cartera
+
+───────────────────────────────────────────────────────────────────────────
+🧠 NÚCLEO (Cómo funciona Atlas)
+───────────────────────────────────────────────────────────────────────────
+
+4. ATLAS_DNA.md (7.6K)
+   └─ Cómo piensa, duda, aprende, olvida, corrige Atlas
+   └─ 9 secciones fundamentales
+
+5. ATLAS_COGNITIVE_KERNEL.md (14K) ⭐⭐ IMPORTANTE
+   └─ Motor de razonamiento (8 fases invariantes)
+   └─ INPUT → Phase 0-8 → OUTPUT (trazable, auditable)
+
+6. CONSTITUTION.md (13K) ⭐⭐ LEY SUPREMA
+   └─ 14 Artículos (Ω-001, Ω-PEAJE-001, GOV-TIMING-IPO-001, etc.)
+   └─ Qué es modificable, qué no
+
+───────────────────────────────────────────────────────────────────────────
+📊 OPERACIONAL (Workflows diarios)
+───────────────────────────────────────────────────────────────────────────
+
+7. ROADMAP.md (7.0K)
+   └─ 5 Milestones 2026–2027
+   └─ Cada uno con fases, deliverables, checkpoints
+
+8. STATE.md (7.8K)
+   └─ Estado actual de cada fase
+   └─ Bloqueadores, próximas acciones
+
+9. GSD-PROTOCOL.md (15K)
+   └─ Ciclo: Discover → Plan → Execute → Verify → Close
+   └─ 5 maestro prompts, comandos /gsd-*, protocolos
+
+10. AUDIT-TEMPLATE.md (13K) ⭐⭐ TEMPLATE AAP-001
+    └─ Cómo auditar empresa (8 niveles, CRC scoring)
+    └─ Cómo llenar cada sección
+    └─ Checklist "ready to publish"
+
+───────────────────────────────────────────────────────────────────────────
+🎯 RESUMEN EJECUTIVO
+───────────────────────────────────────────────────────────────────────────
+
+**Atlas OS v3.0** no es un repositorio. Es un **sistema operativo auditado** 
+para invertir en funciones económicas defensibles (no narrativas).
+
+**Garantías:**
+✅ Cada decisión pasa por 8 fases invariantes (ACK kernel)
+✅ Cada conclusión citada con fuente primaria (SEC, earnings, etc.)
+✅ Incertidumbre cuantificada (CRC scoring 1–10)
+✅ Mínimo 3 hipótesis alternativas + falsificadores identificados
+✅ Trazable: audit trail permanente (quién, cuándo, qué, por qué)
+✅ Aprende: cada error → protocolo mejorado
+✅ Escalable: funciona análisis pequeño o grande
+✅ Vicente authority: decisión final en inversión
+
+**Leyes irrompibles (No modificables):**
+🔒 Ω-001 (Cartografía funciones)
+🔒 Ω-PEAJE-001 (8 niveles)
+🔒 GOV-TIMING-IPO-001 (2–3 meses post-IPO)
+🔒 Ω-51 (12 meses validación)
+🔒 FN-A9-10 (Vicente aprueba decisiones)
+🔒 FN-A10-10 (Vicente aprueba intelligence)
+🔒 Atlas Puro ≠ Financiero (Separación)
+
+**Cartera Ω v2026.07:** 36 posiciones selladas (6 Tier S + 4 Tier 1 + 9 T2 + 14 T3 + 2 T4)
+**Watchlist Ω v4.1:** 61 candidatas (10 clusters funcionales, zero overlap)
+
+───────────────────────────────────────────────────────────────────────────
+⏱️ PASOS INMEDIATOS
+───────────────────────────────────────────────────────────────────────────
+
+HOY (Viernes 12-JUL):
+  ✅ Lee 00_READ_ME_FIRST.md (10 min)
+  ✅ Lee QUICK_START.md (5 min)
+  ✅ Descarga todos los .md files
+
+MAÑANA (Sábado 13-JUL):
+  ✅ Copia estructura a GitHub (private repo)
+  ✅ Crea carpetas 00–11 + 99_Lab
+
+MIÉRCOLES (17-JUL):
+  ✅ Inicializa 02_Memory/Companies/ con 4 empresas clave
+  ✅ Lee AUDIT-TEMPLATE.md
+
+JUEVES (18-JUL):
+  ✅ Primera auditoría AAP-001 (use template, 8 niveles)
+
+VIERNES (19-JUL):
+  ✅ Integra en Lovable PWA (dashboard básico)
+
+FIN DE SEMANA:
+  ✅ Lee ATLAS_DNA.md + CONSTITUTION.md
+  ✅ Inicia Biblioteca Peterson (2.5-year program)
+
+───────────────────────────────────────────────────────────────────────────
+📍 UBICACIÓN EN CONTENEDOR (para referencia)
+───────────────────────────────────────────────────────────────────────────
+
+/home/claude/atlas-os/
+  ├── 00_Constitution/CONSTITUTION.md
+  ├── ATLAS_DNA.md
+  ├── ATLAS_COGNITIVE_KERNEL.md
+  └── INDEX.md
+
+/home/claude/atlas-gsd/
+  ├── ROADMAP.md
+  ├── STATE.md
+  ├── GSD-PROTOCOL.md
+  ├── AUDIT-TEMPLATE.md
+  └── .planning/
+
+Todos copiados a: /mnt/user-data/outputs/
+
+───────────────────────────────────────────────────────────────────────────
+❓ PREGUNTAS FRECUENTES
+───────────────────────────────────────────────────────────────────────────
+
+¿Cuánto tiempo para leer TODO?
+→ 00_READ_ME_FIRST (10 min) + QUICK_START (5 min) + INDEX (10 min)
+  = 25 min para entender. Después lee by need.
+
+¿Es complicado?
+→ No complicado; riguroso. Diseñado para evitar errores repetitivos.
+
+¿Puedo ignorar los 8 niveles?
+→ No. Ω-PEAJE-001 es ley suprema. Claude veto si ignoras.
+
+¿Quién decide: Claude o Vicente?
+→ Claude: análisis, propone. Vicente: TODAS inversiones + governance.
+
+¿Cuándo empiezo?
+→ Hoy: leer. Mañana: GitHub. Esta semana: primera auditoría AAP-001.
+
+───────────────────────────────────────────────────────────────────────────
+📚 CARTERA Ω v2026.07 (36 Posiciones)
+───────────────────────────────────────────────────────────────────────────
+
+Tier S/Cúpula (200€):     MSFT, GOOG, TSM, ASML, Keyence, Visa [6]
+Tier 1 (190€):             ETN, SU, CEG, LIN [4]
+Tier 2 (160€):             NVDA, AMZN, META, PANW, EQIX, VRT, M4I, SPGI, LRCX [9]
+Tier 3 (130€):             AVGO, KLAC, SNPS, HY9H, APH, MCO, LSEG, VRS, WKL, VEEV, CSU, FTNT, WM, VRSN [14]
+Tier 4 (100€):             PLTR, ALSN [2]
+                           ──────────────────────────────────────
+                           TOTAL: 36 posiciones selladas
+
+Capital: ~€5,500 × 36 = ~€198K
+
+───────────────────────────────────────────────────────────────────────────
+📋 WATCHLIST Ω v4.1 (61 Candidatas)
+───────────────────────────────────────────────────────────────────────────
+
+C1 Semis (13):               ONTO, MKSI, CAMT, FORM, TER, BESI, ASM, Samsung EM, Ibiden, Unimicron, Shinko, Disco, Tokyo Electron
+C6 Software (8):             WKL, INTU, ADSK, CDNS, ORCL, AKAM, NET, ZS
+C12 Salud (6):               TMO, DHR, ABT, IDXX, SYK, MDT
+C2/C5 Energía (5):           GEV, ENR, ABB, PRYMY, ETN
+C7 Industria (6):            ROP, ROK, ITW, CSL, PH, Nidec
+C8 Defensa (6):              RHM, LDO, BA, SAAB, HAG, RR
+C9 Logística (4):            DSV, UNP, CNR, ODFL
+C3 Materiales (4):           FCX, BHP, RIO, LYC
+Meta0 Consumo/Fin (5):       COST, BRK.B, PGR, CB, SCHW
+Meta0/C6 Cripto/Digital (4): COIN, HOOD, CRCL, DLR
+
+Zero overlap con Cartera Ω (mutually exclusive)
+
+───────────────────────────────────────────────────────────────────────────
+✨ VERSIÓN & CUSTODIO
+───────────────────────────────────────────────────────────────────────────
+
+Creado:       2026-07-12
+Versión:      Atlas OS v3.0 + Atlas GSD Protocol
+Custodio:     Claude + Vicente
+Vigencia:     Permanente (sujeto a enmienda constitucional)
+
+Next Review:  2027-01-12 (anual)
+
+═══════════════════════════════════════════════════════════════════════════
+¡Bienvenido a Atlas! 🎯
+═══════════════════════════════════════════════════════════════════════════
+
