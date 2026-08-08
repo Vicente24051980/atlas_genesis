@@ -1,17 +1,10 @@
-# E2E-001 — DEPRECATED
+# E2E-001 — SUPERSEDED EXPERIMENT
 
 status: Deprecated
-superseded_by: current Atlas Genesis architecture
+canonical: false
 
-This experimental benchmark was created from an obsolete architectural snapshot and MUST NOT be treated as canonical Atlas Genesis.
+This laboratory benchmark is historical only. It was derived from an obsolete architectural snapshot and is not part of the current Atlas Genesis contract.
 
-## Reason
-The current Atlas corpus already defines formal module contracts, document lifecycle/governance, ontology/entity contracts, schemas, templates, glossary and validation/test gates. E2E-001 duplicated and simplified responsibilities that belong to those newer contracts.
+The replacement work must be generated from the current formal corpus: module contracts, lifecycle/governance, ontology, schemas, templates, glossary, registries and quality/test gates.
 
-## Rule
-- Do not promote this laboratory implementation to `main`.
-- Do not use its PASS / QUARANTINED / REJECT model as canonical unless a current specification explicitly adopts it.
-- Rebuild future executable validation from the current canonical contracts and registries.
-- CORE/frozen documents remain untouched.
-
-Historical files are retained only for traceability until the branch/PR is closed or deleted.
+No file in this directory may be promoted to `main` as canonical without being re-derived and validated against that current corpus.
