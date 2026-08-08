@@ -8,6 +8,7 @@ import { auditLog, decisionLog, evidence, position, radar, settings, watchlist }
 import { FunctionalGateResult, MOBILE_FUNCTIONAL_GATE_KEY } from '../db/runtimeSelfTest';
 
 const modules = [
+  { name: 'ATLAS Terminal', description: 'Universal Search, entidad canónica, snapshots y motores Ω', route: '/terminal' },
   { name: 'Portfolio', description: 'Añadir, actualizar y eliminar posiciones', route: '/portfolio' },
   { name: 'Watchlist', description: 'Añadir y quitar candidatos sin duplicados', route: '/watchlist' },
   { name: 'Radar', description: 'Crear y eliminar señales con Wave Score', route: '/radar' },
@@ -52,11 +53,7 @@ export default function HomeScreen() {
 
     const rawGate = gateRows[0]?.valueJson;
     if (rawGate) {
-      try {
-        setGate(JSON.parse(rawGate) as FunctionalGateResult);
-      } catch {
-        setGate(null);
-      }
+      try { setGate(JSON.parse(rawGate) as FunctionalGateResult); } catch { setGate(null); }
     }
   }, []);
 
@@ -69,12 +66,13 @@ export default function HomeScreen() {
     if (name === 'Evidence') return counts.evidence;
     if (name === 'Daily Intelligence') return counts.decisions;
     if (name === 'Audit') return counts.audit;
+    if (name === 'ATLAS Terminal') return counts.positions + counts.watchlist;
     return counts.evidence + counts.decisions + counts.signals;
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.eyebrow}>ATLAS Ω MOBILE · FUNCTIONAL MVP v1</Text>
+      <Text style={styles.eyebrow}>ATLAS Ω MOBILE · TERMINAL FOUNDATION</Text>
       <Text style={styles.title}>Sistema operativo de decisión</Text>
       <Text style={styles.subtitle}>Android-only · local-first · evidence-first</Text>
 
@@ -86,7 +84,7 @@ export default function HomeScreen() {
           </View>
         </View>
         <Text style={styles.statusValue}>CORE-00 · UO 1.1 RC1 · 30/30 Runtime Certified</Text>
-        <Text style={styles.statusNote}>SQLite real verificado con altas, lecturas, actualizaciones y borrados antes de abrir esta pantalla.</Text>
+        <Text style={styles.statusNote}>El gate valida runtime, SQLite y navegación. La corrección semántica de proveedores y motores se certificará con fixtures conocidos, no por compilación.</Text>
         {gate?.checkedAt ? <Text style={styles.checkedAt}>Functional Gate: {new Date(gate.checkedAt).toLocaleString('es-ES')}</Text> : null}
       </View>
 
@@ -95,8 +93,6 @@ export default function HomeScreen() {
         <MiniMetric label="Watchlist" value={counts.watchlist} />
         <MiniMetric label="Evidence" value={counts.evidence} />
       </View>
-
-      <Text style={styles.instruction}>Pulsa un módulo. Cada tarjeta abre una pantalla operativa con persistencia local.</Text>
 
       <View style={styles.grid}>
         {modules.map((module) => (
@@ -145,7 +141,6 @@ const styles = StyleSheet.create({
   metric: { flex: 1, backgroundColor: '#111923', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#202b38' },
   metricValue: { color: '#71b7ff', fontWeight: '800', fontSize: 22 },
   metricLabel: { color: '#94a3b8', fontSize: 11, marginTop: 3 },
-  instruction: { color: '#cbd5e1', fontSize: 13, lineHeight: 19 },
   grid: { gap: 12 },
   card: { backgroundColor: '#141a22', borderRadius: 18, padding: 18, borderWidth: 1, borderColor: '#202b38' },
   cardPressed: { opacity: 0.68, transform: [{ scale: 0.99 }] },
