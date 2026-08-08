@@ -92,7 +92,9 @@ export default function PortfolioScreen() {
       payloadHash: null,
       createdAt: new Date(),
     });
-    setTicker(''); setQuantity(''); setCostBasis('');
+    setTicker('');
+    setQuantity('');
+    setCostBasis('');
     setMessage(existing ? `${normalizedTicker} actualizado.` : `${normalizedTicker} añadido.`);
     await load();
   };
@@ -105,11 +107,15 @@ export default function PortfolioScreen() {
   };
 
   const summary = useMemo(() => {
-    let cost = 0; let value = 0; let dayPnl = 0; let liveCount = 0;
+    let cost = 0;
+    let value = 0;
+    let dayPnl = 0;
+    let liveCount = 0;
     for (const item of items) {
       const invested = (item.costBasis || 0) * item.quantity;
       const marketValue = item.quote?.price == null ? invested : item.quote.price * item.quantity;
-      cost += invested; value += marketValue;
+      cost += invested;
+      value += marketValue;
       if (item.quote?.changePct != null && item.quote.price != null) {
         const previous = item.quote.price / (1 + item.quote.changePct / 100);
         dayPnl += (item.quote.price - previous) * item.quantity;
@@ -177,7 +183,7 @@ export default function PortfolioScreen() {
               <Text style={styles.positionMeta}>{item.quantity} × {item.costBasis == null ? '—' : item.costBasis.toFixed(2)}</Text>
             </View>
             <View style={styles.cell}><Text style={[styles.cellMain, (item.quote?.changePct || 0) < 0 ? styles.negative : styles.positive]}>{item.quote?.changePct == null ? '—' : signedPct(item.quote.changePct)}</Text><Text style={styles.cellSub}>{item.quote?.price == null ? 'offline' : item.quote.price.toFixed(2)}</Text></View>
-            <View style={styles.cell}><Text style={styles.cellMain}>{compactMoney(value)}</Text><Text style={styles.cellSub}>{invested ? `${((value / summary.value) * 100).toFixed(1)}% peso` : '—'}</Text></View>
+            <View style={styles.cell}><Text style={styles.cellMain}>{compactMoney(value)}</Text><Text style={styles.cellSub}>{summary.value > 0 ? `${((value / summary.value) * 100).toFixed(1)}% peso` : '—'}</Text></View>
             <View style={styles.cell}><Text style={[styles.cellMain, pnl < 0 ? styles.negative : styles.positive]}>{signedPct(pnlPct)}</Text><Text style={styles.cellSub}>{signedMoney(pnl)}</Text></View>
             <Pressable onPress={(event) => { event.stopPropagation(); void removePosition(item); }} style={styles.delete}><Text style={styles.deleteText}>×</Text></Pressable>
           </Pressable>
@@ -201,35 +207,35 @@ const styles = StyleSheet.create({
   header: { gap: 10 },
   topline: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   eyebrow: { color: '#617589', fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
-  title: { color: '#eff4f8', fontSize: 26, fontWeight: '950', marginTop: 3 },
-  liveState: { color: '#58d8a5', fontSize: 8, fontWeight: '950', borderWidth: 1, borderColor: '#1d5140', backgroundColor: '#0b1915', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5 },
+  title: { color: '#eff4f8', fontSize: 26, fontWeight: '900', marginTop: 3 },
+  liveState: { color: '#58d8a5', fontSize: 8, fontWeight: '900', borderWidth: 1, borderColor: '#1d5140', backgroundColor: '#0b1915', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5 },
   hero: { backgroundColor: '#081018', borderWidth: 1, borderColor: '#183044', borderRadius: 10, padding: 14 },
-  heroLabel: { color: '#587086', fontSize: 8, fontWeight: '950', letterSpacing: 1 },
-  heroValue: { color: '#eef5fa', fontSize: 31, fontWeight: '950', marginTop: 4, fontVariant: ['tabular-nums'] },
+  heroLabel: { color: '#587086', fontSize: 8, fontWeight: '900', letterSpacing: 1 },
+  heroValue: { color: '#eef5fa', fontSize: 31, fontWeight: '900', marginTop: 4, fontVariant: ['tabular-nums'] },
   heroBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 },
   heroPnl: { fontSize: 11, fontWeight: '900' },
   heroDay: { fontSize: 10, fontWeight: '900' },
   metrics: { flexDirection: 'row', gap: 6 },
   metric: { flex: 1, backgroundColor: '#090e14', borderWidth: 1, borderColor: '#17222e', borderRadius: 8, padding: 9 },
   metricLabel: { color: '#546678', fontSize: 7, fontWeight: '900' },
-  metricValue: { color: '#b9c7d3', fontSize: 12, fontWeight: '950', marginTop: 3 },
+  metricValue: { color: '#b9c7d3', fontSize: 12, fontWeight: '900', marginTop: 3 },
   positive: { color: '#4ddca2' },
   negative: { color: '#ff6c7e' },
   form: { backgroundColor: '#090e14', borderWidth: 1, borderColor: '#17222e', borderRadius: 9, padding: 10, gap: 7 },
-  formTitle: { color: '#b7c6d3', fontSize: 9, fontWeight: '950' },
+  formTitle: { color: '#b7c6d3', fontSize: 9, fontWeight: '900' },
   formHint: { color: '#5d7082', fontSize: 9, lineHeight: 13 },
   inputRow: { flexDirection: 'row', gap: 6 },
   input: { flex: 1, backgroundColor: '#060a0f', color: '#eaf0f5', borderWidth: 1, borderColor: '#1b2936', borderRadius: 7, paddingHorizontal: 9, paddingVertical: 9, fontSize: 11 },
   tickerInput: { maxWidth: 90, fontWeight: '900' },
   addButton: { backgroundColor: '#173a4e', borderRadius: 7, alignItems: 'center', padding: 9 },
-  addText: { color: '#91e3ff', fontSize: 9, fontWeight: '950', letterSpacing: 0.4 },
+  addText: { color: '#91e3ff', fontSize: 9, fontWeight: '900', letterSpacing: 0.4 },
   pressed: { opacity: 0.62 },
   message: { color: '#d9b95e', fontSize: 9 },
   tableHeader: { flexDirection: 'row', alignItems: 'center', minHeight: 27, borderBottomWidth: 1, borderColor: '#1a2632' },
-  th: { flex: 1, color: '#506274', fontSize: 7, fontWeight: '950', textAlign: 'right' },
+  th: { flex: 1, color: '#506274', fontSize: 7, fontWeight: '900', textAlign: 'right' },
   symbolCol: { flex: 1.8, textAlign: 'left' },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 62, borderBottomWidth: 1, borderBottomColor: '#101923', position: 'relative' },
-  ticker: { color: '#dfe8ef', fontSize: 13, fontWeight: '950' },
+  ticker: { color: '#dfe8ef', fontSize: 13, fontWeight: '900' },
   company: { color: '#617386', fontSize: 8, marginTop: 2, maxWidth: 130 },
   positionMeta: { color: '#46586a', fontSize: 7, marginTop: 2 },
   cell: { flex: 1, alignItems: 'flex-end' },
