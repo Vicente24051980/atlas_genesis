@@ -83,7 +83,13 @@ export default function HomeScreen() {
       <Text style={styles.section}>INTELLIGENCE</Text>
       <View style={styles.grid}>
         {primary.map((item) => (
-          <Pressable key={item.code} onPress={() => router.push(item.route)} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+          <Pressable
+            key={item.code}
+            accessibilityRole="button"
+            accessibilityLabel={`Abrir ${item.title}`}
+            onPress={() => router.push(item.route)}
+            style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+          >
             <View style={styles.cardTop}><Text style={styles.code}>{item.code}</Text>{countFor(item.code) != null ? <Text style={styles.count}>{countFor(item.code)}</Text> : null}</View>
             <Text style={styles.cardTitle}>{item.title}</Text>
             <Text style={styles.cardSub}>{item.subtitle}</Text>
@@ -95,7 +101,13 @@ export default function HomeScreen() {
       <Text style={styles.section}>GOVERNANCE & MEMORY</Text>
       <View style={styles.list}>
         {secondary.map((item) => (
-          <Pressable key={item.title} onPress={() => router.push(item.route)} style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}>
+          <Pressable
+            key={item.title}
+            accessibilityRole="button"
+            accessibilityLabel={`Abrir ${item.title}`}
+            onPress={() => router.push(item.route)}
+            style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}
+          >
             <Text style={styles.listText}>{item.title}</Text><Text style={styles.listArrow}>›</Text>
           </Pressable>
         ))}
