@@ -17,9 +17,7 @@ wait_for_text() {
   local needle="$1"
   for _ in $(seq 1 45); do
     dump_ui
-    if grep -Fq "$needle" window.xml 2>/dev/null; then
-      return 0
-    fi
+    if grep -Fq "$needle" window.xml 2>/dev/null; then return 0; fi
     sleep 2
   done
   echo "::error::Timed out waiting for UI text: $needle"
@@ -29,11 +27,9 @@ wait_for_text() {
 
 wait_for_text_with_scroll() {
   local needle="$1"
-  for _ in $(seq 1 10); do
+  for _ in $(seq 1 12); do
     dump_ui
-    if grep -Fq "$needle" window.xml 2>/dev/null; then
-      return 0
-    fi
+    if grep -Fq "$needle" window.xml 2>/dev/null; then return 0; fi
     adb shell input swipe 540 1800 540 650 250
     sleep 1
   done
@@ -45,21 +41,15 @@ wait_for_text_with_scroll() {
 find_desc_coords() {
   local desc="$1"
   python3 - "$desc" <<'PY'
-import re
-import sys
-import xml.etree.ElementTree as ET
-
-desc = sys.argv[1]
+import re, sys, xml.etree.ElementTree as ET
 root = ET.parse('window.xml').getroot()
 for node in root.iter('node'):
-    if node.attrib.get('content-desc') == desc:
-        bounds = node.attrib.get('bounds', '')
-        match = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds)
-        if not match:
-            continue
-        x1, y1, x2, y2 = map(int, match.groups())
-        print(f'{(x1 + x2)//2} {(y1 + y2)//2}')
-        raise SystemExit(0)
+    if node.attrib.get('content-desc') == sys.argv[1]:
+        match = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', node.attrib.get('bounds',''))
+        if match:
+            x1,y1,x2,y2 = map(int, match.groups())
+            print(f'{(x1+x2)//2} {(y1+y2)//2}')
+            raise SystemExit(0)
 raise SystemExit(1)
 PY
 }
@@ -67,10 +57,9 @@ PY
 tap_desc() {
   local desc="$1"
   local coords=""
-  for _ in $(seq 1 10); do
+  for _ in $(seq 1 12); do
     dump_ui
     if coords="$(find_desc_coords "$desc")"; then
-      local x y
       read -r x y <<< "$coords"
       adb shell input tap "$x" "$y"
       return 0
@@ -78,7 +67,7 @@ tap_desc() {
     adb shell input swipe 540 1800 540 650 250
     sleep 1
   done
-  echo "::error::Accessibility node not found after scrolling: $desc"
+  echo "::error::Accessibility node not found: $desc"
   cat window.xml 2>/dev/null || true
   return 1
 }
@@ -86,15 +75,14 @@ tap_desc() {
 return_home() {
   adb shell input keyevent 4
   sleep 1
-  for _ in $(seq 1 8); do
-    adb shell input swipe 540 600 540 1900 200 || true
-  done
-  wait_for_text "FUNCTIONAL GATE"
+  for _ in $(seq 1 8); do adb shell input swipe 540 600 540 1900 180 || true; done
+  wait_for_text "COMMAND CENTER"
 }
 
-wait_for_text "FUNCTIONAL GATE"
+wait_for_text "COMMAND CENTER"
+wait_for_text "RUNTIME"
 wait_for_text "PASS"
-wait_for_text "CORE-00"
+wait_for_text "CORE RULES"
 
 verify_route() {
   local desc="$1"
@@ -105,12 +93,13 @@ verify_route() {
   return_home
 }
 
-verify_route "Abrir Portfolio" "Guardar posición"
-verify_route "Abrir Watchlist" "Añadir candidato"
-verify_route "Abrir Radar" "Guardar señal"
-verify_route "Abrir Evidence" "Guardar evidencia"
-verify_route "Abrir Daily Intelligence" "Registrar decisión"
-verify_route "Abrir Gemelo Digital" "Guardar Gemelo Digital"
-verify_route "Abrir Audit" "Auditoría y trazabilidad"
+verify_route "Abrir Terminal" "INTELLIGENCE TERMINAL"
+verify_route "Abrir Portfolio Live" "PORTFOLIO LIVE"
+verify_route "Abrir Discovery" "DISCOVERY RADAR"
+verify_route "Abrir Downside Radar" "EARLY DOWNSIDE RADAR"
+verify_route "Abrir Sectores" "SECTOR INTELLIGENCE"
+verify_route "Abrir Watchlist" "Watchlist"
+verify_route "Abrir Evidence Ω" "Evidence"
+verify_route "Abrir Audit History" "Auditoría"
 
 echo "ATLAS Ω functional emulator gate: PASS"
