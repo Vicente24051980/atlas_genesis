@@ -1,0 +1,6 @@
+case_id: CASE-001
+level: L0
+category: Happy Path
+purpose: Ingesta básica de hecho único
+canonical_contract: UO 1.1 RC1
+runtime_status: PARTIALLY_MATERIALIZED
