@@ -8,6 +8,7 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "semantic:gate": "tsx scripts/semantic-gate.ts",
     "db:generate": "drizzle-kit generate",
     "build:apk": "eas build -p android --profile preview",
     "build:aab": "eas build -p android --profile production"
@@ -28,6 +29,7 @@
     "babel-plugin-inline-import": "^3.0.0",
     "babel-preset-expo": "~57.0.4",
     "typescript": "~6.0.3",
-    "drizzle-kit": "rc"
+    "drizzle-kit": "rc",
+    "tsx": "^4.20.6"
   }
 }
