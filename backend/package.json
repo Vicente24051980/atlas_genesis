@@ -1,11 +1,12 @@
 {
   "name": "atlas-omega-backend",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node --check server.mjs"
+    "check": "node --check server.mjs && node --check tests.mjs",
+    "test": "node tests.mjs"
   },
   "engines": {
     "node": ">=22"
