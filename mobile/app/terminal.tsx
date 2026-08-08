@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 
 import { AtlasApi, type HistoryPoint, type TerminalBundle } from '../core/api/atlasApi';
 import { TerminalRepository, type TerminalCompany } from '../db/repositories/TerminalRepository';
@@ -8,7 +9,8 @@ type Tab = 'OVERVIEW' | 'FINANCIALS' | 'NEWS' | 'EVIDENCE';
 const ranges = ['1M', '3M', 'YTD', '1Y', '3Y', '5Y'] as const;
 
 export default function TerminalScreen() {
-  const [ticker, setTicker] = useState('NVDA');
+  const params = useLocalSearchParams<{ ticker?: string }>();
+  const [ticker, setTicker] = useState(typeof params.ticker === 'string' ? params.ticker.toUpperCase() : 'NVDA');
   const [entity, setEntity] = useState<TerminalCompany | null>(null);
   const [bundle, setBundle] = useState<TerminalBundle | null>(null);
   const [tab, setTab] = useState<Tab>('OVERVIEW');
@@ -17,8 +19,8 @@ export default function TerminalScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const run = async () => {
-    const normalized = ticker.trim().toUpperCase();
+  const run = async (requestedTicker?: string) => {
+    const normalized = (requestedTicker || ticker).trim().toUpperCase();
     if (!/^[A-Z0-9.\-]{1,12}$/.test(normalized)) {
       setMessage('Ticker no válido.');
       return;
@@ -41,6 +43,13 @@ export default function TerminalScreen() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof params.ticker === 'string' && params.ticker.trim()) {
+      setTicker(params.ticker.toUpperCase());
+      void run(params.ticker);
+    }
+  }, [params.ticker]);
 
   const loadRange = async (nextRange: (typeof ranges)[number]) => {
     setRange(nextRange);
@@ -207,12 +216,12 @@ function MiniChart({ history }: { history: HistoryPoint[] }) {
   const closes = points.map((x) => x.c);
   const min = Math.min(...closes);
   const max = Math.max(...closes);
-  const range = Math.max(max - min, 0.0001);
+  const chartRange = Math.max(max - min, 0.0001);
   const positive = closes.at(-1)! >= closes[0];
   return (
     <View style={styles.chart}>
       {points.map((point, index) => {
-        const height = 8 + ((point.c - min) / range) * 92;
+        const height = 8 + ((point.c - min) / chartRange) * 92;
         return <View key={`${point.t}-${index}`} style={[styles.chartBar, { height }, positive ? styles.chartPositive : styles.chartNegative]} />;
       })}
     </View>
@@ -325,19 +334,19 @@ const styles = StyleSheet.create({
   searchRow: { flexDirection: 'row', gap: 8 },
   searchInput: { flex: 1, height: 48, backgroundColor: '#0a0f15', color: '#f5f7fa', borderWidth: 1, borderColor: '#1a2633', borderRadius: 9, paddingHorizontal: 14, fontSize: 17, fontWeight: '900', letterSpacing: 1 },
   auditButton: { width: 105, height: 48, borderRadius: 9, alignItems: 'center', justifyContent: 'center', backgroundColor: '#64d8ff' },
-  auditText: { color: '#041018', fontWeight: '950', fontSize: 12, letterSpacing: 0.5 },
+  auditText: { color: '#041018', fontWeight: '900', fontSize: 12, letterSpacing: 0.5 },
   pressed: { opacity: 0.68 },
   notice: { padding: 10, backgroundColor: '#18150d', borderWidth: 1, borderColor: '#4f421a', borderRadius: 8 },
   noticeText: { color: '#e2c267', fontSize: 11, lineHeight: 16 },
   securityHeader: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', paddingVertical: 8 },
   flex: { flex: 1 },
   tickerRow: { flexDirection: 'row', gap: 8, alignItems: 'baseline' },
-  ticker: { color: '#f5f7fa', fontSize: 29, fontWeight: '950', letterSpacing: 0.5 },
+  ticker: { color: '#f5f7fa', fontSize: 29, fontWeight: '900', letterSpacing: 0.5 },
   exchange: { color: '#607286', fontSize: 10, fontWeight: '800' },
   company: { color: '#b8c3cf', fontSize: 14, fontWeight: '700', marginTop: 2 },
   meta: { color: '#59697a', fontSize: 10, marginTop: 4 },
   priceBox: { alignItems: 'flex-end' },
-  price: { color: '#f5f7fa', fontSize: 25, fontWeight: '950', fontVariant: ['tabular-nums'] },
+  price: { color: '#f5f7fa', fontSize: 25, fontWeight: '900', fontVariant: ['tabular-nums'] },
   change: { fontSize: 12, fontWeight: '900', marginTop: 2 },
   positive: { color: '#39d98a' },
   negative: { color: '#ff6577' },
@@ -356,11 +365,11 @@ const styles = StyleSheet.create({
   scoreBad: { backgroundColor: '#1c0d10', borderColor: '#5c202b' },
   scoreNeutral: { backgroundColor: '#0b1118', borderColor: '#1d2b38' },
   scoreLabel: { color: '#718398', fontSize: 8, fontWeight: '900', letterSpacing: 0.3 },
-  scoreValue: { color: '#f2f5f8', fontSize: 23, fontWeight: '950', marginTop: 5, fontVariant: ['tabular-nums'] },
+  scoreValue: { color: '#f2f5f8', fontSize: 23, fontWeight: '900', marginTop: 5, fontVariant: ['tabular-nums'] },
   scoreState: { color: '#536477', fontSize: 7, fontWeight: '900', marginTop: 2 },
   panel: { backgroundColor: '#090e14', borderRadius: 10, borderWidth: 1, borderColor: '#17222e', padding: 12, gap: 8 },
   panelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  panelTitle: { color: '#bac8d6', fontSize: 10, fontWeight: '950', letterSpacing: 1 },
+  panelTitle: { color: '#bac8d6', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
   panelHint: { color: '#546476', fontSize: 9, fontWeight: '800' },
   chart: { height: 112, flexDirection: 'row', alignItems: 'flex-end', gap: 2, paddingVertical: 6, overflow: 'hidden' },
   chartBar: { flex: 1, minWidth: 2, borderRadius: 1, opacity: 0.8 },
@@ -394,10 +403,10 @@ const styles = StyleSheet.create({
   newsSummary: { color: '#76889a', fontSize: 10, lineHeight: 15, marginTop: 4 },
   filing: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#14202b', gap: 3 },
   filingTop: { flexDirection: 'row', justifyContent: 'space-between' },
-  filingForm: { color: '#c9eefe', fontWeight: '950', fontSize: 12 },
+  filingForm: { color: '#c9eefe', fontWeight: '900', fontSize: 12 },
   filingDate: { color: '#63778a', fontSize: 9 },
   filingClass: { color: '#a5b3c1', fontSize: 10, fontWeight: '700' },
-  pending: { color: '#d1ae54', fontSize: 8, fontWeight: '950' },
+  pending: { color: '#d1ae54', fontSize: 8, fontWeight: '900' },
   filingItems: { color: '#607285', fontSize: 9 },
   heroEmpty: { marginTop: 26, gap: 15, alignItems: 'center' },
   heroNumber: { color: '#64d8ff', fontSize: 70, fontWeight: '200' },
