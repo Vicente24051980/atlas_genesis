@@ -22,9 +22,13 @@ class EpistemicEngine:
         conflict_type = resolution_state.get("conflict_type")
         requires_context = resolution_state.get("requires_context", False)
 
-        if consistency_state == "conflicted" or overall_res in ("partial", "unresolved"):
-            execution_status = "PASS_WITH_CONFLICT"
-        elif consistency_state == "reconciled":
+        # Precedence is intentional and part of the frozen benchmark contract:
+        # 1) explicit reconciliation wins;
+        # 2) explicit ambiguity/context requirement remains ambiguity even when
+        #    overall resolution is partial;
+        # 3) unresolved/conflicted states are conflict;
+        # 4) otherwise the payload passes cleanly.
+        if consistency_state == "reconciled":
             execution_status = "PASS_RECONCILED"
             violations.append(
                 {
@@ -40,6 +44,8 @@ class EpistemicEngine:
             )
         elif requires_context or conflict_type == "ambiguity":
             execution_status = "PASS_AMBIGUOUS"
+        elif consistency_state == "conflicted" or overall_res in ("partial", "unresolved"):
+            execution_status = "PASS_WITH_CONFLICT"
         else:
             execution_status = "PASS"
 
