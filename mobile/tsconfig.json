@@ -6,5 +6,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": ["app/**/*.ts", "app/**/*.tsx", "core/**/*.ts", "db/**/*.ts", "services/**/*.ts", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  "exclude": ["scripts/**/*.ts"]
 }
