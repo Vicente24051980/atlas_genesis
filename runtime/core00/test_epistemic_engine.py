@@ -51,6 +51,18 @@ class TestEpistemicEngine(unittest.TestCase):
         res = EpistemicEngine.evaluate_epistemics(uo_data)
         self.assertEqual(res["execution_status"], "PASS_AMBIGUOUS")
 
+    def test_partial_ambiguous_remains_ambiguous(self):
+        uo_data = {
+            "resolution_state": {
+                "overall_resolution": "partial",
+                "consistency_state": "consistent",
+                "conflict_type": "ambiguity",
+                "requires_context": True,
+            }
+        }
+        res = EpistemicEngine.evaluate_epistemics(uo_data)
+        self.assertEqual(res["execution_status"], "PASS_AMBIGUOUS")
+
 
 if __name__ == "__main__":
     unittest.main()
