@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 from typing import Any
 
 from .hash_engine import HashEngine
+from .structural_engine import StructuralEngine
 
 
 @dataclass(frozen=True)
@@ -30,9 +31,9 @@ class HarnessResult:
 class Core00Harness:
     """Fail-fast runtime orchestrator for frozen CORE-00 engine order.
 
-    Only HashEngine is physically implemented in this commit. The remaining
-    four engines are deliberately represented as NOT_IMPLEMENTED rather than
-    simulated, so runtime status cannot be mistaken for a 30/30 pass.
+    HashEngine and StructuralEngine are physically materialized. The remaining
+    three engines remain explicit NOT_IMPLEMENTED steps so runtime status cannot
+    be mistaken for a certified 30/30 pass.
     """
 
     ENGINE_ORDER = (
@@ -43,10 +44,27 @@ class Core00Harness:
         "EpistemicEngine",
     )
 
+    @staticmethod
+    def _pending_steps(names: tuple[str, ...]) -> list[EngineStepResult]:
+        return [
+            EngineStepResult(
+                engine=name,
+                passed=False,
+                status="NOT_IMPLEMENTED",
+                detail={"reason": "runtime_materialization_pending"},
+            )
+            for name in names
+        ]
+
     @classmethod
-    def validate_text_payload(cls, raw_text: str, declared_hash: str) -> HarnessResult:
+    def validate_uo_payload(
+        cls,
+        raw_text: str,
+        declared_hash: str,
+        uo_data: dict[str, Any],
+    ) -> HarnessResult:
         hash_result = HashEngine.verify_integrity(raw_text, declared_hash)
-        first = EngineStepResult(
+        hash_step = EngineStepResult(
             engine="HashEngine",
             passed=hash_result.passed,
             status="PASS" if hash_result.passed else "REJECT",
@@ -57,21 +75,47 @@ class Core00Harness:
             return HarnessResult(
                 admitted=False,
                 terminal_status="REJECT",
-                steps=[first],
+                steps=[hash_step],
             )
 
-        pending = [
-            EngineStepResult(
-                engine=name,
-                passed=False,
-                status="NOT_IMPLEMENTED",
-                detail={"reason": "runtime_materialization_pending"},
+        structural_result = StructuralEngine.validate_uo(uo_data)
+        structural_step = EngineStepResult(
+            engine="StructuralEngine",
+            passed=structural_result["passed"],
+            status="PASS" if structural_result["passed"] else "REJECT",
+            detail=structural_result,
+        )
+
+        if not structural_result["passed"]:
+            return HarnessResult(
+                admitted=False,
+                terminal_status="REJECT",
+                steps=[hash_step, structural_step],
             )
-            for name in cls.ENGINE_ORDER[1:]
-        ]
+
+        pending = cls._pending_steps(cls.ENGINE_ORDER[2:])
+        return HarnessResult(
+            admitted=False,
+            terminal_status="RUNTIME_PENDING",
+            steps=[hash_step, structural_step, *pending],
+        )
+
+    @classmethod
+    def validate_text_payload(cls, raw_text: str, declared_hash: str) -> HarnessResult:
+        """Backward-compatible HashEngine-only entrypoint."""
+        hash_result = HashEngine.verify_integrity(raw_text, declared_hash)
+        first = EngineStepResult(
+            engine="HashEngine",
+            passed=hash_result.passed,
+            status="PASS" if hash_result.passed else "REJECT",
+            detail=hash_result.to_dict(),
+        )
+
+        if not hash_result.passed:
+            return HarnessResult(False, "REJECT", [first])
 
         return HarnessResult(
             admitted=False,
             terminal_status="RUNTIME_PENDING",
-            steps=[first, *pending],
+            steps=[first, *cls._pending_steps(cls.ENGINE_ORDER[1:])],
         )
