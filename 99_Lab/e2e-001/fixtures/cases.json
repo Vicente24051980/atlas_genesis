@@ -1,0 +1,87 @@
+[
+  {
+    "name": "sourced_fact_passes",
+    "expected_status": "PASS",
+    "expected_route": "facts",
+    "item": {
+      "id": "f-001",
+      "text": "Company X reported revenue of 10 billion in its filed annual report.",
+      "kind": "fact",
+      "source": "annual-report-2026",
+      "canonical_evidence": true,
+      "truth_claim": "established",
+      "attribution": "none"
+    }
+  },
+  {
+    "name": "unsourced_canonical_fact_quarantined",
+    "expected_status": "QUARANTINED",
+    "expected_route": "facts",
+    "item": {
+      "id": "f-002",
+      "text": "Company X reported revenue of 10 billion.",
+      "kind": "fact",
+      "canonical_evidence": true,
+      "truth_claim": "established",
+      "attribution": "none"
+    }
+  },
+  {
+    "name": "attributed_interpretation_preserved",
+    "expected_status": "PASS",
+    "expected_route": "interpretations",
+    "item": {
+      "id": "i-001",
+      "text": "Author X argues that event Y was coordinated.",
+      "kind": "interpretation",
+      "source": "book-x-page-42",
+      "attributed_to": "Author X",
+      "canonical_evidence": false,
+      "truth_claim": "not_established",
+      "attribution": "preserved"
+    }
+  },
+  {
+    "name": "interpretation_promoted_to_fact_rejected",
+    "expected_status": "REJECT",
+    "expected_route": "rejected",
+    "item": {
+      "id": "i-002",
+      "text": "Event Y was coordinated.",
+      "kind": "interpretation",
+      "source": "book-x-page-42",
+      "attributed_to": "Author X",
+      "canonical_evidence": true,
+      "truth_claim": "established",
+      "attribution": "preserved"
+    }
+  },
+  {
+    "name": "hypothesis_cannot_be_canonical",
+    "expected_status": "REJECT",
+    "expected_route": "rejected",
+    "item": {
+      "id": "h-001",
+      "text": "Demand may accelerate next quarter.",
+      "kind": "hypothesis",
+      "source": "analyst-model-1",
+      "canonical_evidence": true,
+      "truth_claim": "supported",
+      "attribution": "none"
+    }
+  },
+  {
+    "name": "unsourced_interpretation_quarantined",
+    "expected_status": "QUARANTINED",
+    "expected_route": "interpretations",
+    "item": {
+      "id": "i-003",
+      "text": "Author Z believes the policy was intentional.",
+      "kind": "interpretation",
+      "attributed_to": "Author Z",
+      "canonical_evidence": false,
+      "truth_claim": "not_established",
+      "attribution": "preserved"
+    }
+  }
+]
