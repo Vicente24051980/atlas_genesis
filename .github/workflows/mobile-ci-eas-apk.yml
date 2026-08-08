@@ -31,8 +31,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  typecheck-and-schema:
-    name: TypeScript Check & Schema Verification
+  typecheck-and-semantic-gate:
+    name: TypeScript + Semantic Verification
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -53,11 +53,14 @@ jobs:
         run: npm install
 
       - name: Run TypeScript typecheck
-        run: npx tsc --noEmit
+        run: npm run typecheck
+
+      - name: Run deterministic semantic fixtures
+        run: npm run semantic:gate
 
   build-candidate-apk:
     name: Build Android Candidate APK
-    needs: typecheck-and-schema
+    needs: typecheck-and-semantic-gate
     runs-on: ubuntu-latest
     defaults:
       run:
