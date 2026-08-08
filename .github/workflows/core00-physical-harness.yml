@@ -32,7 +32,7 @@ jobs:
         run: python runtime/core00/generate_all_fixtures.py
 
       - name: Run physical harness
-        run: python runtime/core00/runner.py
+        run: python -m runtime.core00.runner
 
       - name: Verify CORE00_STATUS.md
         shell: bash
