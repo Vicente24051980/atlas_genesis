@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, like } from 'drizzle-orm';
 
 import { CANONICAL_WATCHLIST_SEED } from '../data/canonicalWatchlist';
 import { db } from '../db/client';
@@ -7,6 +7,8 @@ import {
   auditLog,
   brokerOrder,
   brokerPosition,
+  decisionLog,
+  evidence,
   marketSnapshot,
   radar,
   syncState,
@@ -14,7 +16,13 @@ import {
   watchlist,
 } from '../db/schema';
 import { getCredentialStatus } from './credentials';
-import { fetchFmpGlobalUniverse, fetchFmpQuotes, FmpQuote } from './providers/fmp';
+import {
+  fetchFmpGlobalUniverse,
+  fetchFmpMarketScreenerCandidates,
+  fetchFmpQuotes,
+  FmpQuote,
+} from './providers/fmp';
+import { discoverSecFilingsForTickers } from './providers/sec';
 import {
   fetchTrading212AccountSummary,
   fetchTrading212Orders,
@@ -31,13 +39,17 @@ export type AutoSyncResult = {
   marketQuotes: number;
   radarSignals: number;
   universeSymbols: number;
+  secFilings: number;
+  dailyObservations: number;
   warnings: string[];
   completedAt: string;
 };
 
 const SYNC_KEY = 'AUTO_SYNC';
 const UNIVERSE_SYNC_KEY = 'GLOBAL_UNIVERSE';
+const SEC_SYNC_KEY = 'SEC_PRIMARY_SOURCES';
 const UNIVERSE_REFRESH_MS = 24 * 60 * 60 * 1000;
+const SEC_REFRESH_MS = 6 * 60 * 60 * 1000;
 const STARTUP_REFRESH_MS = 10 * 60 * 1000;
 
 function id(prefix: string, value?: string): string {
@@ -134,7 +146,7 @@ async function syncTrading212(): Promise<{ positions: number; orders: number; ac
     });
   }
 
-  // Portfolio is truth. Anything held is removed from the watchlist to prevent duplication.
+  // Portfolio is truth. Only after discovery/seed do we remove actual holdings from watchlist.
   for (const item of positions) {
     await db.delete(watchlist).where(eq(watchlist.canonicalTicker, item.canonicalTicker));
   }
@@ -292,45 +304,192 @@ async function rebuildAutomaticRadar(): Promise<number> {
   return ranked.length;
 }
 
-async function shouldRefreshUniverse(): Promise<boolean> {
-  const rows = await db.select().from(syncState).where(eq(syncState.key, UNIVERSE_SYNC_KEY)).limit(1);
+async function shouldRefresh(key: string, intervalMs: number): Promise<boolean> {
+  const rows = await db.select().from(syncState).where(eq(syncState.key, key)).limit(1);
   const last = rows[0]?.lastSuccessAt?.getTime() ?? 0;
-  return Date.now() - last >= UNIVERSE_REFRESH_MS;
+  return Date.now() - last >= intervalMs;
 }
 
 async function syncGlobalUniverse(): Promise<number> {
   const credentials = await getCredentialStatus();
   if (!credentials.fmp) return 0;
-  if (!(await shouldRefreshUniverse())) return 0;
+  if (!(await shouldRefresh(UNIVERSE_SYNC_KEY, UNIVERSE_REFRESH_MS))) return 0;
 
   const startedAt = new Date();
   try {
-    const items = await fetchFmpGlobalUniverse();
-    const equities = items.filter((item) => {
+    // Invariant: broad, independent ticker discovery happens FIRST.
+    const globalUniverse = await fetchFmpGlobalUniverse();
+    const globalStocks = globalUniverse.filter((item) => {
       const type = (item.type ?? '').toLowerCase();
       return !type || type === 'stock' || type === 'equity';
     });
+    const globalSet = new Set(globalStocks.map((item) => item.symbol));
+
+    // Market filters are applied only after broad discovery.
+    const screened = await fetchFmpMarketScreenerCandidates();
+    const discoveredMarketCandidates = screened.filter((item) => globalSet.has(item.symbol));
+
+    const quotes = await fetchFmpQuotes(discoveredMarketCandidates.map((item) => item.symbol));
+    const quoteMap = new Map(quotes.map((quote) => [quote.symbol, quote]));
+    const [heldRows, watchRows] = await Promise.all([
+      db.select().from(brokerPosition),
+      db.select().from(watchlist),
+    ]);
+    const excludedAfterDiscovery = new Set([
+      ...heldRows.map((row) => row.canonicalTicker),
+      ...watchRows.map((row) => row.canonicalTicker),
+    ]);
+
+    const stageOne = discoveredMarketCandidates
+      .map((candidate) => ({ candidate, quote: quoteMap.get(candidate.symbol) ?? null }))
+      .filter(({ candidate, quote }) => {
+        if (!quote || excludedAfterDiscovery.has(candidate.symbol)) return false;
+        const dayPositive = (quote.changePercent ?? 0) > 0;
+        const above200 = quote.price != null && quote.priceAvg200 != null && quote.price > quote.priceAvg200;
+        return dayPositive && above200;
+      })
+      .sort((a, b) => (b.quote?.changePercent ?? 0) - (a.quote?.changePercent ?? 0))
+      .slice(0, 250);
 
     await db.delete(universeSymbol);
     const now = new Date();
-    for (const item of equities) {
+    for (const { candidate } of stageOne) {
       await db.insert(universeSymbol).values({
-        symbol: item.symbol,
-        companyName: item.name,
-        exchange: item.exchange,
-        exchangeShortName: item.exchangeShortName,
-        type: item.type,
-        source: 'FMP_ACTIVELY_TRADING_LIST',
+        symbol: candidate.symbol,
+        companyName: candidate.name,
+        exchange: candidate.exchange,
+        exchangeShortName: candidate.exchangeShortName,
+        type: candidate.type,
+        source: 'FMP_DISCOVERY_STAGE1_DAY_POSITIVE_ABOVE_200D',
         discoveredAt: now,
       }).onConflictDoNothing();
     }
-    await setSyncState(UNIVERSE_SYNC_KEY, 'SUCCESS', startedAt, null, { symbols: equities.length });
-    return equities.length;
+
+    await setSyncState(UNIVERSE_SYNC_KEY, 'SUCCESS', startedAt, null, {
+      sequence: ['GLOBAL_DISCOVERY', 'MARKET_CAP_LIQUIDITY', 'DAY_POSITIVE', 'PRICE_ABOVE_200D', 'EXCLUDE_PORTFOLIO_WATCHLIST'],
+      globalUniverseSize: globalStocks.length,
+      marketFilteredSize: discoveredMarketCandidates.length,
+      stageOneSize: stageOne.length,
+      note: 'Quality Ω, narrative, sector preferences and portfolio bias were not used during initial discovery.',
+    });
+    return stageOne.length;
   } catch (cause) {
     const message = cause instanceof Error ? cause.message : String(cause);
     await setSyncState(UNIVERSE_SYNC_KEY, 'ERROR', startedAt, message, {});
     throw cause;
   }
+}
+
+async function syncSecPrimarySources(): Promise<number> {
+  if (!(await shouldRefresh(SEC_SYNC_KEY, SEC_REFRESH_MS))) return 0;
+  const startedAt = new Date();
+  try {
+    const [heldRows, watchRows] = await Promise.all([
+      db.select().from(brokerPosition),
+      db.select().from(watchlist),
+    ]);
+    const tickers = [...new Set([
+      ...heldRows.map((row) => row.canonicalTicker),
+      ...watchRows.map((row) => row.canonicalTicker),
+    ])].filter((ticker) => ticker && ticker !== 'SPCX');
+
+    const result = await discoverSecFilingsForTickers(tickers, 14);
+    const now = new Date();
+    for (const filing of result.filings) {
+      const evidenceId = `SEC-${filing.ticker}-${filing.accessionNumber}`;
+      await db.insert(evidence).values({
+        id: evidenceId,
+        subjectId: filing.ticker,
+        sourceType: 'SEC_EDGAR_PRIMARY',
+        sourceRef: filing.filingUrl,
+        validationState: 'PRIMARY_SOURCE_DISCOVERED',
+        epistemicClass: 'SOURCE_DOCUMENT',
+        contentHash: null,
+        summary: `${filing.form} presentado ${filing.filingDate}${filing.reportDate ? ` · periodo ${filing.reportDate}` : ''}. Fuente primaria descubierta automáticamente; claims todavía no extraídos/validados por CORE-00.`,
+        createdAt: now,
+      }).onConflictDoUpdate({
+        target: evidence.id,
+        set: {
+          sourceRef: filing.filingUrl,
+          summary: `${filing.form} presentado ${filing.filingDate}${filing.reportDate ? ` · periodo ${filing.reportDate}` : ''}. Fuente primaria descubierta automáticamente; claims todavía no extraídos/validados por CORE-00.`,
+        },
+      });
+    }
+
+    await setSyncState(SEC_SYNC_KEY, 'SUCCESS', startedAt, null, {
+      tickers: tickers.length,
+      mapped: result.mapped,
+      filings: result.filings.length,
+      unmapped: result.unmapped,
+    });
+    return result.filings.length;
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : String(cause);
+    await setSyncState(SEC_SYNC_KEY, 'ERROR', startedAt, message, {});
+    throw cause;
+  }
+}
+
+async function rebuildDailyIntelligence(warnings: string[]): Promise<number> {
+  await db.delete(decisionLog).where(like(decisionLog.id, 'AUTO-DAILY-%'));
+
+  const [signals, orders, primarySources] = await Promise.all([
+    db.select().from(radar).orderBy(desc(radar.score)).limit(10),
+    db.select().from(brokerOrder),
+    db.select().from(evidence).orderBy(desc(evidence.createdAt)).limit(20),
+  ]);
+
+  const now = new Date();
+  let count = 0;
+  for (const order of orders.slice(0, 10)) {
+    await db.insert(decisionLog).values({
+      id: `AUTO-DAILY-ORDER-${order.id}`,
+      subjectId: order.canonicalTicker,
+      decisionType: 'BROKER_ORDER_OBSERVATION',
+      rationale: `Orden detectada automáticamente en Trading 212 · ${order.orderType ?? 'tipo no informado'} · estado ${order.status ?? 'no informado'}. ATLAS no ejecuta ni modifica órdenes.`,
+      evidenceRefsJson: '[]',
+      createdAt: now,
+    });
+    count += 1;
+  }
+
+  for (const signal of signals.filter((item) => (item.score ?? 0) >= 75).slice(0, 5)) {
+    await db.insert(decisionLog).values({
+      id: `AUTO-DAILY-WAVE-${signal.subjectId}`,
+      subjectId: signal.subjectId,
+      decisionType: 'MARKET_REVIEW_PRIORITY',
+      rationale: `Wave Score ${signal.score?.toFixed(0) ?? '—'} detectado automáticamente. Prioriza revisión; no es recomendación de compra ni evidencia fundamental.`,
+      evidenceRefsJson: '[]',
+      createdAt: now,
+    });
+    count += 1;
+  }
+
+  for (const source of primarySources.filter((item) => item.validationState === 'PRIMARY_SOURCE_DISCOVERED').slice(0, 5)) {
+    await db.insert(decisionLog).values({
+      id: `AUTO-DAILY-EVIDENCE-${source.id}`,
+      subjectId: source.subjectId,
+      decisionType: 'PRIMARY_SOURCE_UPDATE',
+      rationale: source.summary,
+      evidenceRefsJson: JSON.stringify([source.id]),
+      createdAt: now,
+    }).onConflictDoNothing();
+    count += 1;
+  }
+
+  for (let index = 0; index < warnings.length; index += 1) {
+    await db.insert(decisionLog).values({
+      id: `AUTO-DAILY-WARNING-${index}`,
+      subjectId: null,
+      decisionType: 'SYNC_WARNING',
+      rationale: warnings[index],
+      evidenceRefsJson: '[]',
+      createdAt: now,
+    });
+    count += 1;
+  }
+
+  return count;
 }
 
 export async function shouldRunStartupSync(): Promise<boolean> {
@@ -349,6 +508,8 @@ export async function runAutomaticSync(trigger: SyncTrigger): Promise<AutoSyncRe
   let marketQuotes = 0;
   let radarSignals = 0;
   let universeSymbols = 0;
+  let secFilings = 0;
+  let dailyObservations = 0;
 
   await setSyncState(SYNC_KEY, 'RUNNING', startedAt, null, { trigger });
   await seedCanonicalWatchlist();
@@ -376,7 +537,8 @@ export async function runAutomaticSync(trigger: SyncTrigger): Promise<AutoSyncRe
         warnings.push(`FMP: ${cause instanceof Error ? cause.message : String(cause)}`);
       }
 
-      if (trigger === 'BACKGROUND' || trigger === 'SETUP_TEST') {
+      // Full global discovery is deliberately background-only: it is broad and can be expensive.
+      if (trigger === 'BACKGROUND') {
         try {
           universeSymbols = await syncGlobalUniverse();
         } catch (cause) {
@@ -387,6 +549,16 @@ export async function runAutomaticSync(trigger: SyncTrigger): Promise<AutoSyncRe
       warnings.push('FMP pendiente de configurar.');
     }
 
+    if (trigger === 'BACKGROUND' || trigger === 'USER_REFRESH') {
+      try {
+        secFilings = await syncSecPrimarySources();
+      } catch (cause) {
+        warnings.push(`SEC EDGAR: ${cause instanceof Error ? cause.message : String(cause)}`);
+      }
+    }
+
+    dailyObservations = await rebuildDailyIntelligence(warnings);
+
     const result: AutoSyncResult = {
       ok: credentialStatus.trading212 || credentialStatus.fmp,
       trigger,
@@ -395,6 +567,8 @@ export async function runAutomaticSync(trigger: SyncTrigger): Promise<AutoSyncRe
       marketQuotes,
       radarSignals,
       universeSymbols,
+      secFilings,
+      dailyObservations,
       warnings,
       completedAt: new Date().toISOString(),
     };
