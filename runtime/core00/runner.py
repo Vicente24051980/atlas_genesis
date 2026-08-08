@@ -4,10 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-try:
-    from .validation_harness import Core00Harness
-except ImportError:  # pragma: no cover - direct script execution fallback
-    from validation_harness import Core00Harness
+from runtime.core00.validation_harness import Core00Harness
 
 
 TERMINAL_FAILURE_STATUSES = {"REJECT", "QUARANTINED", "INVALID"}
@@ -74,9 +71,6 @@ class Core00HarnessRunner:
             and (expected_violation is None or actual_violation == expected_violation)
         )
 
-        # A fail-fast terminal path can be certified if it occurred at the exact
-        # expected implemented engine. A happy-path/pending case cannot be
-        # certified while downstream engines are still NOT_IMPLEMENTED.
         certified = expected_match and (
             actual["terminal_status"] in TERMINAL_FAILURE_STATUSES or not pending
         )
