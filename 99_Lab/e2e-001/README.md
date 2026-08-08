@@ -1,6 +1,3 @@
-# E2E-001 — SUPERSEDED / DO NOT MERGE
+# E2E-001 — DEPRECATED
 
-status: Deprecated
-canonical: false
-
-Historical trace only. The replacement must be derived from the current Atlas Genesis contracts and validation system.
+Do not merge. Historical experiment superseded by the current Atlas Genesis architecture.
