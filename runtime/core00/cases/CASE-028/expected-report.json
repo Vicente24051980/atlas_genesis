@@ -1,7 +1,6 @@
 {
   "case_id": "CASE-028",
-  "expected_terminal_status": "QUARANTINED",
-  "expected_engine": "AuthenticationEngine",
-  "expected_violation_code": "AUTHENTICITY.SOURCE_VERIFICATION_FAILED",
-  "passed": false
+  "terminal_status": "QUARANTINED",
+  "rejected_by": "AuthenticationEngine",
+  "violation_code": "AUTHENTICITY.SOURCE_VERIFICATION_FAILED"
 }
