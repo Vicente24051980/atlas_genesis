@@ -1,61 +1,17 @@
-# E2E-001 — Epistemic Routing Benchmark
+# E2E-001 — DEPRECATED
 
-Status: experimental benchmark
-Branch: `bench/e2e-bench-001`
-Scope: higher-layer integration only
+status: Deprecated
+superseded_by: current Atlas Genesis architecture
 
-## Governance boundary
+This experimental benchmark was created from an obsolete architectural snapshot and MUST NOT be treated as canonical Atlas Genesis.
 
-E2E-001 MUST NOT modify CORE-00 or redefine the cognitive kernel. It is a higher-layer validation and routing harness.
+## Reason
+The current Atlas corpus already defines formal module contracts, document lifecycle/governance, ontology/entity contracts, schemas, templates, glossary and validation/test gates. E2E-001 duplicated and simplified responsibilities that belong to those newer contracts.
 
-Canonical flow under test:
+## Rule
+- Do not promote this laboratory implementation to `main`.
+- Do not use its PASS / QUARANTINED / REJECT model as canonical unless a current specification explicitly adopts it.
+- Rebuild future executable validation from the current canonical contracts and registries.
+- CORE/frozen documents remain untouched.
 
-```text
-Transcript/Input
-  -> Parser / UO 1.1
-  -> Validation Harness Ω
-       PASS | QUARANTINED | REJECT
-  -> Orchestrator
-  -> Epistemic Classification Skill
-  -> Facts | Evidence | Hypotheses | Interpretations
-  -> Biblioteca Atlas | Atlas Conspiraciones | Gemelo Digital
-  -> Certified Output
-```
-
-## Epistemic rules
-
-The benchmark preserves interpretations instead of deleting them.
-
-An interpretation that is attributable to a source is represented with:
-
-```json
-{
-  "kind": "interpretation",
-  "canonical_evidence": false,
-  "truth_claim": "not_established",
-  "attribution": "preserved"
-}
-```
-
-This permits documentary statements such as "Author X argues Y" to be stored as a sourced fact about the author's position without promoting Y itself to objective truth.
-
-## Validation states
-
-- `PASS`: structurally valid input with enough provenance to continue normal routing.
-- `QUARANTINED`: structurally valid but provenance, attribution, or truth status is insufficient for canonical evidence.
-- `REJECT`: malformed, internally contradictory at contract level, or explicitly attempts to promote unsupported interpretation into canonical fact.
-
-## Files
-
-- `epistemic_harness.py`: dependency-free reference implementation.
-- `test_epistemic_harness.py`: executable benchmark tests.
-- `fixtures/cases.json`: benchmark corpus.
-- `CONTRACT.md`: typed contract and invariants.
-
-## Run
-
-```bash
-python -m unittest 99_Lab/e2e-001/test_epistemic_harness.py -v
-```
-
-The implementation is intentionally isolated from production code until the benchmark is accepted.
+Historical files are retained only for traceability until the branch/PR is closed or deleted.
