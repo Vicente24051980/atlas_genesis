@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'mobile/**'
+      - '.github/workflows/mobile-ci-eas-apk.yml'
   pull_request:
     branches:
       - main
@@ -13,8 +14,10 @@ on:
       - opened
       - reopened
       - ready_for_review
+      - synchronize
     paths:
       - 'mobile/**'
+      - '.github/workflows/mobile-ci-eas-apk.yml'
   workflow_dispatch:
     inputs:
       target_ref:
@@ -52,11 +55,170 @@ jobs:
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
 
-  build-apk:
-    name: Build Preview APK
+  build-candidate-apk:
+    name: Build Android Candidate APK
     needs: typecheck-and-schema
-    # Temporary same-repository checkpoint: PR execution is allowed here only.
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate Android native project
+        run: npx expo prebuild --platform android --non-interactive --clean
+
+      - name: Build release APK with Gradle
+        shell: bash
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Upload candidate APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-omega-candidate-apk
+          path: mobile/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+  functional-emulator-smoke:
+    name: Functional Android Emulator Gate
+    needs: build-candidate-apk
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
+
+      - name: Download candidate APK
+        uses: actions/download-artifact@v4
+        with:
+          name: atlas-omega-candidate-apk
+          path: candidate-apk
+
+      - name: Enable KVM
+        shell: bash
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Launch app and verify all functional routes
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            set -euo pipefail
+            APK="$(find candidate-apk -type f -name '*.apk' | head -n 1)"
+            test -n "$APK"
+            adb install -r "$APK"
+            adb shell am force-stop com.vicentebellver.atlasomega || true
+            adb shell am start -W -n com.vicentebellver.atlasomega/.MainActivity
+
+            dump_ui() {
+              adb shell uiautomator dump /sdcard/window.xml >/dev/null 2>&1 || true
+              adb pull /sdcard/window.xml window.xml >/dev/null 2>&1 || true
+            }
+
+            wait_for_text() {
+              local needle="$1"
+              for _ in $(seq 1 45); do
+                dump_ui
+                if grep -Fq "$needle" window.xml 2>/dev/null; then
+                  return 0
+                fi
+                sleep 2
+              done
+              echo "::error::Timed out waiting for UI text: $needle"
+              cat window.xml 2>/dev/null || true
+              return 1
+            }
+
+            tap_desc() {
+              local desc="$1"
+              dump_ui
+              COORDS="$(python3 - "$desc" <<'PY'
+            import re
+            import sys
+            import xml.etree.ElementTree as ET
+
+            desc = sys.argv[1]
+            root = ET.parse('window.xml').getroot()
+            for node in root.iter('node'):
+                if node.attrib.get('content-desc') == desc:
+                    bounds = node.attrib.get('bounds', '')
+                    match = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds)
+                    if not match:
+                        continue
+                    x1, y1, x2, y2 = map(int, match.groups())
+                    print(f'{(x1 + x2)//2} {(y1 + y2)//2}')
+                    raise SystemExit(0)
+            raise SystemExit(f'Accessibility node not found: {desc}')
+            PY
+              )"
+              read -r X Y <<< "$COORDS"
+              adb shell input tap "$X" "$Y"
+            }
+
+            wait_for_text "FUNCTIONAL GATE"
+            wait_for_text "PASS"
+            wait_for_text "CORE-00"
+
+            verify_route() {
+              local desc="$1"
+              local expected="$2"
+              tap_desc "$desc"
+              wait_for_text "$expected"
+              adb shell input keyevent 4
+              wait_for_text "FUNCTIONAL GATE"
+            }
+
+            verify_route "Abrir Portfolio" "Guardar posición"
+            verify_route "Abrir Watchlist" "Añadir candidato"
+            verify_route "Abrir Radar" "Guardar señal"
+            verify_route "Abrir Evidence" "Guardar evidencia"
+            verify_route "Abrir Daily Intelligence" "Registrar decisión"
+            verify_route "Abrir Gemelo Digital" "Guardar Gemelo Digital"
+            verify_route "Abrir Audit" "Auditoría y trazabilidad"
+
+            echo "ATLAS Ω functional emulator gate: PASS"
+
+      - name: Publish functional APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-omega-functional-apk
+          path: candidate-apk/*.apk
+          if-no-files-found: error
+
+  eas-preview-after-functional-gate:
+    name: Optional EAS Preview Build After Functional Gate
+    needs: functional-emulator-smoke
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -83,7 +245,7 @@ jobs:
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "EXPO_TOKEN is not configured; using local Android fallback build."
+            echo "EXPO_TOKEN is not configured; functional local APK remains the certified artifact."
           fi
 
       - name: Setup Expo & EAS CLI
@@ -100,34 +262,3 @@ jobs:
       - name: Build Android APK with EAS
         if: steps.expo_token.outputs.available == 'true'
         run: eas build --platform android --profile preview --non-interactive
-
-      - name: Setup Java 17 for local fallback
-        if: steps.expo_token.outputs.available != 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Install dependencies for local fallback
-        if: steps.expo_token.outputs.available != 'true'
-        run: npm install
-
-      - name: Generate Android native project
-        if: steps.expo_token.outputs.available != 'true'
-        run: npx expo prebuild --platform android --non-interactive --clean
-
-      - name: Build local release APK with Gradle
-        if: steps.expo_token.outputs.available != 'true'
-        shell: bash
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
-
-      - name: Upload local APK artifact
-        if: steps.expo_token.outputs.available != 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: atlas-omega-android-apk
-          path: mobile/android/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
