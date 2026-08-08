@@ -1,0 +1,76 @@
+{
+  "version": "1.1",
+  "input_manifest": {
+    "source_type": "text",
+    "captured_at": "2026-08-08T10:15:00Z",
+    "raw_hash": "0b755ff7cd9ea65d2c82d3f8e642e638ef2f6f0096f3240ff31ba26ded2be969",
+    "hash_algorithm": "sha256",
+    "normalization_profile": "CORE-HASH-v1",
+    "authentication_proof": {
+      "method": "digital_signature_rsa_sha256",
+      "issuer": "CN=Microsoft Investor Relations (Unverified CA)",
+      "signature_status": "UNVERIFIED_ISSUER"
+    }
+  },
+  "history": {
+    "current_version": 1,
+    "evolution_log": [{
+      "version": 1,
+      "change_description": "Ingestión de anuncio de dividendo extraordinario de MSFT",
+      "reason": "Evaluación de la autenticidad de la fuente",
+      "trigger_evidence_id": "EVD-CASE-028-01"
+    }]
+  },
+  "identity": {"essence": "Anuncio de dividendo extraordinario para accionistas de Microsoft Corporation."},
+  "resolution_state": {
+    "dimensions": {"entity": 1.0, "temporal": 1.0, "unit": 1.0, "currency": 1.0, "location": 1.0},
+    "overall_resolution": "resolved",
+    "consistency_state": "consistent",
+    "conflict_type": null,
+    "requires_context": false,
+    "blocking_dimensions": []
+  },
+  "reconciliation": {"status": "not_applicable", "resolved_by": null, "canonical_assertion": null, "policy": "none"},
+  "epistemic_summary": {
+    "verified_assertions_count": 1,
+    "supported_assertions_count": 0,
+    "unverified_assertions_count": 0,
+    "disputed_assertions_count": 0,
+    "refuted_assertions_count": 0,
+    "unknown_identification_confidence": 1.0,
+    "unknown_coverage_estimate": 1.0,
+    "canonical_status": "accepted"
+  },
+  "context": {"purpose": "Aislamiento de test de autenticidad de procedencia corporativa."},
+  "assertions": [{
+    "assertion_id": "AST-001",
+    "statement": "Microsoft Corporation declara un dividendo extraordinario de 5.00 USD por acción.",
+    "class": "verified_fact",
+    "status": "verified",
+    "provenance_mode": "external_source",
+    "confidence": {"source_fidelity": 1.0, "evidential_support": 1.0, "composite_confidence": 1.0},
+    "evidence_ids": ["EVD-CASE-028-01"]
+  }],
+  "derived_claims": [],
+  "evidence": [{
+    "evidence_id": "EVD-CASE-028-01",
+    "source_origin": "Comunicado Corporativo No Autenticado",
+    "emission_date": "2026-08-08T10:15:00Z",
+    "evidence_type": "primary_document",
+    "uri_or_reference": "UNVERIFIED-FILING-DIV-01",
+    "confidence": 1.0,
+    "verbatim_extract": "Microsoft Corporation anuncia un dividendo extraordinario de 5.00 USD por acción con fecha de registro 15 de septiembre de 2026."
+  }],
+  "personal_relevance": {"domain": "financial", "weight": 5},
+  "freshness": {"category": "evergreen"},
+  "inaction_cost": {"level": "low", "justification": "Test case"},
+  "relations": {"mentions": [], "canonical_entities": [], "canonical_events": [], "typed_relations": []},
+  "actions": {
+    "operational_state": "guardar",
+    "action_mode": "inform",
+    "next_step": "Aislar en cuarentena por fallo de verificación de emisor.",
+    "requires_user_confirmation": false
+  },
+  "value": {"importance": 5, "urgency": 1, "impact": 5, "reusability": 1, "global_confidence": 1.0, "novelty": 1},
+  "confidence_matrix": {"assertions": 1.0, "truth_status": 1.0, "insights": 1.0, "consequences": 1.0, "risks": 1.0, "opportunities": 1.0, "unknowns": 0.0}
+}
