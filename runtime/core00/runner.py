@@ -10,6 +10,9 @@ except ImportError:  # pragma: no cover - direct script execution fallback
     from validation_harness import Core00Harness
 
 
+TERMINAL_FAILURE_STATUSES = {"REJECT", "QUARANTINED", "INVALID"}
+
+
 class Core00HarnessRunner:
     """Physical runner for frozen CORE-00 fixtures.
 
@@ -50,23 +53,32 @@ class Core00HarnessRunner:
 
         executed = [step["engine"] for step in actual["steps"] if step["status"] != "NOT_IMPLEMENTED"]
         pending = [step["engine"] for step in actual["steps"] if step["status"] == "NOT_IMPLEMENTED"]
-        rejected_by = next(
-            (step["engine"] for step in actual["steps"] if step["status"] == "REJECT"),
-            None,
-        )
+
+        terminal_engine = None
+        if actual["terminal_status"] in TERMINAL_FAILURE_STATUSES and actual["steps"]:
+            terminal_engine = actual["steps"][-1]["engine"]
 
         expected_terminal = expected.get("terminal_status")
-        expected_rejected_by = expected.get("rejected_by")
+        expected_terminal_engine = expected.get("rejected_by")
+        expected_violation = expected.get("violation_code")
+
+        actual_violation = None
+        if actual["steps"]:
+            violations = actual["steps"][-1].get("detail", {}).get("violations", [])
+            if violations:
+                actual_violation = violations[0].get("code")
+
         expected_match = (
             actual["terminal_status"] == expected_terminal
-            and rejected_by == expected_rejected_by
+            and terminal_engine == expected_terminal_engine
+            and (expected_violation is None or actual_violation == expected_violation)
         )
 
-        # A fail-fast rejection can be certified if it occurred at the exact
+        # A fail-fast terminal path can be certified if it occurred at the exact
         # expected implemented engine. A happy-path/pending case cannot be
         # certified while downstream engines are still NOT_IMPLEMENTED.
         certified = expected_match and (
-            actual["terminal_status"] == "REJECT" or not pending
+            actual["terminal_status"] in TERMINAL_FAILURE_STATUSES or not pending
         )
 
         return {
@@ -75,7 +87,8 @@ class Core00HarnessRunner:
             "terminal_status": actual["terminal_status"],
             "executed_engines": executed,
             "pending_engines": pending,
-            "rejected_by": rejected_by,
+            "rejected_by": terminal_engine,
+            "violation_code": actual_violation,
             "expected_match": expected_match,
             "certified": certified,
             "steps": actual["steps"],
