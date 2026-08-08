@@ -55,7 +55,8 @@ jobs:
   build-apk:
     name: Build Preview APK with EAS
     needs: typecheck-and-schema
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    # Temporary checkpoint branch only: allow same-repository PR to verify EAS/token.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     defaults:
       run:
