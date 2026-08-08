@@ -1,0 +1,7 @@
+case_id: CASE-029
+level: L3
+category: adversarial
+engine_under_test: ReferenceEngine
+expected_terminal_status: REJECT
+expected_violation_code: REFERENCE.CIRCULAR_DEPENDENCY_DETECTED
+contract: UO 1.1 RC1

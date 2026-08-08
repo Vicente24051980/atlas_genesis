@@ -1,0 +1,6 @@
+{
+  "case_id": "CASE-028",
+  "terminal_status": "QUARANTINED",
+  "rejected_by": "AuthenticationEngine",
+  "violation_code": "AUTHENTICITY.SOURCE_VERIFICATION_FAILED"
+}

@@ -1,0 +1,6 @@
+case_id: CASE-030
+level: L3
+category: Adversarial
+purpose: Malformed payload / StructuralEngine rejection
+canonical_contract: UO 1.1 RC1
+runtime_status: MATERIALIZED_FOR_STRUCTURAL_PATH
