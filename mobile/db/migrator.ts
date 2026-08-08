@@ -21,6 +21,67 @@ CREATE TABLE IF NOT EXISTS position (
   updated_at INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS broker_position (
+  id TEXT PRIMARY KEY NOT NULL,
+  broker TEXT NOT NULL,
+  broker_ticker TEXT NOT NULL,
+  canonical_ticker TEXT NOT NULL,
+  isin TEXT,
+  company_name TEXT NOT NULL,
+  currency TEXT,
+  quantity REAL NOT NULL,
+  average_price REAL,
+  current_price REAL,
+  market_value REAL,
+  unrealized_pnl REAL,
+  synced_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_broker_position_ticker ON broker_position(canonical_ticker);
+
+CREATE TABLE IF NOT EXISTS broker_order (
+  id TEXT PRIMARY KEY NOT NULL,
+  broker TEXT NOT NULL,
+  broker_ticker TEXT NOT NULL,
+  canonical_ticker TEXT NOT NULL,
+  order_type TEXT,
+  quantity REAL,
+  limit_price REAL,
+  stop_price REAL,
+  status TEXT,
+  created_at INTEGER,
+  synced_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS market_snapshot (
+  canonical_ticker TEXT PRIMARY KEY NOT NULL,
+  price REAL,
+  change REAL,
+  change_percent REAL,
+  day_low REAL,
+  day_high REAL,
+  year_low REAL,
+  year_high REAL,
+  market_cap REAL,
+  volume REAL,
+  average_volume REAL,
+  price_avg_50 REAL,
+  price_avg_200 REAL,
+  exchange TEXT,
+  source TEXT NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS universe_symbol (
+  symbol TEXT PRIMARY KEY NOT NULL,
+  company_name TEXT,
+  exchange TEXT,
+  exchange_short_name TEXT,
+  type TEXT,
+  source TEXT NOT NULL,
+  discovered_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS evidence (
   id TEXT PRIMARY KEY NOT NULL,
   subject_id TEXT NOT NULL,
@@ -60,6 +121,15 @@ CREATE TABLE IF NOT EXISTS radar (
   created_at INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS sync_state (
+  key TEXT PRIMARY KEY NOT NULL,
+  status TEXT NOT NULL,
+  last_attempt_at INTEGER NOT NULL,
+  last_success_at INTEGER,
+  error TEXT,
+  payload_json TEXT NOT NULL DEFAULT '{}'
+);
+
 CREATE TABLE IF NOT EXISTS audit_log (
   id TEXT PRIMARY KEY NOT NULL,
   action TEXT NOT NULL,
@@ -76,13 +146,17 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 `;
 
+export function ensureDatabaseSchema(): void {
+  sqlite.execSync(BOOTSTRAP_SQL);
+}
+
 export function useDatabaseInitialization(): { isReady: boolean; error: Error | undefined } {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | undefined>(undefined);
 
   useEffect(() => {
     try {
-      sqlite.execSync(BOOTSTRAP_SQL);
+      ensureDatabaseSchema();
       setIsReady(true);
     } catch (cause) {
       setError(cause instanceof Error ? cause : new Error(String(cause)));
