@@ -1,0 +1,6 @@
+{
+  "case_id": "CASE-001",
+  "terminal_status": "RUNTIME_PENDING",
+  "rejected_by": null,
+  "note": "HashEngine and StructuralEngine should pass; downstream engines are not yet physically materialized. This expected report MUST be updated only when the frozen downstream runtime is implemented."
+}
