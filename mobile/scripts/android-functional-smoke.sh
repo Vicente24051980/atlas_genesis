@@ -29,7 +29,7 @@ wait_for_text() {
 
 wait_for_text_with_scroll() {
   local needle="$1"
-  for _ in $(seq 1 10); do
+  for _ in $(seq 1 12); do
     dump_ui
     if grep -Fq "$needle" window.xml 2>/dev/null; then
       return 0
@@ -40,6 +40,16 @@ wait_for_text_with_scroll() {
   echo "::error::Could not find UI text after scrolling: $needle"
   cat window.xml 2>/dev/null || true
   return 1
+}
+
+assert_text_absent() {
+  local needle="$1"
+  dump_ui
+  if grep -Fq "$needle" window.xml 2>/dev/null; then
+    echo "::error::Legacy manual UI is still present: $needle"
+    cat window.xml 2>/dev/null || true
+    return 1
+  fi
 }
 
 find_desc_coords() {
@@ -67,7 +77,7 @@ PY
 tap_desc() {
   local desc="$1"
   local coords=""
-  for _ in $(seq 1 10); do
+  for _ in $(seq 1 12); do
     dump_ui
     if coords="$(find_desc_coords "$desc")"; then
       local x y
@@ -86,31 +96,51 @@ tap_desc() {
 return_home() {
   adb shell input keyevent 4
   sleep 1
-  for _ in $(seq 1 8); do
-    adb shell input swipe 540 600 540 1900 200 || true
+  for _ in $(seq 1 10); do
+    adb shell input swipe 540 600 540 1900 180 || true
   done
-  wait_for_text "FUNCTIONAL GATE"
+  wait_for_text "AUTOMATION LAYER"
 }
 
 wait_for_text "FUNCTIONAL GATE"
 wait_for_text "PASS"
+wait_for_text "AUTOMATION LAYER"
 wait_for_text "CORE-00"
 
 verify_route() {
   local desc="$1"
   local expected="$2"
-  echo "Verifying route: $desc -> $expected"
+  echo "Verifying automated route: $desc -> $expected"
   tap_desc "$desc"
   wait_for_text_with_scroll "$expected"
   return_home
 }
 
-verify_route "Abrir Portfolio" "Guardar posición"
-verify_route "Abrir Watchlist" "Añadir candidato"
-verify_route "Abrir Radar" "Guardar señal"
-verify_route "Abrir Evidence" "Guardar evidencia"
-verify_route "Abrir Daily Intelligence" "Registrar decisión"
+verify_route "Abrir Fuentes de datos" "Guardar · sincronizar · automatizar"
+verify_route "Abrir Portfolio" "Portfolio automático"
+verify_route "Abrir Watchlist" "Watchlist Ω automática"
+verify_route "Abrir Discovery" "Discovery Ω global"
+verify_route "Abrir Radar" "Radar Ω automático"
+verify_route "Abrir Evidence" "Primary Inbox"
+verify_route "Abrir Daily Intelligence" "Daily Intelligence automático"
 verify_route "Abrir Gemelo Digital" "Guardar Gemelo Digital"
 verify_route "Abrir Audit" "Auditoría y trazabilidad"
 
-echo "ATLAS Ω functional emulator gate: PASS"
+# Explicitly prove that the market workflow no longer exposes the rejected manual forms.
+tap_desc "Abrir Portfolio"
+assert_text_absent "Guardar posición"
+return_home
+
+tap_desc "Abrir Watchlist"
+assert_text_absent "Añadir candidato"
+return_home
+
+tap_desc "Abrir Radar"
+assert_text_absent "Guardar señal"
+return_home
+
+tap_desc "Abrir Daily Intelligence"
+assert_text_absent "Registrar decisión"
+return_home
+
+echo "ATLAS Ω automated functional emulator gate: PASS"
