@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'mobile/**'
   pull_request:
     branches:
       - main
@@ -11,6 +13,8 @@ on:
       - opened
       - reopened
       - ready_for_review
+    paths:
+      - 'mobile/**'
   workflow_dispatch:
     inputs:
       target_ref:
