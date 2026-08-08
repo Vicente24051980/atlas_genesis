@@ -3,13 +3,25 @@ name: Mobile CI & EAS APK Build
 on:
   push:
     branches:
-      - 'bench/**'
-      - 'atlas/**'
       - main
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - reopened
+      - ready_for_review
   workflow_dispatch:
+    inputs:
+      target_ref:
+        description: 'Branch or ref to verify/build'
+        required: true
+        default: 'bench/e2e-bench-001'
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   typecheck-and-schema:
@@ -22,6 +34,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -49,6 +63,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
