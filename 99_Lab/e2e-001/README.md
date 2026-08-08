@@ -1,3 +1,3 @@
-# E2E-001 — DEPRECATED / NON-CANONICAL
+# DEPRECATED
 
-Obsolete experiment. It MUST NOT be merged into `main`. Current work must be rebuilt from the latest Atlas Genesis corpus.
+E2E-001 is obsolete and non-canonical. Do not merge.
