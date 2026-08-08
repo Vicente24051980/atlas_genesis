@@ -69,7 +69,7 @@ export default function AuditScreen() {
         <View style={styles.card}>
           <View style={styles.row}>
             <Text style={styles.action}>{item.action}</Text>
-            <Text style={styles.time}>{new Date(item.createdAt).toLocaleString('es-ES')}</Text>
+            <Text style={styles.time}>{item.createdAt.toLocaleString('es-ES')}</Text>
           </View>
           <Text style={styles.actor}>Actor: {item.actor}</Text>
           {item.target ? <Text style={styles.detail}>Target: {item.target}</Text> : null}
