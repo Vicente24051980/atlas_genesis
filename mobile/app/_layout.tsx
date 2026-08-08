@@ -43,6 +43,13 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ title: 'ATLAS Ω' }} />
+        <Stack.Screen name="portfolio" options={{ title: 'Portfolio' }} />
+        <Stack.Screen name="watchlist" options={{ title: 'Watchlist Ω' }} />
+        <Stack.Screen name="radar" options={{ title: 'Radar Ω' }} />
+        <Stack.Screen name="evidence" options={{ title: 'Evidence Ω' }} />
+        <Stack.Screen name="daily-intelligence" options={{ title: 'Daily Intelligence' }} />
+        <Stack.Screen name="digital-twin" options={{ title: 'Gemelo Digital' }} />
+        <Stack.Screen name="audit" options={{ title: 'Auditoría' }} />
       </Stack>
     </>
   );
