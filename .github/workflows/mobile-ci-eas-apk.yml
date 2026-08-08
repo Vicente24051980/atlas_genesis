@@ -1,0 +1,108 @@
+name: Mobile CI & EAS APK Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+    paths:
+      - 'mobile/**'
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: 'Branch or ref to verify/build'
+        required: true
+        default: 'bench/e2e-bench-001'
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck-and-schema:
+    name: TypeScript Check & Schema Verification
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Install mobile dependencies
+        run: npm install
+
+      - name: Generate Drizzle migrations
+        run: npm run db:generate
+
+      - name: Run TypeScript typecheck
+        run: npx tsc --noEmit
+
+  build-apk:
+    name: Build Preview APK with EAS
+    needs: typecheck-and-schema
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Check EXPO_TOKEN availability
+        id: expo_token
+        shell: bash
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          if [ -n "$EXPO_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "EXPO_TOKEN is not configured; APK build will be skipped."
+          fi
+
+      - name: Setup Expo & EAS CLI
+        if: steps.expo_token.outputs.available == 'true'
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        if: steps.expo_token.outputs.available == 'true'
+        run: npm install
+
+      - name: Build Android APK (preview)
+        if: steps.expo_token.outputs.available == 'true'
+        run: eas build --platform android --profile preview --non-interactive
+
+      - name: Report skipped APK build
+        if: steps.expo_token.outputs.available != 'true'
+        run: echo "APK build skipped because repository secret EXPO_TOKEN is missing."
