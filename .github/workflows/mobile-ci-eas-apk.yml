@@ -53,9 +53,9 @@ jobs:
         run: npx tsc --noEmit
 
   build-apk:
-    name: Build Preview APK with EAS
+    name: Build Preview APK
     needs: typecheck-and-schema
-    # Temporary checkpoint branch only: allow same-repository PR to verify EAS/token.
+    # Temporary same-repository checkpoint: PR execution is allowed here only.
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     defaults:
@@ -83,7 +83,7 @@ jobs:
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "EXPO_TOKEN is not configured; APK build will be skipped."
+            echo "EXPO_TOKEN is not configured; using local Android fallback build."
           fi
 
       - name: Setup Expo & EAS CLI
@@ -93,14 +93,41 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install dependencies
+      - name: Install dependencies for EAS
         if: steps.expo_token.outputs.available == 'true'
         run: npm install
 
-      - name: Build Android APK (preview)
+      - name: Build Android APK with EAS
         if: steps.expo_token.outputs.available == 'true'
         run: eas build --platform android --profile preview --non-interactive
 
-      - name: Report skipped APK build
+      - name: Setup Java 17 for local fallback
         if: steps.expo_token.outputs.available != 'true'
-        run: echo "APK build skipped because repository secret EXPO_TOKEN is missing."
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies for local fallback
+        if: steps.expo_token.outputs.available != 'true'
+        run: npm install
+
+      - name: Generate Android native project
+        if: steps.expo_token.outputs.available != 'true'
+        run: npx expo prebuild --platform android --non-interactive --clean
+
+      - name: Build local release APK with Gradle
+        if: steps.expo_token.outputs.available != 'true'
+        shell: bash
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Upload local APK artifact
+        if: steps.expo_token.outputs.available != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-omega-android-apk
+          path: mobile/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
