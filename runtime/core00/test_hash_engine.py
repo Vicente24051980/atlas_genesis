@@ -33,14 +33,14 @@ class HashEngineTests(unittest.TestCase):
         self.assertEqual(1, len(result.steps))
         self.assertEqual("HashEngine", result.steps[0].engine)
 
-    def test_valid_hash_does_not_claim_core_pass(self):
+    def test_valid_hash_helper_passes_hash_engine_only(self):
         raw = "payload"
         result = Core00Harness.validate_text_payload(raw, HashEngine.compute_raw_hash(raw))
-        self.assertFalse(result.admitted)
-        self.assertEqual("RUNTIME_PENDING", result.terminal_status)
-        self.assertEqual(5, len(result.steps))
+        self.assertTrue(result.admitted)
+        self.assertEqual("PASS", result.terminal_status)
+        self.assertEqual(1, len(result.steps))
+        self.assertEqual("HashEngine", result.steps[0].engine)
         self.assertEqual("PASS", result.steps[0].status)
-        self.assertTrue(all(step.status == "NOT_IMPLEMENTED" for step in result.steps[1:]))
 
 
 if __name__ == "__main__":
