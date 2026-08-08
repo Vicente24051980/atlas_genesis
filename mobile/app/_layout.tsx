@@ -5,6 +5,8 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 
 import { useDatabaseInitialization } from '../db/migrator';
 import { FunctionalGateResult, runMobileFunctionalSelfTest } from '../db/runtimeSelfTest';
+import { registerAtlasBackgroundSync } from '../services/backgroundSync';
+import { runAutomaticSync, seedCanonicalWatchlist, shouldRunStartupSync } from '../services/autoSync';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -37,6 +39,18 @@ export default function RootLayout() {
       active = false;
     };
   }, [isReady, error]);
+
+  useEffect(() => {
+    if (!functionalGate?.ok) return;
+
+    void (async () => {
+      await seedCanonicalWatchlist();
+      await registerAtlasBackgroundSync().catch(() => false);
+      if (await shouldRunStartupSync()) {
+        await runAutomaticSync('APP_START').catch(() => undefined);
+      }
+    })();
+  }, [functionalGate?.ok]);
 
   useEffect(() => {
     if (error || functionalGate) {
@@ -90,6 +104,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ title: 'ATLAS Ω' }} />
+        <Stack.Screen name="data-sources" options={{ title: 'Fuentes de datos' }} />
         <Stack.Screen name="portfolio" options={{ title: 'Portfolio' }} />
         <Stack.Screen name="watchlist" options={{ title: 'Watchlist Ω' }} />
         <Stack.Screen name="radar" options={{ title: 'Radar Ω' }} />
