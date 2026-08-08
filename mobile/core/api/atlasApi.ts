@@ -118,6 +118,7 @@ async function request<T>(path: string): Promise<T> {
 
 export const AtlasApi = {
   health: () => request<ApiHealth>('/health'),
+  search: (query: string) => request<SecurityProfile | null>(`/v1/search?q=${encodeURIComponent(query.trim())}`),
   terminal: (ticker: string) => request<TerminalBundle>(`/v1/terminal/${encodeURIComponent(ticker.trim().toUpperCase())}`),
   quote: (ticker: string) => request<Quote>(`/v1/quote/${encodeURIComponent(ticker.trim().toUpperCase())}`),
   history: (ticker: string, range = '1Y') => request<{ ticker: string; range: string; rows: HistoryPoint[] }>(`/v1/history/${encodeURIComponent(ticker.trim().toUpperCase())}?range=${encodeURIComponent(range)}`),
