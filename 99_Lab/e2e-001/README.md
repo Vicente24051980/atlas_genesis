@@ -3,4 +3,4 @@
 status: Deprecated
 canonical: false
 
-Historical experiment only. Rebuild from the current Atlas Genesis formal corpus before any production integration.
+Historical trace only. The replacement must be derived from the current Atlas Genesis contracts and validation system.
