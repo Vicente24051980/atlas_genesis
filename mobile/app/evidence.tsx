@@ -54,7 +54,7 @@ export default function EvidenceScreen() {
             <Metric label="Verified" value={counts.verified} />
           </View>
           <View style={styles.ruleCard}>
-            <Text style={styles.ruleTitle}>EVIDENCE > NARRATIVE</Text>
+            <Text style={styles.ruleTitle}>EVIDENCE OVER NARRATIVE</Text>
             <Text style={styles.ruleText}>Estado automático: PRIMARY_SOURCE_DISCOVERED. La promoción a VERIFIED_FACT exige extracción, hash/autenticación y validación por CORE-00; la app no la concede por un simple fetch.</Text>
             <Pressable onPress={() => { void syncNow(); }} style={styles.secondary}><Text style={styles.secondaryText}>Buscar fuentes primarias ahora</Text></Pressable>
             {message ? <Text style={styles.message}>{message}</Text> : null}
