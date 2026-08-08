@@ -1,0 +1,9 @@
+{
+  "case_id": "CASE-030",
+  "terminal_status": "REJECT",
+  "rejected_by": "StructuralEngine",
+  "expected_violations": [
+    "root.unauthorized_payload_injection",
+    "assertions[0].confidence.source_fidelity"
+  ]
+}
