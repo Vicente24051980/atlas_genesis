@@ -8,6 +8,7 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
     "build:apk": "eas build -p android --profile preview",
     "build:aab": "eas build -p android --profile production"
   },
