@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, asdict
 from typing import Any
 
+from .authentication_engine import AuthenticationEngine
 from .hash_engine import HashEngine
 from .structural_engine import StructuralEngine
 
@@ -31,9 +32,9 @@ class HarnessResult:
 class Core00Harness:
     """Fail-fast runtime orchestrator for frozen CORE-00 engine order.
 
-    HashEngine and StructuralEngine are physically materialized. The remaining
-    three engines remain explicit NOT_IMPLEMENTED steps so runtime status cannot
-    be mistaken for a certified 30/30 pass.
+    HashEngine, StructuralEngine and AuthenticationEngine are physically
+    materialized. ReferenceEngine and EpistemicEngine remain explicit
+    NOT_IMPLEMENTED steps so runtime status cannot be mistaken for 30/30.
     """
 
     ENGINE_ORDER = (
@@ -70,13 +71,8 @@ class Core00Harness:
             status="PASS" if hash_result.passed else "REJECT",
             detail=hash_result.to_dict(),
         )
-
         if not hash_result.passed:
-            return HarnessResult(
-                admitted=False,
-                terminal_status="REJECT",
-                steps=[hash_step],
-            )
+            return HarnessResult(False, "REJECT", [hash_step])
 
         structural_result = StructuralEngine.validate_uo(uo_data)
         structural_step = EngineStepResult(
@@ -85,19 +81,26 @@ class Core00Harness:
             status="PASS" if structural_result["passed"] else "REJECT",
             detail=structural_result,
         )
-
         if not structural_result["passed"]:
-            return HarnessResult(
-                admitted=False,
-                terminal_status="REJECT",
-                steps=[hash_step, structural_step],
-            )
+            return HarnessResult(False, "REJECT", [hash_step, structural_step])
 
-        pending = cls._pending_steps(cls.ENGINE_ORDER[2:])
+        auth_result = AuthenticationEngine.verify_authenticity(uo_data)
+        auth_status = auth_result["execution_status"]
+        auth_step = EngineStepResult(
+            engine="AuthenticationEngine",
+            passed=auth_result["passed"],
+            status=auth_status,
+            detail=auth_result,
+        )
+        if not auth_result["passed"]:
+            terminal = "INVALID" if auth_status == "INVALID" else "QUARANTINED"
+            return HarnessResult(False, terminal, [hash_step, structural_step, auth_step])
+
+        pending = cls._pending_steps(cls.ENGINE_ORDER[3:])
         return HarnessResult(
             admitted=False,
             terminal_status="RUNTIME_PENDING",
-            steps=[hash_step, structural_step, *pending],
+            steps=[hash_step, structural_step, auth_step, *pending],
         )
 
     @classmethod
@@ -110,7 +113,6 @@ class Core00Harness:
             status="PASS" if hash_result.passed else "REJECT",
             detail=hash_result.to_dict(),
         )
-
         if not hash_result.passed:
             return HarnessResult(False, "REJECT", [first])
 
