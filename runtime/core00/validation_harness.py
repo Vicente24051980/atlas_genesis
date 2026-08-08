@@ -4,6 +4,7 @@ from dataclasses import dataclass, asdict
 from typing import Any
 
 from .authentication_engine import AuthenticationEngine
+from .epistemic_engine import EpistemicEngine
 from .hash_engine import HashEngine
 from .reference_engine import ReferenceEngine
 from .structural_engine import StructuralEngine
@@ -31,12 +32,7 @@ class HarnessResult:
 
 
 class Core00Harness:
-    """Fail-fast runtime orchestrator for frozen CORE-00 engine order.
-
-    HashEngine, StructuralEngine, AuthenticationEngine and ReferenceEngine are
-    physically materialized. EpistemicEngine remains explicit NOT_IMPLEMENTED
-    so runtime status cannot be mistaken for 30/30 certification.
-    """
+    """Fail-fast runtime orchestrator for the frozen CORE-00 five-engine order."""
 
     ENGINE_ORDER = (
         "HashEngine",
@@ -45,18 +41,6 @@ class Core00Harness:
         "ReferenceEngine",
         "EpistemicEngine",
     )
-
-    @staticmethod
-    def _pending_steps(names: tuple[str, ...]) -> list[EngineStepResult]:
-        return [
-            EngineStepResult(
-                engine=name,
-                passed=False,
-                status="NOT_IMPLEMENTED",
-                detail={"reason": "runtime_materialization_pending"},
-            )
-            for name in names
-        ]
 
     @classmethod
     def validate_uo_payload(
@@ -111,16 +95,23 @@ class Core00Harness:
                 [hash_step, structural_step, auth_step, reference_step],
             )
 
-        pending = cls._pending_steps(cls.ENGINE_ORDER[4:])
+        epistemic_result = EpistemicEngine.evaluate_epistemics(uo_data)
+        epistemic_step = EngineStepResult(
+            engine="EpistemicEngine",
+            passed=epistemic_result["passed"],
+            status=epistemic_result["execution_status"],
+            detail=epistemic_result,
+        )
+
         return HarnessResult(
-            admitted=False,
-            terminal_status="RUNTIME_PENDING",
-            steps=[hash_step, structural_step, auth_step, reference_step, *pending],
+            admitted=epistemic_result["passed"],
+            terminal_status=epistemic_result["execution_status"],
+            steps=[hash_step, structural_step, auth_step, reference_step, epistemic_step],
         )
 
     @classmethod
     def validate_text_payload(cls, raw_text: str, declared_hash: str) -> HarnessResult:
-        """Backward-compatible HashEngine-only entrypoint."""
+        """Hash-only helper retained for isolated HashEngine tests."""
         hash_result = HashEngine.verify_integrity(raw_text, declared_hash)
         first = EngineStepResult(
             engine="HashEngine",
@@ -128,11 +119,8 @@ class Core00Harness:
             status="PASS" if hash_result.passed else "REJECT",
             detail=hash_result.to_dict(),
         )
-        if not hash_result.passed:
-            return HarnessResult(False, "REJECT", [first])
-
         return HarnessResult(
-            admitted=False,
-            terminal_status="RUNTIME_PENDING",
-            steps=[first, *cls._pending_steps(cls.ENGINE_ORDER[1:])],
+            admitted=hash_result.passed,
+            terminal_status="PASS" if hash_result.passed else "REJECT",
+            steps=[first],
         )
