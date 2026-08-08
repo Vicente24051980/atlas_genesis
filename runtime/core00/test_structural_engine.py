@@ -1,6 +1,6 @@
 import unittest
 
-from .structural_engine import StructuralEngine
+from runtime.core00.structural_engine import StructuralEngine
 
 
 class TestStructuralEngine(unittest.TestCase):
