@@ -63,12 +63,10 @@ async function request(path: string, params: Record<string, string | number | bo
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined) query.set(key, String(value));
   });
+  query.set('apikey', apiKey);
 
   const response = await fetch(`${BASE_URL}${path}?${query.toString()}`, {
-    headers: {
-      Accept: 'application/json',
-      apikey: apiKey,
-    },
+    headers: { Accept: 'application/json' },
   });
   if (!response.ok) {
     const body = await response.text().catch(() => '');
