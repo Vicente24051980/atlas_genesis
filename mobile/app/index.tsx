@@ -1,5 +1,9 @@
-import { useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { db } from '../db/client';
+import { auditLog, decisionLog, evidence, position, radar, watchlist } from '../db/schema';
 
 const modules = [
   { name: 'Portfolio', description: 'Posiciones, pesos y snapshots', route: '/portfolio' },
@@ -11,8 +15,49 @@ const modules = [
   { name: 'Audit', description: 'Trazabilidad, decisiones y estado del sistema', route: '/audit' },
 ] as const;
 
+type DashboardCounts = {
+  positions: number;
+  watchlist: number;
+  evidence: number;
+  signals: number;
+  decisions: number;
+  audit: number;
+};
+
 export default function HomeScreen() {
   const router = useRouter();
+  const [counts, setCounts] = useState<DashboardCounts>({ positions: 0, watchlist: 0, evidence: 0, signals: 0, decisions: 0, audit: 0 });
+
+  const load = useCallback(async () => {
+    const [positions, watch, evidences, signals, decisions, auditRows] = await Promise.all([
+      db.select().from(position),
+      db.select().from(watchlist),
+      db.select().from(evidence),
+      db.select().from(radar),
+      db.select().from(decisionLog),
+      db.select().from(auditLog),
+    ]);
+    setCounts({
+      positions: positions.length,
+      watchlist: watch.length,
+      evidence: evidences.length,
+      signals: signals.length,
+      decisions: decisions.length,
+      audit: auditRows.length,
+    });
+  }, []);
+
+  useFocusEffect(useCallback(() => { void load(); }, [load]));
+
+  const countFor = (name: string) => {
+    if (name === 'Portfolio') return counts.positions;
+    if (name === 'Watchlist') return counts.watchlist;
+    if (name === 'Radar') return counts.signals;
+    if (name === 'Evidence') return counts.evidence;
+    if (name === 'Daily Intelligence') return counts.decisions;
+    if (name === 'Audit') return counts.audit;
+    return counts.evidence + counts.decisions + counts.signals;
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -23,7 +68,13 @@ export default function HomeScreen() {
       <View style={styles.statusCard}>
         <Text style={styles.statusTitle}>CORE-00</Text>
         <Text style={styles.statusValue}>UO 1.1 RC1 · 30/30 Runtime Certified</Text>
-        <Text style={styles.statusNote}>SQLite + Drizzle inicializados · navegación activa</Text>
+        <Text style={styles.statusNote}>SQLite + Drizzle activos · CRUD local habilitado</Text>
+      </View>
+
+      <View style={styles.summaryRow}>
+        <MiniMetric label="Portfolio" value={counts.positions} />
+        <MiniMetric label="Watchlist" value={counts.watchlist} />
+        <MiniMetric label="Evidence" value={counts.evidence} />
       </View>
 
       <View style={styles.grid}>
@@ -36,15 +87,22 @@ export default function HomeScreen() {
             style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
           >
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>{module.name}</Text>
+              <View style={styles.flex}>
+                <Text style={styles.cardTitle}>{module.name}</Text>
+                <Text style={styles.cardText}>{module.description}</Text>
+              </View>
+              <View style={styles.countBadge}><Text style={styles.countText}>{countFor(module.name)}</Text></View>
               <Text style={styles.chevron}>›</Text>
             </View>
-            <Text style={styles.cardText}>{module.description}</Text>
           </Pressable>
         ))}
       </View>
     </ScrollView>
   );
+}
+
+function MiniMetric({ label, value }: { label: string; value: number }) {
+  return <View style={styles.metric}><Text style={styles.metricValue}>{value}</Text><Text style={styles.metricLabel}>{label}</Text></View>;
 }
 
 const styles = StyleSheet.create({
@@ -56,11 +114,18 @@ const styles = StyleSheet.create({
   statusTitle: { color: '#71b7ff', fontWeight: '800', fontSize: 13 },
   statusValue: { color: '#fff', fontSize: 17, fontWeight: '700' },
   statusNote: { color: '#9da9b7', fontSize: 13 },
+  summaryRow: { flexDirection: 'row', gap: 8 },
+  metric: { flex: 1, backgroundColor: '#111923', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#202b38' },
+  metricValue: { color: '#71b7ff', fontWeight: '800', fontSize: 22 },
+  metricLabel: { color: '#94a3b8', fontSize: 11, marginTop: 3 },
   grid: { gap: 12 },
   card: { backgroundColor: '#141a22', borderRadius: 18, padding: 18, borderWidth: 1, borderColor: '#202b38' },
   cardPressed: { opacity: 0.68, transform: [{ scale: 0.99 }] },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  flex: { flex: 1 },
   cardTitle: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 5 },
   cardText: { color: '#9da9b7', lineHeight: 20 },
+  countBadge: { minWidth: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111923', borderWidth: 1, borderColor: '#29405b' },
+  countText: { color: '#71b7ff', fontWeight: '800' },
   chevron: { color: '#71b7ff', fontSize: 30, lineHeight: 30 },
 });
