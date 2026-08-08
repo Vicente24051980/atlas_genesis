@@ -1,6 +1,6 @@
 {
   "name": "atlas-omega-mobile",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
@@ -14,9 +14,12 @@
   },
   "dependencies": {
     "expo": "~57.0.8",
+    "expo-background-task": "~57.0.5",
     "expo-router": "~57.0.8",
+    "expo-secure-store": "~57.0.0",
     "expo-sqlite": "~57.0.1",
     "expo-status-bar": "~57.0.1",
+    "expo-task-manager": "~57.0.5",
     "react": "19.2.3",
     "react-native": "0.86.2",
     "react-native-safe-area-context": "~5.7.0",
