@@ -5,6 +5,7 @@ import { desc, eq } from 'drizzle-orm';
 
 import { db } from '../db/client';
 import { watchlist } from '../db/schema';
+import { AuditLogRepository } from '../db/repositories/AuditLogRepository';
 
 type WatchItem = typeof watchlist.$inferSelect;
 
@@ -36,6 +37,14 @@ export default function WatchlistScreen() {
         state: 'ACTIVE',
         addedAt: new Date(),
       });
+      await AuditLogRepository.insert({
+        id: `AUD-${Date.now()}`,
+        action: 'WATCHLIST_ADD',
+        actor: 'USER',
+        target: normalizedTicker,
+        payloadHash: null,
+        createdAt: new Date(),
+      });
       setTicker('');
       setCompanyName('');
       setMessage('Añadido a Watchlist Ω.');
@@ -45,8 +54,17 @@ export default function WatchlistScreen() {
     }
   };
 
-  const remove = async (id: string) => {
-    await db.delete(watchlist).where(eq(watchlist.id, id));
+  const remove = async (item: WatchItem) => {
+    await db.delete(watchlist).where(eq(watchlist.id, item.id));
+    await AuditLogRepository.insert({
+      id: `AUD-${Date.now()}`,
+      action: 'WATCHLIST_DELETE',
+      actor: 'USER',
+      target: item.canonicalTicker,
+      payloadHash: null,
+      createdAt: new Date(),
+    });
+    setMessage(`${item.canonicalTicker} eliminado de Watchlist.`);
     await load();
   };
 
@@ -59,7 +77,7 @@ export default function WatchlistScreen() {
       ListHeaderComponent={
         <View style={styles.header}>
           <Text style={styles.title}>Watchlist Ω</Text>
-          <Text style={styles.subtitle}>Persistencia local, sin duplicados por ticker.</Text>
+          <Text style={styles.subtitle}>Persistencia local, sin duplicados por ticker y con auditoría.</Text>
           <View style={styles.form}>
             <TextInput value={ticker} onChangeText={setTicker} autoCapitalize="characters" placeholder="Ticker (MSFT)" placeholderTextColor="#64748b" style={styles.input} />
             <TextInput value={companyName} onChangeText={setCompanyName} placeholder="Empresa" placeholderTextColor="#64748b" style={styles.input} />
@@ -80,7 +98,7 @@ export default function WatchlistScreen() {
               <Text style={styles.company}>{item.companyName}</Text>
               <Text style={styles.state}>{item.state}</Text>
             </View>
-            <Pressable onPress={() => { void remove(item.id); }} style={styles.remove}><Text style={styles.removeText}>Quitar</Text></Pressable>
+            <Pressable onPress={() => { void remove(item); }} style={styles.remove}><Text style={styles.removeText}>Quitar</Text></Pressable>
           </View>
         </View>
       )}
