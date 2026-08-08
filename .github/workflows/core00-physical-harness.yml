@@ -3,13 +3,25 @@ name: CORE-00 Physical Harness Verification
 on:
   push:
     branches:
-      - 'bench/**'
-      - 'atlas/**'
       - main
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - reopened
+      - ready_for_review
   workflow_dispatch:
+    inputs:
+      target_ref:
+        description: 'Branch or ref to verify'
+        required: true
+        default: 'bench/e2e-bench-001'
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   core00-harness:
@@ -19,6 +31,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
