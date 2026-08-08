@@ -46,6 +46,6 @@ const styles = StyleSheet.create({
   statusNote: { color: '#9da9b7', fontSize: 13 },
   grid: { gap: 12 },
   card: { backgroundColor: '#141a22', borderRadius: 18, padding: 18, borderWidth: 1, borderColor: '#202b38' },
-  cardTitle: { color: '#fff', fontSize: 18, fontWeight: '750', marginBottom: 5 },
+  cardTitle: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 5 },
   cardText: { color: '#9da9b7', lineHeight: 20 },
 });
