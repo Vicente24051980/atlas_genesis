@@ -4,7 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { useDatabaseInitialization } from '../db/migrator';
-import { FunctionalGateResult, runMobileFunctionalSelfTest } from '../db/runtimeSelfTest';
+import type { FunctionalGateResult } from '../db/runtimeSelfTest';
+import { runCompleteFunctionalSelfTest } from '../db/completeFunctionalGate';
 import { registerAtlasBackgroundSync } from '../services/backgroundSync';
 import { runAutomaticSync, seedCanonicalWatchlist, shouldRunStartupSync } from '../services/autoSync';
 
@@ -18,7 +19,7 @@ export default function RootLayout() {
     if (!isReady || error) return;
 
     let active = true;
-    void runMobileFunctionalSelfTest()
+    void runCompleteFunctionalSelfTest()
       .then((result) => {
         if (active) setFunctionalGate(result);
       })
@@ -28,7 +29,7 @@ export default function RootLayout() {
           ok: false,
           checkedAt: new Date().toISOString(),
           checks: [{
-            name: 'functional runtime gate',
+            name: 'complete functional runtime gate',
             ok: false,
             detail: cause instanceof Error ? cause.message : String(cause),
           }],
@@ -71,7 +72,7 @@ export default function RootLayout() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#71b7ff" />
-        <Text style={styles.loadingText}>Verificando SQLite y operaciones reales…</Text>
+        <Text style={styles.loadingText}>Verificando SQLite, SecureStore y pipeline automático…</Text>
       </View>
     );
   }
@@ -81,7 +82,7 @@ export default function RootLayout() {
     return (
       <ScrollView style={styles.failureScreen} contentContainerStyle={styles.failureContent}>
         <Text style={styles.errorTitle}>ATLAS Ω no supera el Functional Gate</Text>
-        <Text style={styles.errorText}>La interfaz queda bloqueada porque una operación real de persistencia ha fallado. No se presenta como funcional hasta corregirlo.</Text>
+        <Text style={styles.errorText}>La interfaz queda bloqueada porque una operación real del pipeline ha fallado. No se presenta como funcional hasta corregirlo.</Text>
         {failed.map((check) => (
           <View key={check.name} style={styles.failureCard}>
             <Text style={styles.failureName}>{check.name}</Text>
@@ -107,6 +108,7 @@ export default function RootLayout() {
         <Stack.Screen name="data-sources" options={{ title: 'Fuentes de datos' }} />
         <Stack.Screen name="portfolio" options={{ title: 'Portfolio' }} />
         <Stack.Screen name="watchlist" options={{ title: 'Watchlist Ω' }} />
+        <Stack.Screen name="discovery" options={{ title: 'Discovery Ω' }} />
         <Stack.Screen name="radar" options={{ title: 'Radar Ω' }} />
         <Stack.Screen name="evidence" options={{ title: 'Evidence Ω' }} />
         <Stack.Screen name="daily-intelligence" options={{ title: 'Daily Intelligence' }} />
