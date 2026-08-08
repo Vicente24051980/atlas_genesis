@@ -1,133 +1,165 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
-import { desc, eq } from 'drizzle-orm';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { eq } from 'drizzle-orm';
 
+import { AtlasApi, type MarketSignals } from '../core/api/atlasApi';
 import { db } from '../db/client';
-import { radar } from '../db/schema';
-import { AuditLogRepository } from '../db/repositories/AuditLogRepository';
+import { position, radar, watchlist } from '../db/schema';
 
-type RadarItem = typeof radar.$inferSelect;
+type ScanRow = { ticker: string; source: 'PORTFOLIO' | 'WATCHLIST'; signals?: MarketSignals; error?: string };
 
 export default function RadarScreen() {
-  const [items, setItems] = useState<RadarItem[]>([]);
-  const [subjectId, setSubjectId] = useState('');
-  const [signalType, setSignalType] = useState('WAVE');
-  const [score, setScore] = useState('');
-  const [severity, setSeverity] = useState('MEDIUM');
-  const [note, setNote] = useState('');
+  const router = useRouter();
+  const [rows, setRows] = useState<ScanRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [message, setMessage] = useState('');
 
   const load = useCallback(async () => {
-    setItems(await db.select().from(radar).orderBy(desc(radar.createdAt)));
+    try {
+      const [positions, watches] = await Promise.all([db.select().from(position), db.select().from(watchlist)]);
+      const sources = new Map<string, 'PORTFOLIO' | 'WATCHLIST'>();
+      for (const item of watches.filter((x) => x.state === 'ACTIVE')) sources.set(item.canonicalTicker, 'WATCHLIST');
+      for (const item of positions.filter((x) => x.status === 'ACTIVE')) sources.set(item.canonicalTicker, 'PORTFOLIO');
+      const tickers = [...sources.keys()];
+      const scanned: ScanRow[] = [];
+
+      for (let i = 0; i < tickers.length; i += 6) {
+        const batch = tickers.slice(i, i + 6);
+        const result = await Promise.all(batch.map(async (ticker): Promise<ScanRow> => {
+          try {
+            const signals = await AtlasApi.signals(ticker);
+            return { ticker, source: sources.get(ticker) || 'WATCHLIST', signals };
+          } catch (error) {
+            return { ticker, source: sources.get(ticker) || 'WATCHLIST', error: error instanceof Error ? error.message : String(error) };
+          }
+        }));
+        scanned.push(...result);
+      }
+
+      scanned.sort((a, b) => (b.signals?.downsideScore || -1) - (a.signals?.downsideScore || -1));
+      setRows(scanned);
+      setMessage(tickers.length ? `${tickers.length} activos revisados. Radar ordenado por riesgo probabilístico.` : 'Añade activos a Portfolio o Watchlist para activar Radar.');
+
+      const hourBucket = new Date().toISOString().slice(0, 13).replace(/[-T:]/g, '');
+      for (const row of scanned) {
+        const score = row.signals?.downsideScore;
+        if (score == null || score < 25) continue;
+        const id = `AUTO-DOWNSIDE-${row.ticker}-${hourBucket}`;
+        const existing = await db.select().from(radar).where(eq(radar.id, id)).limit(1);
+        if (existing.length) continue;
+        await db.insert(radar).values({
+          id,
+          subjectId: row.ticker,
+          signalType: 'DOWNSIDE_ALERT',
+          score,
+          severity: row.signals?.downsideSeverity || 'WATCH',
+          payloadJson: JSON.stringify({
+            automatic: true,
+            source: row.source,
+            reasons: row.signals?.reasons || [],
+            waveScore: row.signals?.waveScore,
+            momentumScore: row.signals?.momentumScore,
+            streak: row.signals?.streak,
+            algorithmVersion: row.signals?.algorithmVersion,
+          }),
+          createdAt: new Date(),
+        });
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
   useFocusEffect(useCallback(() => { void load(); }, [load]));
 
-  const add = async () => {
-    const subject = subjectId.trim().toUpperCase();
-    const type = signalType.trim().toUpperCase();
-    const level = severity.trim().toUpperCase();
-    const parsedScore = score.trim() ? Number(score.replace(',', '.')) : null;
-    if (!subject || !type || !level) {
-      setMessage('Sujeto, tipo y severidad son obligatorios.');
-      return;
-    }
-    if (parsedScore !== null && (!Number.isFinite(parsedScore) || parsedScore < 0 || parsedScore > 100)) {
-      setMessage('Wave Score debe estar entre 0 y 100.');
-      return;
-    }
-    const id = `RAD-${Date.now()}`;
-    await db.insert(radar).values({
-      id,
-      subjectId: subject,
-      signalType: type,
-      score: parsedScore,
-      severity: level,
-      payloadJson: JSON.stringify({ note: note.trim() }),
-      createdAt: new Date(),
-    });
-    await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
-      action: 'RADAR_ADD',
-      actor: 'USER',
-      target: subject,
-      payloadHash: null,
-      createdAt: new Date(),
-    });
-    setSubjectId('');
-    setScore('');
-    setNote('');
-    setMessage('Señal guardada en Radar Ω.');
-    await load();
-  };
-
-  const remove = async (item: RadarItem) => {
-    await db.delete(radar).where(eq(radar.id, item.id));
-    await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
-      action: 'RADAR_DELETE',
-      actor: 'USER',
-      target: item.subjectId,
-      payloadHash: null,
-      createdAt: new Date(),
-    });
-    await load();
-  };
+  const critical = rows.filter((x) => (x.signals?.downsideScore || 0) >= 75).length;
+  const elevated = rows.filter((x) => (x.signals?.downsideScore || 0) >= 50 && (x.signals?.downsideScore || 0) < 75).length;
+  const watch = rows.filter((x) => (x.signals?.downsideScore || 0) >= 25 && (x.signals?.downsideScore || 0) < 50).length;
 
   return (
-    <FlatList
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      data={items}
-      keyExtractor={(item) => item.id}
-      ListHeaderComponent={
-        <View style={styles.header}>
-          <Text style={styles.title}>Radar Ω</Text>
-          <Text style={styles.subtitle}>Crea señales manuales con Wave Score y severidad; quedan persistidas localmente.</Text>
-          <View style={styles.form}>
-            <TextInput value={subjectId} onChangeText={setSubjectId} autoCapitalize="characters" placeholder="Ticker / sujeto" placeholderTextColor="#64748b" style={styles.input} />
-            <View style={styles.inputRow}>
-              <TextInput value={signalType} onChangeText={setSignalType} placeholder="WAVE" placeholderTextColor="#64748b" style={[styles.input, styles.half]} />
-              <TextInput value={severity} onChangeText={setSeverity} placeholder="MEDIUM" placeholderTextColor="#64748b" style={[styles.input, styles.half]} />
-            </View>
-            <TextInput value={score} onChangeText={setScore} keyboardType="decimal-pad" placeholder="Wave Score 0-100 (opcional)" placeholderTextColor="#64748b" style={styles.input} />
-            <TextInput value={note} onChangeText={setNote} placeholder="Nota / catalizador / riesgo" placeholderTextColor="#64748b" style={[styles.input, styles.multiline]} multiline />
-            <Pressable onPress={() => { void add(); }} style={({ pressed }) => [styles.button, pressed && styles.pressed]}><Text style={styles.buttonText}>Guardar señal</Text></Pressable>
-            {message ? <Text style={styles.message}>{message}</Text> : null}
-          </View>
-          <Text style={styles.count}>{items.length} señales</Text>
-        </View>
-      }
-      ListEmptyComponent={<Text style={styles.empty}>No hay señales activas en Radar Ω.</Text>}
-      renderItem={({ item }) => {
-        let parsedNote = '';
-        try {
-          const payload = JSON.parse(item.payloadJson) as { note?: string };
-          parsedNote = payload.note ?? '';
-        } catch {
-          parsedNote = item.payloadJson;
-        }
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(); }} tintColor="#64d8ff" />}>
+      <Text style={styles.eyebrow}>ATLAS Ω · EARLY DOWNSIDE RADAR</Text>
+      <Text style={styles.title}>Deterioro probabilístico</Text>
+      <Text style={styles.subtitle}>Busca pérdida de tendencia, aceleración negativa, volatilidad, volumen y rachas. No predice caídas con certeza y nunca cambia Thesis Ω.</Text>
+
+      <View style={styles.metrics}>
+        <Metric label="CRITICAL" value={critical} tone="bad" />
+        <Metric label="ELEVATED" value={elevated} tone="warn" />
+        <Metric label="WATCH" value={watch} tone="warn" />
+        <Metric label="SCANNED" value={rows.length} />
+      </View>
+      <View style={styles.guard}><Text style={styles.guardTitle}>GUARDRAIL</Text><Text style={styles.guardText}>Downside Alert Ω = señal observacional. Precio, momentum o volumen no pueden convertirse por sí solos en Evidence, falsificador ni orden de venta.</Text></View>
+      {message ? <Text style={styles.message}>{message}</Text> : null}
+      {loading ? <ActivityIndicator color="#64d8ff" size="large" style={{ marginTop: 30 }} /> : null}
+
+      {rows.map((row) => {
+        const s = row.signals;
+        const severity = s?.downsideSeverity || 'UNKNOWN';
         return (
-          <View style={styles.card}>
-            <View style={styles.row}><Text style={styles.type}>{item.signalType}</Text><Text style={styles.score}>{item.score == null ? '—' : item.score.toFixed(0)}</Text></View>
-            <Text style={styles.subject}>{item.subjectId}</Text>
-            <Text style={styles.severity}>Severidad: {item.severity}</Text>
-            {parsedNote ? <Text style={styles.note}>{parsedNote}</Text> : null}
-            <Text style={styles.time}>{item.createdAt.toLocaleString('es-ES')}</Text>
-            <Pressable onPress={() => { void remove(item); }} style={styles.remove}><Text style={styles.removeText}>Eliminar señal</Text></Pressable>
-          </View>
+          <Pressable key={row.ticker} onPress={() => router.push({ pathname: '/terminal', params: { ticker: row.ticker } })} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
+            <View style={styles.topRow}>
+              <View><View style={styles.tickerLine}><Text style={styles.ticker}>{row.ticker}</Text><Text style={styles.source}>{row.source}</Text></View><Text style={styles.streak}>{s ? `${s.streak.direction} streak ${s.streak.length} · ${s.streak.downDays20} rojos/20` : 'Sin señal'}</Text></View>
+              <View style={[styles.severity, severity === 'CRITICAL' ? styles.critical : severity === 'ELEVATED' ? styles.elevated : severity === 'WATCH' ? styles.watching : styles.normal]}><Text style={styles.severityText}>{severity}</Text></View>
+            </View>
+            <View style={styles.scoreRow}>
+              <SmallScore label="DOWNSIDE" value={s?.downsideScore} bad />
+              <SmallScore label="MOMENTUM" value={s?.momentumScore} />
+              <SmallScore label="WAVE" value={s?.waveScore} />
+            </View>
+            {s?.reasons.slice(0, 3).map((reason) => <Text key={reason} style={styles.reason}>• {reason}</Text>)}
+            {row.error ? <Text style={styles.error}>{row.error}</Text> : null}
+          </Pressable>
         );
-      }}
-    />
+      })}
+    </ScrollView>
   );
 }
 
+function Metric({ label, value, tone }: { label: string; value: number; tone?: 'bad' | 'warn' }) {
+  return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={[styles.metricValue, tone === 'bad' ? styles.redText : tone === 'warn' ? styles.amberText : undefined]}>{value}</Text></View>;
+}
+function SmallScore({ label, value, bad = false }: { label: string; value?: number | null; bad?: boolean }) {
+  const tone = value == null ? undefined : bad ? (value >= 50 ? styles.redText : value >= 25 ? styles.amberText : styles.greenText) : value >= 70 ? styles.greenText : value < 40 ? styles.amberText : undefined;
+  return <View style={styles.smallScore}><Text style={styles.smallLabel}>{label}</Text><Text style={[styles.smallValue, tone]}>{value == null ? '—' : value.toFixed(0)}</Text></View>;
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0b0f14' }, content: { padding: 16, gap: 10 }, header: { gap: 6, marginBottom: 10 },
-  title: { color: '#fff', fontSize: 26, fontWeight: '800' }, subtitle: { color: '#94a3b8' }, empty: { color: '#8ea2b8', textAlign: 'center', padding: 40 },
-  form: { backgroundColor: '#111923', borderRadius: 14, padding: 12, gap: 8, marginTop: 8, borderWidth: 1, borderColor: '#29405b' }, input: { backgroundColor: '#0f141b', color: '#fff', borderWidth: 1, borderColor: '#263241', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 }, inputRow: { flexDirection: 'row', gap: 8 }, half: { flex: 1 }, multiline: { minHeight: 64, textAlignVertical: 'top' },
-  button: { backgroundColor: '#2f81f7', borderRadius: 10, padding: 12, alignItems: 'center' }, buttonText: { color: '#fff', fontWeight: '800' }, pressed: { opacity: 0.7 }, message: { color: '#9da9b7', fontSize: 12 }, count: { color: '#71b7ff', fontWeight: '700', marginTop: 6 },
-  card: { backgroundColor: '#141a22', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: '#202b38' }, row: { flexDirection: 'row', justifyContent: 'space-between' },
-  type: { color: '#71b7ff', fontWeight: '800', fontSize: 16 }, score: { color: '#fff', fontWeight: '800', fontSize: 20 }, subject: { color: '#fff', marginTop: 6 }, severity: { color: '#f59e0b', marginTop: 4 }, note: { color: '#cbd5e1', marginTop: 8, lineHeight: 19 }, time: { color: '#64748b', fontSize: 11, marginTop: 6 },
-  remove: { alignSelf: 'flex-start', marginTop: 10, borderWidth: 1, borderColor: '#51323a', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7 }, removeText: { color: '#f87171', fontWeight: '700', fontSize: 12 },
+  screen: { flex: 1, backgroundColor: '#05080c' },
+  content: { padding: 14, paddingBottom: 42, gap: 10 },
+  eyebrow: { color: '#617589', fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
+  title: { color: '#eff4f8', fontSize: 24, fontWeight: '950' },
+  subtitle: { color: '#728497', fontSize: 11, lineHeight: 17 },
+  metrics: { flexDirection: 'row', gap: 5 },
+  metric: { flex: 1, backgroundColor: '#090e14', borderWidth: 1, borderColor: '#17222e', borderRadius: 7, padding: 8 },
+  metricLabel: { color: '#526476', fontSize: 6, fontWeight: '950' },
+  metricValue: { color: '#b9c7d3', fontSize: 18, fontWeight: '950', marginTop: 3 },
+  guard: { backgroundColor: '#161309', borderWidth: 1, borderColor: '#4e4219', borderRadius: 8, padding: 10 },
+  guardTitle: { color: '#d8b958', fontSize: 8, fontWeight: '950' },
+  guardText: { color: '#92804c', fontSize: 9, lineHeight: 14, marginTop: 3 },
+  message: { color: '#65798c', fontSize: 9 },
+  card: { backgroundColor: '#090e14', borderWidth: 1, borderColor: '#17222e', borderRadius: 9, padding: 11, gap: 7 },
+  pressed: { opacity: 0.62 },
+  topRow: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
+  tickerLine: { flexDirection: 'row', gap: 7, alignItems: 'center' },
+  ticker: { color: '#dfe8ef', fontSize: 15, fontWeight: '950' },
+  source: { color: '#586b7d', fontSize: 7, fontWeight: '900' },
+  streak: { color: '#5d7082', fontSize: 8, marginTop: 3 },
+  severity: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5, alignSelf: 'flex-start' },
+  critical: { backgroundColor: '#240c12', borderColor: '#702536' },
+  elevated: { backgroundColor: '#22130a', borderColor: '#754420' },
+  watching: { backgroundColor: '#201b0a', borderColor: '#65551e' },
+  normal: { backgroundColor: '#0b1915', borderColor: '#1d5140' },
+  severityText: { color: '#c5d0da', fontSize: 7, fontWeight: '950' },
+  scoreRow: { flexDirection: 'row', gap: 5 },
+  smallScore: { flex: 1, backgroundColor: '#0b1219', borderRadius: 6, padding: 7 },
+  smallLabel: { color: '#506274', fontSize: 6, fontWeight: '950' },
+  smallValue: { color: '#b7c5d1', fontSize: 14, fontWeight: '950', marginTop: 2 },
+  reason: { color: '#778a9c', fontSize: 9, lineHeight: 14 },
+  error: { color: '#ff7182', fontSize: 8 },
+  redText: { color: '#ff697c' },
+  amberText: { color: '#e6bd54' },
+  greenText: { color: '#4fdca3' },
 });
