@@ -1,0 +1,80 @@
+name: CORE-00 Physical Harness Verification
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'runtime/core00/**'
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+    paths:
+      - 'runtime/core00/**'
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: 'Branch or ref to verify'
+        required: true
+        default: 'bench/e2e-bench-001'
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core00-harness:
+    name: Execute CORE-00 Physical Harness
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run engine unit tests
+        run: python -m unittest discover -s runtime/core00 -p "test_*.py"
+
+      - name: Generate 30 physical fixtures
+        run: python runtime/core00/generate_all_fixtures.py
+
+      - name: Run physical harness
+        run: python -m runtime.core00.runner
+
+      - name: Verify CORE00_STATUS.md
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATUS_FILE="runtime/core00/CORE00_STATUS.md"
+          if [ ! -f "$STATUS_FILE" ]; then
+            echo "::error::CORE00_STATUS.md missing after execution."
+            exit 1
+          fi
+
+          cat "$STATUS_FILE"
+
+          if grep -Fq "**Execution Status:** 30/30 RUNTIME CERTIFIED" "$STATUS_FILE"; then
+            echo "CORE-00 physical harness: 30/30 runtime certified."
+          else
+            echo "::error::CORE-00 execution did not reach exact 30/30 runtime certification."
+            exit 1
+          fi
+
+      - name: Upload CORE-00 status artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core00-status-report
+          path: runtime/core00/CORE00_STATUS.md
+          if-no-files-found: warn
