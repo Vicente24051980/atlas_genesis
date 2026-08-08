@@ -48,3 +48,7 @@ eas build -p android --profile preview
 2. Build the first Android preview APK through EAS when `EXPO_TOKEN` is available.
 3. Connect repository-backed Portfolio, Watchlist, Evidence and AuditLog screens.
 4. Keep CORE-00 frozen while integrating E2E-001 above it.
+
+## CI final checkpoint
+
+This branch exists only to expose the Mobile CI run, jobs and logs for the final APK checkpoint. No runtime behavior is changed by this documentation-only marker.
