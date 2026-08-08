@@ -1,9 +1,6 @@
 import unittest
 
-try:
-    from .epistemic_engine import EpistemicEngine
-except ImportError:  # pragma: no cover
-    from epistemic_engine import EpistemicEngine
+from runtime.core00.epistemic_engine import EpistemicEngine
 
 
 class TestEpistemicEngine(unittest.TestCase):
