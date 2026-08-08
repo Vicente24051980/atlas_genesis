@@ -26,6 +26,14 @@ export type FmpUniverseSymbol = {
   type: string | null;
 };
 
+export type FmpScreenerCandidate = FmpUniverseSymbol & {
+  marketCap: number | null;
+  price: number | null;
+  volume: number | null;
+  sector: string | null;
+  country: string | null;
+};
+
 type JsonObject = Record<string, unknown>;
 
 const BASE_URL = 'https://financialmodelingprep.com/stable';
@@ -131,6 +139,39 @@ export async function fetchFmpGlobalUniverse(): Promise<FmpUniverseSymbol[]> {
       type: asString(item.type),
     };
   }).filter((item): item is FmpUniverseSymbol => Boolean(item));
+}
+
+/**
+ * Market filters are intentionally called only AFTER fetchFmpGlobalUniverse().
+ * The caller intersects this result with the independently discovered universe,
+ * preserving ATLAS Ω's discovery-first invariant.
+ */
+export async function fetchFmpMarketScreenerCandidates(): Promise<FmpScreenerCandidate[]> {
+  const raw = await request('/company-screener', {
+    marketCapMoreThan: 10_000_000_000,
+    volumeMoreThan: 100_000,
+    isActivelyTrading: true,
+    limit: 1000,
+  });
+  if (!Array.isArray(raw)) throw new Error('FMP devolvió un formato inesperado para company screener.');
+
+  return raw.map((value): FmpScreenerCandidate | null => {
+    const item = asObject(value);
+    const symbol = asString(item.symbol);
+    if (!symbol) return null;
+    return {
+      symbol: symbol.toUpperCase(),
+      name: asString(item.companyName) ?? asString(item.name),
+      exchange: asString(item.exchange),
+      exchangeShortName: asString(item.exchangeShortName),
+      type: asString(item.type) ?? 'stock',
+      marketCap: asNumber(item.marketCap),
+      price: asNumber(item.price),
+      volume: asNumber(item.volume),
+      sector: asString(item.sector),
+      country: asString(item.country),
+    };
+  }).filter((item): item is FmpScreenerCandidate => Boolean(item));
 }
 
 export async function testFmpConnection(): Promise<FmpQuote> {
