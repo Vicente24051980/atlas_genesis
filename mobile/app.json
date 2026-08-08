@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "ATLAS Ω",
+    "slug": "atlas-omega-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "atlasomega",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "platforms": ["android"],
+    "android": {
+      "package": "com.vicentebellver.atlasomega",
+      "versionCode": 1
+    },
+    "plugins": ["expo-router", "expo-sqlite"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
