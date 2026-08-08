@@ -5,6 +5,7 @@ from typing import Any
 
 from .authentication_engine import AuthenticationEngine
 from .hash_engine import HashEngine
+from .reference_engine import ReferenceEngine
 from .structural_engine import StructuralEngine
 
 
@@ -32,9 +33,9 @@ class HarnessResult:
 class Core00Harness:
     """Fail-fast runtime orchestrator for frozen CORE-00 engine order.
 
-    HashEngine, StructuralEngine and AuthenticationEngine are physically
-    materialized. ReferenceEngine and EpistemicEngine remain explicit
-    NOT_IMPLEMENTED steps so runtime status cannot be mistaken for 30/30.
+    HashEngine, StructuralEngine, AuthenticationEngine and ReferenceEngine are
+    physically materialized. EpistemicEngine remains explicit NOT_IMPLEMENTED
+    so runtime status cannot be mistaken for 30/30 certification.
     """
 
     ENGINE_ORDER = (
@@ -96,11 +97,25 @@ class Core00Harness:
             terminal = "INVALID" if auth_status == "INVALID" else "QUARANTINED"
             return HarnessResult(False, terminal, [hash_step, structural_step, auth_step])
 
-        pending = cls._pending_steps(cls.ENGINE_ORDER[3:])
+        reference_result = ReferenceEngine.validate_references(uo_data)
+        reference_step = EngineStepResult(
+            engine="ReferenceEngine",
+            passed=reference_result["passed"],
+            status="PASS" if reference_result["passed"] else "REJECT",
+            detail=reference_result,
+        )
+        if not reference_result["passed"]:
+            return HarnessResult(
+                False,
+                "REJECT",
+                [hash_step, structural_step, auth_step, reference_step],
+            )
+
+        pending = cls._pending_steps(cls.ENGINE_ORDER[4:])
         return HarnessResult(
             admitted=False,
             terminal_status="RUNTIME_PENDING",
-            steps=[hash_step, structural_step, auth_step, *pending],
+            steps=[hash_step, structural_step, auth_step, reference_step, *pending],
         )
 
     @classmethod
