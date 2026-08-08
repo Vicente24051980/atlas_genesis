@@ -38,14 +38,13 @@ eas build -p android --profile preview
 
 - AI output is not canonical evidence by itself.
 - Mobile state changes that affect canonical ATLAS data must be traceable in `audit_log`.
-- CORE-00 stays outside the UI layer and remains frozen at UO 1.1 RC1 until runtime parity is proven.
+- CORE-00 is frozen and runtime-certified at UO 1.1 RC1 (30/30 physical harness).
 - E2E-001 stays above CORE-00.
 - Local-first persistence precedes remote sync.
 
 ## Next implementation slice
 
-1. Generate/bundle Drizzle migrations.
-2. Add repository layer for Portfolio, Watchlist, Evidence and AuditLog.
-3. Replace static Home cards with navigable screens.
-4. Materialize canonical CORE-00 CASE-001..CASE-030 fixtures.
-5. Execute runtime suite before connecting E2E-001 to production flows.
+1. Validate Mobile CI with `npx tsc --noEmit` on Node 22.13.0.
+2. Build the first Android preview APK through EAS when `EXPO_TOKEN` is available.
+3. Connect repository-backed Portfolio, Watchlist, Evidence and AuditLog screens.
+4. Keep CORE-00 frozen while integrating E2E-001 above it.
