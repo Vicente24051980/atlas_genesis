@@ -78,3 +78,5 @@ Runtime verification is complete only when:
 - no new engine, schema or conceptual behavior was introduced merely to make tests pass.
 
 Until those conditions are demonstrated by GitHub Actions and `CORE00_STATUS.md`, CORE-00 remains `Runtime Verification Pending` and MUST NOT be reported as 30/30 runtime-certified.
+
+Verification checkpoint trigger: 2026-08-08 — documentation-only change to execute the physical CORE-00 workflow from the current `main` head without modifying runtime behavior.
