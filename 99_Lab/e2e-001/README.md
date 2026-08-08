@@ -1,3 +1,3 @@
-# E2E-001 — DEPRECATED
+# E2E-001 — DEPRECATED / NON-CANONICAL
 
-Do not merge. Historical experiment superseded by the current Atlas Genesis architecture.
+This branch is retained only as historical trace. Do not merge it into `main`.
