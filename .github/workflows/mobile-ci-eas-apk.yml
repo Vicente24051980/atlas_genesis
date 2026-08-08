@@ -20,7 +20,7 @@ on:
       target_ref:
         description: 'Branch or ref to verify/build'
         required: true
-        default: 'bench/e2e-bench-001'
+        default: 'main'
         type: string
 
 concurrency:
@@ -48,9 +48,6 @@ jobs:
 
       - name: Install mobile dependencies
         run: npm install
-
-      - name: Generate Drizzle migrations
-        run: npm run db:generate
 
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
