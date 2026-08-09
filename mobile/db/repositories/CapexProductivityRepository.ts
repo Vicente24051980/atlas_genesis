@@ -1,7 +1,8 @@
 import { desc, eq } from 'drizzle-orm';
 
 import { CapexProductivityInput, CapexProductivityState, evaluateCapexProductivity } from '../../domain/capexProductivity';
-import { deriveCapexProductivityFromPrimaryStatements, MetricProvenance, PrimaryStatementBundle, RoicVariants } from '../../domain/capexFinancialDerivation';
+import { CanonicalCashBundle, applyCanonicalCashPolicy } from '../../domain/capexCashPolicy';
+import { deriveCapexProductivityFromPrimaryStatements, MetricProvenance, RoicVariants } from '../../domain/capexFinancialDerivation';
 import { db } from '../client';
 import { capexProductivityAssessment } from '../schema';
 import { AuditLogRepository } from './AuditLogRepository';
@@ -12,6 +13,7 @@ export const CapexProductivityRepository = {
     evidenceRefs: string[] = [],
     metricProvenance: Record<string, MetricProvenance> = {},
     roicVariants?: RoicVariants,
+    cashPolicy?: ReturnType<typeof applyCanonicalCashPolicy> | null,
   ) {
     const result = evaluateCapexProductivity(input);
     const now = new Date();
@@ -37,7 +39,18 @@ export const CapexProductivityRepository = {
       persistedState = 'CAPEX_RED_ALERT';
     }
 
-    const persistedResult = { ...result, state: persistedState, metricProvenance, roicVariants: roicVariants ?? null };
+    const persistedResult = {
+      ...result,
+      state: persistedState,
+      metricProvenance,
+      roicVariants: roicVariants ?? null,
+      cashPolicy: cashPolicy
+        ? {
+            selectedVariantReason: cashPolicy.selectedVariantReason,
+            years: cashPolicy.years,
+          }
+        : null,
+    };
 
     await db.insert(capexProductivityAssessment).values({
       id,
@@ -65,9 +78,29 @@ export const CapexProductivityRepository = {
     return persistedResult;
   },
 
-  async evaluatePrimaryStatements(bundle: PrimaryStatementBundle, evidenceRefs: string[] = []) {
-    const derived = deriveCapexProductivityFromPrimaryStatements(bundle);
-    return this.evaluateAndInsert(derived.input, evidenceRefs, derived.provenance, derived.roicVariants);
+  async evaluatePrimaryStatements(bundle: CanonicalCashBundle, evidenceRefs: string[] = []) {
+    const cashPolicy = applyCanonicalCashPolicy(bundle);
+    const derived = deriveCapexProductivityFromPrimaryStatements(cashPolicy.bundle);
+
+    const cashProvenance: Record<string, MetricProvenance> = {};
+    for (const year of cashPolicy.years) {
+      for (const [field, provenance] of Object.entries(year.provenance)) {
+        cashProvenance[`cash.${year.fiscalYear}.${field}`] = provenance;
+      }
+      cashProvenance[`cash.${year.fiscalYear}.eligibilityReason`] = {
+        origin: year.excessCash == null ? 'MISSING' : 'DERIVED',
+        formula: year.excessCashEligibilityReason,
+        inputs: ['cashAvailable', 'restrictedCash', 'operatingCashMinimum'],
+      };
+    }
+
+    return this.evaluateAndInsert(
+      derived.input,
+      evidenceRefs,
+      { ...derived.provenance, ...cashProvenance },
+      derived.roicVariants,
+      cashPolicy,
+    );
   },
 
   async listLatest(limit = 100) {
