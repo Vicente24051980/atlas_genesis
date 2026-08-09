@@ -60,6 +60,23 @@ CREATE TABLE IF NOT EXISTS radar (
   created_at INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS capex_productivity_assessment (
+  id TEXT PRIMARY KEY NOT NULL,
+  canonical_ticker TEXT NOT NULL,
+  score REAL,
+  state TEXT NOT NULL,
+  signal_count INTEGER NOT NULL DEFAULT 0,
+  completeness REAL NOT NULL DEFAULT 0,
+  under_monetization INTEGER NOT NULL DEFAULT 0,
+  input_json TEXT NOT NULL,
+  result_json TEXT NOT NULL,
+  evidence_refs_json TEXT NOT NULL DEFAULT '[]',
+  created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS capex_productivity_ticker_created_idx
+  ON capex_productivity_assessment (canonical_ticker, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS audit_log (
   id TEXT PRIMARY KEY NOT NULL,
   action TEXT NOT NULL,

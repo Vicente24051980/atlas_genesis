@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from './client';
 import {
   auditLog,
+  capexProductivityAssessment,
   decisionLog,
   evidence,
   portfolio,
@@ -131,6 +132,32 @@ export async function runMobileFunctionalSelfTest(): Promise<FunctionalGateResul
       assert(updated[0]?.validationState === 'VERIFIED_FACT', 'evidence validation-state update failed');
     } finally {
       await db.delete(evidence).where(eq(evidence.id, evidenceId));
+    }
+  }));
+
+  const capexId = `SELFTEST-CAPEX-${runToken}`;
+  checks.push(await runCheck('CAPEX Productivity persistence', async () => {
+    try {
+      await db.insert(capexProductivityAssessment).values({
+        id: capexId,
+        canonicalTicker: 'SELFTEST',
+        score: 72,
+        state: 'CAPEX_PRODUCTIVE',
+        signalCount: 1,
+        completeness: 100,
+        underMonetization: false,
+        inputJson: '{}',
+        resultJson: '{}',
+        evidenceRefsJson: '[]',
+        createdAt: new Date(),
+      });
+      const created = await db.select().from(capexProductivityAssessment).where(eq(capexProductivityAssessment.id, capexId)).limit(1);
+      assert(created[0]?.score === 72, 'CAPEX Productivity insert/read failed');
+      await db.update(capexProductivityAssessment).set({ score: 81, state: 'CAPEX_PRODUCTIVE' }).where(eq(capexProductivityAssessment.id, capexId));
+      const updated = await db.select().from(capexProductivityAssessment).where(eq(capexProductivityAssessment.id, capexId)).limit(1);
+      assert(updated[0]?.score === 81, 'CAPEX Productivity update failed');
+    } finally {
+      await db.delete(capexProductivityAssessment).where(eq(capexProductivityAssessment.id, capexId));
     }
   }));
 

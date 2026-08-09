@@ -4,12 +4,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { eq } from 'drizzle-orm';
 
 import { db } from '../db/client';
-import { auditLog, decisionLog, evidence, position, radar, settings, watchlist } from '../db/schema';
+import { auditLog, capexProductivityAssessment, decisionLog, evidence, position, radar, settings, watchlist } from '../db/schema';
 import { FunctionalGateResult, MOBILE_FUNCTIONAL_GATE_KEY } from '../db/runtimeSelfTest';
 
 const modules = [
   { name: 'Portfolio', description: 'Añadir, actualizar y eliminar posiciones', route: '/portfolio' },
   { name: 'Watchlist', description: 'Añadir y quitar candidatos sin duplicados', route: '/watchlist' },
+  { name: 'CAPEX Productivity', description: 'ROIC incremental, FCF/share, financiación y señales de deterioro', route: '/capex-productivity' },
   { name: 'Radar', description: 'Crear y eliminar señales con Wave Score', route: '/radar' },
   { name: 'Evidence', description: 'Registrar, validar y eliminar evidencia', route: '/evidence' },
   { name: 'Daily Intelligence', description: 'Registrar y borrar decisiones persistentes', route: '/daily-intelligence' },
@@ -20,6 +21,7 @@ const modules = [
 type DashboardCounts = {
   positions: number;
   watchlist: number;
+  capex: number;
   evidence: number;
   signals: number;
   decisions: number;
@@ -28,13 +30,14 @@ type DashboardCounts = {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [counts, setCounts] = useState<DashboardCounts>({ positions: 0, watchlist: 0, evidence: 0, signals: 0, decisions: 0, audit: 0 });
+  const [counts, setCounts] = useState<DashboardCounts>({ positions: 0, watchlist: 0, capex: 0, evidence: 0, signals: 0, decisions: 0, audit: 0 });
   const [gate, setGate] = useState<FunctionalGateResult | null>(null);
 
   const load = useCallback(async () => {
-    const [positions, watch, evidences, signals, decisions, auditRows, gateRows] = await Promise.all([
+    const [positions, watch, capexRows, evidences, signals, decisions, auditRows, gateRows] = await Promise.all([
       db.select().from(position),
       db.select().from(watchlist),
+      db.select().from(capexProductivityAssessment),
       db.select().from(evidence),
       db.select().from(radar),
       db.select().from(decisionLog),
@@ -44,6 +47,7 @@ export default function HomeScreen() {
     setCounts({
       positions: positions.length,
       watchlist: watch.length,
+      capex: capexRows.length,
       evidence: evidences.length,
       signals: signals.length,
       decisions: decisions.length,
@@ -65,6 +69,7 @@ export default function HomeScreen() {
   const countFor = (name: string) => {
     if (name === 'Portfolio') return counts.positions;
     if (name === 'Watchlist') return counts.watchlist;
+    if (name === 'CAPEX Productivity') return counts.capex;
     if (name === 'Radar') return counts.signals;
     if (name === 'Evidence') return counts.evidence;
     if (name === 'Daily Intelligence') return counts.decisions;
@@ -93,7 +98,7 @@ export default function HomeScreen() {
       <View style={styles.summaryRow}>
         <MiniMetric label="Portfolio" value={counts.positions} />
         <MiniMetric label="Watchlist" value={counts.watchlist} />
-        <MiniMetric label="Evidence" value={counts.evidence} />
+        <MiniMetric label="CAPEX Ω" value={counts.capex} />
       </View>
 
       <Text style={styles.instruction}>Pulsa un módulo. Cada tarjeta abre una pantalla operativa con persistencia local.</Text>
