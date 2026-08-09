@@ -53,6 +53,15 @@ export function routeEvidenceToEngines(record: EvidenceRecord): AtlasEngineId[] 
   if (text.includes('gold') || text.includes('oil') || text.includes('rates') || text.includes('dollar') || text.includes('flows')) {
     engines.add('MONEY_ROTATION_OMEGA'); engines.add('HISTORICAL_DISLOCATION_OMEGA');
   }
+  if (
+    text.includes('the economist') || text.includes('phoenix') || text.includes('big mac') ||
+    text.includes('sdr') || text.includes('brics') || text.includes('currency beef') ||
+    text.includes('world currency') || text.includes('reserve currency')
+  ) {
+    engines.add('CONSPIRACIONES_ATLAS');
+    engines.add('MONEY_ROTATION_OMEGA');
+    engines.add('HISTORICAL_DISLOCATION_OMEGA');
+  }
   if (text.includes('security') || text.includes('agent') || text.includes('identity') || text.includes('zero trust')) engines.add('FUTUROS_PROTECTORES_DIGITALES');
   if (record.evidenceLevel === 4) engines.add('CONSPIRACIONES_ATLAS');
   return Array.from(engines);
