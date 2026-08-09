@@ -1,12 +1,13 @@
 import { desc, eq } from 'drizzle-orm';
 
 import { CapexProductivityInput, CapexProductivityState, evaluateCapexProductivity } from '../../domain/capexProductivity';
+import { deriveCapexProductivityFromPrimaryStatements, MetricProvenance, PrimaryStatementBundle } from '../../domain/capexFinancialDerivation';
 import { db } from '../client';
 import { capexProductivityAssessment } from '../schema';
 import { AuditLogRepository } from './AuditLogRepository';
 
 export const CapexProductivityRepository = {
-  async evaluateAndInsert(input: CapexProductivityInput, evidenceRefs: string[] = []) {
+  async evaluateAndInsert(input: CapexProductivityInput, evidenceRefs: string[] = [], metricProvenance: Record<string, MetricProvenance> = {}) {
     const result = evaluateCapexProductivity(input);
     const now = new Date();
     const normalizedTicker = input.ticker.trim().toUpperCase();
@@ -31,7 +32,7 @@ export const CapexProductivityRepository = {
       persistedState = 'CAPEX_RED_ALERT';
     }
 
-    const persistedResult = { ...result, state: persistedState };
+    const persistedResult = { ...result, state: persistedState, metricProvenance };
 
     await db.insert(capexProductivityAssessment).values({
       id,
@@ -57,6 +58,11 @@ export const CapexProductivityRepository = {
     });
 
     return persistedResult;
+  },
+
+  async evaluatePrimaryStatements(bundle: PrimaryStatementBundle, evidenceRefs: string[] = []) {
+    const derived = deriveCapexProductivityFromPrimaryStatements(bundle);
+    return this.evaluateAndInsert(derived.input, evidenceRefs, derived.provenance);
   },
 
   async listLatest(limit = 100) {
