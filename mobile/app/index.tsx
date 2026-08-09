@@ -1,164 +1,122 @@
-import { useCallback, useState } from 'react';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { eq } from 'drizzle-orm';
+import { useRouter } from 'expo-router';
 
-import { db } from '../db/client';
-import { auditLog, capexProductivityAssessment, decisionLog, evidence, position, radar, settings, watchlist } from '../db/schema';
-import { FunctionalGateResult, MOBILE_FUNCTIONAL_GATE_KEY } from '../db/runtimeSelfTest';
+import { AtlasOnlineApi, atlasApiBaseUrl } from '../core/api/atlasOnlineApi';
 
 const modules = [
-  { name: 'Portfolio', description: 'Añadir, actualizar y eliminar posiciones', route: '/portfolio' },
-  { name: 'Watchlist', description: 'Añadir y quitar candidatos sin duplicados', route: '/watchlist' },
-  { name: 'CAPEX Productivity', description: 'ROIC incremental, FCF/share, financiación y señales de deterioro', route: '/capex-productivity' },
-  { name: 'Radar', description: 'Crear y eliminar señales con Wave Score', route: '/radar' },
-  { name: 'Evidence', description: 'Registrar, validar y eliminar evidencia', route: '/evidence' },
-  { name: 'Daily Intelligence', description: 'Registrar y borrar decisiones persistentes', route: '/daily-intelligence' },
-  { name: 'Gemelo Digital', description: 'Editar y guardar valores, incentivos, hábitos y notas', route: '/digital-twin' },
-  { name: 'Audit', description: 'Consultar la trazabilidad de mutaciones reales', route: '/audit' },
+  { code: 'OVR', title: 'Resumen', subtitle: 'Empresa · precio · métricas clave', route: '/overview' },
+  { code: 'MKT', title: 'Mercado', subtitle: 'Precio · rango · beta · volumen', route: '/market' },
+  { code: 'GRW', title: 'Growth Ω', subtitle: 'Ventas · EPS · crecimiento', route: '/growth' },
+  { code: 'QLT', title: 'Business Quality Ω', subtitle: 'ROE · ROA · márgenes · eficiencia', route: '/quality' },
+  { code: 'CPX', title: 'CAPEX Productivity Ω', subtitle: 'FCF · CAPEX · ROIC · deuda', route: '/capex-productivity' },
+  { code: 'VAL', title: 'Valuation Ω', subtitle: 'P/E · P/B · múltiplos · yield', route: '/valuation' },
+  { code: 'RSK', title: 'Risk Ω', subtitle: 'Beta · deuda · liquidez · volatilidad', route: '/risk' },
+  { code: 'CAT', title: 'Catalysts Ω', subtitle: 'Noticias · consenso · cambios', route: '/catalysts' },
+  { code: 'NWS', title: 'News Ω', subtitle: 'Noticias recientes del ticker', route: '/news' },
 ] as const;
-
-type DashboardCounts = {
-  positions: number;
-  watchlist: number;
-  capex: number;
-  evidence: number;
-  signals: number;
-  decisions: number;
-  audit: number;
-};
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [counts, setCounts] = useState<DashboardCounts>({ positions: 0, watchlist: 0, capex: 0, evidence: 0, signals: 0, decisions: 0, audit: 0 });
-  const [gate, setGate] = useState<FunctionalGateResult | null>(null);
+  const [apiState, setApiState] = useState<'CHECKING' | 'ONLINE' | 'OFFLINE'>('CHECKING');
+  const [apiVersion, setApiVersion] = useState('');
 
-  const load = useCallback(async () => {
-    const [positions, watch, capexRows, evidences, signals, decisions, auditRows, gateRows] = await Promise.all([
-      db.select().from(position),
-      db.select().from(watchlist),
-      db.select().from(capexProductivityAssessment),
-      db.select().from(evidence),
-      db.select().from(radar),
-      db.select().from(decisionLog),
-      db.select().from(auditLog),
-      db.select().from(settings).where(eq(settings.key, MOBILE_FUNCTIONAL_GATE_KEY)).limit(1),
-    ]);
-    setCounts({
-      positions: positions.length,
-      watchlist: watch.length,
-      capex: capexRows.length,
-      evidence: evidences.length,
-      signals: signals.length,
-      decisions: decisions.length,
-      audit: auditRows.length,
-    });
-
-    const rawGate = gateRows[0]?.valueJson;
-    if (rawGate) {
-      try {
-        setGate(JSON.parse(rawGate) as FunctionalGateResult);
-      } catch {
-        setGate(null);
-      }
-    }
+  useEffect(() => {
+    let active = true;
+    void AtlasOnlineApi.health()
+      .then((health) => {
+        if (!active) return;
+        setApiState(health.ok && health.finnhub_configured ? 'ONLINE' : 'OFFLINE');
+        setApiVersion(health.version || '');
+      })
+      .catch(() => {
+        if (active) setApiState('OFFLINE');
+      });
+    return () => { active = false; };
   }, []);
 
-  useFocusEffect(useCallback(() => { void load(); }, [load]));
-
-  const countFor = (name: string) => {
-    if (name === 'Portfolio') return counts.positions;
-    if (name === 'Watchlist') return counts.watchlist;
-    if (name === 'CAPEX Productivity') return counts.capex;
-    if (name === 'Radar') return counts.signals;
-    if (name === 'Evidence') return counts.evidence;
-    if (name === 'Daily Intelligence') return counts.decisions;
-    if (name === 'Audit') return counts.audit;
-    return counts.evidence + counts.decisions + counts.signals;
-  };
-
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.eyebrow}>ATLAS Ω MOBILE · FUNCTIONAL MVP v1</Text>
-      <Text style={styles.title}>Sistema operativo de decisión</Text>
-      <Text style={styles.subtitle}>Android-only · local-first · evidence-first</Text>
-
-      <View style={styles.statusCard}>
-        <View style={styles.statusRow}>
-          <Text style={styles.statusTitle}>FUNCTIONAL GATE</Text>
-          <View style={[styles.gateBadge, gate?.ok ? styles.gatePass : styles.gateUnknown]}>
-            <Text style={styles.gateText}>{gate?.ok ? 'PASS' : 'CHECKING'}</Text>
-          </View>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <View style={styles.top}>
+        <View>
+          <Text style={styles.brand}>ATLAS Ω</Text>
+          <Text style={styles.product}>TICKER-FIRST MOBILE</Text>
         </View>
-        <Text style={styles.statusValue}>CORE-00 · UO 1.1 RC1 · 30/30 Runtime Certified</Text>
-        <Text style={styles.statusNote}>SQLite real verificado con altas, lecturas, actualizaciones y borrados antes de abrir esta pantalla.</Text>
-        {gate?.checkedAt ? <Text style={styles.checkedAt}>Functional Gate: {new Date(gate.checkedAt).toLocaleString('es-ES')}</Text> : null}
+        <View style={[styles.status, apiState === 'ONLINE' ? styles.online : apiState === 'OFFLINE' ? styles.offline : styles.checking]}>
+          <View style={[styles.dot, apiState === 'ONLINE' ? styles.dotOnline : apiState === 'OFFLINE' ? styles.dotOffline : styles.dotChecking]} />
+          <Text style={styles.statusText}>{apiState}</Text>
+        </View>
       </View>
 
-      <View style={styles.summaryRow}>
-        <MiniMetric label="Portfolio" value={counts.positions} />
-        <MiniMetric label="Watchlist" value={counts.watchlist} />
-        <MiniMetric label="CAPEX Ω" value={counts.capex} />
+      <View style={styles.hero}>
+        <Text style={styles.eyebrow}>NUEVA INTERFAZ</Text>
+        <Text style={styles.title}>Elige pantalla. Pon ticker. Recibe datos.</Text>
+        <Text style={styles.subtitle}>Sin formularios manuales. Sin escribir razones, señales ni evidencias a mano. Cada módulo consulta ATLAS online.</Text>
+        <View style={styles.apiBox}>
+          <Text style={styles.apiLabel}>BACKEND</Text>
+          <Text style={styles.apiValue} numberOfLines={1}>{atlasApiBaseUrl()}</Text>
+          <Text style={styles.apiMeta}>{apiVersion ? `API ${apiVersion}` : 'Render + Finnhub'}</Text>
+        </View>
       </View>
 
-      <Text style={styles.instruction}>Pulsa un módulo. Cada tarjeta abre una pantalla operativa con persistencia local.</Text>
-
+      <Text style={styles.section}>MENÚ</Text>
       <View style={styles.grid}>
         {modules.map((module) => (
           <Pressable
-            key={module.name}
+            key={module.code}
             accessibilityRole="button"
-            accessibilityLabel={`Abrir ${module.name}`}
+            accessibilityLabel={`Abrir ${module.title}`}
             onPress={() => router.push(module.route)}
             style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
           >
-            <View style={styles.cardHeader}>
-              <View style={styles.flex}>
-                <Text style={styles.cardTitle}>{module.name}</Text>
-                <Text style={styles.cardText}>{module.description}</Text>
-              </View>
-              <View style={styles.countBadge}><Text style={styles.countText}>{countFor(module.name)}</Text></View>
-              <Text style={styles.chevron}>›</Text>
-            </View>
+            <Text style={styles.code}>{module.code}</Text>
+            <Text style={styles.cardTitle}>{module.title}</Text>
+            <Text style={styles.cardText}>{module.subtitle}</Text>
+            <Text style={styles.arrow}>›</Text>
           </Pressable>
         ))}
+      </View>
+
+      <View style={styles.ruleCard}>
+        <Text style={styles.ruleTitle}>REGLA DE USO</Text>
+        <Text style={styles.ruleText}>1 ticker → datos automáticos. Si un dato no existe o el proveedor no lo entrega, ATLAS muestra “no disponible”; no te obliga a rellenarlo manualmente.</Text>
       </View>
     </ScrollView>
   );
 }
 
-function MiniMetric({ label, value }: { label: string; value: number }) {
-  return <View style={styles.metric}><Text style={styles.metricValue}>{value}</Text><Text style={styles.metricLabel}>{label}</Text></View>;
-}
-
 const styles = StyleSheet.create({
-  container: { padding: 20, gap: 16, backgroundColor: '#0b0f14' },
-  eyebrow: { color: '#8ea2b8', fontSize: 12, fontWeight: '700', letterSpacing: 1.2 },
-  title: { color: '#fff', fontSize: 30, fontWeight: '800' },
-  subtitle: { color: '#9da9b7', fontSize: 15 },
-  statusCard: { borderWidth: 1, borderColor: '#29405b', backgroundColor: '#111923', borderRadius: 18, padding: 18, gap: 7 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  statusTitle: { color: '#71b7ff', fontWeight: '800', fontSize: 13 },
-  gateBadge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  gatePass: { backgroundColor: '#123922' },
-  gateUnknown: { backgroundColor: '#3a3112' },
-  gateText: { color: '#ffffff', fontSize: 11, fontWeight: '900' },
-  statusValue: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  statusNote: { color: '#9da9b7', fontSize: 13, lineHeight: 19 },
-  checkedAt: { color: '#64748b', fontSize: 10 },
-  summaryRow: { flexDirection: 'row', gap: 8 },
-  metric: { flex: 1, backgroundColor: '#111923', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#202b38' },
-  metricValue: { color: '#71b7ff', fontWeight: '800', fontSize: 22 },
-  metricLabel: { color: '#94a3b8', fontSize: 11, marginTop: 3 },
-  instruction: { color: '#cbd5e1', fontSize: 13, lineHeight: 19 },
-  grid: { gap: 12 },
-  card: { backgroundColor: '#141a22', borderRadius: 18, padding: 18, borderWidth: 1, borderColor: '#202b38' },
-  cardPressed: { opacity: 0.68, transform: [{ scale: 0.99 }] },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  flex: { flex: 1 },
-  cardTitle: { color: '#fff', fontSize: 18, fontWeight: '700', marginBottom: 5 },
-  cardText: { color: '#9da9b7', lineHeight: 20 },
-  countBadge: { minWidth: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: '#111923', borderWidth: 1, borderColor: '#29405b' },
-  countText: { color: '#71b7ff', fontWeight: '800' },
-  chevron: { color: '#71b7ff', fontSize: 30, lineHeight: 30 },
+  screen: { flex: 1, backgroundColor: '#070b10' },
+  content: { padding: 18, paddingBottom: 54, gap: 16 },
+  top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  brand: { color: '#f7fafc', fontSize: 25, fontWeight: '900', letterSpacing: 1.5 },
+  product: { color: '#566b80', fontSize: 9, fontWeight: '900', letterSpacing: 1.6, marginTop: 3 },
+  status: { flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 7 },
+  online: { backgroundColor: '#0a1b15', borderColor: '#20523d' },
+  offline: { backgroundColor: '#1d0d12', borderColor: '#632536' },
+  checking: { backgroundColor: '#1b180d', borderColor: '#5a4d20' },
+  dot: { width: 7, height: 7, borderRadius: 4 },
+  dotOnline: { backgroundColor: '#43dfa0' },
+  dotOffline: { backgroundColor: '#ff6f84' },
+  dotChecking: { backgroundColor: '#e4bd57' },
+  statusText: { color: '#a7b4c1', fontSize: 9, fontWeight: '900' },
+  hero: { backgroundColor: '#0d151e', borderWidth: 1, borderColor: '#263d52', borderRadius: 18, padding: 18, gap: 8 },
+  eyebrow: { color: '#62caff', fontSize: 10, fontWeight: '900', letterSpacing: 1.5 },
+  title: { color: '#ffffff', fontSize: 31, lineHeight: 37, fontWeight: '900' },
+  subtitle: { color: '#93a3b5', fontSize: 14, lineHeight: 21 },
+  apiBox: { marginTop: 6, backgroundColor: '#080d13', borderRadius: 11, padding: 11, borderWidth: 1, borderColor: '#1c2d3b' },
+  apiLabel: { color: '#5b7085', fontSize: 8, fontWeight: '900', letterSpacing: 1.1 },
+  apiValue: { color: '#b9d9ee', fontSize: 11, fontWeight: '800', marginTop: 4 },
+  apiMeta: { color: '#536579', fontSize: 9, marginTop: 3 },
+  section: { color: '#65798d', fontSize: 10, fontWeight: '900', letterSpacing: 1.4 },
+  grid: { gap: 10 },
+  card: { minHeight: 104, backgroundColor: '#0e151d', borderWidth: 1, borderColor: '#1f3040', borderRadius: 16, padding: 15, position: 'relative' },
+  cardPressed: { opacity: 0.65, transform: [{ scale: 0.99 }] },
+  code: { color: '#63caff', fontSize: 9, fontWeight: '900', letterSpacing: 1.3 },
+  cardTitle: { color: '#f1f5f9', fontSize: 19, fontWeight: '900', marginTop: 8 },
+  cardText: { color: '#8292a5', fontSize: 12, marginTop: 4, paddingRight: 28 },
+  arrow: { position: 'absolute', right: 15, top: 35, color: '#4f718e', fontSize: 32 },
+  ruleCard: { backgroundColor: '#11180d', borderWidth: 1, borderColor: '#33451f', borderRadius: 14, padding: 14 },
+  ruleTitle: { color: '#a4bd70', fontSize: 9, fontWeight: '900', letterSpacing: 1.2 },
+  ruleText: { color: '#87956c', fontSize: 11, lineHeight: 17, marginTop: 5 },
 });

@@ -15,7 +15,7 @@ dump_ui() {
 
 wait_for_text() {
   local needle="$1"
-  for _ in $(seq 1 45); do
+  for _ in $(seq 1 50); do
     dump_ui
     if grep -Fq "$needle" window.xml 2>/dev/null; then
       return 0
@@ -29,7 +29,7 @@ wait_for_text() {
 
 wait_for_text_with_scroll() {
   local needle="$1"
-  for _ in $(seq 1 10); do
+  for _ in $(seq 1 12); do
     dump_ui
     if grep -Fq "$needle" window.xml 2>/dev/null; then
       return 0
@@ -53,8 +53,7 @@ desc = sys.argv[1]
 root = ET.parse('window.xml').getroot()
 for node in root.iter('node'):
     if node.attrib.get('content-desc') == desc:
-        bounds = node.attrib.get('bounds', '')
-        match = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', bounds)
+        match = re.fullmatch(r'\[(\d+),(\d+)\]\[(\d+),(\d+)\]', node.attrib.get('bounds', ''))
         if not match:
             continue
         x1, y1, x2, y2 = map(int, match.groups())
@@ -67,7 +66,7 @@ PY
 tap_desc() {
   local desc="$1"
   local coords=""
-  for _ in $(seq 1 10); do
+  for _ in $(seq 1 12); do
     dump_ui
     if coords="$(find_desc_coords "$desc")"; then
       local x y
@@ -86,31 +85,32 @@ tap_desc() {
 return_home() {
   adb shell input keyevent 4
   sleep 1
-  for _ in $(seq 1 8); do
-    adb shell input swipe 540 600 540 1900 200 || true
-  done
-  wait_for_text "FUNCTIONAL GATE"
+  for _ in $(seq 1 10); do adb shell input swipe 540 650 540 1850 180 || true; done
+  wait_for_text "Elige pantalla. Pon ticker. Recibe datos."
 }
 
-wait_for_text "FUNCTIONAL GATE"
-wait_for_text "PASS"
-wait_for_text "CORE-00"
+wait_for_text "Elige pantalla. Pon ticker. Recibe datos."
+wait_for_text "MENÚ"
+wait_for_text "CAPEX Productivity Ω"
 
 verify_route() {
   local desc="$1"
   local expected="$2"
-  echo "Verifying route: $desc -> $expected"
+  echo "Verifying ticker-only route: $desc -> $expected"
   tap_desc "$desc"
   wait_for_text_with_scroll "$expected"
+  wait_for_text_with_scroll "ANALIZAR"
   return_home
 }
 
-verify_route "Abrir Portfolio" "Guardar posición"
-verify_route "Abrir Watchlist" "Añadir candidato"
-verify_route "Abrir Radar" "Guardar señal"
-verify_route "Abrir Evidence" "Guardar evidencia"
-verify_route "Abrir Daily Intelligence" "Registrar decisión"
-verify_route "Abrir Gemelo Digital" "Guardar Gemelo Digital"
-verify_route "Abrir Audit" "Auditoría y trazabilidad"
+verify_route "Abrir Resumen" "Resumen Ω"
+verify_route "Abrir Mercado" "Mercado Ω"
+verify_route "Abrir Growth Ω" "Growth Ω"
+verify_route "Abrir Business Quality Ω" "Business Quality Ω"
+verify_route "Abrir CAPEX Productivity Ω" "CAPEX Productivity Ω"
+verify_route "Abrir Valuation Ω" "Valuation Ω"
+verify_route "Abrir Risk Ω" "Risk Ω"
+verify_route "Abrir Catalysts Ω" "Catalysts Ω"
+verify_route "Abrir News Ω" "News Ω"
 
-echo "ATLAS Ω functional emulator gate: PASS"
+echo "ATLAS Ω ticker-only menu emulator gate: PASS"
