@@ -1,12 +1,12 @@
 {
   "name": "atlas-omega-backend",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.mjs",
-    "check": "node --check server.mjs && node --check tests.mjs && node --check market-engine.mjs && node --check market-engine.test.mjs",
-    "test": "node tests.mjs && node market-engine.test.mjs"
+    "start": "node server-v3.mjs",
+    "check": "node --check server-v3.mjs && node --check market-engine.mjs && node --check fundamental-engine.mjs && node --check market-engine.test.mjs && node --check fundamental-tests.mjs",
+    "test": "node market-engine.test.mjs && node fundamental-tests.mjs"
   },
   "engines": {
     "node": ">=22"
