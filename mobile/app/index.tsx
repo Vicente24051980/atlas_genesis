@@ -2,18 +2,19 @@ import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { AtlasOnlineApi, atlasApiBaseUrl } from '../core/api/atlasOnlineApi';
+import { AtlasOnlineApi, atlasApiBaseUrl, healthHasFinnhub } from '../core/api/atlasOnlineApi';
 
 const modules = [
-  { code: 'OVR', title: 'Resumen', subtitle: 'Empresa · precio · métricas clave', route: '/overview' },
-  { code: 'MKT', title: 'Mercado', subtitle: 'Precio · rango · beta · volumen', route: '/market' },
-  { code: 'GRW', title: 'Growth Ω', subtitle: 'Ventas · EPS · crecimiento', route: '/growth' },
-  { code: 'QLT', title: 'Business Quality Ω', subtitle: 'ROE · ROA · márgenes · eficiencia', route: '/quality' },
-  { code: 'CPX', title: 'CAPEX Productivity Ω', subtitle: 'FCF · CAPEX · ROIC · deuda', route: '/capex-productivity' },
-  { code: 'VAL', title: 'Valuation Ω', subtitle: 'P/E · P/B · múltiplos · yield', route: '/valuation' },
-  { code: 'RSK', title: 'Risk Ω', subtitle: 'Beta · deuda · liquidez · volatilidad', route: '/risk' },
-  { code: 'CAT', title: 'Catalysts Ω', subtitle: 'Noticias · consenso · cambios', route: '/catalysts' },
-  { code: 'NWS', title: 'News Ω', subtitle: 'Noticias recientes del ticker', route: '/news' },
+  { code: 'PRT', title: 'Mi Cartera', subtitle: 'Posiciones · precios · P/L · auto-refresh', route: '/portfolio-live', accent: 'portfolio' },
+  { code: 'OVR', title: 'Resumen + Decisión', subtitle: 'COMPRAR / NO COMPRAR · empresa · precio', route: '/overview', accent: 'decision' },
+  { code: 'MKT', title: 'Mercado', subtitle: 'Cotización · rango · beta · volumen', route: '/market', accent: 'normal' },
+  { code: 'GRW', title: 'Growth Ω', subtitle: 'Ventas · EPS · crecimiento', route: '/growth', accent: 'normal' },
+  { code: 'QLT', title: 'Business Quality Ω', subtitle: 'ROE · ROA · márgenes · eficiencia', route: '/quality', accent: 'normal' },
+  { code: 'CPX', title: 'CAPEX Productivity Ω', subtitle: 'FCF · CAPEX · ROIC · deuda', route: '/capex-productivity', accent: 'normal' },
+  { code: 'VAL', title: 'Valuation Ω', subtitle: 'P/E · P/B · múltiplos · yield', route: '/valuation', accent: 'normal' },
+  { code: 'RSK', title: 'Risk Ω', subtitle: 'Beta · deuda · liquidez · volatilidad', route: '/risk', accent: 'normal' },
+  { code: 'CAT', title: 'Catalysts Ω', subtitle: 'Noticias · consenso · cambios', route: '/catalysts', accent: 'normal' },
+  { code: 'NWS', title: 'News Ω', subtitle: 'Noticias recientes del ticker', route: '/news', accent: 'normal' },
 ] as const;
 
 export default function HomeScreen() {
@@ -23,16 +24,20 @@ export default function HomeScreen() {
 
   useEffect(() => {
     let active = true;
-    void AtlasOnlineApi.health()
-      .then((health) => {
-        if (!active) return;
-        setApiState(health.ok && health.finnhub_configured ? 'ONLINE' : 'OFFLINE');
-        setApiVersion(health.version || '');
-      })
-      .catch(() => {
-        if (active) setApiState('OFFLINE');
-      });
-    return () => { active = false; };
+    const check = () => {
+      void AtlasOnlineApi.health()
+        .then((health) => {
+          if (!active) return;
+          setApiState(health.ok && healthHasFinnhub(health) ? 'ONLINE' : 'OFFLINE');
+          setApiVersion(health.version || '');
+        })
+        .catch(() => {
+          if (active) setApiState('OFFLINE');
+        });
+    };
+    check();
+    const timer = setInterval(check, 30000);
+    return () => { active = false; clearInterval(timer); };
   }, []);
 
   return (
@@ -40,7 +45,7 @@ export default function HomeScreen() {
       <View style={styles.top}>
         <View>
           <Text style={styles.brand}>ATLAS Ω</Text>
-          <Text style={styles.product}>TICKER-FIRST MOBILE</Text>
+          <Text style={styles.product}>DECISION-FIRST MOBILE</Text>
         </View>
         <View style={[styles.status, apiState === 'ONLINE' ? styles.online : apiState === 'OFFLINE' ? styles.offline : styles.checking]}>
           <View style={[styles.dot, apiState === 'ONLINE' ? styles.dotOnline : apiState === 'OFFLINE' ? styles.dotOffline : styles.dotChecking]} />
@@ -49,9 +54,9 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.hero}>
-        <Text style={styles.eyebrow}>NUEVA INTERFAZ</Text>
-        <Text style={styles.title}>Elige pantalla. Pon ticker. Recibe datos.</Text>
-        <Text style={styles.subtitle}>Sin formularios manuales. Sin escribir razones, señales ni evidencias a mano. Cada módulo consulta ATLAS online.</Text>
+        <Text style={styles.eyebrow}>DECISION Ω</Text>
+        <Text style={styles.title}>Pon ticker. ATLAS decide.</Text>
+        <Text style={styles.subtitle}>Cada análisis termina en COMPRAR o NO COMPRAR. La cotización se refresca automáticamente y la cartera vive en una pantalla propia.</Text>
         <View style={styles.apiBox}>
           <Text style={styles.apiLabel}>BACKEND</Text>
           <Text style={styles.apiValue} numberOfLines={1}>{atlasApiBaseUrl()}</Text>
@@ -67,7 +72,7 @@ export default function HomeScreen() {
             accessibilityRole="button"
             accessibilityLabel={`Abrir ${module.title}`}
             onPress={() => router.push(module.route)}
-            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            style={({ pressed }) => [styles.card, module.accent === 'portfolio' && styles.portfolioCard, module.accent === 'decision' && styles.decisionCard, pressed && styles.cardPressed]}
           >
             <Text style={styles.code}>{module.code}</Text>
             <Text style={styles.cardTitle}>{module.title}</Text>
@@ -79,7 +84,7 @@ export default function HomeScreen() {
 
       <View style={styles.ruleCard}>
         <Text style={styles.ruleTitle}>REGLA DE USO</Text>
-        <Text style={styles.ruleText}>1 ticker → datos automáticos. Si un dato no existe o el proveedor no lo entrega, ATLAS muestra “no disponible”; no te obliga a rellenarlo manualmente.</Text>
+        <Text style={styles.ruleText}>Ticker → datos → Decision Gate Ω → COMPRAR / NO COMPRAR. Si faltan datos auditables, la salida conservadora es NO COMPRAR. Ninguna orden se ejecuta automáticamente.</Text>
       </View>
     </ScrollView>
   );
@@ -111,6 +116,8 @@ const styles = StyleSheet.create({
   section: { color: '#65798d', fontSize: 10, fontWeight: '900', letterSpacing: 1.4 },
   grid: { gap: 10 },
   card: { minHeight: 104, backgroundColor: '#0e151d', borderWidth: 1, borderColor: '#1f3040', borderRadius: 16, padding: 15, position: 'relative' },
+  portfolioCard: { borderColor: '#285c72', backgroundColor: '#0a1720' },
+  decisionCard: { borderColor: '#315c46', backgroundColor: '#0b1813' },
   cardPressed: { opacity: 0.65, transform: [{ scale: 0.99 }] },
   code: { color: '#63caff', fontSize: 9, fontWeight: '900', letterSpacing: 1.3 },
   cardTitle: { color: '#f1f5f9', fontSize: 19, fontWeight: '900', marginTop: 8 },
