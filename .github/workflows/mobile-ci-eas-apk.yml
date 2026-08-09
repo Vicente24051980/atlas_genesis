@@ -2,24 +2,12 @@ name: ATLAS Ω Mobile + API Certification
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'mobile/**'
-      - 'backend/**'
-      - '.github/workflows/mobile-ci-eas-apk.yml'
+    branches: [main]
+    paths: ['mobile/**','backend/**','.github/workflows/mobile-ci-eas-apk.yml']
   pull_request:
-    branches:
-      - main
-    types:
-      - opened
-      - reopened
-      - ready_for_review
-      - synchronize
-    paths:
-      - 'mobile/**'
-      - 'backend/**'
-      - '.github/workflows/mobile-ci-eas-apk.yml'
+    branches: [main]
+    types: [opened,reopened,ready_for_review,synchronize]
+    paths: ['mobile/**','backend/**','.github/workflows/mobile-ci-eas-apk.yml']
   workflow_dispatch:
     inputs:
       target_ref:
@@ -36,106 +24,84 @@ jobs:
   backend-safety-gate:
     name: Backend API Safety Gate
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
+    defaults: { run: { working-directory: backend } }
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.13.0'
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22.13.0' }
       - name: Syntax verification
         run: npm run check
-      - name: Backend invariant tests
+      - name: Backend invariant + engine fixtures
         run: npm test
 
   typecheck-and-semantic-gate:
     name: TypeScript + Semantic Verification
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile
+    defaults: { run: { working-directory: mobile } }
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.13.0'
-      - name: Install mobile dependencies
-        run: npm install
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22.13.0' }
+      - run: npm install
       - name: Run TypeScript typecheck
         run: npm run typecheck
-      - name: Run deterministic semantic fixtures
+      - name: Run deterministic mobile semantic fixtures
         run: npm run semantic:gate
 
   build-candidate-apk:
-    name: Build Android Candidate APK
-    needs:
-      - backend-safety-gate
-      - typecheck-and-semantic-gate
+    name: Build Android E2E Candidate APK
+    needs: [backend-safety-gate,typecheck-and-semantic-gate]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile
+    defaults: { run: { working-directory: mobile } }
+    env:
+      EXPO_PUBLIC_ATLAS_API_BASE_URL: http://10.0.2.2:8787
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.13.0'
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-      - name: Install dependencies
-        run: npm install
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22.13.0' }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - run: npm install
       - name: Generate Android native project
         run: npx expo prebuild --platform android --non-interactive --clean
       - name: Build release APK with Gradle
-        shell: bash
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleRelease --no-daemon
-      - name: Upload candidate APK
-        uses: actions/upload-artifact@v4
+        run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-candidate-apk
+          name: atlas-omega-e2e-candidate-apk
           path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
   functional-emulator-smoke:
-    name: Functional Android Emulator Gate
+    name: Functional + Semantic Android Emulator Gate
     needs: build-candidate-apk
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-      - name: Download candidate APK
-        uses: actions/download-artifact@v4
-        with:
-          name: atlas-omega-candidate-apk
-          path: candidate-apk
-      - name: Enable KVM
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22.13.0' }
+      - uses: actions/download-artifact@v4
+        with: { name: atlas-omega-e2e-candidate-apk, path: candidate-apk }
+      - name: Start deterministic ATLAS API fixture
         shell: bash
+        run: |
+          node backend/fixture-server.mjs >/tmp/atlas-fixture.log 2>&1 &
+          echo $! >/tmp/atlas-fixture.pid
+          for i in {1..20}; do
+            curl -fsS http://127.0.0.1:8787/health && break
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8787/v1/audit/NVDA | grep -q 'ATLAS-FUNDAMENTAL-AUDIT-1.0.0'
+      - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Launch app and verify functional routes
+      - name: Launch app, run AUDIT Ω and verify routes
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -145,50 +111,44 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash mobile/scripts/android-functional-smoke.sh
-      - name: Publish certified APK artifact
+      - name: Upload E2E-certified fixture APK
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-certified-apk
+          name: atlas-omega-e2e-certified-apk
           path: candidate-apk/*.apk
           if-no-files-found: error
 
-  eas-preview-after-functional-gate:
-    name: Optional EAS Preview Build After Certification
+  production-apk-after-certification:
+    name: Production APK (only with deployed backend URL)
     needs: functional-emulator-smoke
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile
+    defaults: { run: { working-directory: mobile } }
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_PUBLIC_ATLAS_API_BASE_URL: ${{ secrets.ATLAS_API_BASE_URL }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.13.0'
-      - name: Check EXPO_TOKEN availability
-        id: expo_token
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}" }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22.13.0' }
+      - name: Check production prerequisites
+        id: prereq
         shell: bash
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          if [ -n "$EXPO_TOKEN" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
+          if [ -n "$EXPO_TOKEN" ] && [ -n "$EXPO_PUBLIC_ATLAS_API_BASE_URL" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
           else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "EXPO_TOKEN is not configured; certified local APK remains the release artifact."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Production APK skipped: EXPO_TOKEN and/or ATLAS_API_BASE_URL not configured."
           fi
-      - name: Setup Expo & EAS CLI
-        if: steps.expo_token.outputs.available == 'true'
+      - if: steps.prereq.outputs.ready == 'true'
         uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-      - name: Install dependencies for EAS
-        if: steps.expo_token.outputs.available == 'true'
+        with: { eas-version: latest, token: "${{ secrets.EXPO_TOKEN }}" }
+      - if: steps.prereq.outputs.ready == 'true'
         run: npm install
-      - name: Build Android APK with EAS
-        if: steps.expo_token.outputs.available == 'true'
+      - name: Verify deployed backend before production build
+        if: steps.prereq.outputs.ready == 'true'
+        run: curl -fsS "$EXPO_PUBLIC_ATLAS_API_BASE_URL/health" | grep -q 'ATLAS Ω Backend'
+      - name: Build production-connected preview APK
+        if: steps.prereq.outputs.ready == 'true'
         run: eas build --platform android --profile preview --non-interactive
