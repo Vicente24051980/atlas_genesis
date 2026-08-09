@@ -2,6 +2,9 @@
 set -euo pipefail
 APK="$(find candidate-apk -type f -name '*.apk' | head -n 1)"; test -n "$APK"
 adb install -r "$APK"
+# Stable CI transport: expose host fixture as emulator localhost.
+adb reverse tcp:8787 tcp:8787
+adb reverse --list | grep -q 'tcp:8787 tcp:8787'
 adb shell am force-stop com.vicentebellver.atlasomega || true
 adb shell am start -W -n com.vicentebellver.atlasomega/.MainActivity
 
