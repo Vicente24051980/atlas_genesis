@@ -143,18 +143,27 @@ wait_for_text "DISLOCATION Ω"
 tap_desc "Más"
 wait_for_text "Más"
 wait_for_text "Motores ATLAS Ω"
-wait_for_text "Broker Ω"
+wait_for_text_with_scroll "Evidence Ω"
+wait_for_text_with_scroll "Decision Log Ω"
+wait_for_text_with_scroll "Broker Ω"
 
 # Broker must no longer expose a manual private-token form.
 tap_desc "Abrir Broker Ω"
 wait_for_text "BROKER Ω"
-wait_for_text "SECUR"
+wait_for_text_with_scroll "SEGURIDAD"
 dump_ui
 if grep -Fq "Token privado del Broker Ω" window.xml 2>/dev/null || grep -Fq "CONTROL TOKEN" window.xml 2>/dev/null; then
   echo "::error::Legacy manual Broker control-token UI is still visible"
   cat window.xml
   exit 1
 fi
+adb shell input keyevent 4
+sleep 1
+wait_for_text "Más"
+
+# Decision Log route exists without requiring any manual data entry.
+tap_desc "Abrir Decision Log Ω"
+wait_for_text "Historial de decisiones"
 adb shell input keyevent 4
 sleep 1
 wait_for_text "Más"
@@ -197,7 +206,7 @@ if grep -Fq "Guardar evidencia" window.xml 2>/dev/null; then
   exit 1
 fi
 
-# Global market screen is separate from ticker Market analysis.
+# Global market screen is separate from per-ticker analysis.
 open_deep_link "market"
 wait_for_text "Mercados Ω"
 wait_for_text "MARKET SENSOR"
