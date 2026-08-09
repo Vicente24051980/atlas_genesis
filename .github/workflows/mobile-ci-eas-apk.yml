@@ -67,6 +67,22 @@ jobs:
       - run: npm install
       - name: Generate Android native project
         run: npx expo prebuild --platform android --non-interactive --clean
+      - name: Permit fixture cleartext only in E2E candidate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('android/app/src/main/AndroidManifest.xml')
+          text = path.read_text()
+          if 'android:usesCleartextTraffic=' in text:
+              import re
+              text = re.sub(r'android:usesCleartextTraffic="[^"]*"', 'android:usesCleartextTraffic="true"', text, count=1)
+          else:
+              text = text.replace('<application', '<application android:usesCleartextTraffic="true"', 1)
+          path.write_text(text)
+          assert 'android:usesCleartextTraffic="true"' in text
+          print('E2E-only cleartext enabled for 10.0.2.2 fixture build')
+          PY
       - name: Build release APK with Gradle
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
       - uses: actions/upload-artifact@v4
