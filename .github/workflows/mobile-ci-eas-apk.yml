@@ -51,7 +51,7 @@ jobs:
         run: npm run semantic:gate
 
   build-candidate-apk:
-    name: Build Android E2E Candidate APK
+    name: Build Android CI Fixture APK (NOT FOR PHONE)
     needs: [backend-safety-gate,typecheck-and-semantic-gate]
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: mobile } }
@@ -67,7 +67,7 @@ jobs:
       - run: npm install
       - name: Generate Android native project
         run: npx expo prebuild --platform android --non-interactive --clean
-      - name: Permit fixture cleartext only in E2E candidate
+      - name: Permit fixture cleartext only in CI APK
         shell: bash
         run: |
           python3 - <<'PY'
@@ -81,13 +81,13 @@ jobs:
               text = text.replace('<application', '<application android:usesCleartextTraffic="true"', 1)
           path.write_text(text)
           assert 'android:usesCleartextTraffic="true"' in text
-          print('E2E-only cleartext enabled for localhost fixture build')
+          print('CI-only cleartext enabled for adb-reversed localhost fixture')
           PY
-      - name: Build release APK with Gradle
+      - name: Build CI fixture APK with Gradle
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-e2e-candidate-apk
+          name: atlas-omega-CI-FIXTURE-NOT-FOR-PHONE
           path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
@@ -101,7 +101,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: '22.13.0' }
       - uses: actions/download-artifact@v4
-        with: { name: atlas-omega-e2e-candidate-apk, path: candidate-apk }
+        with: { name: atlas-omega-CI-FIXTURE-NOT-FOR-PHONE, path: candidate-apk }
       - name: Start deterministic ATLAS API fixture
         shell: bash
         run: |
@@ -130,41 +130,65 @@ jobs:
       - name: Upload E2E-certified fixture APK
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-e2e-certified-apk
+          name: atlas-omega-CI-FIXTURE-CERTIFIED-NOT-FOR-PHONE
           path: candidate-apk/*.apk
           if-no-files-found: error
 
   production-apk-after-certification:
-    name: Production APK (only with deployed backend URL)
+    name: Installable Phone APK (HTTPS backend required)
     needs: functional-emulator-smoke
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: mobile } }
     env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       EXPO_PUBLIC_ATLAS_API_BASE_URL: ${{ secrets.ATLAS_API_BASE_URL }}
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}" }
       - uses: actions/setup-node@v4
         with: { node-version: '22.13.0' }
-      - name: Check production prerequisites
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - name: Check phone-build backend prerequisite
         id: prereq
         shell: bash
         run: |
-          if [ -n "$EXPO_TOKEN" ] && [ -n "$EXPO_PUBLIC_ATLAS_API_BASE_URL" ]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
+          if [ -z "$EXPO_PUBLIC_ATLAS_API_BASE_URL" ]; then
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "Production APK skipped: EXPO_TOKEN and/or ATLAS_API_BASE_URL not configured."
+            echo "Phone APK skipped: ATLAS_API_BASE_URL GitHub secret is not configured."
+            exit 0
           fi
-      - if: steps.prereq.outputs.ready == 'true'
-        uses: expo/expo-github-action@v8
-        with: { eas-version: latest, token: "${{ secrets.EXPO_TOKEN }}" }
-      - if: steps.prereq.outputs.ready == 'true'
-        run: npm install
-      - name: Verify deployed backend before production build
+          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in
+            https://*) ;;
+            *) echo "::error::ATLAS_API_BASE_URL must be HTTPS for a phone build"; exit 1;;
+          esac
+          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in
+            *127.0.0.1*|*localhost*|*10.0.2.2*) echo "::error::Loopback/emulator backend URL is forbidden in a phone APK"; exit 1;;
+          esac
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+      - name: Verify deployed backend before phone build
         if: steps.prereq.outputs.ready == 'true'
         run: curl -fsS "$EXPO_PUBLIC_ATLAS_API_BASE_URL/health" | grep -q 'ATLAS Ω Backend'
-      - name: Build production-connected preview APK
+      - if: steps.prereq.outputs.ready == 'true'
+        run: npm install
+      - name: Generate production Android native project
         if: steps.prereq.outputs.ready == 'true'
-        run: eas build --platform android --profile preview --non-interactive
+        run: npx expo prebuild --platform android --non-interactive --clean
+      - name: Enforce production network policy
+        if: steps.prereq.outputs.ready == 'true'
+        shell: bash
+        run: |
+          if grep -q 'android:usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml; then
+            echo "::error::Phone APK unexpectedly allows cleartext traffic"
+            exit 1
+          fi
+          echo "Production network policy: HTTPS only"
+      - name: Build installable phone APK with Gradle
+        if: steps.prereq.outputs.ready == 'true'
+        run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+      - name: Upload installable phone APK
+        if: steps.prereq.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-omega-PHONE-APK
+          path: mobile/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
