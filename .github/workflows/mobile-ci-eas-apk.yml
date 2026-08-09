@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - 'mobile/**'
+      - 'api/**'
+      - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
   pull_request:
     branches:
@@ -17,6 +19,8 @@ on:
       - synchronize
     paths:
       - 'mobile/**'
+      - 'api/**'
+      - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
   workflow_dispatch:
     inputs:
@@ -31,6 +35,71 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  api-certification:
+    name: API Syntax & Broker Guardrail Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install API dependencies
+        run: pip install -r api/requirements.txt
+
+      - name: Compile API
+        run: python -m compileall -q api
+
+      - name: Verify Broker Ω fail-closed guardrails
+        shell: bash
+        run: |
+          python - <<'PY'
+          from fastapi.testclient import TestClient
+          import api.main as main
+
+          client = TestClient(main.app)
+
+          status = client.get('/v1/broker/status')
+          assert status.status_code == 200, status.text
+          payload = status.json()
+          assert payload['mode'] == 'PAPER', payload
+          assert payload['configured'] is False, payload
+
+          protected = client.get('/v1/broker/account')
+          assert protected.status_code == 503, protected.text
+
+          main.TRADING212_API_KEY = 'ci-key'
+          main.TRADING212_API_SECRET = 'ci-secret'
+          main.ATLAS_BROKER_CONTROL_TOKEN = 'ci-control'
+          main.TRADING212_ENV = 'live'
+          main.TRADING212_LIVE_TRADING_ENABLED = False
+
+          live_locked = client.post(
+              '/v1/broker/orders/market',
+              headers={'X-Atlas-Broker-Token': 'ci-control'},
+              json={'ticker': 'AAPL_US_EQ', 'quantity': 0.01, 'extended_hours': False, 'confirmation': 'EXECUTE_LIVE'},
+          )
+          assert live_locked.status_code == 403, live_locked.text
+
+          main.TRADING212_ENV = 'demo'
+          wrong_confirmation = client.post(
+              '/v1/broker/orders/market',
+              headers={'X-Atlas-Broker-Token': 'ci-control'},
+              json={'ticker': 'AAPL_US_EQ', 'quantity': 0.01, 'extended_hours': False, 'confirmation': 'EXECUTE_LIVE'},
+          )
+          assert wrong_confirmation.status_code == 400, wrong_confirmation.text
+
+          unauthorized = client.get('/v1/broker/positions', headers={'X-Atlas-Broker-Token': 'wrong'})
+          assert unauthorized.status_code == 401, unauthorized.text
+          print('Broker Ω guardrails: PASS')
+          PY
+
   typecheck-and-schema:
     name: TypeScript Check & Schema Verification
     runs-on: ubuntu-latest
@@ -57,7 +126,9 @@ jobs:
 
   build-candidate-apk:
     name: Build Android Candidate APK
-    needs: typecheck-and-schema
+    needs:
+      - api-certification
+      - typecheck-and-schema
     runs-on: ubuntu-latest
     defaults:
       run:
