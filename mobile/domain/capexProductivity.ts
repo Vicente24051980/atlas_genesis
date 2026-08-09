@@ -8,12 +8,23 @@ export type CapexProductivityState =
   | 'CAPEX_UNDER_MONETIZATION'
   | 'INSUFFICIENT_DATA';
 
+export type IncrementalRoicRegime =
+  | 'TRUE_INCREMENTAL_RETURN'
+  | 'CAPITAL_RELEASE_WITH_EARNINGS_GROWTH'
+  | 'CAPITAL_ADDITION_WITH_EARNINGS_DECLINE'
+  | 'BUSINESS_CONTRACTION_CAPITAL_RELEASE'
+  | 'UNSTABLE_DENOMINATOR'
+  | 'MISSING';
+
 export type CapexProductivityInput = {
   ticker: string;
   roicCurrent: number | null;
   roicAvg3y: number | null;
   roicAvg5y: number | null;
   incrementalRoic: number | null;
+  incrementalRoicRegime?: IncrementalRoicRegime;
+  incrementalRoicScoreEligible?: boolean;
+  incrementalCapitalMetricsScoreEligible?: boolean;
   capexGrowth: number | null;
   capexCagr3y: number | null;
   revenueGrowth: number | null;
@@ -142,10 +153,15 @@ function ratioScore(value: number, excellent: number, good: number, weak: number
 }
 
 function computeComponentScores(input: CapexProductivityInput) {
+  const incrementalRoicScorable = input.incrementalRoicScoreEligible !== false;
+  const incrementalCapitalScorable = input.incrementalCapitalMetricsScoreEligible !== false;
+
   const roicParts: ScorePart[] = [];
   if (input.roicCurrent != null) roicParts.push({ normalized: absoluteRoicScore(input.roicCurrent), maxPoints: 10 });
   if (input.roicCurrent != null && input.roicAvg3y != null) roicParts.push({ normalized: trendScore(input.roicCurrent, input.roicAvg3y), maxPoints: 5 });
-  if (input.incrementalRoic != null && input.roicAvg3y != null) roicParts.push({ normalized: trendScore(input.incrementalRoic, input.roicAvg3y), maxPoints: 5 });
+  if (incrementalRoicScorable && input.incrementalRoic != null && input.roicAvg3y != null) {
+    roicParts.push({ normalized: trendScore(input.incrementalRoic, input.roicAvg3y), maxPoints: 5 });
+  }
 
   const fcfParts: ScorePart[] = [];
   if (input.fcfToCapex != null) fcfParts.push({ normalized: ratioScore(input.fcfToCapex, 2, 1, 0.5), maxPoints: 8 });
@@ -156,10 +172,10 @@ function computeComponentScores(input: CapexProductivityInput) {
   if (input.assetTurnover != null && input.assetTurnoverPrior1y != null) {
     assetParts.push({ normalized: trendScore(input.assetTurnover * 100, input.assetTurnoverPrior1y * 100), maxPoints: 5 });
   }
-  if (input.incrementalRevenueToInvestedCapital != null) {
+  if (incrementalCapitalScorable && input.incrementalRevenueToInvestedCapital != null) {
     assetParts.push({ normalized: ratioScore(input.incrementalRevenueToInvestedCapital, 0.75, 0.4, 0.15), maxPoints: 5 });
   }
-  if (input.incrementalOperatingProfitToInvestedCapital != null) {
+  if (incrementalCapitalScorable && input.incrementalOperatingProfitToInvestedCapital != null) {
     assetParts.push({ normalized: ratioScore(input.incrementalOperatingProfitToInvestedCapital, 0.3, 0.2, 0.1), maxPoints: 5 });
   }
 
@@ -188,7 +204,9 @@ function computeComponentScores(input: CapexProductivityInput) {
   if (input.sbcToRevenue != null) dilutionParts.push({ normalized: input.sbcToRevenue <= 0.03 ? 1 : input.sbcToRevenue <= 0.08 ? 0.75 : input.sbcToRevenue <= 0.15 ? 0.45 : 0.15, maxPoints: 2 });
 
   const returnParts: ScorePart[] = [];
-  if (input.incrementalRoic != null) returnParts.push({ normalized: absoluteRoicScore(input.incrementalRoic), maxPoints: 6 });
+  if (incrementalRoicScorable && input.incrementalRoic != null) {
+    returnParts.push({ normalized: absoluteRoicScore(input.incrementalRoic), maxPoints: 6 });
+  }
   if (input.incrementalOperatingMargin != null) {
     const normalized = input.incrementalOperatingMargin >= 25 ? 1 : input.incrementalOperatingMargin >= 15 ? 0.8 : input.incrementalOperatingMargin >= 5 ? 0.55 : input.incrementalOperatingMargin >= 0 ? 0.3 : 0.05;
     returnParts.push({ normalized, maxPoints: 4 });
@@ -206,6 +224,9 @@ function computeComponentScores(input: CapexProductivityInput) {
 }
 
 export function evaluateCapexProductivity(input: CapexProductivityInput): CapexProductivityResult {
+  const incrementalRoicScorable = input.incrementalRoicScoreEligible !== false;
+  const explicitCapitalAdditionDeterioration = input.incrementalRoicRegime === 'CAPITAL_ADDITION_WITH_EARNINGS_DECLINE';
+
   const signals: CapexWatchSignal[] = [
     {
       code: 'CAPEX_UP_ROIC_DOWN',
@@ -239,8 +260,15 @@ export function evaluateCapexProductivity(input: CapexProductivityInput): CapexP
     },
     {
       code: 'INCREMENTAL_ROIC_BELOW_HISTORY',
-      active: input.incrementalRoic != null && input.roicAvg3y != null && input.incrementalRoic < input.roicAvg3y * 0.75,
-      detail: 'ROIC incremental está materialmente por debajo del ROIC histórico.',
+      active: explicitCapitalAdditionDeterioration || (
+        incrementalRoicScorable
+        && input.incrementalRoic != null
+        && input.roicAvg3y != null
+        && input.incrementalRoic < input.roicAvg3y * 0.75
+      ),
+      detail: explicitCapitalAdditionDeterioration
+        ? 'El capital invertido aumenta mientras NOPAT no crece: deterioro incremental económicamente válido.'
+        : 'ROIC incremental interpretable está materialmente por debajo del ROIC histórico.',
     },
     {
       code: 'REVENUE_UP_FCFPS_NOT_UP',
