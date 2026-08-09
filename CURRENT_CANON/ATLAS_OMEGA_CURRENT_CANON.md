@@ -70,6 +70,18 @@ Flow:
 
 Interpretations are preserved with attribution and are not promoted to canonical evidence merely by being retained. ATLAS must be capable of preserving an idea without having to believe it.
 
+## NARRATIVE SATURATION Ω v1.0 — higher-layer indicator
+
+NARRATIVE SATURATION Ω is canonical for Conspiraciones Atlas Ω, MONEY ROTATION Ω and HISTORICAL DISLOCATION Ω.
+
+It treats major macro/monetary covers as narrative and regime-stress sensors, not as predictions or trade signals. The canonical pattern is:
+
+`TREND -> EXTREME -> COVER -> POSSIBLE REGIME RESPONSE`
+
+The 2026-08-08 Economist Big Mac / "The Global Currency Beef" cover is frozen as the first out-of-sample Phoenix 2026 watch case. It must be tested against predefined monetary confirmers/falsifiers without later reinterpretation.
+
+Document: `docs/canon/NARRATIVE_SATURATION_OMEGA_v1.md`.
+
 Anti-intention rule:
 
 `Observed conduct -> incentive structure -> motivation hypothesis -> additional evidence required`.
