@@ -1,5 +1,5 @@
-import TrackedMonitorScreen from '../components/TrackedMonitorScreen';
+import UserTrackedMonitorScreen from '../components/UserTrackedMonitorScreen';
 
 export default function WatchlistScreen() {
-  return <TrackedMonitorScreen kind="watchlist" />;
+  return <UserTrackedMonitorScreen kind="watchlist" />;
 }
