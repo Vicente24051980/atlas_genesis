@@ -16,6 +16,8 @@ export const EVIDENCE_INGESTION_POSITION = [
   'MOBILE_INPUT', 'EVIDENCE_INGESTION_OMEGA_V1', 'VALIDATION_HARNESS_OMEGA',
   'EPISTEMIC_CLASSIFICATION', 'GLOBAL_DISCOVERY', 'MARKET_FILTERS',
   'BUSINESS_QUALITY_OMEGA', 'GROWTH_OMEGA', 'CAPEX_PRODUCTIVITY_OMEGA',
+  'MONEY_ROTATION_OMEGA', 'HISTORICAL_DISLOCATION_OMEGA', 'CONSPIRACIONES_ATLAS',
+  'NARRATIVE_SATURATION_OMEGA', 'PHOENIX_2026_MONITOR_OMEGA',
   'VALUATION_OMEGA', 'RISK_OMEGA', 'CATALYSTS_OMEGA', 'FINAL_SCORE_OMEGA', 'DECISION_LOG_OMEGA',
 ] as const;
 
@@ -46,14 +48,49 @@ export function canModifyCanonicalAtlasState(record: EvidenceRecord): boolean {
   return record.evidenceLevel === 1 && (record.epistemicClass === 'fact' || record.epistemicClass === 'evidence');
 }
 
+function includesAny(text: string, terms: string[]): boolean {
+  return terms.some((term) => text.includes(term));
+}
+
 export function routeEvidenceToEngines(record: EvidenceRecord): AtlasEngineId[] {
   const engines = new Set<AtlasEngineId>(record.relatedEngines);
   const text = `${record.title ?? ''} ${record.summary} ${record.keyClaims.join(' ')}`.toLowerCase();
-  if (text.includes('capex') || text.includes('free cash flow') || text.includes('fcf') || text.includes('roic')) engines.add('CAPEX_PRODUCTIVITY_OMEGA');
-  if (text.includes('gold') || text.includes('oil') || text.includes('rates') || text.includes('dollar') || text.includes('flows')) {
-    engines.add('MONEY_ROTATION_OMEGA'); engines.add('HISTORICAL_DISLOCATION_OMEGA');
+
+  if (text.includes('capex') || text.includes('free cash flow') || text.includes('fcf') || text.includes('roic')) {
+    engines.add('CAPEX_PRODUCTIVITY_OMEGA');
   }
-  if (text.includes('security') || text.includes('agent') || text.includes('identity') || text.includes('zero trust')) engines.add('FUTUROS_PROTECTORES_DIGITALES');
+
+  const macroRotation = includesAny(text, [
+    'gold', 'oil', 'rates', 'dollar', 'flows', 'treasury', 'yield', 'reserve currency', 'foreign exchange', 'currency',
+  ]);
+  if (macroRotation) {
+    engines.add('MONEY_ROTATION_OMEGA');
+    engines.add('HISTORICAL_DISLOCATION_OMEGA');
+  }
+
+  if (text.includes('security') || text.includes('agent') || text.includes('identity') || text.includes('zero trust')) {
+    engines.add('FUTUROS_PROTECTORES_DIGITALES');
+  }
+
+  const economistNarrative = includesAny(text, [
+    'the economist', 'economist cover', 'magazine cover', 'big mac index', 'global currency beef', 'world currency', 'phoenix',
+  ]);
+  if (economistNarrative) {
+    engines.add('CONSPIRACIONES_ATLAS');
+    engines.add('NARRATIVE_SATURATION_OMEGA');
+  }
+
+  const monetaryArchitecture = includesAny(text, [
+    'phoenix', 'world currency', 'reserve currency', 'sdr', 'special drawing rights', 'brics', 'dedollar', 'de-dollar',
+    'central bank gold', 'currency reserves', 'foreign exchange reserves', 'petrodollar', 'cross-border payment',
+  ]);
+  if (monetaryArchitecture) {
+    engines.add('CONSPIRACIONES_ATLAS');
+    engines.add('PHOENIX_2026_MONITOR_OMEGA');
+    engines.add('MONEY_ROTATION_OMEGA');
+    engines.add('HISTORICAL_DISLOCATION_OMEGA');
+  }
+
   if (record.evidenceLevel === 4) engines.add('CONSPIRACIONES_ATLAS');
   return Array.from(engines);
 }
