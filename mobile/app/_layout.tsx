@@ -60,19 +60,13 @@ export default function RootLayout() {
         <Stack.Screen name="watchlist" />
         <Stack.Screen name="radar" />
         <Stack.Screen name="more" />
+        <Stack.Screen name="analyze" />
+        <Stack.Screen name="engine-detail" />
         <Stack.Screen name="engines" />
         <Stack.Screen name="evidence" />
         <Stack.Screen name="decisions" />
         <Stack.Screen name="ticker" />
-        <Stack.Screen name="overview" />
         <Stack.Screen name="market" />
-        <Stack.Screen name="growth" />
-        <Stack.Screen name="quality" />
-        <Stack.Screen name="capex-productivity" />
-        <Stack.Screen name="valuation" />
-        <Stack.Screen name="risk" />
-        <Stack.Screen name="catalysts" />
-        <Stack.Screen name="news" />
         <Stack.Screen name="broker" />
       </Stack>
     </>
