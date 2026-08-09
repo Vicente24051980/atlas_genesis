@@ -46,7 +46,7 @@ export default function RadarScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void load(true)} tintColor="#2ed19a" />}>
         <Text style={styles.eyebrow}>EARLY SIGNALS · NO THESIS MUTATION</Text>
         <Text style={styles.title}>Radar Ω</Text>
-        <Text style={styles.subtitle}>Dónde se mueve el dinero, dónde aparece una dislocación y qué candidatos deben pasar después al scorer ATLAS.</Text>
+        <Text style={styles.subtitle}>Dónde se mueve el mercado, dónde aparece una dislocación y qué candidatos deben pasar después por evidencia, Money Rotation Ω y el scorer ATLAS.</Text>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>
           <TabButton label="ROTACIÓN Ω" active={tab === 'rotation'} onPress={() => setTab('rotation')} />
@@ -73,15 +73,15 @@ function RotationView({ payload, onTicker }: { payload: RotationPayload | null; 
   return (
     <>
       <View style={styles.heroCard}>
-        <Text style={styles.cardLabel}>MONEY ROTATION Ω</Text>
-        <Text style={styles.heroTitle}>{payload.earlyInflows.length} señales R3/R4</Text>
-        <Text style={styles.cardText}>R3 = base. R4 = primeras entradas. Oro, petróleo, dólar, duración y crédito se leen junto a sectores.</Text>
+        <Text style={styles.cardLabel}>MONEY ROTATION Ω · MARKET SENSOR</Text>
+        <Text style={styles.heroTitle}>{payload.earlyInflows.length} proxies tempranos</Text>
+        <Text style={styles.cardText}>Este feed móvil es solo un sensor de precio/retornos. No declara R3 ni R4 canónicos. MONEY ROTATION Ω v1.3 exige flujos comparables, fuerza relativa, revisiones, breadth/volumen y reacción a fundamentales antes de promover una fase.</Text>
       </View>
-      <SectionTitle title="ENTRADAS TEMPRANAS" subtitle="R3 / R4 antes del consenso" />
-      {payload.earlyInflows.length ? payload.earlyInflows.map((item) => <RotationRow key={item.symbol} item={item} onPress={() => onTicker(item.symbol)} />) : <Empty text="No hay R3/R4 detectados con el sensor actual." />}
-      <SectionTitle title="RANKING DE ROTACIÓN" subtitle="Sectores + macro proxies" />
+      <SectionTitle title="CANDIDATOS PARA VALIDAR" subtitle="Proxy de mercado · todavía no R3/R4 canónico" />
+      {payload.earlyInflows.length ? payload.earlyInflows.map((item) => <RotationRow key={item.symbol} item={item} onPress={() => onTicker(item.symbol)} />) : <Empty text="No hay proxies tempranos detectados con el sensor actual." />}
+      <SectionTitle title="RANKING DEL SENSOR" subtitle="Sectores + macro proxies · precio, no flujo institucional demostrado" />
       {payload.items.map((item) => <RotationRow key={`all-${item.symbol}`} item={item} onPress={() => onTicker(item.symbol)} />)}
-      <Guardrail text={payload.guardrail} />
+      <Guardrail text={`${payload.guardrail} MONEY ROTATION Ω v1.3 mantiene las fases canónicas separadas de este ranking de precio.`} />
     </>
   );
 }
@@ -93,7 +93,7 @@ function DislocationView({ payload, onTicker }: { payload: DislocationPayload | 
       <View style={styles.heroCard}>
         <Text style={styles.cardLabel}>HISTORICAL DISLOCATION Ω</Text>
         <Text style={styles.heroTitle}>{payload.items.length} candidatos</Text>
-        <Text style={styles.cardText}>Busca 1 año aún negativo con giro positivo de 20 sesiones. El precio abre investigación; no demuestra que el negocio esté sano.</Text>
+        <Text style={styles.cardText}>Busca 1 año aún negativo con giro positivo de 20 sesiones. El precio abre investigación; no demuestra que el negocio esté sano ni que haya pasado a R3.</Text>
       </View>
       {payload.items.map((item) => <RotationRow key={item.symbol} item={item} onPress={() => onTicker(item.symbol)} showYear />)}
       <Guardrail text={payload.guardrail} />
@@ -141,11 +141,11 @@ function RotationRow({ item, onPress, showYear = false }: { item: RotationItem; 
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`Abrir ${item.symbol}`} onPress={onPress} style={({ pressed }) => [styles.rotationRow, pressed && styles.pressed]}>
       <View style={styles.flex}>
-        <View style={styles.symbolRow}><Text style={styles.symbol}>{item.symbol}</Text><Text style={styles.phase}>{item.phase.replaceAll('_', ' ')}</Text></View>
+        <View style={styles.symbolRow}><Text style={styles.symbol}>{item.symbol}</Text><Text style={styles.phase}>PRECIO · {item.phase.replaceAll('_', ' ')}</Text></View>
         <Text style={styles.name}>{item.name} · {item.sector}</Text>
         <Text style={styles.returnLine}>20d {pct(item.ret20)} · 60d {pct(item.ret60)}{showYear ? ` · 1A ${pct(item.ret252)}` : ''}</Text>
       </View>
-      <View style={styles.rotationScore}><Text style={styles.rotationValue}>{Math.round(item.rotationScore)}</Text><Text style={styles.rotationLabel}>ROT Ω</Text></View>
+      <View style={styles.rotationScore}><Text style={styles.rotationValue}>{Math.round(item.rotationScore)}</Text><Text style={styles.rotationLabel}>PX Ω</Text></View>
     </Pressable>
   );
 }
