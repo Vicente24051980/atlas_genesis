@@ -68,10 +68,16 @@ export type CapexProductivityResult = {
   };
 };
 
-const pct = (value: number | null) => value ?? null;
+type ScorePart = { normalized: number; maxPoints: number };
+
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
-const weighted = (normalized: number, points: number) => clamp(normalized) * points;
-const avg = (values: number[]) => (values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0);
+
+function componentScore(parts: ScorePart[], totalWeight: number): number | null {
+  if (!parts.length) return null;
+  const possible = parts.reduce((sum, part) => sum + part.maxPoints, 0);
+  const earned = parts.reduce((sum, part) => sum + clamp(part.normalized) * part.maxPoints, 0);
+  return Math.round((earned / possible) * totalWeight * 10) / 10;
+}
 
 function absoluteRoicScore(roic: number): number {
   if (roic >= 30) return 1;
@@ -135,68 +141,66 @@ function ratioScore(value: number, excellent: number, good: number, weak: number
 }
 
 function computeComponentScores(input: CapexProductivityInput) {
-  const roicParts: number[] = [];
-  if (input.roicCurrent != null) roicParts.push(weighted(absoluteRoicScore(input.roicCurrent), 10));
-  if (input.roicCurrent != null && input.roicAvg3y != null) roicParts.push(weighted(trendScore(input.roicCurrent, input.roicAvg3y), 5));
-  if (input.incrementalRoic != null && input.roicAvg3y != null) roicParts.push(weighted(trendScore(input.incrementalRoic, input.roicAvg3y), 5));
+  const roicParts: ScorePart[] = [];
+  if (input.roicCurrent != null) roicParts.push({ normalized: absoluteRoicScore(input.roicCurrent), maxPoints: 10 });
+  if (input.roicCurrent != null && input.roicAvg3y != null) roicParts.push({ normalized: trendScore(input.roicCurrent, input.roicAvg3y), maxPoints: 5 });
+  if (input.incrementalRoic != null && input.roicAvg3y != null) roicParts.push({ normalized: trendScore(input.incrementalRoic, input.roicAvg3y), maxPoints: 5 });
 
-  const fcfParts: number[] = [];
-  if (input.fcfToCapex != null) fcfParts.push(weighted(ratioScore(input.fcfToCapex, 2, 1, 0.5), 8));
-  if (input.fcfPerShareCagr3y != null) fcfParts.push(weighted(cagrScore(input.fcfPerShareCagr3y), 7));
-  if (input.fcfCagr3y != null) fcfParts.push(weighted(cagrScore(input.fcfCagr3y), 5));
+  const fcfParts: ScorePart[] = [];
+  if (input.fcfToCapex != null) fcfParts.push({ normalized: ratioScore(input.fcfToCapex, 2, 1, 0.5), maxPoints: 8 });
+  if (input.fcfPerShareCagr3y != null) fcfParts.push({ normalized: cagrScore(input.fcfPerShareCagr3y), maxPoints: 7 });
+  if (input.fcfCagr3y != null) fcfParts.push({ normalized: cagrScore(input.fcfCagr3y), maxPoints: 5 });
 
-  const assetParts: number[] = [];
+  const assetParts: ScorePart[] = [];
   if (input.assetTurnover != null && input.assetTurnoverPrior1y != null) {
-    assetParts.push(weighted(trendScore(input.assetTurnover * 100, input.assetTurnoverPrior1y * 100), 5));
+    assetParts.push({ normalized: trendScore(input.assetTurnover * 100, input.assetTurnoverPrior1y * 100), maxPoints: 5 });
   }
   if (input.incrementalRevenueToInvestedCapital != null) {
-    assetParts.push(weighted(ratioScore(input.incrementalRevenueToInvestedCapital, 0.75, 0.4, 0.15), 5));
+    assetParts.push({ normalized: ratioScore(input.incrementalRevenueToInvestedCapital, 0.75, 0.4, 0.15), maxPoints: 5 });
   }
   if (input.incrementalOperatingProfitToInvestedCapital != null) {
-    assetParts.push(weighted(ratioScore(input.incrementalOperatingProfitToInvestedCapital, 0.3, 0.2, 0.1), 5));
+    assetParts.push({ normalized: ratioScore(input.incrementalOperatingProfitToInvestedCapital, 0.3, 0.2, 0.1), maxPoints: 5 });
   }
 
-  const intensityParts: number[] = [];
+  const intensityParts: ScorePart[] = [];
   if (input.capexToCfo != null) {
-    const score = input.capexToCfo <= 0.35 ? 1 : input.capexToCfo <= 0.55 ? 0.8 : input.capexToCfo <= 0.75 ? 0.55 : input.capexToCfo <= 1 ? 0.3 : 0.1;
-    intensityParts.push(weighted(score, 5));
+    const normalized = input.capexToCfo <= 0.35 ? 1 : input.capexToCfo <= 0.55 ? 0.8 : input.capexToCfo <= 0.75 ? 0.55 : input.capexToCfo <= 1 ? 0.3 : 0.1;
+    intensityParts.push({ normalized, maxPoints: 5 });
   }
   if (input.capexCagr3y != null && input.revenueCagr3y != null) {
-    intensityParts.push(weighted(trendScore(input.revenueCagr3y, input.capexCagr3y), 5));
+    intensityParts.push({ normalized: trendScore(input.revenueCagr3y, input.capexCagr3y), maxPoints: 5 });
   }
   if (input.capexGrowth != null && input.operatingIncomeGrowth != null) {
-    intensityParts.push(weighted(trendScore(input.operatingIncomeGrowth, input.capexGrowth), 5));
+    intensityParts.push({ normalized: trendScore(input.operatingIncomeGrowth, input.capexGrowth), maxPoints: 5 });
   }
 
-  const financingParts: number[] = [];
-  if (input.netDebtToEbitda != null) financingParts.push(weighted(leverageScore(input.netDebtToEbitda), 4));
-  if (input.interestCoverage != null) financingParts.push(weighted(coverageScore(input.interestCoverage), 3));
-  if (input.netDebtGrowth != null) financingParts.push(weighted(input.netDebtGrowth <= 0 ? 1 : input.netDebtGrowth <= 10 ? 0.75 : input.netDebtGrowth <= 25 ? 0.45 : 0.15, 3));
+  const financingParts: ScorePart[] = [];
+  if (input.netDebtToEbitda != null) financingParts.push({ normalized: leverageScore(input.netDebtToEbitda), maxPoints: 4 });
+  if (input.interestCoverage != null) financingParts.push({ normalized: coverageScore(input.interestCoverage), maxPoints: 3 });
+  if (input.netDebtGrowth != null) {
+    financingParts.push({ normalized: input.netDebtGrowth <= 0 ? 1 : input.netDebtGrowth <= 10 ? 0.75 : input.netDebtGrowth <= 25 ? 0.45 : 0.15, maxPoints: 3 });
+  }
 
-  const dilutionParts: number[] = [];
-  if (input.dilutedShareCagr != null) dilutionParts.push(weighted(shareScore(input.dilutedShareCagr), 6));
-  if (input.sbcToFcf != null) dilutionParts.push(weighted(input.sbcToFcf <= 0.1 ? 1 : input.sbcToFcf <= 0.2 ? 0.75 : input.sbcToFcf <= 0.4 ? 0.45 : 0.15, 2));
-  if (input.sbcToRevenue != null) dilutionParts.push(weighted(input.sbcToRevenue <= 0.03 ? 1 : input.sbcToRevenue <= 0.08 ? 0.75 : input.sbcToRevenue <= 0.15 ? 0.45 : 0.15, 2));
+  const dilutionParts: ScorePart[] = [];
+  if (input.dilutedShareCagr != null) dilutionParts.push({ normalized: shareScore(input.dilutedShareCagr), maxPoints: 6 });
+  if (input.sbcToFcf != null) dilutionParts.push({ normalized: input.sbcToFcf <= 0.1 ? 1 : input.sbcToFcf <= 0.2 ? 0.75 : input.sbcToFcf <= 0.4 ? 0.45 : 0.15, maxPoints: 2 });
+  if (input.sbcToRevenue != null) dilutionParts.push({ normalized: input.sbcToRevenue <= 0.03 ? 1 : input.sbcToRevenue <= 0.08 ? 0.75 : input.sbcToRevenue <= 0.15 ? 0.45 : 0.15, maxPoints: 2 });
 
-  const returnParts: number[] = [];
-  if (input.incrementalRoic != null) returnParts.push(weighted(absoluteRoicScore(input.incrementalRoic), 6));
-  if (input.incrementalOperatingMargin != null) returnParts.push(weighted(input.incrementalOperatingMargin >= 25 ? 1 : input.incrementalOperatingMargin >= 15 ? 0.8 : input.incrementalOperatingMargin >= 5 ? 0.55 : input.incrementalOperatingMargin >= 0 ? 0.3 : 0.05, 4));
-
-  const scaleToWeight = (parts: number[], weight: number) => {
-    if (!parts.length) return null;
-    const allocatedWeight = parts.reduce((sum, part) => sum + part, 0);
-    const maxObserved = parts.length === 1 ? weight / 2 : weight;
-    return Math.round(clamp(allocatedWeight / maxObserved) * weight * 10) / 10;
-  };
+  const returnParts: ScorePart[] = [];
+  if (input.incrementalRoic != null) returnParts.push({ normalized: absoluteRoicScore(input.incrementalRoic), maxPoints: 6 });
+  if (input.incrementalOperatingMargin != null) {
+    const normalized = input.incrementalOperatingMargin >= 25 ? 1 : input.incrementalOperatingMargin >= 15 ? 0.8 : input.incrementalOperatingMargin >= 5 ? 0.55 : input.incrementalOperatingMargin >= 0 ? 0.3 : 0.05;
+    returnParts.push({ normalized, maxPoints: 4 });
+  }
 
   return {
-    roic: scaleToWeight(roicParts, 20),
-    fcfConversion: scaleToWeight(fcfParts, 20),
-    assetProductivity: scaleToWeight(assetParts, 15),
-    capitalIntensity: scaleToWeight(intensityParts, 15),
-    financingQuality: scaleToWeight(financingParts, 10),
-    dilution: scaleToWeight(dilutionParts, 10),
-    incrementalReturn: scaleToWeight(returnParts, 10),
+    roic: componentScore(roicParts, 20),
+    fcfConversion: componentScore(fcfParts, 20),
+    assetProductivity: componentScore(assetParts, 15),
+    capitalIntensity: componentScore(intensityParts, 15),
+    financingQuality: componentScore(financingParts, 10),
+    dilution: componentScore(dilutionParts, 10),
+    incrementalReturn: componentScore(returnParts, 10),
   };
 }
 
@@ -264,17 +268,25 @@ export function evaluateCapexProductivity(input: CapexProductivityInput): CapexP
   ];
   const completeness = Math.round((numericFields.filter((value) => value != null).length / numericFields.length) * 100);
   const componentScores = computeComponentScores(input);
-  const availableComponents = Object.values(componentScores).filter((value): value is number => value != null);
+  const weightedComponents: Array<[number | null, number]> = [
+    [componentScores.roic, 20],
+    [componentScores.fcfConversion, 20],
+    [componentScores.assetProductivity, 15],
+    [componentScores.capitalIntensity, 15],
+    [componentScores.financingQuality, 10],
+    [componentScores.dilution, 10],
+    [componentScores.incrementalReturn, 10],
+  ];
+  const availableComponents = weightedComponents.filter((entry): entry is [number, number] => entry[0] != null);
   const signalCount = signals.filter((signal) => signal.active).length;
 
   if (completeness < 60 || availableComponents.length < 5) {
     return { ticker: input.ticker, score: null, state: 'INSUFFICIENT_DATA', signalCount, signals, completeness, componentScores };
   }
 
-  const score = Math.round(avg(availableComponents.map((value, index) => {
-    const weights = [20, 20, 15, 15, 10, 10, 10];
-    return (value / weights[index]) * 100;
-  })));
+  const earnedPoints = availableComponents.reduce((sum, [value]) => sum + value, 0);
+  const availableWeight = availableComponents.reduce((sum, [, weight]) => sum + weight, 0);
+  const score = Math.round((earnedPoints / availableWeight) * 100);
 
   if (input.capacityUnderConstruction && !input.monetizationEvidence) {
     return { ticker: input.ticker, score, state: 'CAPEX_UNDER_MONETIZATION', signalCount, signals, completeness, componentScores };
