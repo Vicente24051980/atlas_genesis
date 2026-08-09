@@ -1,5 +1,5 @@
-import TrackedMonitorScreen from '../components/TrackedMonitorScreen';
+import UserTrackedMonitorScreen from '../components/UserTrackedMonitorScreen';
 
 export default function PortfolioScreen() {
-  return <TrackedMonitorScreen kind="portfolio" />;
+  return <UserTrackedMonitorScreen kind="portfolio" />;
 }
