@@ -82,21 +82,50 @@ tap_desc() {
   return 1
 }
 
+ensure_atlas_tab() {
+  for _ in $(seq 1 8); do
+    dump_ui
+    if grep -Fq "MÓDULOS ATLAS Ω" window.xml 2>/dev/null; then
+      return 0
+    fi
+    for _ in $(seq 1 6); do adb shell input swipe 540 650 540 1850 150 || true; done
+    dump_ui
+    if coords="$(find_desc_coords "Abrir ATLAS Ω" 2>/dev/null)"; then
+      local x y
+      read -r x y <<< "$coords"
+      adb shell input tap "$x" "$y"
+      sleep 1
+    fi
+  done
+  wait_for_text_with_scroll "MÓDULOS ATLAS Ω"
+}
+
 return_home() {
   adb shell input keyevent 4
   sleep 1
-  for _ in $(seq 1 10); do adb shell input swipe 540 650 540 1850 180 || true; done
-  wait_for_text "Elige pantalla. Pon ticker. Recibe datos."
+  wait_for_text "MARKET SCANNER"
+  ensure_atlas_tab
 }
 
-wait_for_text "Elige pantalla. Pon ticker. Recibe datos."
-wait_for_text "MENÚ"
-wait_for_text "CAPEX Productivity Ω"
+wait_for_text "MARKET SCANNER"
+wait_for_text "MERCADO"
+wait_for_text "SCANNER Ω"
+wait_for_text_with_scroll "Tendencias actuales"
+
+# The ticker-detail route must be reachable even if the remote provider is unavailable.
+for _ in $(seq 1 8); do adb shell input swipe 540 650 540 1850 150 || true; done
+tap_desc "Abrir SPY"
+wait_for_text "SPY"
+adb shell input keyevent 4
+sleep 1
+wait_for_text "MARKET SCANNER"
+
+ensure_atlas_tab
 
 verify_route() {
   local desc="$1"
   local expected="$2"
-  echo "Verifying ticker-only route: $desc -> $expected"
+  echo "Verifying ATLAS route: $desc -> $expected"
   tap_desc "$desc"
   wait_for_text_with_scroll "$expected"
   wait_for_text_with_scroll "ANALIZAR"
@@ -113,4 +142,4 @@ verify_route "Abrir Risk Ω" "Risk Ω"
 verify_route "Abrir Catalysts Ω" "Catalysts Ω"
 verify_route "Abrir News Ω" "News Ω"
 
-echo "ATLAS Ω ticker-only menu emulator gate: PASS"
+echo "ATLAS Ω scanner-first emulator gate: PASS"
