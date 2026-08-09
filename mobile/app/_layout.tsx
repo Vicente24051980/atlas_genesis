@@ -65,6 +65,7 @@ export default function RootLayout() {
         <Stack.Screen name="risk" />
         <Stack.Screen name="catalysts" />
         <Stack.Screen name="news" />
+        <Stack.Screen name="broker" />
       </Stack>
     </>
   );

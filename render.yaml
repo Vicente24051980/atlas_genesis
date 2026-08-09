@@ -9,3 +9,13 @@ services:
     envVars:
       - key: FINNHUB_TOKEN
         sync: false
+      - key: TRADING212_ENV
+        value: demo
+      - key: TRADING212_API_KEY
+        sync: false
+      - key: TRADING212_API_SECRET
+        sync: false
+      - key: ATLAS_BROKER_CONTROL_TOKEN
+        sync: false
+      - key: TRADING212_LIVE_TRADING_ENABLED
+        value: "false"
