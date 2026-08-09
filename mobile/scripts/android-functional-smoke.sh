@@ -75,6 +75,8 @@ import re, sys, xml.etree.ElementTree as ET
 
 desc, width, height = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
 root = ET.parse('window.xml').getroot()
+bottom_nav = {'Inicio', 'Cartera', 'Watchlist', 'Radar Ω', 'Más'}
+safe_content_bottom = int(height * 0.90)
 for node in root.iter('node'):
     if node.attrib.get('content-desc') != desc:
         continue
@@ -84,7 +86,13 @@ for node in root.iter('node'):
     x1, y1, x2, y2 = map(int, match.groups())
     if x2 <= 0 or y2 <= 0 or x1 >= width or y1 >= height:
         continue
-    print(f'{max(1, min(width - 2, (x1 + x2)//2))} {max(1, min(height - 2, (y1 + y2)//2))}')
+    cx, cy = (x1 + x2)//2, (y1 + y2)//2
+    # Non-navigation controls must be above the persistent bottom bar before
+    # the gate taps them. Otherwise a visually clipped row can overlap the nav
+    # and the tap is delivered to Cartera/Watchlist/Radar/Más instead.
+    if desc not in bottom_nav and cy >= safe_content_bottom:
+        continue
+    print(f'{max(1, min(width - 2, cx))} {max(1, min(height - 2, cy))}')
     raise SystemExit(0)
 raise SystemExit(1)
 PY
