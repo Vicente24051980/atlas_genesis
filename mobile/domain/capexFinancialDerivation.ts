@@ -1,4 +1,4 @@
-import { CapexProductivityInput } from './capexProductivity';
+import { CapexProductivityInput, IncrementalRoicRegime } from './capexProductivity';
 
 export type MetricOrigin = 'DIRECT' | 'DERIVED' | 'MISSING';
 export type MetricProvenance = { origin: MetricOrigin; formula: string | null; inputs: string[] };
@@ -31,12 +31,27 @@ export type PrimaryStatementBundle = {
   monetizationEvidence?: boolean;
 };
 
+export type IncrementalRoicInterpretation = {
+  regime: IncrementalRoicRegime;
+  scoreEligible: boolean;
+  deltaNopat: number | null;
+  deltaInvestedCapital: number | null;
+  denominatorChangeRatio: number | null;
+};
+
 export type RoicVariants = {
   selected: 'ADJUSTED_EXCESS_CASH' | 'FINANCED_CAPITAL' | 'MISSING';
   financedCurrent: number | null;
   adjustedCurrent: number | null;
+  totalCashUpperBoundCurrent: number | null;
   financedIncremental: number | null;
   adjustedIncremental: number | null;
+  totalCashUpperBoundIncremental: number | null;
+  financedIncrementalRegime: IncrementalRoicRegime;
+  adjustedIncrementalRegime: IncrementalRoicRegime;
+  selectedIncrementalRegime: IncrementalRoicRegime;
+  selectedIncrementalScoreEligible: boolean;
+  totalCashUpperBoundScoringAllowed: false;
 };
 
 export type DerivedCapexBundle = {
@@ -44,6 +59,8 @@ export type DerivedCapexBundle = {
   provenance: Record<string, MetricProvenance>;
   roicVariants: RoicVariants;
 };
+
+export const MIN_INCREMENTAL_CAPITAL_CHANGE_RATIO = 0.01;
 
 const derived = (value: number | null, formula: string, inputs: string[]): MetricProvenance =>
   value == null ? { origin: 'MISSING', formula: null, inputs } : { origin: 'DERIVED', formula, inputs };
@@ -63,9 +80,52 @@ const taxRate = (y: PrimaryFinancialYear) => {
 const nopat = (y: PrimaryFinancialYear) => y.operatingIncome == null || taxRate(y) == null ? null : y.operatingIncome * (1 - taxRate(y)!);
 const financedCapital = (y: PrimaryFinancialYear) => y.equity == null || y.shortTermDebt == null || y.longTermDebt == null ? null : y.equity + y.shortTermDebt + y.longTermDebt;
 const adjustedCapital = (y: PrimaryFinancialYear) => financedCapital(y) == null || y.excessCash == null ? null : financedCapital(y)! - y.excessCash;
+const totalCashUpperBoundCapital = (y: PrimaryFinancialYear) => financedCapital(y) == null || y.cashAndEquivalents == null ? null : financedCapital(y)! - y.cashAndEquivalents;
 const fcf = (y: PrimaryFinancialYear) => y.cashFlowFromOperations == null || y.capex == null ? null : y.cashFlowFromOperations - y.capex;
 const netDebt = (y: PrimaryFinancialYear) => y.shortTermDebt == null || y.longTermDebt == null || y.cashAndEquivalents == null ? null : y.shortTermDebt + y.longTermDebt - y.cashAndEquivalents;
 const ebitda = (y: PrimaryFinancialYear) => y.operatingIncome == null || y.depreciationAndAmortization == null ? null : y.operatingIncome + y.depreciationAndAmortization;
+
+export function classifyIncrementalRoicChange(
+  deltaNopat: number | null,
+  deltaInvestedCapital: number | null,
+  priorInvestedCapital: number | null,
+): IncrementalRoicInterpretation {
+  if (deltaNopat == null || deltaInvestedCapital == null || priorInvestedCapital == null) {
+    return { regime: 'MISSING', scoreEligible: false, deltaNopat, deltaInvestedCapital, denominatorChangeRatio: null };
+  }
+
+  const denominatorChangeRatio = priorInvestedCapital === 0
+    ? null
+    : Math.abs(deltaInvestedCapital) / Math.abs(priorInvestedCapital);
+
+  if (
+    deltaInvestedCapital === 0
+    || (denominatorChangeRatio != null && denominatorChangeRatio < MIN_INCREMENTAL_CAPITAL_CHANGE_RATIO)
+  ) {
+    return {
+      regime: 'UNSTABLE_DENOMINATOR',
+      scoreEligible: false,
+      deltaNopat,
+      deltaInvestedCapital,
+      denominatorChangeRatio,
+    };
+  }
+
+  if (deltaInvestedCapital > 0 && deltaNopat > 0) {
+    return { regime: 'TRUE_INCREMENTAL_RETURN', scoreEligible: true, deltaNopat, deltaInvestedCapital, denominatorChangeRatio };
+  }
+  if (deltaInvestedCapital < 0 && deltaNopat >= 0) {
+    return { regime: 'CAPITAL_RELEASE_WITH_EARNINGS_GROWTH', scoreEligible: false, deltaNopat, deltaInvestedCapital, denominatorChangeRatio };
+  }
+  if (deltaInvestedCapital > 0 && deltaNopat <= 0) {
+    return { regime: 'CAPITAL_ADDITION_WITH_EARNINGS_DECLINE', scoreEligible: true, deltaNopat, deltaInvestedCapital, denominatorChangeRatio };
+  }
+  if (deltaInvestedCapital < 0 && deltaNopat < 0) {
+    return { regime: 'BUSINESS_CONTRACTION_CAPITAL_RELEASE', scoreEligible: false, deltaNopat, deltaInvestedCapital, denominatorChangeRatio };
+  }
+
+  return { regime: 'MISSING', scoreEligible: false, deltaNopat, deltaInvestedCapital, denominatorChangeRatio };
+}
 
 function roicUsing(y: PrimaryFinancialYear, prior: PrimaryFinancialYear | undefined, capitalFn: (x: PrimaryFinancialYear) => number | null): number | null {
   const n = nopat(y);
@@ -84,6 +144,21 @@ function incrementalRoicUsing(current: PrimaryFinancialYear, prior: PrimaryFinan
   return (n - pn) / (ic - pic) * 100;
 }
 
+function incrementalInterpretationUsing(
+  current: PrimaryFinancialYear,
+  prior: PrimaryFinancialYear | undefined,
+  capitalFn: (x: PrimaryFinancialYear) => number | null,
+): IncrementalRoicInterpretation {
+  if (!prior) return classifyIncrementalRoicChange(null, null, null);
+  const n = nopat(current); const pn = nopat(prior);
+  const ic = capitalFn(current); const pic = capitalFn(prior);
+  return classifyIncrementalRoicChange(
+    n == null || pn == null ? null : n - pn,
+    ic == null || pic == null ? null : ic - pic,
+    pic,
+  );
+}
+
 export function deriveCapexProductivityFromPrimaryStatements(bundle: PrimaryStatementBundle): DerivedCapexBundle {
   const years = [...bundle.years].sort((a, b) => a.fiscalYear - b.fiscalYear);
   const current = years.at(-1);
@@ -94,6 +169,7 @@ export function deriveCapexProductivityFromPrimaryStatements(bundle: PrimaryStat
 
   const financedRoics = years.map((y, i) => roicUsing(y, i ? years[i - 1] : undefined, financedCapital));
   const adjustedRoics = years.map((y, i) => roicUsing(y, i ? years[i - 1] : undefined, adjustedCapital));
+  const totalCashUpperBoundRoics = years.map((y, i) => roicUsing(y, i ? years[i - 1] : undefined, totalCashUpperBoundCapital));
   const adjustedAvailable = current.excessCash != null && p1?.excessCash != null;
   const selectedRoics = adjustedAvailable ? adjustedRoics : financedRoics;
   const selectedCapital = adjustedAvailable ? adjustedCapital : financedCapital;
@@ -107,7 +183,12 @@ export function deriveCapexProductivityFromPrimaryStatements(bundle: PrimaryStat
 
   const financedIncremental = incrementalRoicUsing(current, p1, financedCapital);
   const adjustedIncremental = incrementalRoicUsing(current, p1, adjustedCapital);
+  const totalCashUpperBoundIncremental = incrementalRoicUsing(current, p1, totalCashUpperBoundCapital);
+  const financedInterpretation = incrementalInterpretationUsing(current, p1, financedCapital);
+  const adjustedInterpretation = incrementalInterpretationUsing(current, p1, adjustedCapital);
+  const selectedInterpretation = adjustedAvailable ? adjustedInterpretation : financedInterpretation;
   const selectedIncremental = adjustedAvailable ? adjustedIncremental : financedIncremental;
+  const incrementalCapitalMetricsScoreEligible = dIC != null && dIC > 0 && selectedInterpretation.regime !== 'UNSTABLE_DENOMINATOR' && selectedInterpretation.regime !== 'MISSING';
 
   const values = {
     roicCurrent: selectedRoics.at(-1) ?? null,
@@ -152,9 +233,12 @@ export function deriveCapexProductivityFromPrimaryStatements(bundle: PrimaryStat
   provenance.incrementalRoic = derived(values.incrementalRoic, adjustedAvailable ? 'ΔNOPAT / Δ(Equity + Debt - excessCash)' : 'ΔNOPAT / Δ(Equity + Debt)', roicInputs);
   provenance['roic.financedCurrent'] = derived(financedRoics.at(-1) ?? null, 'NOPAT / average (Equity + Debt)', ['operatingIncome','taxProxy','equity','shortTermDebt','longTermDebt']);
   provenance['roic.adjustedCurrent'] = adjustedAvailable ? derived(adjustedRoics.at(-1) ?? null, 'NOPAT / average (Equity + Debt - excessCash)', [...roicInputs]) : missing(['excessCash']);
+  provenance['roic.totalCashUpperBoundCurrent'] = derived(totalCashUpperBoundRoics.at(-1) ?? null, 'NOPAT / average (Equity + Debt - total cash); diagnostic upper bound only; NEVER_SCORE', ['operatingIncome','taxProxy','equity','shortTermDebt','longTermDebt','cashAndEquivalents']);
   provenance['roic.financedIncremental'] = derived(financedIncremental, 'ΔNOPAT / Δ(Equity + Debt)', ['NOPAT','equity','shortTermDebt','longTermDebt']);
   provenance['roic.adjustedIncremental'] = adjustedAvailable ? derived(adjustedIncremental, 'ΔNOPAT / Δ(Equity + Debt - excessCash)', ['NOPAT','equity','shortTermDebt','longTermDebt','excessCash']) : missing(['excessCash']);
+  provenance['roic.totalCashUpperBoundIncremental'] = derived(totalCashUpperBoundIncremental, 'ΔNOPAT / Δ(Equity + Debt - total cash); diagnostic upper bound only; NEVER_SCORE', ['NOPAT','equity','shortTermDebt','longTermDebt','cashAndEquivalents']);
   provenance['roic.selectedVariant'] = { origin: selectedVariant === 'MISSING' ? 'MISSING' : 'DERIVED', formula: selectedVariant, inputs: adjustedAvailable ? ['excessCash'] : ['financedCapital'] };
+  provenance['roic.incrementalRegime'] = { origin: selectedInterpretation.regime === 'MISSING' ? 'MISSING' : 'DERIVED', formula: selectedInterpretation.regime, inputs: ['ΔNOPAT','ΔselectedInvestedCapital','priorSelectedInvestedCapital'] };
 
   const simpleFormulas: Record<string, [string, string[]]> = {
     capexGrowth: ['YoY CAPEX growth', ['capex']], capexCagr3y: ['CAPEX CAGR', ['capex']], revenueGrowth: ['YoY Revenue growth', ['revenue']], revenueCagr3y: ['Revenue CAGR', ['revenue']], operatingIncomeGrowth: ['YoY Operating Income growth', ['operatingIncome']],
@@ -167,14 +251,30 @@ export function deriveCapexProductivityFromPrimaryStatements(bundle: PrimaryStat
   if (current.excessCash == null) provenance['primary.excessCash'] = missing(['excessCash']);
 
   return {
-    input: { ticker: bundle.ticker, ...values, externalFinancingRequired: bundle.externalFinancingRequired ?? null, capacityUnderConstruction: bundle.capacityUnderConstruction ?? false, monetizationEvidence: bundle.monetizationEvidence ?? false },
+    input: {
+      ticker: bundle.ticker,
+      ...values,
+      incrementalRoicRegime: selectedInterpretation.regime,
+      incrementalRoicScoreEligible: selectedInterpretation.scoreEligible,
+      incrementalCapitalMetricsScoreEligible,
+      externalFinancingRequired: bundle.externalFinancingRequired ?? null,
+      capacityUnderConstruction: bundle.capacityUnderConstruction ?? false,
+      monetizationEvidence: bundle.monetizationEvidence ?? false,
+    },
     provenance,
     roicVariants: {
       selected: selectedVariant,
       financedCurrent: financedRoics.at(-1) ?? null,
       adjustedCurrent: adjustedRoics.at(-1) ?? null,
+      totalCashUpperBoundCurrent: totalCashUpperBoundRoics.at(-1) ?? null,
       financedIncremental,
       adjustedIncremental,
+      totalCashUpperBoundIncremental,
+      financedIncrementalRegime: financedInterpretation.regime,
+      adjustedIncrementalRegime: adjustedInterpretation.regime,
+      selectedIncrementalRegime: selectedInterpretation.regime,
+      selectedIncrementalScoreEligible: selectedInterpretation.scoreEligible,
+      totalCashUpperBoundScoringAllowed: false,
     },
   };
 }
