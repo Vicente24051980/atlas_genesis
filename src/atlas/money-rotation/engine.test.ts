@@ -1,7 +1,11 @@
 import {
+  assessGoldRegime,
+  assessOilScenario,
   assessRotationGate,
   assertFlowTotalUsesOnlyAdditiveMetrics,
   calculateRotationScore,
+  classifyRotationLifecycle,
+  inferGoldOilRegime,
   sumNonOverlappingFlows,
   type RotationFlowObservation,
 } from './engine';
@@ -25,7 +29,7 @@ const flow = (asset: string, value: number, partitionKey = asset): RotationFlowO
   partitionKey,
 });
 
-describe('Money Rotation Omega v1.2', () => {
+describe('Money Rotation Omega v1.3', () => {
   it('rejects mixed non-flow totals from the Gran Rotation narrative', () => {
     expect(() => assertFlowTotalUsesOnlyAdditiveMetrics([
       'ETF_NET_FLOW', 'MARKET_CAP_CHANGE', 'GOVERNMENT_BUDGET', 'PRIVATE_COMPANY_VALUATION',
@@ -89,5 +93,62 @@ describe('Money Rotation Omega v1.2', () => {
       macroRegime: 100,
       crowding: 100,
     })).toBe(100);
+  });
+
+  it('does not classify a broken business as an investable R2 dislocation', () => {
+    expect(classifyRotationLifecycle({
+      gateState: 'NO_ROTATION_SIGNAL',
+      structuralBusinessIntact: false,
+      outflowsDominant: true,
+      capitulationExtreme: true,
+      mainAtlasDetected: false,
+      crowdingExtreme: false,
+    }).phase).toBe('REJECT_STRUCTURAL_DAMAGE');
+  });
+
+  it('maps confirmed R4 to the handoff phase before ATLAS main detects it', () => {
+    expect(classifyRotationLifecycle({
+      gateState: 'R4_CONFIRMED',
+      structuralBusinessIntact: true,
+      outflowsDominant: false,
+      capitulationExtreme: false,
+      mainAtlasDetected: false,
+      crowdingExtreme: false,
+    })).toMatchObject({ phase: 'R4_EARLY_ACCUMULATION', action: 'HANDOFF_ATLAS_MAIN' });
+  });
+
+  it('keeps structural and tactical gold signals independent', () => {
+    expect(assessGoldRegime({
+      structural: {
+        centralBankDemand: 90,
+        reserveDiversification: 85,
+        physicalDemand: 70,
+        monetaryTrustStress: 80,
+        evidenceIds: ['wgc-central-banks'],
+      },
+      tactical: {
+        etfFlows: 20,
+        realYieldsSupport: 30,
+        dollarSupport: 35,
+        momentum: 25,
+        evidenceIds: ['wgc-etf-flows'],
+      },
+    })).toMatchObject({ structural: 'STRONG', tactical: 'WEAK' });
+  });
+
+  it('uses gold up and oil down as a risk/disinflation research regime, not a trade order', () => {
+    expect(inferGoldOilRegime('UP', 'DOWN')).toEqual({
+      regime: 'RISK_DISINFLATION',
+      investigate: ['QUALITY', 'HEALTHCARE', 'BONDS', 'DEFENSIVES'],
+    });
+  });
+
+  it('keeps falling-oil disinflation conditional when geopolitical risk remains high', () => {
+    expect(assessOilScenario({
+      priceTrend: 'DOWN',
+      supplyDemandBalance: 'SURPLUS',
+      geopoliticalRisk: 'HIGH',
+      primaryEvidenceIds: ['eia-steo', 'iea-omr'],
+    })).toBe('CONDITIONAL_DISINFLATIONARY');
   });
 });
