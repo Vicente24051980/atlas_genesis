@@ -56,6 +56,7 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#070b10' } }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="portfolio-live" />
         <Stack.Screen name="overview" />
         <Stack.Screen name="market" />
         <Stack.Screen name="growth" />
