@@ -2,237 +2,30 @@ import http from 'node:http';
 import { URL } from 'node:url';
 import { marketSignals, discoveryScore, MARKET_ENGINE_VERSION } from './market-engine.mjs';
 import { runFundamentalAudit } from './fundamental-engine.mjs';
+import { classifyNewsFeed, NEWS_ENGINE_VERSION } from './news-impact-engine.mjs';
 
-const PORT = Number(process.env.PORT || 8787);
-const HOST = process.env.HOST || '0.0.0.0';
-const FINNHUB_TOKEN = process.env.FINNHUB_TOKEN || '';
-const T212_KEY = process.env.TRADING212_API_KEY || '';
-const T212_SECRET = process.env.TRADING212_API_SECRET || '';
-const T212_ENV = process.env.TRADING212_ENV === 'demo' ? 'demo' : 'live';
-const SEC_USER_AGENT = process.env.SEC_USER_AGENT || 'ATLAS-Omega/1.0 contact@example.com';
-const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS || 15_000);
-const cache = new Map();
-
-const finite = (v) => typeof v === 'number' && Number.isFinite(v);
-const clamp = (v, min = 0, max = 100) => Math.max(min, Math.min(max, v));
-const nowIso = () => new Date().toISOString();
-
-function json(res, status, body) {
-  res.writeHead(status, {
-    'content-type': 'application/json; charset=utf-8',
-    'cache-control': 'no-store',
-    'access-control-allow-origin': '*',
-    'access-control-allow-headers': 'content-type, authorization',
-  });
-  res.end(JSON.stringify(body));
-}
-
-async function cached(key, ttl, loader) {
-  const hit = cache.get(key);
-  if (hit && Date.now() - hit.at < ttl) return hit.value;
-  const value = await loader();
-  cache.set(key, { at: Date.now(), value });
-  return value;
-}
-
-async function fetchJson(url, options = {}) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(15_000), ...options });
-  const text = await response.text();
-  if (!response.ok) {
-    const err = new Error(`upstream ${response.status}: ${text.slice(0, 240)}`);
-    err.status = response.status;
-    throw err;
-  }
-  return text ? JSON.parse(text) : null;
-}
-
-function requireFinnhub() {
-  if (!FINNHUB_TOKEN) {
-    const err = new Error('FINNHUB_TOKEN is not configured on the ATLAS backend.');
-    err.code = 'PROVIDER_UNCONFIGURED';
-    throw err;
-  }
-}
-
-async function finnhub(path, params = {}) {
-  requireFinnhub();
-  const url = new URL(`https://finnhub.io/api/v1/${path}`);
-  for (const [k, v] of Object.entries(params)) if (v !== null && v !== undefined && v !== '') url.searchParams.set(k, String(v));
-  url.searchParams.set('token', FINNHUB_TOKEN);
-  return fetchJson(url);
-}
-
-async function resolveSecurity(query) {
-  const normalized = query.trim().toUpperCase();
-  const [search, profile] = await Promise.all([
-    finnhub('search', { q: normalized }),
-    finnhub('stock/profile2', { symbol: normalized }).catch(() => ({})),
-  ]);
-  const exact = Array.isArray(search?.result) ? search.result.find((x) => String(x.symbol || '').toUpperCase() === normalized) || search.result[0] : null;
-  if (!exact) return null;
-  return {
-    canonicalTicker: String(exact.symbol || normalized).toUpperCase(),
-    companyName: profile?.name || exact.description || normalized,
-    exchange: profile?.exchange || null,
-    mic: null,
-    isin: null,
-    country: profile?.country || null,
-    sector: profile?.finnhubIndustry || null,
-    industry: profile?.finnhubIndustry || null,
-    currency: profile?.currency || null,
-    marketCap: finite(profile?.marketCapitalization) ? profile.marketCapitalization : null,
-    logo: profile?.logo || null,
-    weburl: profile?.weburl || null,
-    provider: 'FINNHUB',
-    resolvedAt: nowIso(),
-  };
-}
-
-async function quote(symbol) {
-  const q = await finnhub('quote', { symbol });
-  return {
-    provider: 'FINNHUB', ticker: symbol,
-    price: finite(q?.c) ? q.c : null,
-    change: finite(q?.d) ? q.d : null,
-    changePct: finite(q?.dp) ? q.dp : null,
-    open: finite(q?.o) ? q.o : null,
-    high: finite(q?.h) ? q.h : null,
-    low: finite(q?.l) ? q.l : null,
-    previousClose: finite(q?.pc) ? q.pc : null,
-    timestamp: finite(q?.t) ? new Date(q.t * 1000).toISOString() : nowIso(),
-    session: 'REGULAR_OR_LAST',
-  };
-}
-
-function rangeWindow(range) {
-  const day = 86400;
-  const to = Math.floor(Date.now() / 1000);
-  const windows = { '1M': 35, '3M': 100, '6M': 200, 'YTD': 370, '1Y': 380, '3Y': 1120, '5Y': 1900 };
-  let from = to - (windows[range] || 380) * day;
-  if (range === 'YTD') from = Math.floor(new Date(new Date().getFullYear(), 0, 1).getTime() / 1000) - 7 * day;
-  return { from, to };
-}
-
-async function candles(symbol, range = '1Y') {
-  const { from, to } = rangeWindow(range);
-  const raw = await finnhub('stock/candle', { symbol, resolution: 'D', from, to });
-  if (raw?.s !== 'ok' || !Array.isArray(raw?.c)) return [];
-  return raw.c.map((c, i) => ({ t: new Date(raw.t[i] * 1000).toISOString(), o: raw.o[i], h: raw.h[i], l: raw.l[i], c, v: raw.v[i] })).filter((x) => finite(x.c));
-}
-
-async function metrics(symbol) {
-  const raw = await finnhub('stock/metric', { symbol, metric: 'all' });
-  return { provider: 'FINNHUB', ticker: symbol, metric: raw?.metric || {}, series: raw?.series || {}, observedAt: nowIso() };
-}
-
-async function companyNews(symbol, days = 14) {
-  const to = new Date(); const from = new Date(Date.now() - days * 86400000);
-  const iso = (d) => d.toISOString().slice(0, 10);
-  const raw = await finnhub('company-news', { symbol, from: iso(from), to: iso(to) });
-  return (Array.isArray(raw) ? raw : []).slice(0, 30).map((x) => ({
-    id: x.id || `${symbol}-${x.datetime}-${x.headline}`, headline: x.headline, summary: x.summary,
-    source: x.source, url: x.url, category: x.category,
-    datetime: finite(x.datetime) ? new Date(x.datetime * 1000).toISOString() : null, related: x.related,
-  }));
-}
-
-async function secTickerMap() {
-  return cached('sec:ticker-map', 86400000, async () => {
-    const payload = await fetchJson('https://www.sec.gov/files/company_tickers.json', { headers: { 'user-agent': SEC_USER_AGENT } });
-    const map = new Map();
-    for (const x of Object.values(payload || {})) map.set(String(x.ticker).toUpperCase(), x);
-    return map;
-  });
-}
-
-function classifyFiling(filing) {
-  const items = filing.items || [];
-  const rules = [['1.03','LEGAL_OR_DISTRESS',100],['2.02','EARNINGS_RESULTS',85],['2.05','RESTRUCTURING',80],['2.06','IMPAIRMENT',80],['3.01','LISTING_RISK',85],['5.02','LEADERSHIP_CHANGE',70],['7.01','REG_FD',55],['8.01','OTHER_MATERIAL_EVENT',55],['5.03','GOVERNANCE_CHANGE',25]];
-  const strongest = rules.filter(([p]) => items.some((i) => i.startsWith(p))).sort((a,b) => b[2]-a[2])[0];
-  return { ...filing, eventClass: strongest?.[1] || (['10-K','10-Q'].includes(filing.form) ? 'PERIODIC_REPORT' : 'OTHER_PRIMARY_DISCLOSURE'), materialityScore: strongest?.[2] || (filing.form === '10-K' ? 75 : filing.form === '10-Q' ? 70 : 20), validationState: 'PENDING_PRIMARY_VALIDATION', requiresHumanReview: true, ruleVersion: 'EDGAR-TRIAGE-1.0.0' };
-}
-
-async function edgarForTicker(symbol) {
-  const map = await secTickerMap(); const item = map.get(symbol.toUpperCase());
-  if (!item) return { ticker: symbol, cik: null, filings: [], status: 'NO_SEC_MATCH' };
-  const cik = String(item.cik_str).padStart(10, '0');
-  const sub = await fetchJson(`https://data.sec.gov/submissions/CIK${cik}.json`, { headers: { 'user-agent': SEC_USER_AGENT } });
-  const r = sub?.filings?.recent || {}; const forms = r.form || [];
-  const filings = forms.map((form, i) => ({ form, filingDate: r.filingDate?.[i] || null, reportDate: r.reportDate?.[i] || null, accessionNumber: r.accessionNumber?.[i] || null, primaryDocument: r.primaryDocument?.[i] || null, items: String(r.items?.[i] || '').split(',').map((x) => x.trim()).filter(Boolean) })).filter((f) => ['10-K','10-Q','8-K','20-F','6-K'].includes(f.form)).slice(0, 30).map(classifyFiling);
-  return { ticker: symbol, cik, companyName: sub?.name || item.title, filings, status: 'OK', observedAt: nowIso() };
-}
-
-function t212Configured() { return Boolean(T212_KEY && T212_SECRET); }
-function t212Auth() { return `Basic ${Buffer.from(`${T212_KEY}:${T212_SECRET}`).toString('base64')}`; }
-async function t212Get(path) {
-  if (!t212Configured()) { const e = new Error('Trading 212 read-only credentials are not configured on backend.'); e.code = 'BROKER_UNCONFIGURED'; throw e; }
-  if (!['/equity/positions','/equity/account/summary','/equity/account/cash','/equity/account/info'].some((allowed) => path === allowed)) throw new Error('BROKER_READ_ONLY_GUARD');
-  return fetchJson(`https://${T212_ENV}.trading212.com/api/v0${path}`, { headers: { authorization: t212Auth(), accept: 'application/json' } });
-}
-
-async function brokerPortfolio() {
-  const positions = await t212Get('/equity/positions');
-  const account = await t212Get('/equity/account/summary').catch(() => null);
-  return {
-    provider: 'TRADING212', environment: T212_ENV, readOnlyGuard: true, account,
-    positions: (Array.isArray(positions) ? positions : []).map((p) => ({
-      brokerTicker: p?.instrument?.ticker || null,
-      ticker: String(p?.instrument?.ticker || '').replace(/_[A-Z]+_EQ$/i, ''),
-      name: p?.instrument?.name || p?.instrument?.shortName || null,
-      isin: p?.instrument?.isin || null,
-      currency: p?.instrument?.currencyCode || null,
-      quantity: p?.quantity ?? null,
-      averagePrice: p?.averagePricePaid ?? null,
-      currentPrice: p?.currentPrice ?? null,
-      walletImpact: p?.walletImpact || null,
-      createdAt: p?.createdAt || null,
-    })),
-    observedAt: nowIso(),
-  };
-}
-
-async function auditBundle(symbol) {
-  const [security, q, history, fundamentalMetrics, news, edgar] = await Promise.all([
-    resolveSecurity(symbol), quote(symbol), candles(symbol, '1Y'), metrics(symbol).catch(() => null), companyNews(symbol).catch(() => []), edgarForTicker(symbol).catch(() => ({ ticker: symbol, filings: [], status: 'ERROR' })),
-  ]);
-  const signals = marketSignals(history);
-  const evidence = edgar?.filings || [];
-  const fundamentalAudit = runFundamentalAudit({ metric: fundamentalMetrics?.metric || {}, marketSignals: signals, marketCap: security?.marketCap ?? null, evidence });
-  return { security, quote: q, history, marketSignals: signals, fundamentals: fundamentalMetrics, news, edgar, canonicalAudit: fundamentalAudit, generatedAt: nowIso() };
-}
-
-const DISCOVERY_UNIVERSE = ['MSFT','GOOG','AMZN','NVDA','AVGO','TSM','ASML','AMAT','LRCX','KLAC','AMD','MU','MRVL','ARM','STX','WDC','SNDK','INTC','V','MA','SPGI','ICE','JPM','GS','MS','BRK.B','BKNG','UBER','ADP','CTAS','FAST','ROP','VRSK','CPRT','HEI','PH','ETN','TT','GE','LLY','NVO','TMO','DHR','ISRG','NTRA','HALO','ABT','WELL','CEG','NEM','NOC','KO','SU','ORCL','SAP','PANW','PLTR','NET','LITE','COHR'];
-async function discovery(limit = 25) {
-  const candidates = [];
-  for (let i = 0; i < DISCOVERY_UNIVERSE.length; i += 5) {
-    const group = await Promise.all(DISCOVERY_UNIVERSE.slice(i,i+5).map(async (ticker) => {
-      try { const history = await candles(ticker,'1Y'); const signals = marketSignals(history); const q = await quote(ticker); const score = discoveryScore(signals); if (score == null) return null; return { ticker, price:q.price, dayPct:q.changePct, discoveryScore:score, ...signals }; } catch { return null; }
-    }));
-    candidates.push(...group.filter(Boolean));
-  }
-  return candidates.filter((x) => (x.metrics?.ret60 ?? -999) > 0 && (x.metrics?.ret252 ?? -999) > 0).sort((a,b) => b.discoveryScore-a.discoveryScore).slice(0,Math.max(1,Math.min(limit,50)));
-}
-
-function routeMatch(pathname, prefix) { return pathname.startsWith(prefix) ? decodeURIComponent(pathname.slice(prefix.length)) : null; }
-
-const server = http.createServer(async (req,res) => {
-  if (req.method === 'OPTIONS') return json(res,204,{});
-  const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
-  try {
-    if (url.pathname === '/health') return json(res,200,{ ok:true, service:'ATLAS Ω Backend', version:'0.3.0', providers:{ finnhub:FINNHUB_TOKEN?'CONFIGURED':'UNCONFIGURED', secEdgar:'CONFIGURED', trading212:t212Configured()?'CONFIGURED_READ_ONLY':'UNCONFIGURED' }, engines:{ market:MARKET_ENGINE_VERSION, fundamental:'ATLAS-FUNDAMENTAL-AUDIT-1.0.0' }, invariants:{ marketDataIsSensor:true, aiIsNeverEvidence:true, priceCannotMutateThesisDirectly:true, brokerWriteEndpoints:false }, time:nowIso() });
-    if (url.pathname === '/v1/search') { const q=url.searchParams.get('q')||''; if(!q.trim()) return json(res,400,{error:'q is required'}); return json(res,200,await cached(`search:${q.toUpperCase()}`,3600000,()=>resolveSecurity(q))); }
-    if (url.pathname === '/v1/portfolio') return json(res,200,await brokerPortfolio());
-    if (url.pathname === '/v1/discovery') return json(res,200,{generatedAt:nowIso(),methodology:'Ticker-first market discovery; no quality/narrative/portfolio bias before market filters.',items:await cached(`discovery:${url.searchParams.get('limit')||25}`,300000,()=>discovery(Number(url.searchParams.get('limit')||25)))});
-    const terminal = routeMatch(url.pathname,'/v1/terminal/'); if(terminal!==null) return json(res,200,await auditBundle(terminal.toUpperCase()));
-    const audit = routeMatch(url.pathname,'/v1/audit/'); if(audit!==null) return json(res,200,await auditBundle(audit.toUpperCase()));
-    const qs = routeMatch(url.pathname,'/v1/quote/'); if(qs!==null) return json(res,200,await cached(`quote:${qs}`,CACHE_TTL_MS,()=>quote(qs.toUpperCase())));
-    const hs = routeMatch(url.pathname,'/v1/history/'); if(hs!==null) { const range=url.searchParams.get('range')||'1Y'; return json(res,200,{ticker:hs.toUpperCase(),range,rows:await cached(`history:${hs}:${range}`,60000,()=>candles(hs.toUpperCase(),range))}); }
-    const ss = routeMatch(url.pathname,'/v1/signals/'); if(ss!==null) { const rows=await cached(`history:${ss}:1Y`,60000,()=>candles(ss.toUpperCase(),'1Y')); return json(res,200,{ticker:ss.toUpperCase(),...marketSignals(rows)}); }
-    const es = routeMatch(url.pathname,'/v1/edgar/'); if(es!==null) return json(res,200,await cached(`edgar:${es}`,300000,()=>edgarForTicker(es.toUpperCase())));
-    return json(res,404,{error:'NOT_FOUND'});
-  } catch (error) {
-    const status = error?.code === 'PROVIDER_UNCONFIGURED' || error?.code === 'BROKER_UNCONFIGURED' ? 503 : error?.status === 403 ? 403 : 502;
-    return json(res,status,{error:error?.code||'UPSTREAM_ERROR',message:error instanceof Error?error.message:String(error)});
-  }
-});
+const PORT=Number(process.env.PORT||8787),HOST=process.env.HOST||'0.0.0.0',FINNHUB_TOKEN=process.env.FINNHUB_TOKEN||'',T212_KEY=process.env.TRADING212_API_KEY||'',T212_SECRET=process.env.TRADING212_API_SECRET||'',T212_ENV=process.env.TRADING212_ENV==='demo'?'demo':'live',SEC_USER_AGENT=process.env.SEC_USER_AGENT||'ATLAS-Omega/1.0 contact@example.com',CACHE_TTL_MS=Number(process.env.CACHE_TTL_MS||15000);const cache=new Map();
+const finite=v=>typeof v==='number'&&Number.isFinite(v),nowIso=()=>new Date().toISOString();
+function json(res,status,body){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','access-control-allow-origin':'*','access-control-allow-headers':'content-type, authorization'});res.end(JSON.stringify(body))}
+async function cached(key,ttl,loader){const hit=cache.get(key);if(hit&&Date.now()-hit.at<ttl)return hit.value;const value=await loader();cache.set(key,{at:Date.now(),value});return value}
+async function fetchJson(url,options={}){const response=await fetch(url,{signal:AbortSignal.timeout(15000),...options});const text=await response.text();if(!response.ok){const e=new Error(`upstream ${response.status}: ${text.slice(0,240)}`);e.status=response.status;throw e}return text?JSON.parse(text):null}
+function requireFinnhub(){if(!FINNHUB_TOKEN){const e=new Error('FINNHUB_TOKEN is not configured on the ATLAS backend.');e.code='PROVIDER_UNCONFIGURED';throw e}}
+async function finnhub(path,params={}){requireFinnhub();const url=new URL(`https://finnhub.io/api/v1/${path}`);for(const[k,v]of Object.entries(params))if(v!==null&&v!==undefined&&v!=='')url.searchParams.set(k,String(v));url.searchParams.set('token',FINNHUB_TOKEN);return fetchJson(url)}
+async function resolveSecurity(query){const normalized=query.trim().toUpperCase();const[search,profile]=await Promise.all([finnhub('search',{q:normalized}),finnhub('stock/profile2',{symbol:normalized}).catch(()=>({}))]);const exact=Array.isArray(search?.result)?search.result.find(x=>String(x.symbol||'').toUpperCase()===normalized)||search.result[0]:null;if(!exact)return null;return{canonicalTicker:String(exact.symbol||normalized).toUpperCase(),companyName:profile?.name||exact.description||normalized,exchange:profile?.exchange||null,mic:null,isin:null,country:profile?.country||null,sector:profile?.finnhubIndustry||null,industry:profile?.finnhubIndustry||null,currency:profile?.currency||null,marketCap:finite(profile?.marketCapitalization)?profile.marketCapitalization:null,logo:profile?.logo||null,weburl:profile?.weburl||null,provider:'FINNHUB',resolvedAt:nowIso()}}
+async function quote(symbol){const q=await finnhub('quote',{symbol});return{provider:'FINNHUB',ticker:symbol,price:finite(q?.c)?q.c:null,change:finite(q?.d)?q.d:null,changePct:finite(q?.dp)?q.dp:null,open:finite(q?.o)?q.o:null,high:finite(q?.h)?q.h:null,low:finite(q?.l)?q.l:null,previousClose:finite(q?.pc)?q.pc:null,timestamp:finite(q?.t)?new Date(q.t*1000).toISOString():nowIso(),session:'REGULAR_OR_LAST'}}
+function rangeWindow(range){const day=86400,to=Math.floor(Date.now()/1000),windows={'1M':35,'3M':100,'6M':200,'YTD':370,'1Y':380,'3Y':1120,'5Y':1900};let from=to-(windows[range]||380)*day;if(range==='YTD')from=Math.floor(new Date(new Date().getFullYear(),0,1).getTime()/1000)-7*day;return{from,to}}
+async function candles(symbol,range='1Y'){const{from,to}=rangeWindow(range);const raw=await finnhub('stock/candle',{symbol,resolution:'D',from,to});if(raw?.s!=='ok'||!Array.isArray(raw?.c))return[];return raw.c.map((c,i)=>({t:new Date(raw.t[i]*1000).toISOString(),o:raw.o[i],h:raw.h[i],l:raw.l[i],c,v:raw.v[i]})).filter(x=>finite(x.c))}
+async function metrics(symbol){const raw=await finnhub('stock/metric',{symbol,metric:'all'});return{provider:'FINNHUB',ticker:symbol,metric:raw?.metric||{},series:raw?.series||{},observedAt:nowIso()}}
+async function companyNews(symbol,days=14){const to=new Date(),from=new Date(Date.now()-days*86400000),iso=d=>d.toISOString().slice(0,10),raw=await finnhub('company-news',{symbol,from:iso(from),to:iso(to)});return(Array.isArray(raw)?raw:[]).slice(0,30).map(x=>({id:x.id||`${symbol}-${x.datetime}-${x.headline}`,headline:x.headline,summary:x.summary,source:x.source,url:x.url,category:x.category,datetime:finite(x.datetime)?new Date(x.datetime*1000).toISOString():null,related:x.related}))}
+async function secTickerMap(){return cached('sec:ticker-map',86400000,async()=>{const payload=await fetchJson('https://www.sec.gov/files/company_tickers.json',{headers:{'user-agent':SEC_USER_AGENT}}),map=new Map();for(const x of Object.values(payload||{}))map.set(String(x.ticker).toUpperCase(),x);return map})}
+function classifyFiling(filing){const items=filing.items||[],rules=[['1.03','LEGAL_OR_DISTRESS',100],['2.02','EARNINGS_RESULTS',85],['2.05','RESTRUCTURING',80],['2.06','IMPAIRMENT',80],['3.01','LISTING_RISK',85],['5.02','LEADERSHIP_CHANGE',70],['7.01','REG_FD',55],['8.01','OTHER_MATERIAL_EVENT',55],['5.03','GOVERNANCE_CHANGE',25]],strongest=rules.filter(([p])=>items.some(i=>i.startsWith(p))).sort((a,b)=>b[2]-a[2])[0];return{...filing,eventClass:strongest?.[1]||(['10-K','10-Q'].includes(filing.form)?'PERIODIC_REPORT':'OTHER_PRIMARY_DISCLOSURE'),materialityScore:strongest?.[2]||(filing.form==='10-K'?75:filing.form==='10-Q'?70:20),validationState:'PENDING_PRIMARY_VALIDATION',requiresHumanReview:true,ruleVersion:'EDGAR-TRIAGE-1.0.0'}}
+async function edgarForTicker(symbol){const map=await secTickerMap(),item=map.get(symbol.toUpperCase());if(!item)return{ticker:symbol,cik:null,filings:[],status:'NO_SEC_MATCH'};const cik=String(item.cik_str).padStart(10,'0'),sub=await fetchJson(`https://data.sec.gov/submissions/CIK${cik}.json`,{headers:{'user-agent':SEC_USER_AGENT}}),r=sub?.filings?.recent||{},forms=r.form||[],filings=forms.map((form,i)=>({form,filingDate:r.filingDate?.[i]||null,reportDate:r.reportDate?.[i]||null,accessionNumber:r.accessionNumber?.[i]||null,primaryDocument:r.primaryDocument?.[i]||null,items:String(r.items?.[i]||'').split(',').map(x=>x.trim()).filter(Boolean)})).filter(f=>['10-K','10-Q','8-K','20-F','6-K'].includes(f.form)).slice(0,30).map(classifyFiling);return{ticker:symbol,cik,companyName:sub?.name||item.title,filings,status:'OK',observedAt:nowIso()}}
+function t212Configured(){return Boolean(T212_KEY&&T212_SECRET)}function t212Auth(){return`Basic ${Buffer.from(`${T212_KEY}:${T212_SECRET}`).toString('base64')}`}
+async function t212Get(path){if(!t212Configured()){const e=new Error('Trading 212 read-only credentials are not configured on backend.');e.code='BROKER_UNCONFIGURED';throw e}if(!['/equity/positions','/equity/account/summary','/equity/account/cash','/equity/account/info'].includes(path))throw new Error('BROKER_READ_ONLY_GUARD');return fetchJson(`https://${T212_ENV}.trading212.com/api/v0${path}`,{headers:{authorization:t212Auth(),accept:'application/json'}})}
+async function brokerPortfolio(){const positions=await t212Get('/equity/positions'),account=await t212Get('/equity/account/summary').catch(()=>null);return{provider:'TRADING212',environment:T212_ENV,readOnlyGuard:true,account,positions:(Array.isArray(positions)?positions:[]).map(p=>({brokerTicker:p?.instrument?.ticker||null,ticker:String(p?.instrument?.ticker||'').replace(/_[A-Z]+_EQ$/i,''),name:p?.instrument?.name||p?.instrument?.shortName||null,isin:p?.instrument?.isin||null,currency:p?.instrument?.currencyCode||null,quantity:p?.quantity??null,averagePrice:p?.averagePricePaid??null,currentPrice:p?.currentPrice??null,walletImpact:p?.walletImpact||null,createdAt:p?.createdAt||null})),observedAt:nowIso()}}
+async function auditBundle(symbol){const[security,q,history,fundamentalMetrics,news,edgar]=await Promise.all([resolveSecurity(symbol),quote(symbol),candles(symbol,'1Y'),metrics(symbol).catch(()=>null),companyNews(symbol).catch(()=>[]),edgarForTicker(symbol).catch(()=>({ticker:symbol,filings:[],status:'ERROR'}))]);const signals=marketSignals(history),evidence=edgar?.filings||[],fundamentalAudit=runFundamentalAudit({metric:fundamentalMetrics?.metric||{},marketSignals:signals,marketCap:security?.marketCap??null,evidence}),newsIntelligence=classifyNewsFeed(news,{ticker:symbol,sector:security?.sector||''});return{security,quote:q,history,marketSignals:signals,fundamentals:fundamentalMetrics,news,newsIntelligence,thesisImpact:{status:newsIntelligence.thesisReviewRequired?'REVIEW_REQUIRED':'NO_CHANGE',falsifierConfirmed:false,source:'NEWS_SENSOR',guardrail:'Only verified primary evidence can confirm a thesis falsifier.'},edgar,canonicalAudit:fundamentalAudit,generatedAt:nowIso()}}
+const DISCOVERY_UNIVERSE=['MSFT','GOOG','AMZN','NVDA','AVGO','TSM','ASML','AMAT','LRCX','KLAC','AMD','MU','MRVL','ARM','STX','WDC','SNDK','INTC','V','MA','SPGI','ICE','JPM','GS','MS','BRK.B','BKNG','UBER','ADP','CTAS','FAST','ROP','VRSK','CPRT','HEI','PH','ETN','TT','GE','LLY','NVO','TMO','DHR','ISRG','NTRA','HALO','ABT','WELL','CEG','NEM','NOC','KO','SU','ORCL','SAP','PANW','PLTR','NET','LITE','COHR'];
+async function discovery(limit=25){const candidates=[];for(let i=0;i<DISCOVERY_UNIVERSE.length;i+=5){const group=await Promise.all(DISCOVERY_UNIVERSE.slice(i,i+5).map(async ticker=>{try{const history=await candles(ticker,'1Y'),signals=marketSignals(history),q=await quote(ticker),score=discoveryScore(signals);if(score==null)return null;return{ticker,price:q.price,dayPct:q.changePct,discoveryScore:score,...signals}}catch{return null}}));candidates.push(...group.filter(Boolean))}return candidates.filter(x=>(x.metrics?.ret60??-999)>0&&(x.metrics?.ret252??-999)>0).sort((a,b)=>b.discoveryScore-a.discoveryScore).slice(0,Math.max(1,Math.min(limit,50)))}
+function routeMatch(pathname,prefix){return pathname.startsWith(prefix)?decodeURIComponent(pathname.slice(prefix.length)):null}
+const server=http.createServer(async(req,res)=>{if(req.method==='OPTIONS')return json(res,204,{});const url=new URL(req.url||'/',`http://${req.headers.host||'localhost'}`);try{if(url.pathname==='/health')return json(res,200,{ok:true,service:'ATLAS Ω Backend',version:'0.3.0',providers:{finnhub:FINNHUB_TOKEN?'CONFIGURED':'UNCONFIGURED',secEdgar:'CONFIGURED',trading212:t212Configured()?'CONFIGURED_READ_ONLY':'UNCONFIGURED'},engines:{market:MARKET_ENGINE_VERSION,fundamental:'ATLAS-FUNDAMENTAL-AUDIT-1.0.0',news:NEWS_ENGINE_VERSION},invariants:{marketDataIsSensor:true,aiIsNeverEvidence:true,priceCannotMutateThesisDirectly:true,brokerWriteEndpoints:false,newsCannotConfirmFalsifier:true},time:nowIso()});if(url.pathname==='/v1/search'){const q=url.searchParams.get('q')||'';if(!q.trim())return json(res,400,{error:'q is required'});return json(res,200,await cached(`search:${q.toUpperCase()}`,3600000,()=>resolveSecurity(q)))}if(url.pathname==='/v1/portfolio')return json(res,200,await brokerPortfolio());if(url.pathname==='/v1/discovery')return json(res,200,{generatedAt:nowIso(),methodology:'Ticker-first market discovery; no quality/narrative/portfolio bias before market filters.',items:await cached(`discovery:${url.searchParams.get('limit')||25}`,300000,()=>discovery(Number(url.searchParams.get('limit')||25)))});const terminal=routeMatch(url.pathname,'/v1/terminal/');if(terminal!==null)return json(res,200,await auditBundle(terminal.toUpperCase()));const audit=routeMatch(url.pathname,'/v1/audit/');if(audit!==null)return json(res,200,await auditBundle(audit.toUpperCase()));const qs=routeMatch(url.pathname,'/v1/quote/');if(qs!==null)return json(res,200,await cached(`quote:${qs}`,CACHE_TTL_MS,()=>quote(qs.toUpperCase())));const hs=routeMatch(url.pathname,'/v1/history/');if(hs!==null){const range=url.searchParams.get('range')||'1Y';return json(res,200,{ticker:hs.toUpperCase(),range,rows:await cached(`history:${hs}:${range}`,60000,()=>candles(hs.toUpperCase(),range))})}const ss=routeMatch(url.pathname,'/v1/signals/');if(ss!==null){const rows=await cached(`history:${ss}:1Y`,60000,()=>candles(ss.toUpperCase(),'1Y'));return json(res,200,{ticker:ss.toUpperCase(),...marketSignals(rows)})}const es=routeMatch(url.pathname,'/v1/edgar/');if(es!==null)return json(res,200,await cached(`edgar:${es}`,300000,()=>edgarForTicker(es.toUpperCase())));return json(res,404,{error:'NOT_FOUND'})}catch(error){const status=error?.code==='PROVIDER_UNCONFIGURED'||error?.code==='BROKER_UNCONFIGURED'?503:error?.status===403?403:502;return json(res,status,{error:error?.code||'UPSTREAM_ERROR',message:error instanceof Error?error.message:String(error)})}});
 server.listen(PORT,HOST,()=>console.log(`ATLAS Ω backend v0.3.0 listening on http://${HOST}:${PORT}`));
