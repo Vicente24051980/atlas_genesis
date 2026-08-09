@@ -54,8 +54,16 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#070b10' } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#050708' }, animation: 'fade_from_bottom' }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="portfolio" />
+        <Stack.Screen name="watchlist" />
+        <Stack.Screen name="radar" />
+        <Stack.Screen name="more" />
+        <Stack.Screen name="engines" />
+        <Stack.Screen name="evidence" />
+        <Stack.Screen name="decisions" />
+        <Stack.Screen name="ticker" />
         <Stack.Screen name="overview" />
         <Stack.Screen name="market" />
         <Stack.Screen name="growth" />
@@ -72,11 +80,11 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: { flex: 1, backgroundColor: '#070b10', justifyContent: 'center', alignItems: 'center', padding: 24, gap: 14 },
+  loadingContainer: { flex: 1, backgroundColor: '#050708', justifyContent: 'center', alignItems: 'center', padding: 24, gap: 14 },
   loadingText: { color: '#9da9b7', textAlign: 'center' },
   errorTitle: { color: '#ffffff', fontSize: 20, fontWeight: '800', textAlign: 'center' },
   errorText: { color: '#fca5a5', textAlign: 'center', lineHeight: 20 },
-  failureScreen: { flex: 1, backgroundColor: '#070b10' },
+  failureScreen: { flex: 1, backgroundColor: '#050708' },
   failureContent: { flexGrow: 1, justifyContent: 'center', padding: 24, gap: 14 },
   failureCard: { backgroundColor: '#1c1418', borderWidth: 1, borderColor: '#63313b', borderRadius: 12, padding: 14 },
   failureName: { color: '#fecaca', fontWeight: '800' },
