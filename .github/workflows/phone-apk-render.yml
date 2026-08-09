@@ -1,0 +1,64 @@
+name: ATLAS Omega Phone APK from Render
+
+on:
+  push:
+    branches: [feat/atlas-terminal-phase1]
+    paths:
+      - '.github/workflows/phone-apk-render.yml'
+      - 'mobile/**'
+  workflow_dispatch:
+
+jobs:
+  phone-apk:
+    name: Build installable ATLAS phone APK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_PUBLIC_ATLAS_API_BASE_URL: https://atlas-genesis.onrender.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify live ATLAS backend
+        run: |
+          curl -fsS "$EXPO_PUBLIC_ATLAS_API_BASE_URL/health" | tee /tmp/atlas-health.json
+          grep -q '"ok":true' /tmp/atlas-health.json
+          grep -q 'ATLAS Ω Backend' /tmp/atlas-health.json
+          grep -q '"finnhub":"CONFIGURED"' /tmp/atlas-health.json
+      - name: Install dependencies
+        run: npm install
+      - name: TypeScript gate
+        run: npm run typecheck
+      - name: Semantic gate
+        run: npm run semantic:gate
+      - name: Generate Android native project
+        run: npx expo prebuild --platform android --non-interactive --clean
+      - name: Enforce HTTPS-only phone policy
+        shell: bash
+        run: |
+          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in
+            https://*) ;;
+            *) echo 'Backend URL must be HTTPS'; exit 1;;
+          esac
+          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in
+            *127.0.0.1*|*localhost*|*10.0.2.2*) echo 'Loopback backend forbidden in phone APK'; exit 1;;
+          esac
+          if grep -q 'android:usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml; then
+            echo 'Phone APK unexpectedly allows cleartext traffic'; exit 1
+          fi
+      - name: Build release APK
+        run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
+      - name: Upload ATLAS phone APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ATLAS-Omega-PHONE-APK-Render
+          path: mobile/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
