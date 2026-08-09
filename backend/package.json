@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node --check server.mjs && node --check tests.mjs",
-    "test": "node tests.mjs"
+    "check": "node --check server.mjs && node --check tests.mjs && node --check market-engine.mjs && node --check market-engine.test.mjs",
+    "test": "node tests.mjs && node market-engine.test.mjs"
   },
   "engines": {
     "node": ">=22"
