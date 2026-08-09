@@ -14,12 +14,14 @@ const modules = [
   { code: 'RSK', title: 'Risk Ω', subtitle: 'Beta · deuda · liquidez · volatilidad', route: '/risk' },
   { code: 'CAT', title: 'Catalysts Ω', subtitle: 'Noticias · consenso · cambios', route: '/catalysts' },
   { code: 'NWS', title: 'News Ω', subtitle: 'Noticias recientes del ticker', route: '/news' },
+  { code: 'BRK', title: 'Broker Ω', subtitle: 'Trading 212 · paper/live · posiciones · órdenes', route: '/broker' },
 ] as const;
 
 export default function HomeScreen() {
   const router = useRouter();
   const [apiState, setApiState] = useState<'CHECKING' | 'ONLINE' | 'OFFLINE'>('CHECKING');
   const [apiVersion, setApiVersion] = useState('');
+  const [brokerState, setBrokerState] = useState('BROKER CHECKING');
 
   useEffect(() => {
     let active = true;
@@ -28,9 +30,13 @@ export default function HomeScreen() {
         if (!active) return;
         setApiState(health.ok && health.finnhub_configured ? 'ONLINE' : 'OFFLINE');
         setApiVersion(health.version || '');
+        setBrokerState(health.broker_configured ? `BROKER ${(health.broker_environment || 'demo').toUpperCase()}` : 'BROKER UNCONFIGURED');
       })
       .catch(() => {
-        if (active) setApiState('OFFLINE');
+        if (active) {
+          setApiState('OFFLINE');
+          setBrokerState('BROKER OFFLINE');
+        }
       });
     return () => { active = false; };
   }, []);
@@ -49,13 +55,13 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.hero}>
-        <Text style={styles.eyebrow}>NUEVA INTERFAZ</Text>
-        <Text style={styles.title}>Elige pantalla. Pon ticker. Recibe datos.</Text>
-        <Text style={styles.subtitle}>Sin formularios manuales. Sin escribir razones, señales ni evidencias a mano. Cada módulo consulta ATLAS online.</Text>
+        <Text style={styles.eyebrow}>ATLAS Ω MOBILE</Text>
+        <Text style={styles.title}>Analiza. Decide. Ejecuta con guardrails.</Text>
+        <Text style={styles.subtitle}>Los módulos de análisis consultan ATLAS online. Broker Ω añade Trading 212 con paper trading por defecto y LIVE bloqueado hasta activación explícita del servidor.</Text>
         <View style={styles.apiBox}>
           <Text style={styles.apiLabel}>BACKEND</Text>
           <Text style={styles.apiValue} numberOfLines={1}>{atlasApiBaseUrl()}</Text>
-          <Text style={styles.apiMeta}>{apiVersion ? `API ${apiVersion}` : 'Render + Finnhub'}</Text>
+          <Text style={styles.apiMeta}>{apiVersion ? `API ${apiVersion}` : 'Render + Finnhub'} · {brokerState}</Text>
         </View>
       </View>
 
@@ -67,7 +73,7 @@ export default function HomeScreen() {
             accessibilityRole="button"
             accessibilityLabel={`Abrir ${module.title}`}
             onPress={() => router.push(module.route)}
-            style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+            style={({ pressed }) => [styles.card, pressed && styles.cardPressed, module.code === 'BRK' && styles.brokerCard]}
           >
             <Text style={styles.code}>{module.code}</Text>
             <Text style={styles.cardTitle}>{module.title}</Text>
@@ -79,7 +85,7 @@ export default function HomeScreen() {
 
       <View style={styles.ruleCard}>
         <Text style={styles.ruleTitle}>REGLA DE USO</Text>
-        <Text style={styles.ruleText}>1 ticker → datos automáticos. Si un dato no existe o el proveedor no lo entrega, ATLAS muestra “no disponible”; no te obliga a rellenarlo manualmente.</Text>
+        <Text style={styles.ruleText}>1 ticker → datos automáticos. Broker Ω mantiene las claves de Trading 212 fuera del APK. Las órdenes reales permanecen bloqueadas si el servidor no habilita LIVE explícitamente.</Text>
       </View>
     </ScrollView>
   );
@@ -111,6 +117,7 @@ const styles = StyleSheet.create({
   section: { color: '#65798d', fontSize: 10, fontWeight: '900', letterSpacing: 1.4 },
   grid: { gap: 10 },
   card: { minHeight: 104, backgroundColor: '#0e151d', borderWidth: 1, borderColor: '#1f3040', borderRadius: 16, padding: 15, position: 'relative' },
+  brokerCard: { borderColor: '#2a5c4b', backgroundColor: '#0c1714' },
   cardPressed: { opacity: 0.65, transform: [{ scale: 0.99 }] },
   code: { color: '#63caff', fontSize: 9, fontWeight: '900', letterSpacing: 1.3 },
   cardTitle: { color: '#f1f5f9', fontSize: 19, fontWeight: '900', marginTop: 8 },
