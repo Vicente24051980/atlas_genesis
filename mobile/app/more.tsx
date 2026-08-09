@@ -7,6 +7,8 @@ import { AtlasOnlineApi, atlasApiBaseUrl, type AtlasHealth, type TrackedUniverse
 
 const ITEMS = [
   { code: 'ENG', title: 'Motores ATLAS Ω', subtitle: 'Registro, estados y pipeline completo', route: '/engines' },
+  { code: 'EVD', title: 'Evidence Ω', subtitle: 'Ticker → SEC / fuentes primarias → prioridad de revisión', route: '/evidence' },
+  { code: 'LOG', title: 'Decision Log Ω', subtitle: 'Historial de cambios en Cartera y Watchlist', route: '/decisions' },
   { code: 'MKT', title: 'Mercados Ω', subtitle: 'Índices, sectores, oro, petróleo, dólar, duración y crédito', route: '/market' },
   { code: 'NWS', title: 'News Ω', subtitle: 'Noticias por ticker y catalizadores', route: '/news' },
   { code: 'BRK', title: 'Broker Ω', subtitle: 'Trading 212 · conexión y guardrails', route: '/broker' },
@@ -34,7 +36,7 @@ export default function MoreScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <Text style={styles.eyebrow}>ATLAS Ω MOBILE</Text>
         <Text style={styles.title}>Más</Text>
-        <Text style={styles.subtitle}>Motores, proveedores, broker y estado operativo. Sin formularios de métricas manuales.</Text>
+        <Text style={styles.subtitle}>Motores, evidencia, historial, proveedores y broker. Sin formularios de métricas manuales.</Text>
 
         <View style={styles.statusCard}>
           <View style={styles.statusTop}><Text style={styles.statusTitle}>SISTEMA</Text><Text style={[styles.statusBadge, health?.ok ? styles.ok : styles.bad]}>{health?.ok ? 'ONLINE' : 'NO VERIFICADO'}</Text></View>
@@ -49,7 +51,7 @@ export default function MoreScreen() {
         {universe?.status === 'AWAITING_USER_CONFIRMATION' ? (
           <View style={styles.warning}>
             <Text style={styles.warningTitle}>UNIVERSO BOOTSTRAP</Text>
-            <Text style={styles.warningText}>La estructura está preparada para cargar cartera y watchlist desde servidor sin reconstruir el APK. El snapshot actual todavía exige confirmación exacta del usuario antes de etiquetarlo como definitivo.</Text>
+            <Text style={styles.warningText}>La estructura ya carga cartera y watchlist desde servidor sin reconstruir el APK. El snapshot actual seguirá marcado como pendiente hasta recibir las dos listas exactas que quieres monitorizar.</Text>
           </View>
         ) : null}
 
