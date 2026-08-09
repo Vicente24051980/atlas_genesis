@@ -1,22 +1,21 @@
 export type ConspiracionesEvidenceClass = 'FACT' | 'INTERPRETATION' | 'HYPOTHESIS' | 'SPECULATION';
-
 export type EconomistCoverEffect = 'PREDICTIVE' | 'CONTRARIAN' | 'SATURATION' | 'NULL';
 export type EconomistCoverClassificationStatus = 'PENDING_OUTCOME' | 'CLASSIFIED';
 
 export interface NarrativeSaturationDimensions {
-  trendMaturity: number; // 0..100: how much of the move already happened before the cover.
-  extremeness: number; // 0..100: market/macro distance from a normal regime.
-  narrativeIntensity: number; // 0..100: explicitness/drama of the cover narrative.
-  institutionalStress: number; // 0..100: policy/system stress already visible at publication.
-  crossAssetConfirmation: number; // 0..100: USD/gold/oil/rates/credit confirmation.
-  crowding?: number | null; // 0..100: positioning/consensus if independently measured.
+  trendMaturity: number;
+  extremeness: number;
+  narrativeIntensity: number;
+  institutionalStress: number;
+  crossAssetConfirmation: number;
+  crowding?: number | null;
 }
 
 export interface ForwardCoverOutcome {
   observedAt: string;
-  directionalContinuation: number; // 0..100: later move continued the cover's implied direction.
-  reversalStrength: number; // 0..100: later move reversed the crowded pre-cover trend.
-  regimeChange: number; // 0..100: material structural/policy regime transition after publication.
+  directionalContinuation: number;
+  reversalStrength: number;
+  regimeChange: number;
 }
 
 export interface EconomistCoverAssessmentInput {
@@ -55,14 +54,7 @@ export const CONSPIRACIONES_ATLAS_HYPOTHESES = [
 ] as const;
 
 export const MACRO_PROPAGATION_CHAIN = [
-  'CURRENCY',
-  'COMMODITIES',
-  'INFLATION',
-  'RATES',
-  'MARGINS',
-  'EARNINGS',
-  'FLOWS',
-  'SECTORS',
+  'CURRENCY', 'COMMODITIES', 'INFLATION', 'RATES', 'MARGINS', 'EARNINGS', 'FLOWS', 'SECTORS',
 ] as const;
 
 function clampScore(value: number): number {
@@ -90,11 +82,9 @@ export function narrativeSaturationScore(dimensions: NarrativeSaturationDimensio
     [clampScore(dimensions.institutionalStress), NARRATIVE_SATURATION_WEIGHTS.institutionalStress],
     [clampScore(dimensions.crossAssetConfirmation), NARRATIVE_SATURATION_WEIGHTS.crossAssetConfirmation],
   ];
-
   if (dimensions.crowding !== undefined && dimensions.crowding !== null) {
     entries.push([clampScore(dimensions.crowding), NARRATIVE_SATURATION_WEIGHTS.crowding]);
   }
-
   const weighted = entries.reduce((sum, [score, weight]) => sum + score * weight, 0);
   const weights = entries.reduce((sum, [, weight]) => sum + weight, 0);
   return Math.round(weighted / weights);
@@ -108,8 +98,9 @@ export function assessEconomistCover(input: EconomistCoverAssessmentInput): Econ
   const saturationScore = narrativeSaturationScore(input.dimensions);
   const flags: string[] = [];
   if (!input.monetaryCover) flags.push('NON_MONETARY_CONTROL_CANDIDATE');
-  if (input.dimensions.crowding === undefined || input.dimensions.crowding === null) flags.push('CROWDING_NOT_AVAILABLE_WEIGHT_RENORMALIZED');
-
+  if (input.dimensions.crowding === undefined || input.dimensions.crowding === null) {
+    flags.push('CROWDING_NOT_AVAILABLE_WEIGHT_RENORMALIZED');
+  }
   if (!input.forwardOutcome) {
     return { issueId: input.issueId, saturationScore, status: 'PENDING_OUTCOME', effect: null, flags };
   }
@@ -143,7 +134,10 @@ export interface CrossAssetSnapshot {
 }
 
 export function classifyCrossAssetRegime(snapshot: CrossAssetSnapshot): CrossAssetRegime {
-  const { usdReturnPct: usd, goldReturnPct: gold, oilReturnPct: oil, ust10yYieldChangeBps: yields } = snapshot;
+  const usd = snapshot.usdReturnPct;
+  const gold = snapshot.goldReturnPct;
+  const oil = snapshot.oilReturnPct;
+  const yields = snapshot.ust10yYieldChangeBps;
   if (usd < 0 && gold > 0 && yields > 0) return 'RESERVE_ARCHITECTURE_STRESS';
   if (usd < 0 && oil > 0 && gold > 0) return 'REFLATION_COMMODITY';
   if (usd > 0 && gold > 0) return 'SYSTEMIC_FEAR';
@@ -220,15 +214,29 @@ export const PHOENIX_2026_SIGNAL_WEIGHTS: Record<Phoenix2026SignalId, number> = 
   AUG12_ECLIPSE_ONLY: 0,
 };
 
-const HARD_BREAK_SIGNALS = new Set<Phoenix2026SignalId>([
-  'SDR_PRIVATE_RETAIL_USE',
-  'TRANSNATIONAL_COMMERCIAL_UNIT',
-]);
+const HARD_BREAK_SIGNALS = new Set<Phoenix2026SignalId>(['SDR_PRIVATE_RETAIL_USE', 'TRANSNATIONAL_COMMERCIAL_UNIT']);
 
-export function evaluatePhoenix2026(
-  observations: Phoenix2026SignalObservation[],
+function qualifyingFact(items: Phoenix2026SignalObservation[]): Phoenix2026SignalObservation | undefined {
+  return items.find((item) => item.active && item.evidenceClass === 'FACT' && item.evidenceRefs.length > 0);
+}
+
+export function buildRepeatedReserveStressSignal(
+  snapshots: CrossAssetSnapshot[],
+  evidenceRefs: string[],
   asOf: string,
-): Phoenix2026Assessment {
+): Phoenix2026SignalObservation {
+  const occurrences = countReserveArchitectureStress(snapshots, asOf);
+  return {
+    id: 'RESERVE_STRESS_TRIAD_REPEATED',
+    active: occurrences >= 2,
+    observedAt: asOf,
+    evidenceClass: evidenceRefs.length > 0 ? 'FACT' : 'HYPOTHESIS',
+    evidenceRefs,
+    note: `${occurrences} independent reserve-architecture stress observations`,
+  };
+}
+
+export function evaluatePhoenix2026(observations: Phoenix2026SignalObservation[], asOf: string): Phoenix2026Assessment {
   if (epoch(asOf, 'asOf') < epoch(PHOENIX_2026_BASELINE.frozenAt, 'frozenAt')) {
     throw new Error('Phoenix 2026 Ω: asOf precedes the frozen baseline');
   }
@@ -239,9 +247,7 @@ export function evaluatePhoenix2026(
     if (epoch(observation.observedAt, 'phoenixSignal.observedAt') < epoch(PHOENIX_2026_BASELINE.frozenAt, 'frozenAt')) {
       throw new Error('Phoenix 2026 Ω anti-retrofit: monitored signals must not predate the frozen baseline');
     }
-    const bucket = grouped.get(observation.id) ?? [];
-    bucket.push(observation);
-    grouped.set(observation.id, bucket);
+    grouped.set(observation.id, [...(grouped.get(observation.id) ?? []), observation]);
   }
 
   const scoredSignals: Phoenix2026SignalId[] = [];
@@ -252,12 +258,17 @@ export function evaluatePhoenix2026(
 
   for (const [id, candidates] of grouped.entries()) {
     if (candidates.length > 1) flags.push(`DEDUPED_${id}`);
-    const active = candidates.filter((item) => item.active);
-    if (active.length === 0) continue;
+    if (!candidates.some((item) => item.active)) continue;
 
     if (id === 'AUG12_ECLIPSE_ONLY') {
       excludedSignals.push(id);
       flags.push('AUG12_ECLIPSE_EXCLUDED_BY_FROZEN_RULE');
+      continue;
+    }
+
+    const fact = qualifyingFact(candidates);
+    if (!fact) {
+      flags.push(`NON_SCORING_UNCONFIRMED_${id}`);
       continue;
     }
 
@@ -267,20 +278,15 @@ export function evaluatePhoenix2026(
       continue;
     }
 
-    const fact = active.find((item) => item.evidenceClass === 'FACT' && item.evidenceRefs.length > 0);
-    if (!fact) {
-      flags.push(`NON_SCORING_UNCONFIRMED_${id}`);
-      continue;
-    }
-
     scoredSignals.push(id);
     regimeStressScore += PHOENIX_2026_SIGNAL_WEIGHTS[id];
   }
 
   regimeStressScore = clampScore(regimeStressScore);
-  const hasHardBreak = scoredSignals.some((id) => HARD_BREAK_SIGNALS.has(id));
-  const hasBricsUnit = scoredSignals.includes('BRICS_COMMON_UNIT');
-  const hasReserveStress = scoredSignals.includes('RESERVE_STRESS_TRIAD_REPEATED');
+  const uniqueScored = Array.from(new Set(scoredSignals));
+  const hasHardBreak = uniqueScored.some((id) => HARD_BREAK_SIGNALS.has(id));
+  const hasBricsUnit = uniqueScored.includes('BRICS_COMMON_UNIT');
+  const hasReserveStress = uniqueScored.includes('RESERVE_STRESS_TRIAD_REPEATED');
 
   let state: Phoenix2026State = 'NO_MATERIAL_BREAK';
   if (hasHardBreak || (hasBricsUnit && regimeStressScore >= 50)) state = 'STRUCTURAL_MONETARY_BREAK';
@@ -291,7 +297,7 @@ export function evaluatePhoenix2026(
     asOf,
     regimeStressScore,
     state,
-    scoredSignals: Array.from(new Set(scoredSignals)),
+    scoredSignals: uniqueScored,
     contextSignals: Array.from(new Set(contextSignals)),
     excludedSignals: Array.from(new Set(excludedSignals)),
     flags,
@@ -347,15 +353,9 @@ export function summarizeMatchedCoverStudy(pairs: MatchedCoverOutcome[]): Matche
   if (pairs.length === 0) return { pairs: 0, meanTreatmentOutcome: 0, meanControlOutcome: 0, meanMatchedDifference: 0 };
   const treatment = pairs.reduce((sum, pair) => sum + pair.treatmentOutcome, 0) / pairs.length;
   const control = pairs.reduce((sum, pair) => sum + pair.controlOutcome, 0) / pairs.length;
-  return {
-    pairs: pairs.length,
-    meanTreatmentOutcome: treatment,
-    meanControlOutcome: control,
-    meanMatchedDifference: treatment - control,
-  };
+  return { pairs: pairs.length, meanTreatmentOutcome: treatment, meanControlOutcome: control, meanMatchedDifference: treatment - control };
 }
 
-// Deterministic smoke contract usable by CI/runtime without requiring a test framework.
 export function conspiracionesAtlasEconomistContractCheck(): void {
   const historical = assessEconomistCover({
     issueId: 'historical-contrarian-test',
@@ -364,51 +364,32 @@ export function conspiracionesAtlasEconomistContractCheck(): void {
     asOf: '2005-12-31T00:00:00Z',
     monetaryCover: true,
     evidenceRefs: ['cover', 'market-data'],
-    dimensions: {
-      trendMaturity: 90,
-      extremeness: 85,
-      narrativeIntensity: 90,
-      institutionalStress: 70,
-      crossAssetConfirmation: 80,
-      crowding: 85,
-    },
-    forwardOutcome: {
-      observedAt: '2005-12-31T00:00:00Z',
-      directionalContinuation: 20,
-      reversalStrength: 85,
-      regimeChange: 70,
-    },
+    dimensions: { trendMaturity: 90, extremeness: 85, narrativeIntensity: 90, institutionalStress: 70, crossAssetConfirmation: 80, crowding: 85 },
+    forwardOutcome: { observedAt: '2005-12-31T00:00:00Z', directionalContinuation: 20, reversalStrength: 85, regimeChange: 70 },
   });
   if (historical.effect !== 'CONTRARIAN') throw new Error('Conspiraciones Atlas Ω contract: saturated reversal must classify CONTRARIAN');
 
   const reserveStress = classifyCrossAssetRegime({
     observedAt: '2026-08-10T00:00:00Z', usdReturnPct: -1, goldReturnPct: 2, oilReturnPct: 0, ust10yYieldChangeBps: 12,
   });
-  if (reserveStress !== 'RESERVE_ARCHITECTURE_STRESS') throw new Error('Phoenix 2026 Ω contract: USD down + gold up + yields up must be reserve stress');
+  if (reserveStress !== 'RESERVE_ARCHITECTURE_STRESS') throw new Error('Phoenix 2026 Ω contract: reserve stress triad must classify correctly');
 
-  const eclipseOnly = evaluatePhoenix2026([
-    {
-      id: 'AUG12_ECLIPSE_ONLY', active: true, observedAt: '2026-08-12T18:00:00Z',
-      evidenceClass: 'FACT', evidenceRefs: ['astronomy-calendar'],
-    },
-  ], '2026-08-12T23:00:00Z');
+  const unsupportedContext = evaluatePhoenix2026([{
+    id: 'BRICS_LOCAL_RAILS_ONLY', active: true, observedAt: '2026-08-10T00:00:00Z', evidenceClass: 'HYPOTHESIS', evidenceRefs: [],
+  }], '2026-08-10T01:00:00Z');
+  if (unsupportedContext.state !== 'NO_MATERIAL_BREAK') throw new Error('Phoenix 2026 Ω contract: unconfirmed context cannot escalate state');
+
+  const eclipseOnly = evaluatePhoenix2026([{
+    id: 'AUG12_ECLIPSE_ONLY', active: true, observedAt: '2026-08-12T18:00:00Z', evidenceClass: 'FACT', evidenceRefs: ['astronomy-calendar'],
+  }], '2026-08-12T23:00:00Z');
   if (eclipseOnly.regimeStressScore !== 0 || eclipseOnly.state !== 'NO_MATERIAL_BREAK') {
     throw new Error('Phoenix 2026 Ω contract: eclipse must never score as monetary evidence');
   }
 
   const structural = evaluatePhoenix2026([
-    {
-      id: 'RESERVE_STRESS_TRIAD_REPEATED', active: true, observedAt: '2026-09-01T00:00:00Z',
-      evidenceClass: 'FACT', evidenceRefs: ['macro-primary-1'],
-    },
-    {
-      id: 'RESERVE_STRESS_TRIAD_REPEATED', active: true, observedAt: '2026-09-02T00:00:00Z',
-      evidenceClass: 'FACT', evidenceRefs: ['macro-primary-2'],
-    },
-    {
-      id: 'TRANSNATIONAL_COMMERCIAL_UNIT', active: true, observedAt: '2026-09-03T00:00:00Z',
-      evidenceClass: 'FACT', evidenceRefs: ['institution-primary'],
-    },
+    { id: 'RESERVE_STRESS_TRIAD_REPEATED', active: true, observedAt: '2026-09-01T00:00:00Z', evidenceClass: 'FACT', evidenceRefs: ['macro-primary-1'] },
+    { id: 'RESERVE_STRESS_TRIAD_REPEATED', active: true, observedAt: '2026-09-02T00:00:00Z', evidenceClass: 'FACT', evidenceRefs: ['macro-primary-2'] },
+    { id: 'TRANSNATIONAL_COMMERCIAL_UNIT', active: true, observedAt: '2026-09-03T00:00:00Z', evidenceClass: 'FACT', evidenceRefs: ['institution-primary'] },
   ], '2026-09-04T00:00:00Z');
   if (structural.regimeStressScore !== 35) throw new Error('Phoenix 2026 Ω contract: duplicate signals must not double count');
   if (structural.state !== 'STRUCTURAL_MONETARY_BREAK') throw new Error('Phoenix 2026 Ω contract: hard break signal must escalate state');
