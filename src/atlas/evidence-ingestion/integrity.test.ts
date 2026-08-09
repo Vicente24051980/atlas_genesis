@@ -1,4 +1,8 @@
 import {
+  PHOENIX_2026_MONETARY_REGIME_PREDICTION,
+  validatePredictionAttempt,
+} from '../algorithm/prediction-attempt-omega';
+import {
   routeEvidenceToEngines,
 } from './engine';
 import {
@@ -68,6 +72,28 @@ describe('Evidence Integrity Omega v1.1', () => {
       'CONSPIRACIONES_ATLAS',
       'MONEY_ROTATION_OMEGA',
       'HISTORICAL_DISLOCATION_OMEGA',
+    ]));
+  });
+
+  it('accepts the frozen Phoenix 2026 monetary-regime prediction attempt', () => {
+    expect(validatePredictionAttempt(PHOENIX_2026_MONETARY_REGIME_PREDICTION)).toEqual([]);
+  });
+
+  it('rejects unauditable prediction attempts', () => {
+    expect(validatePredictionAttempt({
+      ...PHOENIX_2026_MONETARY_REGIME_PREDICTION,
+      question: '',
+      scenarios: [
+        { id: 'only-one', label: 'Single vague scenario', probability: 90, expectedSignals: [] },
+      ],
+      evidenceIds: [],
+      falsifiers: [],
+    })).toEqual(expect.arrayContaining([
+      'missing_question',
+      'requires_at_least_two_scenarios',
+      'probability_sum_must_equal_100:90',
+      'requires_traceable_evidence',
+      'requires_falsifiers',
     ]));
   });
 });
