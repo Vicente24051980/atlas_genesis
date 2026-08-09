@@ -21,6 +21,54 @@ export type CompanyBundle = {
   guardrail: string;
 };
 
+export type MarketQuote = {
+  symbol: string;
+  name: string;
+  sector: string;
+  price: number | null;
+  change: number | null;
+  changePct: number | null;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  previousClose: number | null;
+  volume: number | null;
+  asOfDate: string | null;
+  asOfTime: string | null;
+  source: string;
+  delayed: boolean;
+};
+
+export type MarketSnapshot = {
+  source: string;
+  delayed: boolean;
+  generatedAt: string;
+  items: MarketQuote[];
+  guardrail: string;
+};
+
+export type MarketScanner = {
+  source: string;
+  delayed: boolean;
+  generatedAt: string;
+  direction: 'all' | 'up' | 'down';
+  count: number;
+  items: MarketQuote[];
+  guardrail: string;
+};
+
+export type MarketSearchItem = {
+  symbol: string;
+  name: string;
+  sector: string;
+};
+
+export type MarketSearch = {
+  query: string;
+  count: number;
+  items: MarketSearchItem[];
+};
+
 export type BrokerStatus = {
   provider: 'Trading212';
   environment: 'demo' | 'live';
@@ -96,6 +144,10 @@ function brokerHeaders(controlToken: string): Record<string, string> {
 export const AtlasOnlineApi = {
   health: () => request<AtlasHealth>('/health'),
   company: (ticker: string) => request<CompanyBundle>(`/v1/company/${encodeURIComponent(ticker.trim().toUpperCase())}`),
+  marketQuote: (ticker: string) => request<MarketQuote>(`/v1/market/quote/${encodeURIComponent(ticker.trim().toUpperCase())}`),
+  marketSnapshot: () => request<MarketSnapshot>('/v1/market/snapshot'),
+  marketScanner: (direction: 'all' | 'up' | 'down' = 'all', limit = 20) => request<MarketScanner>(`/v1/market/scanner?direction=${direction}&limit=${limit}`),
+  marketSearch: (query: string, limit = 12) => request<MarketSearch>(`/v1/market/search?q=${encodeURIComponent(query.trim())}&limit=${limit}`),
   brokerStatus: () => request<BrokerStatus>('/v1/broker/status'),
   brokerAccount: (controlToken: string) => request<BrokerEnvelope>('/v1/broker/account', { headers: brokerHeaders(controlToken) }),
   brokerPositions: (controlToken: string) => request<BrokerEnvelope>('/v1/broker/positions', { headers: brokerHeaders(controlToken) }),
