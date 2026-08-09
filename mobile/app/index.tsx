@@ -31,12 +31,12 @@ const modules = [
   { code: 'NWS', title: 'News Ω', route: '/news' },
 ] as const;
 
-const fallbackBenchmarks = [
-  { symbol: 'SPY', name: 'S&P 500' },
-  { symbol: 'QQQ', name: 'Nasdaq 100' },
-  { symbol: 'DIA', name: 'Dow Jones' },
-  { symbol: 'GLD', name: 'Oro' },
-  { symbol: 'USO', name: 'Petróleo' },
+const fallbackBenchmarks: MarketQuote[] = [
+  { symbol: 'SPY', name: 'S&P 500', sector: 'US Market', price: null, change: null, changePct: null, open: null, high: null, low: null, previousClose: null, volume: null, asOfDate: null, asOfTime: null, source: 'ATLAS', delayed: true },
+  { symbol: 'QQQ', name: 'Nasdaq 100', sector: 'US Tech', price: null, change: null, changePct: null, open: null, high: null, low: null, previousClose: null, volume: null, asOfDate: null, asOfTime: null, source: 'ATLAS', delayed: true },
+  { symbol: 'DIA', name: 'Dow Jones', sector: 'US Blue Chips', price: null, change: null, changePct: null, open: null, high: null, low: null, previousClose: null, volume: null, asOfDate: null, asOfTime: null, source: 'ATLAS', delayed: true },
+  { symbol: 'GLD', name: 'Oro', sector: 'Gold proxy', price: null, change: null, changePct: null, open: null, high: null, low: null, previousClose: null, volume: null, asOfDate: null, asOfTime: null, source: 'ATLAS', delayed: true },
+  { symbol: 'USO', name: 'Petróleo', sector: 'Oil proxy', price: null, change: null, changePct: null, open: null, high: null, low: null, previousClose: null, volume: null, asOfDate: null, asOfTime: null, source: 'ATLAS', delayed: true },
 ];
 
 export default function HomeScreen() {
@@ -56,23 +56,39 @@ export default function HomeScreen() {
   const loadHome = async () => {
     setMarketLoading(true);
     setMarketError('');
-    try {
-      const [health, snapshot, movers] = await Promise.all([
-        AtlasOnlineApi.health(),
-        AtlasOnlineApi.marketSnapshot(),
-        AtlasOnlineApi.marketScanner('all', 20),
-      ]);
-      setApiState(health.ok ? 'ONLINE' : 'OFFLINE');
-      setProviderState(health.finnhub_configured ? 'FINNHUB + MARKET' : 'MARKET FALLBACK');
-      setBenchmarks(snapshot.items);
-      setScanner(movers.items);
-    } catch (cause) {
+
+    const [healthResult, snapshotResult, moversResult] = await Promise.allSettled([
+      AtlasOnlineApi.health(),
+      AtlasOnlineApi.marketSnapshot(),
+      AtlasOnlineApi.marketScanner('all', 20),
+    ]);
+
+    if (healthResult.status === 'fulfilled' && healthResult.value.ok) {
+      setApiState('ONLINE');
+      setProviderState(healthResult.value.finnhub_configured ? 'FINNHUB + MARKET' : 'MARKET FALLBACK');
+    } else {
       setApiState('OFFLINE');
-      setProviderState('SIN DATOS');
-      setMarketError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setMarketLoading(false);
+      setProviderState('API NO DISPONIBLE');
     }
+
+    if (snapshotResult.status === 'fulfilled') setBenchmarks(snapshotResult.value.items);
+    if (moversResult.status === 'fulfilled') setScanner(moversResult.value.items);
+
+    if (snapshotResult.status === 'rejected' && moversResult.status === 'rejected') {
+      const snapshotReason = snapshotResult.reason;
+      const moversReason = moversResult.reason;
+      const message = snapshotReason instanceof Error
+        ? snapshotReason.message
+        : moversReason instanceof Error
+          ? moversReason.message
+          : 'El proveedor de mercado no respondió.';
+      setMarketError(message);
+      if (healthResult.status === 'fulfilled' && healthResult.value.ok) {
+        setProviderState(healthResult.value.finnhub_configured ? 'API ONLINE · MARKET ERROR' : 'API ONLINE · FALLBACK PENDIENTE');
+      }
+    }
+
+    setMarketLoading(false);
   };
 
   useEffect(() => {
@@ -195,7 +211,7 @@ export default function HomeScreen() {
               {(benchmarks.length ? benchmarks : fallbackBenchmarks).map((item) => (
                 <BenchmarkCard
                   key={item.symbol}
-                  quote={'price' in item ? item : undefined}
+                  quote={item}
                   symbol={item.symbol}
                   name={item.name}
                   onPress={() => openTicker(item.symbol)}
