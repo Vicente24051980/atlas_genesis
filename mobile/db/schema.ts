@@ -57,6 +57,20 @@ export const radar = sqliteTable('radar', {
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 });
 
+export const capexProductivityAssessment = sqliteTable('capex_productivity_assessment', {
+  id: text('id').primaryKey(),
+  canonicalTicker: text('canonical_ticker').notNull(),
+  score: real('score'),
+  state: text('state').notNull(),
+  signalCount: integer('signal_count').notNull().default(0),
+  completeness: real('completeness').notNull().default(0),
+  underMonetization: integer('under_monetization', { mode: 'boolean' }).notNull().default(false),
+  inputJson: text('input_json').notNull(),
+  resultJson: text('result_json').notNull(),
+  evidenceRefsJson: text('evidence_refs_json').notNull().default('[]'),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+});
+
 export const auditLog = sqliteTable('audit_log', {
   id: text('id').primaryKey(),
   action: text('action').notNull(),
