@@ -17,9 +17,7 @@ wait_for_text() {
   local needle="$1"
   for _ in $(seq 1 50); do
     dump_ui
-    if grep -Fq "$needle" window.xml 2>/dev/null; then
-      return 0
-    fi
+    if grep -Fq "$needle" window.xml 2>/dev/null; then return 0; fi
     sleep 2
   done
   echo "::error::Timed out waiting for UI text: $needle"
@@ -31,9 +29,7 @@ wait_for_text_with_scroll() {
   local needle="$1"
   for _ in $(seq 1 12); do
     dump_ui
-    if grep -Fq "$needle" window.xml 2>/dev/null; then
-      return 0
-    fi
+    if grep -Fq "$needle" window.xml 2>/dev/null; then return 0; fi
     adb shell input swipe 540 1800 540 650 250
     sleep 1
   done
@@ -86,31 +82,42 @@ return_home() {
   adb shell input keyevent 4
   sleep 1
   for _ in $(seq 1 10); do adb shell input swipe 540 650 540 1850 180 || true; done
-  wait_for_text "Elige pantalla. Pon ticker. Recibe datos."
+  wait_for_text "Pon ticker. ATLAS decide."
 }
 
-wait_for_text "Elige pantalla. Pon ticker. Recibe datos."
+wait_for_text "Pon ticker. ATLAS decide."
 wait_for_text "MENÚ"
-wait_for_text "CAPEX Productivity Ω"
+wait_for_text "Mi Cartera"
+wait_for_text "Resumen + Decisión"
 
 verify_route() {
   local desc="$1"
   local expected="$2"
-  echo "Verifying ticker-only route: $desc -> $expected"
+  echo "Verifying decision-first route: $desc -> $expected"
   tap_desc "$desc"
   wait_for_text_with_scroll "$expected"
-  wait_for_text_with_scroll "ANALIZAR"
   return_home
 }
 
-verify_route "Abrir Resumen" "Resumen Ω"
-verify_route "Abrir Mercado" "Mercado Ω"
-verify_route "Abrir Growth Ω" "Growth Ω"
-verify_route "Abrir Business Quality Ω" "Business Quality Ω"
-verify_route "Abrir CAPEX Productivity Ω" "CAPEX Productivity Ω"
-verify_route "Abrir Valuation Ω" "Valuation Ω"
-verify_route "Abrir Risk Ω" "Risk Ω"
-verify_route "Abrir Catalysts Ω" "Catalysts Ω"
-verify_route "Abrir News Ω" "News Ω"
+verify_ticker_route() {
+  local desc="$1"
+  local expected="$2"
+  verify_route "$desc" "$expected"
+  tap_desc "$desc"
+  wait_for_text_with_scroll "ANALIZAR"
+  wait_for_text_with_scroll "COMPRAR / NO COMPRAR"
+  return_home
+}
 
-echo "ATLAS Ω ticker-only menu emulator gate: PASS"
+verify_route "Abrir Mi Cartera" "Mi Cartera Ω"
+verify_ticker_route "Abrir Resumen + Decisión" "Resumen Ω"
+verify_ticker_route "Abrir Mercado" "Mercado Ω"
+verify_ticker_route "Abrir Growth Ω" "Growth Ω"
+verify_ticker_route "Abrir Business Quality Ω" "Business Quality Ω"
+verify_ticker_route "Abrir CAPEX Productivity Ω" "CAPEX Productivity Ω"
+verify_ticker_route "Abrir Valuation Ω" "Valuation Ω"
+verify_ticker_route "Abrir Risk Ω" "Risk Ω"
+verify_ticker_route "Abrir Catalysts Ω" "Catalysts Ω"
+verify_ticker_route "Abrir News Ω" "News Ω"
+
+echo "ATLAS Ω decision-first mobile emulator gate: PASS"
