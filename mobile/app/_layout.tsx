@@ -62,6 +62,7 @@ export default function RootLayout() {
         <Stack.Screen name="more" />
         <Stack.Screen name="engines" />
         <Stack.Screen name="evidence" />
+        <Stack.Screen name="decisions" />
         <Stack.Screen name="ticker" />
         <Stack.Screen name="overview" />
         <Stack.Screen name="market" />
