@@ -110,8 +110,6 @@ tap_desc() {
   return 1
 }
 
-reset_top() { for _ in $(seq 1 12); do swipe_down || true; done; }
-
 open_deep_link() {
   local route="$1"
   adb shell am start -W -a android.intent.action.VIEW -d "atlasomega://$route" "$PACKAGE" >/dev/null 2>&1 || \
@@ -126,7 +124,7 @@ wait_for_text "WATCHLIST Ω"
 wait_for_text "Cartera"
 wait_for_text "Radar Ω"
 
-# Fixed bottom navigation.
+# Fixed bottom navigation routes.
 tap_desc "Cartera"
 wait_for_text "Mi Cartera Ω"
 wait_for_text "PORTFOLIO INTELLIGENCE"
@@ -161,22 +159,16 @@ adb shell input keyevent 4
 sleep 1
 wait_for_text "Más"
 
-# Decision Log route exists without requiring any manual data entry.
+# Decision Log route exists without requiring manual data entry.
 tap_desc "Abrir Decision Log Ω"
 wait_for_text "Historial de decisiones"
 adb shell input keyevent 4
 sleep 1
 wait_for_text "Más"
 
-# Ticker detail route is reachable even if the remote provider is temporarily unavailable.
-tap_desc "Inicio"
-wait_for_text "INVESTMENT INTELLIGENCE"
-reset_top
-tap_desc "Abrir SPY"
+# Ticker terminal route itself must boot independently of remote data availability.
+open_deep_link "ticker?symbol=SPY&context=candidate"
 wait_for_text "SPY"
-adb shell input keyevent 4
-sleep 1
-wait_for_text "INVESTMENT INTELLIGENCE"
 
 # Every analytical module must be a distinct screen, not the old shared-data facade.
 verify_engine_route() {
