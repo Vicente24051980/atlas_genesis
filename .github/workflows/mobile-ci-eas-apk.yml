@@ -36,7 +36,7 @@ concurrency:
 
 jobs:
   api-certification:
-    name: API Syntax & Broker Guardrail Verification
+    name: API + ATLAS Engine + Broker Guardrail Verification
     runs-on: ubuntu-latest
 
     steps:
@@ -56,15 +56,108 @@ jobs:
       - name: Compile API
         run: python -m compileall -q api
 
-      - name: Verify Broker Ω fail-closed guardrails
+      - name: Verify ATLAS Ω routes, decisions and Broker Ω fail-closed guardrails
         shell: bash
         run: |
           python - <<'PY'
           from fastapi.testclient import TestClient
           import api.main as main
+          import api.atlas_core as atlas_core
+          import api.market as market
+          from api.app import app
 
-          client = TestClient(main.app)
+          client = TestClient(app)
 
+          # Deployment entrypoint must expose the real mobile routers.
+          universe = client.get('/v1/atlas/universe')
+          assert universe.status_code == 200, universe.text
+          u = universe.json()
+          assert u['snapshotId'], u
+          assert u['counts']['portfolio'] > 0, u
+          assert u['counts']['watchlist'] > 0, u
+          assert u['status'] in {'AWAITING_USER_CONFIRMATION', 'CONFIRMED'}, u
+
+          engines = client.get('/v1/atlas/engines')
+          assert engines.status_code == 200, engines.text
+          names = {item['name'] for item in engines.json()['items']}
+          for required in ['Business Quality Ω', 'Growth Ω', 'CAPEX Productivity Ω', 'Valuation Ω', 'Risk Ω', 'Money Rotation Ω', 'Historical Dislocation Ω', 'Agentic Security Discovery Ω', 'Evidence Ingestion Ω']:
+              assert required in names, (required, names)
+
+          assert market._rotation_phase(-2.0, -10.0) == 'R3_BASE'
+          assert market._rotation_phase(5.0, -4.0) == 'R4_EARLY_INFLOW'
+          assert market._rotation_phase(5.0, 8.0) == 'R5_TREND'
+
+          async def fake_market_quote(symbol: str):
+              return {
+                  'symbol': symbol,
+                  'name': symbol,
+                  'sector': 'TEST',
+                  'price': 100.0,
+                  'change': 1.0,
+                  'changePct': 1.0,
+                  'open': 99.0,
+                  'high': 101.0,
+                  'low': 98.0,
+                  'previousClose': 99.0,
+                  'volume': 1_000_000.0,
+                  'asOfDate': '2026-08-07',
+                  'asOfTime': '22:00:00',
+                  'source': 'CI_FIXTURE',
+                  'delayed': True,
+              }
+
+          fixture_metrics = {
+              'roiTTM': 25.0,
+              'roeTTM': 30.0,
+              'roaTTM': 15.0,
+              'grossMarginTTM': 60.0,
+              'netProfitMarginTTM': 25.0,
+              'operatingMarginTTM': 25.0,
+              'assetTurnoverTTM': 1.5,
+              'revenueGrowthTTMYoy': 20.0,
+              'epsGrowthTTMYoy': 20.0,
+              'freeCashFlowGrowth5Y': 20.0,
+              'peTTM': 20.0,
+              'forwardPE': 20.0,
+              'pbAnnual': 4.0,
+              'psTTM': 4.0,
+              'dividendYieldIndicatedAnnual': 1.0,
+              'beta': 1.0,
+              'totalDebtToTotalEquityQuarterly': 20.0,
+              'currentRatioQuarterly': 2.0,
+              'quickRatioQuarterly': 1.5,
+              'interestCoverageTTM': 12.0,
+              'freeCashFlowPerShareTTM': 8.0,
+              'capitalSpendingPerShareTTM': 2.0,
+          }
+
+          async def fake_fundamental(symbol: str):
+              return {
+                  'metrics': fixture_metrics,
+                  'profile': {'name': f'{symbol} Fixture', 'finnhubIndustry': 'Technology'},
+                  'recommendations': [],
+                  'sourceStatus': {'metrics': 'CI_FIXTURE', 'profile': 'CI_FIXTURE', 'recommendations': 'CI_FIXTURE'},
+              }
+
+          atlas_core.get_market_quote = fake_market_quote
+          atlas_core._fundamental_bundle = fake_fundamental
+
+          candidate = client.get('/v1/atlas/analyze/TEST?context=candidate')
+          assert candidate.status_code == 200, candidate.text
+          ca = candidate.json()['analysis']
+          assert ca['action'] == 'BUY', ca
+          assert ca['actionLabel'] == 'COMPRAR', ca
+          assert ca['scores']['businessQuality'] is not None, ca
+          assert ca['scores']['capexProductivity'] is not None, ca
+
+          portfolio = client.get('/v1/atlas/analyze/TEST?context=portfolio')
+          assert portfolio.status_code == 200, portfolio.text
+          pa = portfolio.json()['analysis']
+          assert pa['action'] in {'ADD', 'HOLD', 'WAIT', 'REVIEW'}, pa
+          assert pa['action'] not in {'BUY', 'NO_BUY', 'SELL', 'EXIT'}, pa
+          assert 'EXIT' in pa['guardrail'], pa
+
+          # Broker remains fail-closed and PAPER by default.
           status = client.get('/v1/broker/status')
           assert status.status_code == 200, status.text
           payload = status.json()
@@ -97,7 +190,7 @@ jobs:
 
           unauthorized = client.get('/v1/broker/positions', headers={'X-Atlas-Broker-Token': 'wrong'})
           assert unauthorized.status_code == 401, unauthorized.text
-          print('Broker Ω guardrails: PASS')
+          print('ATLAS Ω API + engines + Broker guardrails: PASS')
           PY
 
   typecheck-and-schema:
