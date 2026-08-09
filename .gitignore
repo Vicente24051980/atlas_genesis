@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.atlas-build/
+
+mobile/.expo/
+mobile/android/
+mobile/dist/
+mobile/node_modules/
+
+*.apk
+*.aab
+
+runtime/core00/CORE00_STATUS.md

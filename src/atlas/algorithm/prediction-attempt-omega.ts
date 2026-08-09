@@ -11,6 +11,7 @@ export type PredictionAttemptRecord = {
   createdAt: string;
   horizonStart: string;
   horizonEnd: string;
+  nextReviewAt: string;
   baseRate: string;
   scenarios: readonly PredictionScenario[];
   confidence: 'low' | 'medium' | 'high';
@@ -43,6 +44,7 @@ export const PREDICTION_ATTEMPT_OMEGA = {
     'createdAt',
     'horizonStart',
     'horizonEnd',
+    'nextReviewAt',
     'baseRate',
     'scenarios',
     'confidence',
@@ -72,18 +74,51 @@ export function scenarioProbabilitySum(record: PredictionAttemptRecord): number 
   return record.scenarios.reduce((sum, scenario) => sum + scenario.probability, 0);
 }
 
+function parseIsoDate(value: string): number {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return Number.NaN;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (!Number.isFinite(parsed.getTime())) return Number.NaN;
+  return parsed.toISOString().slice(0, 10) === value ? parsed.getTime() : Number.NaN;
+}
+
 export function validatePredictionAttempt(record: PredictionAttemptRecord): readonly string[] {
   const violations: string[] = [];
   const probabilitySum = scenarioProbabilitySum(record);
+  const createdAt = parseIsoDate(record.createdAt);
+  const horizonStart = parseIsoDate(record.horizonStart);
+  const horizonEnd = parseIsoDate(record.horizonEnd);
+  const nextReviewAt = parseIsoDate(record.nextReviewAt);
 
   if (!record.question.trim()) violations.push('missing_question');
   if (!record.baseRate.trim()) violations.push('missing_base_rate');
   if (record.scenarios.length < 2) violations.push('requires_at_least_two_scenarios');
-  if (probabilitySum !== 100) violations.push(`probability_sum_must_equal_100:${probabilitySum}`);
+  if (Math.abs(probabilitySum - 100) > 1e-6) {
+    violations.push(`probability_sum_must_equal_100:${Number(probabilitySum.toFixed(6))}`);
+  }
+  if (record.scenarios.some((scenario) => !scenario.id.trim())) violations.push('scenario_id_required');
+  if (new Set(record.scenarios.map((scenario) => scenario.id)).size !== record.scenarios.length) {
+    violations.push('scenario_ids_must_be_unique');
+  }
+  if (record.scenarios.some((scenario) => !scenario.label.trim())) violations.push('scenario_label_required');
+  if (record.scenarios.some((scenario) => !Number.isFinite(scenario.probability) || scenario.probability < 0 || scenario.probability > 100)) {
+    violations.push('scenario_probability_out_of_range');
+  }
+  if (record.scenarios.some((scenario) => scenario.expectedSignals.length === 0)) {
+    violations.push('scenario_expected_signals_required');
+  }
   if (record.evidenceIds.length === 0) violations.push('requires_traceable_evidence');
   if (record.confirmers.length === 0) violations.push('requires_confirmers');
   if (record.falsifiers.length === 0) violations.push('requires_falsifiers');
-  if (record.horizonEnd <= record.horizonStart) violations.push('invalid_horizon');
+  if (!Number.isFinite(createdAt)) violations.push('invalid_created_at');
+  if (!Number.isFinite(horizonStart) || !Number.isFinite(horizonEnd) || horizonEnd <= horizonStart) {
+    violations.push('invalid_horizon');
+  }
+  if (Number.isFinite(createdAt) && Number.isFinite(horizonStart) && createdAt > horizonStart) {
+    violations.push('forecast_created_after_horizon_start');
+  }
+  if (!Number.isFinite(nextReviewAt) || nextReviewAt < createdAt || nextReviewAt > horizonEnd) {
+    violations.push('invalid_next_review_at');
+  }
   if (record.forbiddenInterpretations.length === 0) violations.push('requires_forbidden_interpretations');
 
   return violations;
@@ -96,6 +131,7 @@ export const PHOENIX_2026_MONETARY_REGIME_PREDICTION: PredictionAttemptRecord = 
   createdAt: '2026-08-09',
   horizonStart: '2026-08-09',
   horizonEnd: '2026-12-31',
+  nextReviewAt: '2026-08-16',
   baseRate:
     'Major monetary-regime changes are rare; narrative covers more often mark visibility or stress than exact future events.',
   confidence: 'low',

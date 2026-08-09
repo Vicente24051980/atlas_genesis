@@ -6,6 +6,7 @@ import { desc, eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { radar } from '../db/schema';
 import { AuditLogRepository } from '../db/repositories/AuditLogRepository';
+import { createEventId } from '../core/createEventId';
 
 type RadarItem = typeof radar.$inferSelect;
 
@@ -36,7 +37,7 @@ export default function RadarScreen() {
       setMessage('Wave Score debe estar entre 0 y 100.');
       return;
     }
-    const id = `RAD-${Date.now()}`;
+    const id = createEventId('RAD');
     await db.insert(radar).values({
       id,
       subjectId: subject,
@@ -47,7 +48,7 @@ export default function RadarScreen() {
       createdAt: new Date(),
     });
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'RADAR_ADD',
       actor: 'USER',
       target: subject,
@@ -64,7 +65,7 @@ export default function RadarScreen() {
   const remove = async (item: RadarItem) => {
     await db.delete(radar).where(eq(radar.id, item.id));
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'RADAR_DELETE',
       actor: 'USER',
       target: item.subjectId,

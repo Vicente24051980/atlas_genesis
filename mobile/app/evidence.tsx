@@ -5,6 +5,7 @@ import { useFocusEffect } from 'expo-router';
 import { EvidenceRepository } from '../db/repositories/EvidenceRepository';
 import type { EvidenceRecord } from '../db/repositories/EvidenceRepository';
 import { AuditLogRepository } from '../db/repositories/AuditLogRepository';
+import { createEventId } from '../core/createEventId';
 
 export default function EvidenceScreen() {
   const [items, setItems] = useState<EvidenceRecord[]>([]);
@@ -28,7 +29,7 @@ export default function EvidenceScreen() {
       setMessage('Sujeto, resumen y referencia de fuente son obligatorios.');
       return;
     }
-    const id = `EVD-${Date.now()}`;
+    const id = createEventId('EVD');
     await EvidenceRepository.insert({
       id,
       subjectId: subject,
@@ -41,7 +42,7 @@ export default function EvidenceScreen() {
       createdAt: new Date(),
     });
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'EVIDENCE_ADD',
       actor: 'USER',
       target: subject,
@@ -58,7 +59,7 @@ export default function EvidenceScreen() {
   const markVerified = async (item: EvidenceRecord) => {
     await EvidenceRepository.updateValidationState(item.id, 'VERIFIED_FACT');
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'EVIDENCE_VERIFY',
       actor: 'USER',
       target: item.subjectId,
@@ -72,7 +73,7 @@ export default function EvidenceScreen() {
   const remove = async (item: EvidenceRecord) => {
     await EvidenceRepository.delete(item.id);
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'EVIDENCE_DELETE',
       actor: 'USER',
       target: item.subjectId,

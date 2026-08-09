@@ -10,6 +10,21 @@ const PRIMARY_SOURCE_TYPES = new Set([
 ]);
 const SECONDARY_SOURCE_TYPES = new Set(['macro_source', 'news', 'web_page', 'uploaded_document']);
 const RADAR_SOURCE_TYPES = new Set(['mobile_capture', 'social_post']);
+const NARRATIVE_SATURATION_TERMS = [
+  'the economist',
+  'phoenix',
+  'big mac',
+  'sdr',
+  'brics',
+  'currency beef',
+  'world currency',
+  'reserve currency',
+] as const;
+
+function containsTerm(text: string, term: string): boolean {
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:$|[^a-z0-9])`, 'i').test(text);
+}
 
 export const EVIDENCE_INGESTION_ENGINE_ID = 'EVIDENCE_INGESTION_OMEGA_V1' as const;
 export const EVIDENCE_INGESTION_POSITION = [
@@ -48,16 +63,12 @@ export function canModifyCanonicalAtlasState(record: EvidenceRecord): boolean {
 
 export function routeEvidenceToEngines(record: EvidenceRecord): AtlasEngineId[] {
   const engines = new Set<AtlasEngineId>(record.relatedEngines);
-  const text = `${record.title ?? ''} ${record.summary} ${record.keyClaims.join(' ')}`.toLowerCase();
+  const text = `${record.publisher ?? ''} ${record.title ?? ''} ${record.summary} ${record.keyClaims.join(' ')}`.toLowerCase();
   if (text.includes('capex') || text.includes('free cash flow') || text.includes('fcf') || text.includes('roic')) engines.add('CAPEX_PRODUCTIVITY_OMEGA');
   if (text.includes('gold') || text.includes('oil') || text.includes('rates') || text.includes('dollar') || text.includes('flows')) {
     engines.add('MONEY_ROTATION_OMEGA'); engines.add('HISTORICAL_DISLOCATION_OMEGA');
   }
-  if (
-    text.includes('the economist') || text.includes('phoenix') || text.includes('big mac') ||
-    text.includes('sdr') || text.includes('brics') || text.includes('currency beef') ||
-    text.includes('world currency') || text.includes('reserve currency')
-  ) {
+  if (NARRATIVE_SATURATION_TERMS.some((term) => containsTerm(text, term))) {
     engines.add('CONSPIRACIONES_ATLAS');
     engines.add('MONEY_ROTATION_OMEGA');
     engines.add('HISTORICAL_DISLOCATION_OMEGA');

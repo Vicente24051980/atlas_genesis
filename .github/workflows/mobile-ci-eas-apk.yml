@@ -7,6 +7,10 @@ on:
     paths:
       - 'mobile/**'
       - 'api/**'
+      - 'src/atlas/**'
+      - 'CURRENT_CANON/**'
+      - 'docs/canon/**'
+      - 'tsconfig.atlas.json'
       - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
   pull_request:
@@ -20,6 +24,10 @@ on:
     paths:
       - 'mobile/**'
       - 'api/**'
+      - 'src/atlas/**'
+      - 'CURRENT_CANON/**'
+      - 'docs/canon/**'
+      - 'tsconfig.atlas.json'
       - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
   workflow_dispatch:
@@ -119,10 +127,19 @@ jobs:
           node-version: '22.13.0'
 
       - name: Install mobile dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Compile and test ATLAS TypeScript engine
+        working-directory: .
+        run: |
+          mobile/node_modules/.bin/tsc --project tsconfig.atlas.json
+          node --test .atlas-build/evidence-ingestion/integrity.test.js
 
   build-candidate-apk:
     name: Build Android Candidate APK
@@ -152,10 +169,12 @@ jobs:
           java-version: '17'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Generate Android native project
-        run: npx expo prebuild --platform android --non-interactive --clean
+        env:
+          CI: '1'
+        run: npx expo prebuild --platform android --clean
 
       - name: Build release APK with Gradle
         shell: bash
@@ -254,7 +273,7 @@ jobs:
 
       - name: Install dependencies for EAS
         if: steps.expo_token.outputs.available == 'true'
-        run: npm install
+        run: npm ci
 
       - name: Build Android APK with EAS
         if: steps.expo_token.outputs.available == 'true'

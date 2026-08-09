@@ -6,6 +6,7 @@ import { desc, eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { watchlist } from '../db/schema';
 import { AuditLogRepository } from '../db/repositories/AuditLogRepository';
+import { createEventId } from '../core/createEventId';
 
 type WatchItem = typeof watchlist.$inferSelect;
 
@@ -31,14 +32,14 @@ export default function WatchlistScreen() {
     }
     try {
       await db.insert(watchlist).values({
-        id: `WL-${Date.now()}`,
+        id: createEventId('WL'),
         canonicalTicker: normalizedTicker,
         companyName: normalizedName,
         state: 'ACTIVE',
         addedAt: new Date(),
       });
       await AuditLogRepository.insert({
-        id: `AUD-${Date.now()}`,
+        id: createEventId('AUD'),
         action: 'WATCHLIST_ADD',
         actor: 'USER',
         target: normalizedTicker,
@@ -57,7 +58,7 @@ export default function WatchlistScreen() {
   const remove = async (item: WatchItem) => {
     await db.delete(watchlist).where(eq(watchlist.id, item.id));
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'WATCHLIST_DELETE',
       actor: 'USER',
       target: item.canonicalTicker,

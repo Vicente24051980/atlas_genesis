@@ -4,6 +4,7 @@ import { useFocusEffect } from 'expo-router';
 
 import { PortfolioPosition, PortfolioRepository } from '../db/repositories/PortfolioRepository';
 import { AuditLogRepository } from '../db/repositories/AuditLogRepository';
+import { createEventId } from '../core/createEventId';
 
 const MAIN_PORTFOLIO_ID = 'PORTFOLIO-MAIN';
 
@@ -50,7 +51,7 @@ export default function PortfolioScreen() {
     }
 
     const existing = await PortfolioRepository.getByTicker(normalizedTicker);
-    const id = existing?.id ?? `POS-${normalizedTicker}-${Date.now()}`;
+    const id = existing?.id ?? createEventId(`POS-${normalizedTicker}`);
 
     await PortfolioRepository.upsert({
       id,
@@ -63,7 +64,7 @@ export default function PortfolioScreen() {
       updatedAt: new Date(),
     });
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: existing ? 'PORTFOLIO_UPDATE' : 'PORTFOLIO_ADD',
       actor: 'USER',
       target: normalizedTicker,
@@ -82,7 +83,7 @@ export default function PortfolioScreen() {
   const removePosition = async (item: PortfolioPosition) => {
     await PortfolioRepository.delete(item.id);
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'PORTFOLIO_DELETE',
       actor: 'USER',
       target: item.canonicalTicker,

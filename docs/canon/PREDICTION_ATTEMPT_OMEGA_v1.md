@@ -48,9 +48,10 @@ Every Prediction Attempt Ω record must include:
 - `createdAt`
 - `horizonStart`
 - `horizonEnd`
+- `nextReviewAt`
 - `baseRate`
 - `scenarios`
-- `probabilitySum`
+- `probabilitySum` (derived from scenarios)
 - `confidence`
 - `evidenceIds`
 - `confirmers`

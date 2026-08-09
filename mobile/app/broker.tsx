@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { useRouter } from 'expo-router';
 
 import { AtlasOnlineApi, BrokerStatus } from '../core/api/atlasOnlineApi';
+import { createEventId } from '../core/createEventId';
 import { db } from '../db/client';
 import { auditLog, decisionLog } from '../db/schema';
 
@@ -14,13 +15,9 @@ function pretty(value: unknown): string {
   }
 }
 
-function eventId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`.toUpperCase();
-}
-
 async function writeDecision(subjectId: string, decisionType: string, rationale: unknown): Promise<void> {
   await db.insert(decisionLog).values({
-    id: eventId('BRK-DEC'),
+    id: createEventId('BRK-DEC'),
     subjectId,
     decisionType,
     rationale: pretty(rationale),
@@ -31,7 +28,7 @@ async function writeDecision(subjectId: string, decisionType: string, rationale:
 
 async function writeAudit(action: string, target: string): Promise<void> {
   await db.insert(auditLog).values({
-    id: eventId('BRK-AUD'),
+    id: createEventId('BRK-AUD'),
     action,
     actor: 'ATLAS_MOBILE_USER',
     target,
@@ -56,7 +53,7 @@ export default function BrokerScreen() {
   const [positions, setPositions] = useState<unknown>(null);
   const [orders, setOrders] = useState<unknown>(null);
   const [query, setQuery] = useState('AAPL');
-  const [instruments, setInstruments] = useState<Array<Record<string, unknown>>>([]);
+  const [instruments, setInstruments] = useState<Record<string, unknown>[]>([]);
   const [ticker, setTicker] = useState('');
   const [quantity, setQuantity] = useState('0.01');
   const [busy, setBusy] = useState(false);

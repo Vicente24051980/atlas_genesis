@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { decisionLog, evidence, radar, settings } from '../db/schema';
 import { AuditLogRepository } from '../db/repositories/AuditLogRepository';
+import { createEventId } from '../core/createEventId';
 
 const TWIN_KEY = 'digital_twin_profile';
 
@@ -56,7 +57,7 @@ export default function DigitalTwinScreen() {
       set: { valueJson: JSON.stringify(profile), updatedAt: now },
     });
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'DIGITAL_TWIN_UPDATE',
       actor: 'USER',
       target: TWIN_KEY,

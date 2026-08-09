@@ -6,6 +6,7 @@ import { desc, eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { decisionLog } from '../db/schema';
 import { AuditLogRepository } from '../db/repositories/AuditLogRepository';
+import { createEventId } from '../core/createEventId';
 
 type Decision = typeof decisionLog.$inferSelect;
 
@@ -30,7 +31,7 @@ export default function DailyIntelligenceScreen() {
       return;
     }
     await db.insert(decisionLog).values({
-      id: `DEC-${Date.now()}`,
+      id: createEventId('DEC'),
       subjectId: subject || null,
       decisionType: type,
       rationale: reason,
@@ -38,7 +39,7 @@ export default function DailyIntelligenceScreen() {
       createdAt: new Date(),
     });
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'DECISION_ADD',
       actor: 'USER',
       target: subject || type,
@@ -54,7 +55,7 @@ export default function DailyIntelligenceScreen() {
   const remove = async (item: Decision) => {
     await db.delete(decisionLog).where(eq(decisionLog.id, item.id));
     await AuditLogRepository.insert({
-      id: `AUD-${Date.now()}`,
+      id: createEventId('AUD'),
       action: 'DECISION_DELETE',
       actor: 'USER',
       target: item.subjectId ?? item.decisionType,
