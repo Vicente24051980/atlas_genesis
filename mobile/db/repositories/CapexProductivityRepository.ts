@@ -1,13 +1,18 @@
 import { desc, eq } from 'drizzle-orm';
 
 import { CapexProductivityInput, CapexProductivityState, evaluateCapexProductivity } from '../../domain/capexProductivity';
-import { deriveCapexProductivityFromPrimaryStatements, MetricProvenance, PrimaryStatementBundle } from '../../domain/capexFinancialDerivation';
+import { deriveCapexProductivityFromPrimaryStatements, MetricProvenance, PrimaryStatementBundle, RoicVariants } from '../../domain/capexFinancialDerivation';
 import { db } from '../client';
 import { capexProductivityAssessment } from '../schema';
 import { AuditLogRepository } from './AuditLogRepository';
 
 export const CapexProductivityRepository = {
-  async evaluateAndInsert(input: CapexProductivityInput, evidenceRefs: string[] = [], metricProvenance: Record<string, MetricProvenance> = {}) {
+  async evaluateAndInsert(
+    input: CapexProductivityInput,
+    evidenceRefs: string[] = [],
+    metricProvenance: Record<string, MetricProvenance> = {},
+    roicVariants?: RoicVariants,
+  ) {
     const result = evaluateCapexProductivity(input);
     const now = new Date();
     const normalizedTicker = input.ticker.trim().toUpperCase();
@@ -32,7 +37,7 @@ export const CapexProductivityRepository = {
       persistedState = 'CAPEX_RED_ALERT';
     }
 
-    const persistedResult = { ...result, state: persistedState, metricProvenance };
+    const persistedResult = { ...result, state: persistedState, metricProvenance, roicVariants: roicVariants ?? null };
 
     await db.insert(capexProductivityAssessment).values({
       id,
@@ -62,7 +67,7 @@ export const CapexProductivityRepository = {
 
   async evaluatePrimaryStatements(bundle: PrimaryStatementBundle, evidenceRefs: string[] = []) {
     const derived = deriveCapexProductivityFromPrimaryStatements(bundle);
-    return this.evaluateAndInsert(derived.input, evidenceRefs, derived.provenance);
+    return this.evaluateAndInsert(derived.input, evidenceRefs, derived.provenance, derived.roicVariants);
   },
 
   async listLatest(limit = 100) {
