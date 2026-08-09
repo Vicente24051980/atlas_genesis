@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: mobile } }
     env:
-      EXPO_PUBLIC_ATLAS_API_BASE_URL: http://10.0.2.2:8787
+      EXPO_PUBLIC_ATLAS_API_BASE_URL: http://127.0.0.1:8787
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}" }
@@ -81,7 +81,7 @@ jobs:
               text = text.replace('<application', '<application android:usesCleartextTraffic="true"', 1)
           path.write_text(text)
           assert 'android:usesCleartextTraffic="true"' in text
-          print('E2E-only cleartext enabled for 10.0.2.2 fixture build')
+          print('E2E-only cleartext enabled for localhost fixture build')
           PY
       - name: Build release APK with Gradle
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
