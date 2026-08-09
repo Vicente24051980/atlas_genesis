@@ -2,7 +2,8 @@ export type ApiHealth = {
   ok: boolean;
   service: string;
   version: string;
-  providers: { finnhub: 'CONFIGURED' | 'UNCONFIGURED'; secEdgar: 'CONFIGURED' | 'UNCONFIGURED' };
+  providers: { finnhub: string; secEdgar: string; trading212?: string };
+  engines?: { market: string; fundamental: string };
   invariants: Record<string, boolean>;
   time: string;
 };
@@ -21,98 +22,73 @@ export type SecurityProfile = {
 };
 
 export type Quote = {
-  ticker: string;
-  provider: string;
-  price: number | null;
-  change: number | null;
-  changePct: number | null;
-  open: number | null;
-  high: number | null;
-  low: number | null;
-  previousClose: number | null;
-  timestamp: string;
-  session: string;
+  ticker: string; provider: string; price: number | null; change: number | null; changePct: number | null;
+  open: number | null; high: number | null; low: number | null; previousClose: number | null; timestamp: string; session: string;
 };
-
 export type HistoryPoint = { t: string; o: number; h: number; l: number; c: number; v: number };
 
 export type MarketSignals = {
-  status: string;
-  algorithmVersion?: string;
-  momentumScore: number | null;
-  waveScore: number | null;
-  downsideScore: number | null;
-  downsideSeverity?: 'NORMAL' | 'WATCH' | 'ELEVATED' | 'CRITICAL';
+  status: string; algorithmVersion?: string; momentumScore: number | null; waveScore: number | null; downsideScore: number | null;
+  downsideSeverity?: 'NORMAL' | 'WATCH' | 'ELEVATED' | 'CRITICAL' | 'UNKNOWN';
   streak: { direction: 'UP' | 'DOWN' | 'FLAT'; length: number; upDays20: number; downDays20: number };
-  metrics?: {
-    ret5?: number | null;
-    ret20?: number | null;
-    ret60?: number | null;
-    ret252?: number | null;
-    ma20?: number | null;
-    ma50?: number | null;
-    vol20?: number | null;
-    volumeRatio?: number | null;
-  };
-  reasons: string[];
-  guardrail?: string;
+  metrics?: { ret5?: number | null; ret20?: number | null; ret60?: number | null; ret252?: number | null; ma20?: number | null; ma50?: number | null; vol20?: number | null; volumeRatio?: number | null };
+  reasons: string[]; guardrail?: string;
 };
 
 export type EdgarFiling = {
-  form: string;
-  filingDate: string | null;
-  reportDate: string | null;
-  accessionNumber: string | null;
-  primaryDocument: string | null;
-  items: string[];
-  eventClass: string;
-  materialityScore: number;
-  validationState: 'PENDING_PRIMARY_VALIDATION' | 'VERIFIED_FACT' | 'DISCARDED';
-  requiresHumanReview: boolean;
+  form: string; filingDate: string | null; reportDate: string | null; accessionNumber: string | null; primaryDocument: string | null;
+  items: string[]; eventClass: string; materialityScore: number; validationState: 'PENDING_PRIMARY_VALIDATION' | 'VERIFIED_FACT' | 'DISCARDED'; requiresHumanReview: boolean;
+};
+
+export type AuditComponent = {
+  name: string; weight: number; score: number | null; state: string; inputs: Record<string, unknown>; explanation: string;
+};
+export type CanonicalAudit = {
+  status: 'AUDITABLE' | 'PRELIMINARY' | 'HARD_FAIL' | 'INSUFFICIENT_DATA' | string;
+  algorithmVersion: string;
+  epistemicState: string;
+  hardRequirements: Record<string, { state: 'PASS' | 'FAIL' | 'PENDING'; value: unknown }>;
+  businessQuality: { score: number | null; observedWeight: number; maxWeight: number; components: AuditComponent[]; note: string };
+  growth: { score: number | null; inputs: Record<string, unknown> };
+  valuation: { score: number | null; inputs: Record<string, unknown> };
+  risk: { score: number | null; fundamentalRisk: number | null; marketDownside: number | null };
+  capitalAllocation: { score: number | null; inputs: Record<string, unknown> };
+  opportunity: { score: number | null; state: string };
+  conviction: { score: number | null; state: string };
+  marketLayer: { momentumScore: number | null; waveScore: number | null; downsideScore: number | null };
+  completeness: { observedComponents: number; totalComponents: number; evidenceItems: number; evidenceCoverage: number };
+  guardrails: string[];
 };
 
 export type TerminalBundle = {
-  security: SecurityProfile | null;
-  quote: Quote;
-  history: HistoryPoint[];
-  marketSignals: MarketSignals;
+  security: SecurityProfile | null; quote: Quote; history: HistoryPoint[]; marketSignals: MarketSignals;
   fundamentals: { provider: string; ticker: string; metric: Record<string, number | string | null> } | null;
   news: Array<{ id: string | number; headline: string; summary: string; source: string; url: string; datetime: string | null }>;
   edgar: { ticker: string; cik?: string | null; status: string; filings: EdgarFiling[] };
-  canonicalAudit: { status: string; message: string };
+  canonicalAudit: CanonicalAudit;
   generatedAt: string;
 };
 
 export type DiscoveryItem = {
-  ticker: string;
-  price: number | null;
-  dayPct: number | null;
-  discoveryScore: number;
-  momentumScore: number | null;
-  waveScore: number | null;
-  downsideScore: number | null;
-  downsideSeverity?: string;
-  streak: MarketSignals['streak'];
-  metrics?: MarketSignals['metrics'];
+  ticker: string; price: number | null; dayPct: number | null; discoveryScore: number; momentumScore: number | null; waveScore: number | null;
+  downsideScore: number | null; downsideSeverity?: string; streak: MarketSignals['streak']; metrics?: MarketSignals['metrics'];
 };
 
-const configuredBase = process.env.EXPO_PUBLIC_ATLAS_API_BASE_URL?.replace(/\/$/, '');
+export type BrokerPosition = {
+  brokerTicker: string | null; ticker: string; name: string | null; isin: string | null; currency: string | null;
+  quantity: number | null; averagePrice: number | null; currentPrice: number | null; walletImpact: Record<string, unknown> | null; createdAt: string | null;
+};
+export type BrokerPortfolio = { provider: string; environment: string; readOnlyGuard: boolean; account: unknown; positions: BrokerPosition[]; observedAt: string };
 
-export function apiBaseUrl(): string {
-  if (configuredBase) return configuredBase;
-  if (__DEV__) return 'http://10.0.2.2:8787';
-  return '';
-}
+const configuredBase = process.env.EXPO_PUBLIC_ATLAS_API_BASE_URL?.replace(/\/$/, '');
+export function apiBaseUrl(): string { if (configuredBase) return configuredBase; if (__DEV__) return 'http://10.0.2.2:8787'; return ''; }
 
 async function request<T>(path: string): Promise<T> {
   const base = apiBaseUrl();
   if (!base) throw new Error('ATLAS API no configurada. Define EXPO_PUBLIC_ATLAS_API_BASE_URL en el build.');
   const response = await fetch(`${base}${path}`, { headers: { accept: 'application/json' } });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    const message = typeof payload?.message === 'string' ? payload.message : `ATLAS API ${response.status}`;
-    throw new Error(message);
-  }
+  if (!response.ok) throw new Error(typeof payload?.message === 'string' ? payload.message : `ATLAS API ${response.status}`);
   return payload as T;
 }
 
@@ -120,8 +96,10 @@ export const AtlasApi = {
   health: () => request<ApiHealth>('/health'),
   search: (query: string) => request<SecurityProfile | null>(`/v1/search?q=${encodeURIComponent(query.trim())}`),
   terminal: (ticker: string) => request<TerminalBundle>(`/v1/terminal/${encodeURIComponent(ticker.trim().toUpperCase())}`),
+  audit: (ticker: string) => request<TerminalBundle>(`/v1/audit/${encodeURIComponent(ticker.trim().toUpperCase())}`),
   quote: (ticker: string) => request<Quote>(`/v1/quote/${encodeURIComponent(ticker.trim().toUpperCase())}`),
   history: (ticker: string, range = '1Y') => request<{ ticker: string; range: string; rows: HistoryPoint[] }>(`/v1/history/${encodeURIComponent(ticker.trim().toUpperCase())}?range=${encodeURIComponent(range)}`),
   signals: (ticker: string) => request<MarketSignals & { ticker: string }>(`/v1/signals/${encodeURIComponent(ticker.trim().toUpperCase())}`),
   discovery: (limit = 25) => request<{ generatedAt: string; methodology: string; items: DiscoveryItem[] }>(`/v1/discovery?limit=${limit}`),
+  portfolio: () => request<BrokerPortfolio>('/v1/portfolio'),
 };
