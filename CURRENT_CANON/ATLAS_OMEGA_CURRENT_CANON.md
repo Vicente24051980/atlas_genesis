@@ -82,6 +82,20 @@ The 2026-08-08 Economist Big Mac / "The Global Currency Beef" cover is frozen as
 
 Document: `docs/canon/NARRATIVE_SATURATION_OMEGA_v1.md`.
 
+## PREDICTION ATTEMPT Ω v1.0 — higher-layer forecasting discipline
+
+PREDICTION ATTEMPT Ω is canonical for prospective scenario work across Conspiraciones Atlas Ω, MONEY ROTATION Ω, HISTORICAL DISLOCATION Ω, RISK Ω and CATALYSTS Ω.
+
+It allows ATLAS to try to forecast only as an auditable probability exercise:
+
+`SIGNAL -> HYPOTHESIS -> SCENARIOS -> PROBABILITIES -> WATCH WINDOW -> CONFIRMERS/FALSIFIERS -> SCORECARD`
+
+Every prediction attempt must be frozen before the outcome, include mutually exclusive scenarios whose probabilities sum to 100%, cite evidence, define confirmers/falsifiers, and receive a post-mortem after the horizon closes.
+
+It must never produce BUY, SELL, REDUCE, certainty language, hidden failed forecasts, or retrospective probability edits.
+
+Document: `docs/canon/PREDICTION_ATTEMPT_OMEGA_v1.md`.
+
 Anti-intention rule:
 
 `Observed conduct -> incentive structure -> motivation hypothesis -> additional evidence required`.
