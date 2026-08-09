@@ -81,7 +81,6 @@ jobs:
               text = text.replace('<application', '<application android:usesCleartextTraffic="true"', 1)
           path.write_text(text)
           assert 'android:usesCleartextTraffic="true"' in text
-          print('CI-only cleartext enabled for adb-reversed localhost fixture')
           PY
       - name: Build CI fixture APK with Gradle
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
@@ -135,12 +134,12 @@ jobs:
           if-no-files-found: error
 
   production-apk-after-certification:
-    name: Installable Phone APK (HTTPS backend required)
+    name: Installable Phone APK — Render Live
     needs: functional-emulator-smoke
     runs-on: ubuntu-latest
     defaults: { run: { working-directory: mobile } }
     env:
-      EXPO_PUBLIC_ATLAS_API_BASE_URL: ${{ secrets.ATLAS_API_BASE_URL }}
+      EXPO_PUBLIC_ATLAS_API_BASE_URL: https://atlas-genesis.onrender.com
     steps:
       - uses: actions/checkout@v4
         with: { ref: "${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}" }
@@ -148,47 +147,31 @@ jobs:
         with: { node-version: '22.13.0' }
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: '17' }
-      - name: Check phone-build backend prerequisite
-        id: prereq
+      - name: Verify live deployed backend
         shell: bash
         run: |
-          if [ -z "$EXPO_PUBLIC_ATLAS_API_BASE_URL" ]; then
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "Phone APK skipped: ATLAS_API_BASE_URL GitHub secret is not configured."
-            exit 0
-          fi
-          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in
-            https://*) ;;
-            *) echo "::error::ATLAS_API_BASE_URL must be HTTPS for a phone build"; exit 1;;
-          esac
-          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in
-            *127.0.0.1*|*localhost*|*10.0.2.2*) echo "::error::Loopback/emulator backend URL is forbidden in a phone APK"; exit 1;;
-          esac
-          echo "ready=true" >> "$GITHUB_OUTPUT"
-      - name: Verify deployed backend before phone build
-        if: steps.prereq.outputs.ready == 'true'
-        run: curl -fsS "$EXPO_PUBLIC_ATLAS_API_BASE_URL/health" | grep -q 'ATLAS Ω Backend'
-      - if: steps.prereq.outputs.ready == 'true'
-        run: npm install
+          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in https://*) ;; *) exit 1;; esac
+          curl --retry 5 --retry-delay 5 --max-time 90 -fsS "$EXPO_PUBLIC_ATLAS_API_BASE_URL/health" | tee /tmp/atlas-health.json
+          grep -q '"ok":true' /tmp/atlas-health.json
+          grep -q 'ATLAS Ω Backend' /tmp/atlas-health.json
+          grep -q '"finnhub":"CONFIGURED"' /tmp/atlas-health.json
+      - run: npm install
+      - name: Final TypeScript gate
+        run: npm run typecheck
       - name: Generate production Android native project
-        if: steps.prereq.outputs.ready == 'true'
         run: npx expo prebuild --platform android --non-interactive --clean
       - name: Enforce production network policy
-        if: steps.prereq.outputs.ready == 'true'
         shell: bash
         run: |
-          if grep -q 'android:usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml; then
-            echo "::error::Phone APK unexpectedly allows cleartext traffic"
-            exit 1
-          fi
-          echo "Production network policy: HTTPS only"
+          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in *127.0.0.1*|*localhost*|*10.0.2.2*) exit 1;; esac
+          if grep -q 'android:usesCleartextTraffic="true"' android/app/src/main/AndroidManifest.xml; then exit 1; fi
+          echo 'Production policy PASS: HTTPS backend, no loopback, no cleartext.'
       - name: Build installable phone APK with Gradle
-        if: steps.prereq.outputs.ready == 'true'
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
       - name: Upload installable phone APK
-        if: steps.prereq.outputs.ready == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-PHONE-APK
+          name: atlas-omega-PHONE-APK-Render-Live
           path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+          retention-days: 14
