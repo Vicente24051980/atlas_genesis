@@ -3,12 +3,48 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { useRouter } from 'expo-router';
 
 import { AtlasOnlineApi, BrokerStatus } from '../core/api/atlasOnlineApi';
+import { db } from '../db/client';
+import { auditLog, decisionLog } from '../db/schema';
 
 function pretty(value: unknown): string {
   try {
     return JSON.stringify(value, null, 2);
   } catch {
     return String(value);
+  }
+}
+
+function eventId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`.toUpperCase();
+}
+
+async function writeDecision(subjectId: string, decisionType: string, rationale: unknown): Promise<void> {
+  await db.insert(decisionLog).values({
+    id: eventId('BRK-DEC'),
+    subjectId,
+    decisionType,
+    rationale: pretty(rationale),
+    evidenceRefsJson: '[]',
+    createdAt: new Date(),
+  });
+}
+
+async function writeAudit(action: string, target: string): Promise<void> {
+  await db.insert(auditLog).values({
+    id: eventId('BRK-AUD'),
+    action,
+    actor: 'ATLAS_MOBILE_USER',
+    target,
+    payloadHash: null,
+    createdAt: new Date(),
+  });
+}
+
+async function safeLog(operation: () => Promise<void>): Promise<void> {
+  try {
+    await operation();
+  } catch {
+    // Broker execution must not be retried merely because local audit persistence failed.
   }
 }
 
@@ -73,19 +109,38 @@ export default function BrokerScreen() {
 
   async function placeOrder() {
     if (!canUsePrivate || !ticker.trim() || !Number.isFinite(parsedQuantity) || parsedQuantity === 0 || !status) return;
+    const normalizedTicker = ticker.trim();
+    const intent = {
+      provider: 'Trading212',
+      environment: status.environment,
+      mode: status.mode,
+      ticker: normalizedTicker,
+      quantity: parsedQuantity,
+      extendedHours: false,
+      confirmation,
+    };
+
     setBusy(true);
     setMessage('');
+    await safeLog(() => writeDecision(normalizedTicker, 'BROKER_ORDER_INTENT', intent));
+    await safeLog(() => writeAudit('BROKER_ORDER_INTENT', `${status.mode}:${normalizedTicker}`));
+
     try {
       const result = await AtlasOnlineApi.brokerMarketOrder({
-        ticker: ticker.trim(),
+        ticker: normalizedTicker,
         quantity: parsedQuantity,
         extended_hours: false,
         confirmation,
       }, controlToken);
+      await safeLog(() => writeDecision(normalizedTicker, 'BROKER_ORDER_ACCEPTED', { intent, result }));
+      await safeLog(() => writeAudit('BROKER_ORDER_ACCEPTED', `${status.mode}:${normalizedTicker}`));
       setMessage(`${status.mode} order accepted: ${pretty(result)}`);
       await refreshPrivate();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
+      const detail = error instanceof Error ? error.message : String(error);
+      await safeLog(() => writeDecision(normalizedTicker, 'BROKER_ORDER_FAILED', { intent, error: detail }));
+      await safeLog(() => writeAudit('BROKER_ORDER_FAILED', `${status.mode}:${normalizedTicker}`));
+      setMessage(detail);
     } finally {
       setBusy(false);
     }
@@ -158,7 +213,7 @@ export default function BrokerScreen() {
 
       <View style={styles.guardrail}>
         <Text style={styles.guardrailTitle}>GUARDRAIL Ω</Text>
-        <Text style={styles.guardrailText}>La app no contiene las claves de Trading 212. Las credenciales viven en el backend. LIVE requiere una activación explícita del servidor y una confirmación específica en cada orden.</Text>
+        <Text style={styles.guardrailText}>La app no contiene las claves de Trading 212. Las credenciales viven en el backend. LIVE requiere una activación explícita del servidor y una confirmación específica en cada orden. Cada intento de orden queda registrado localmente en Decision Log Ω y Audit Log Ω sin guardar el control token.</Text>
       </View>
     </ScrollView>
   );
