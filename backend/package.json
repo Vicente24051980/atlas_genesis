@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "start": "node server-v3.mjs",
-    "check": "node --check server-v3.mjs && node --check market-engine.mjs && node --check fundamental-engine.mjs && node --check market-engine.test.mjs && node --check fundamental-tests.mjs",
+    "fixture": "node fixture-server.mjs",
+    "check": "node --check server-v3.mjs && node --check fixture-server.mjs && node --check market-engine.mjs && node --check fundamental-engine.mjs && node --check market-engine.test.mjs && node --check fundamental-tests.mjs",
     "test": "node market-engine.test.mjs && node fundamental-tests.mjs"
   },
   "engines": {
