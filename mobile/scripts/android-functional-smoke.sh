@@ -86,10 +86,10 @@ return_home() {
   adb shell input keyevent 4
   sleep 1
   for _ in $(seq 1 10); do adb shell input swipe 540 650 540 1850 180 || true; done
-  wait_for_text "Elige pantalla. Pon ticker. Recibe datos."
+  wait_for_text "ATLAS Ω MOBILE"
 }
 
-wait_for_text "Elige pantalla. Pon ticker. Recibe datos."
+wait_for_text "ATLAS Ω MOBILE"
 wait_for_text "MENÚ"
 wait_for_text "CAPEX Productivity Ω"
 
