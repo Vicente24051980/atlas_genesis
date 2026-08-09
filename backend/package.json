@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node server-v3.mjs",
     "fixture": "node fixture-server.mjs",
-    "check": "node --check server-v3.mjs && node --check fixture-server.mjs && node --check market-engine.mjs && node --check fundamental-engine.mjs && node --check market-engine.test.mjs && node --check fundamental-tests.mjs",
-    "test": "node market-engine.test.mjs && node fundamental-tests.mjs"
+    "check": "node --check server-v3.mjs && node --check fixture-server.mjs && node --check market-engine.mjs && node --check fundamental-engine.mjs && node --check news-impact-engine.mjs && node --check market-engine.test.mjs && node --check fundamental-tests.mjs && node --check news-impact-engine.test.mjs",
+    "test": "node market-engine.test.mjs && node fundamental-tests.mjs && node news-impact-engine.test.mjs"
   },
   "engines": {
     "node": ">=22"
