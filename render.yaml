@@ -16,6 +16,12 @@ services:
       - key: TRADING212_API_SECRET
         sync: false
       - key: TRADING212_ENV
-        value: live
+        value: demo
+      - key: ATLAS_BROKER_CONTROL_TOKEN
+        sync: false
+      - key: ATLAS_PORTFOLIO_READ_TOKEN
+        sync: false
+      - key: TRADING212_LIVE_TRADING_ENABLED
+        value: "false"
       - key: CACHE_TTL_MS
         value: "15000"
