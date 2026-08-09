@@ -1,114 +1,22 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-
 import { AtlasApi, type DiscoveryItem } from '../core/api/atlasApi';
 
-export default function DiscoveryScreen() {
-  const router = useRouter();
-  const [items, setItems] = useState<DiscoveryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState('');
-  const [generatedAt, setGeneratedAt] = useState('');
-
-  const load = async () => {
-    try {
-      setError('');
-      const result = await AtlasApi.discovery(30);
-      setItems(result.items);
-      setGeneratedAt(result.generatedAt);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useEffect(() => { void load(); }, []);
-
-  return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(); }} tintColor="#64d8ff" />}
-    >
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.eyebrow}>ATLAS Ω · DISCOVERY RADAR</Text>
-          <Text style={styles.title}>Detectar fuerza antes de auditar calidad</Text>
-        </View>
-        <View style={styles.badge}><Text style={styles.badgeText}>TICKER-FIRST</Text></View>
-      </View>
-      <Text style={styles.subtitle}>Ranking observacional por momentum, Wave Ω de mercado y riesgo de deterioro. Discovery no equivale a Watchlist ni a recomendación de compra.</Text>
-
-      <View style={styles.methodCard}>
-        <Text style={styles.methodTitle}>COVERAGE</Text>
-        <Text style={styles.methodText}>La API actual usa un universo inicial explícito mientras se conecta un proveedor de screener global. ATLAS no lo etiqueta como “global” hasta que esa cobertura exista de verdad.</Text>
-        {generatedAt ? <Text style={styles.timestamp}>Último cálculo: {new Date(generatedAt).toLocaleString('es-ES')}</Text> : null}
-      </View>
-
-      {error ? <View style={styles.error}><Text style={styles.errorText}>{error}</Text></View> : null}
-      {loading ? <ActivityIndicator color="#64d8ff" size="large" style={{ marginTop: 28 }} /> : null}
-
-      <View style={styles.tableHeader}>
-        <Text style={[styles.th, styles.rank]}>#</Text><Text style={[styles.th, styles.symbol]}>TICKER</Text><Text style={styles.th}>DISC</Text><Text style={styles.th}>MOM</Text><Text style={styles.th}>WAVE</Text><Text style={styles.th}>RISK</Text>
-      </View>
-      {items.map((item, index) => (
-        <Pressable key={item.ticker} onPress={() => router.push({ pathname: '/terminal', params: { ticker: item.ticker } })} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
-          <Text style={[styles.rankText, styles.rank]}>{index + 1}</Text>
-          <View style={styles.symbol}>
-            <Text style={styles.ticker}>{item.ticker}</Text>
-            <Text style={styles.streak}>{item.streak.direction} {item.streak.length} · 60D {fmtPct(item.metrics?.ret60)}</Text>
-          </View>
-          <Score value={item.discoveryScore} />
-          <Score value={item.momentumScore} />
-          <Score value={item.waveScore} />
-          <Risk value={item.downsideScore} />
-        </Pressable>
-      ))}
-      {!loading && !items.length ? <Text style={styles.empty}>No hay candidatos disponibles con los filtros actuales.</Text> : null}
-    </ScrollView>
-  );
+type Candidate=DiscoveryItem&{qualityScore?:number|null;growthScore?:number|null;opportunityScore?:number|null;auditStatus?:string};
+export default function DiscoveryScreen(){
+ const router=useRouter();const[items,setItems]=useState<Candidate[]>([]);const[loading,setLoading]=useState(true);const[refreshing,setRefreshing]=useState(false);const[enriching,setEnriching]=useState(false);const[error,setError]=useState('');const[generatedAt,setGeneratedAt]=useState('');
+ const enrich=async(base:Candidate[])=>{setEnriching(true);const next=[...base];const max=Math.min(8,next.length);for(let i=0;i<max;i+=2){const group=await Promise.all(next.slice(i,i+2).map(async item=>{try{const b=await AtlasApi.audit(item.ticker);return {...item,qualityScore:b.canonicalAudit.businessQuality.score,growthScore:b.canonicalAudit.growth.score,opportunityScore:b.canonicalAudit.opportunity.score,auditStatus:b.canonicalAudit.status}}catch{return item}}));for(let j=0;j<group.length;j++)next[i+j]=group[j];setItems([...next])}setEnriching(false)};
+ const load=async()=>{try{setError('');const result=await AtlasApi.discovery(30);const base=result.items as Candidate[];setItems(base);setGeneratedAt(result.generatedAt);void enrich(base)}catch(cause){setError(cause instanceof Error?cause.message:String(cause))}finally{setLoading(false);setRefreshing(false)}};
+ useEffect(()=>{void load()},[]);
+ return <ScrollView style={styles.screen} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);void load()}} tintColor="#64d8ff"/>}><View style={styles.header}><View><Text style={styles.eyebrow}>ATLAS Ω · DISCOVERY RADAR</Text><Text style={styles.title}>Descubrir primero. Auditar después.</Text></View><View style={styles.badge}><Text style={styles.badgeText}>TICKER-FIRST</Text></View></View><Text style={styles.subtitle}>Fase 1 descubre fuerza de mercado sin Quality ni narrativa. Fase 2 audita solo los supervivientes para distinguir momentum de un buen negocio. Discovery no equivale a compra ni a Watchlist.</Text>
+ <View style={styles.methodCard}><Text style={styles.methodTitle}>SEQUENCING GUARANTEE</Text><Text style={styles.methodText}>Global/universe discovery → filtros mercado → ranking observacional → auditoría fundamental de los mejores candidatos. Quality nunca decide qué ticker se descubre inicialmente.</Text>{generatedAt?<Text style={styles.timestamp}>Último cálculo: {new Date(generatedAt).toLocaleString('es-ES')} {enriching?'· AUDITING TOP 8':''}</Text>:null}</View>
+ {error?<View style={styles.error}><Text style={styles.errorText}>{error}</Text></View>:null}{loading?<ActivityIndicator color="#64d8ff" size="large" style={{marginTop:28}}/>:null}
+ <View style={styles.tableHeader}><Text style={[styles.th,styles.rank]}>#</Text><Text style={[styles.th,styles.symbol]}>TICKER</Text><Text style={styles.th}>DISC</Text><Text style={styles.th}>QLT</Text><Text style={styles.th}>FLOW</Text><Text style={styles.th}>RISK</Text></View>
+ {items.map((item,index)=><Pressable key={item.ticker} onPress={()=>router.push({pathname:'/terminal',params:{ticker:item.ticker}})} style={({pressed})=>[styles.row,pressed&&styles.pressed]}><Text style={[styles.rankText,styles.rank]}>{index+1}</Text><View style={styles.symbol}><Text style={styles.ticker}>{item.ticker}</Text><Text style={styles.streak}>{item.streak.direction} {item.streak.length} · 60D {fmtPct(item.metrics?.ret60)} · MOM {fmt(item.momentumScore)} · WAVE {fmt(item.waveScore)}</Text><Text style={styles.auditState}>{item.auditStatus||'MARKET DISCOVERY'}</Text></View><Score value={item.discoveryScore}/><Score value={item.qualityScore??null}/><Score value={item.flowScore??null}/><Risk value={item.downsideScore}/></Pressable>)}
+ {!loading&&!items.length?<Text style={styles.empty}>No hay candidatos disponibles con los filtros actuales.</Text>:null}</ScrollView>;
 }
-
-function Score({ value }: { value: number | null }) {
-  return <Text style={[styles.value, value != null && value >= 70 ? styles.good : value != null && value < 40 ? styles.muted : undefined]}>{value == null ? '—' : value.toFixed(0)}</Text>;
-}
-function Risk({ value }: { value: number | null }) {
-  return <Text style={[styles.value, value != null && value >= 50 ? styles.bad : value != null && value >= 25 ? styles.warn : styles.good]}>{value == null ? '—' : value.toFixed(0)}</Text>;
-}
-const fmtPct = (value?: number | null) => value == null ? '—' : `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#05080c' },
-  content: { padding: 14, paddingBottom: 40 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 },
-  eyebrow: { color: '#617589', fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
-  title: { color: '#eff4f8', fontSize: 23, fontWeight: '900', marginTop: 5, maxWidth: 310 },
-  badge: { borderWidth: 1, borderColor: '#235041', backgroundColor: '#0a1915', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5 },
-  badgeText: { color: '#64d9a9', fontSize: 8, fontWeight: '900' },
-  subtitle: { color: '#728497', fontSize: 11, lineHeight: 17, marginTop: 8 },
-  methodCard: { marginTop: 12, padding: 11, borderRadius: 8, borderWidth: 1, borderColor: '#26351e', backgroundColor: '#0d130c' },
-  methodTitle: { color: '#a9c078', fontSize: 9, fontWeight: '900' },
-  methodText: { color: '#7f9075', fontSize: 10, lineHeight: 15, marginTop: 4 },
-  timestamp: { color: '#53634e', fontSize: 8, marginTop: 5 },
-  error: { marginTop: 10, padding: 10, borderRadius: 7, backgroundColor: '#1b0c10', borderWidth: 1, borderColor: '#5c202b' },
-  errorText: { color: '#ff8794', fontSize: 10 },
-  tableHeader: { flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingVertical: 7, borderBottomWidth: 1, borderColor: '#1a2632' },
-  th: { flex: 1, color: '#506274', fontSize: 8, fontWeight: '900', textAlign: 'right' },
-  rank: { width: 24, flex: 0, textAlign: 'left' },
-  symbol: { flex: 1.8, textAlign: 'left' },
-  row: { flexDirection: 'row', alignItems: 'center', minHeight: 55, borderBottomWidth: 1, borderBottomColor: '#101923' },
-  pressed: { opacity: 0.6 },
-  rankText: { color: '#4d6072', fontSize: 9, fontWeight: '800' },
-  ticker: { color: '#dfe8f0', fontWeight: '900', fontSize: 13 },
-  streak: { color: '#526476', fontSize: 8, marginTop: 3 },
-  value: { flex: 1, color: '#aebdca', fontWeight: '900', fontSize: 11, textAlign: 'right', fontVariant: ['tabular-nums'] },
-  good: { color: '#55dca4' },
-  warn: { color: '#e7c15c' },
-  bad: { color: '#ff697c' },
-  muted: { color: '#748596' },
-  empty: { color: '#617386', textAlign: 'center', marginTop: 30 },
-});
+function Score({value}:{value:number|null}){return <Text style={[styles.value,value!=null&&value>=70?styles.good:value!=null&&value<40?styles.muted:undefined]}>{value==null?'—':value.toFixed(0)}</Text>}
+function Risk({value}:{value:number|null}){return <Text style={[styles.value,value!=null&&value>=50?styles.bad:value!=null&&value>=25?styles.warn:styles.good]}>{value==null?'—':value.toFixed(0)}</Text>}
+const fmtPct=(v?:number|null)=>v==null?'—':`${v>=0?'+':''}${v.toFixed(1)}%`;const fmt=(v?:number|null)=>v==null?'—':v.toFixed(0);
+const styles=StyleSheet.create({screen:{flex:1,backgroundColor:'#05080c'},content:{padding:14,paddingBottom:40},header:{flexDirection:'row',justifyContent:'space-between',alignItems:'flex-start',gap:10},eyebrow:{color:'#617589',fontSize:9,fontWeight:'900',letterSpacing:1.4},title:{color:'#eff4f8',fontSize:23,fontWeight:'900',marginTop:5,maxWidth:310},badge:{borderWidth:1,borderColor:'#235041',backgroundColor:'#0a1915',borderRadius:999,paddingHorizontal:8,paddingVertical:5},badgeText:{color:'#64d9a9',fontSize:8,fontWeight:'900'},subtitle:{color:'#728497',fontSize:11,lineHeight:17,marginTop:8},methodCard:{marginTop:12,padding:11,borderRadius:8,borderWidth:1,borderColor:'#26351e',backgroundColor:'#0d130c'},methodTitle:{color:'#a9c078',fontSize:9,fontWeight:'900'},methodText:{color:'#7f9075',fontSize:10,lineHeight:15,marginTop:4},timestamp:{color:'#53634e',fontSize:8,marginTop:5},error:{marginTop:10,padding:10,borderRadius:7,backgroundColor:'#1b0c10',borderWidth:1,borderColor:'#5c202b'},errorText:{color:'#ff8794',fontSize:10},tableHeader:{flexDirection:'row',alignItems:'center',marginTop:16,paddingVertical:7,borderBottomWidth:1,borderColor:'#1a2632'},th:{flex:1,color:'#506274',fontSize:8,fontWeight:'900',textAlign:'right'},rank:{width:24,flex:0,textAlign:'left'},symbol:{flex:2.2,textAlign:'left'},row:{flexDirection:'row',alignItems:'center',minHeight:64,borderBottomWidth:1,borderBottomColor:'#101923'},pressed:{opacity:.6},rankText:{color:'#4d6072',fontSize:9,fontWeight:'800'},ticker:{color:'#dfe8f0',fontWeight:'900',fontSize:13},streak:{color:'#526476',fontSize:7,marginTop:3},auditState:{color:'#657d8f',fontSize:6,fontWeight:'900',marginTop:3},value:{flex:1,color:'#aebdca',fontWeight:'900',fontSize:11,textAlign:'right',fontVariant:['tabular-nums']},good:{color:'#55dca4'},warn:{color:'#e7c15c'},bad:{color:'#ff697c'},muted:{color:'#748596'},empty:{color:'#617386',textAlign:'center',marginTop:30}});
