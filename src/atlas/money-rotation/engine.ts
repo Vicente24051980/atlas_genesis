@@ -36,6 +36,14 @@ export type NonAdditiveContextMetric =
 
 export type RotationMagnitudeKind = QuantMetricType | NonAdditiveContextMetric;
 
+const ADDITIVE_FLOW_METRICS = new Set<RotationMagnitudeKind>([
+  'ETF_NET_FLOW',
+  'MUTUAL_FUND_NET_FLOW',
+  'ETF_CREATION_REDEMPTION',
+  'INSTITUTIONAL_POSITION_CHANGE',
+  'FUND_ALLOCATION',
+]);
+
 export type RotationCoreSignal =
   | 'OUTFLOW_STOPPED'
   | 'RELATIVE_STRENGTH_IMPROVING'
@@ -87,6 +95,7 @@ export function assertTraceableFlowObservation(observation: RotationFlowObservat
   if (!observation.provider.trim()) throw new Error('money_rotation_missing_provider');
   if (!observation.dataset.trim()) throw new Error('money_rotation_missing_dataset');
   if (!observation.asset.trim()) throw new Error('money_rotation_missing_asset');
+  if (!Number.isFinite(observation.value)) throw new Error('money_rotation_invalid_value');
   if (!observation.unit.trim()) throw new Error('money_rotation_missing_unit');
   if (!observation.currency) throw new Error('money_rotation_missing_currency');
   if (!observation.universe) throw new Error('money_rotation_missing_universe');
@@ -138,15 +147,7 @@ export function sumNonOverlappingFlows(observations: RotationFlowObservation[]):
 
 export function assertFlowTotalUsesOnlyAdditiveMetrics(metrics: readonly RotationMagnitudeKind[]): void {
   for (const metric of metrics) {
-    if (
-      metric === 'MARKET_CAP_CHANGE' ||
-      metric === 'PRICE_RETURN' ||
-      metric === 'AUM_CHANGE' ||
-      metric === 'GOVERNMENT_BUDGET' ||
-      metric === 'PRIVATE_COMPANY_VALUATION' ||
-      metric === 'COMMODITY_PHYSICAL_DEMAND' ||
-      metric === 'PRODUCTION_GROWTH'
-    ) {
+    if (!ADDITIVE_FLOW_METRICS.has(metric)) {
       throw new Error(`money_rotation_non_additive_total:${metric}`);
     }
   }
