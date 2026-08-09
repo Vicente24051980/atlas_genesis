@@ -1,4 +1,7 @@
 import {
+  routeEvidenceToEngines,
+} from './engine';
+import {
   assertMoneyRotationSemantics,
   decisionSafetyGate,
   independentSignalCount,
@@ -39,5 +42,32 @@ describe('Evidence Integrity Omega v1.1', () => {
     const a = { metric: 'ETF_NET_FLOW' as const, value: 10, unit: 'USD', currency: 'USD', asOf: '2026-08-09', universe: 'XLV', sourceEvidenceId: 'e1' };
     const b = { ...a, value: 20, sourceEvidenceId: 'e2' };
     expect(requiresReconciliation(a, b)).toBe(true);
+  });
+
+  it('routes Phoenix 2026 / Big Mac monetary cover evidence into the right ATLAS engines', () => {
+    const routed = routeEvidenceToEngines({
+      id: 'e-phoenix-2026',
+      sourceType: 'news',
+      capturedAt: '2026-08-09T00:00:00Z',
+      publisher: 'The Economist',
+      title: 'The Global Currency Beef',
+      rawHash: 'raw',
+      extractedTextHash: 'text',
+      extractionAdapter: 'manual',
+      evidenceLevel: 3,
+      epistemicClass: 'interpretation',
+      relatedTickers: [],
+      relatedEngines: [],
+      summary: 'Big Mac Index 40 years, SDR, BRICS, dollar reserve currency, gold and oil regime stress.',
+      keyClaims: [],
+      limitations: [],
+      mobile: { inputKind: 'manual_note', offlineReady: true, syncStatus: 'pending_sync' },
+    });
+
+    expect(routed).toEqual(expect.arrayContaining([
+      'CONSPIRACIONES_ATLAS',
+      'MONEY_ROTATION_OMEGA',
+      'HISTORICAL_DISLOCATION_OMEGA',
+    ]));
   });
 });
