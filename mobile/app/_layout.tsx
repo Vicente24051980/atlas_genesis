@@ -92,6 +92,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" options={{ title: 'ATLAS Ω' }} />
         <Stack.Screen name="portfolio" options={{ title: 'Portfolio' }} />
         <Stack.Screen name="watchlist" options={{ title: 'Watchlist Ω' }} />
+        <Stack.Screen name="capex-productivity" options={{ title: 'CAPEX Productivity Ω' }} />
         <Stack.Screen name="radar" options={{ title: 'Radar Ω' }} />
         <Stack.Screen name="evidence" options={{ title: 'Evidence Ω' }} />
         <Stack.Screen name="daily-intelligence" options={{ title: 'Daily Intelligence' }} />
