@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: atlas-omega-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: FINNHUB_TOKEN
+        sync: false
+      - key: SEC_USER_AGENT
+        sync: false
+      - key: TRADING212_API_KEY
+        sync: false
+      - key: TRADING212_API_SECRET
+        sync: false
+      - key: TRADING212_ENV
+        value: live
+      - key: CACHE_TTL_MS
+        value: "15000"
