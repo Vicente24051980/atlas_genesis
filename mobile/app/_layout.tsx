@@ -54,8 +54,13 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#050708' } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#050708' }, animation: 'fade_from_bottom' }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="portfolio" />
+        <Stack.Screen name="watchlist" />
+        <Stack.Screen name="radar" />
+        <Stack.Screen name="more" />
+        <Stack.Screen name="engines" />
         <Stack.Screen name="ticker" />
         <Stack.Screen name="overview" />
         <Stack.Screen name="market" />
