@@ -1,5 +1,9 @@
 import { ATLAS_CANONICAL_PIPELINE_V1_1 } from './evidence-integrity-omega';
 import {
+  AI_INFRASTRUCTURE_ROTATION_OMEGA_V1,
+  FUJIKURA_FURUKAWA_AI_OPTICS_CASES,
+} from './ai-infrastructure-rotation-omega';
+import {
   MARKET_REGIME_FAMILIES,
   R3_TO_R4_TRIGGER_OMEGA,
   ROTATION_SCORE_WEIGHTS,
@@ -30,6 +34,7 @@ export const MONEY_ROTATION_OMEGA_V1_3 = {
     'R4 requires persistent positive comparable flows plus a positive reaction to good news after destruction.',
     'R1 and R2 are research states only when the underlying business remains structurally intact.',
     'R5 is the handoff to the main ATLAS discovery/scoring stack; R6 represents consensus/crowding and must not be chased mechanically.',
+    'AI infrastructure beneficiaries must be ranked by quality, financial inflection, valuation asymmetry and crowding; a great R5 company is not automatically an early R3 opportunity.',
     'Gold is split into structural and tactical signals; one cannot substitute for the other.',
     'Oil forecasts remain conditional when primary supply-demand evidence or geopolitical transmission is unresolved.',
     'The gold/oil matrix selects what to investigate; it never emits a mechanical sector trade.',
@@ -46,6 +51,12 @@ export const MONEY_ROTATION_OMEGA_V1_3 = {
     gold: assessGoldRegime,
     oil: assessOilScenario,
     goldOilRegime: inferGoldOilRegime,
+  },
+  sectorEngines: {
+    aiInfrastructure: AI_INFRASTRUCTURE_ROTATION_OMEGA_V1,
+  },
+  canonicalCases: {
+    fujikuraFurukawaAiOptics: FUJIKURA_FURUKAWA_AI_OPTICS_CASES,
   },
   calculateScore: calculateRotationScore,
 } as const;
