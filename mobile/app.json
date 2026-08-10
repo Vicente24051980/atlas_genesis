@@ -10,7 +10,8 @@
     "platforms": ["android"],
     "android": {
       "package": "com.vicentebellver.atlasomega",
-      "versionCode": 5
+      "versionCode": 6,
+      "permissions": []
     },
     "plugins": ["expo-router", "expo-sqlite"],
     "experiments": {
