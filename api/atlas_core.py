@@ -10,6 +10,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query
 
 from api.market import get_market_quote
+from api.atlas_top80 import ATLAS_TOP_80
 from api.tracked_universe import PORTFOLIO, PORTFOLIO_PENDING, SNAPSHOT_ID, SNAPSHOT_STATUS, WATCHLIST
 
 router = APIRouter(prefix="/v1/atlas", tags=["atlas"])
@@ -427,10 +428,12 @@ async def universe() -> dict[str, Any]:
         "portfolio": PORTFOLIO,
         "portfolioPending": PORTFOLIO_PENDING,
         "watchlist": WATCHLIST,
+        "atlasTop80": ATLAS_TOP_80,
         "counts": {
             "portfolio": len(PORTFOLIO),
             "pending": len(PORTFOLIO_PENDING),
             "watchlist": len(WATCHLIST),
+            "atlasTop80": len(ATLAS_TOP_80),
         },
         "guardrail": "This is a remotely updateable bootstrap snapshot. Trading 212 is the source of truth for quantities/cost basis when connected.",
     }
@@ -439,6 +442,48 @@ async def universe() -> dict[str, Any]:
 @router.get("/analyze/{symbol}")
 async def analyze(symbol: str, context: Context = Query(default="candidate")) -> dict[str, Any]:
     return await analyze_symbol(symbol, context)
+
+
+def _top80_bucket(item: dict[str, str], result: dict[str, Any]) -> dict[str, str]:
+    analysis = result.get("analysis") if isinstance(result.get("analysis"), dict) else {}
+    scores = analysis.get("scores") if isinstance(analysis.get("scores"), dict) else {}
+    action = analysis.get("action")
+    atlas_score = _number(analysis.get("atlasScore"))
+    quality = _number(scores.get("businessQuality"))
+    growth = _number(scores.get("growth"))
+    valuation = _number(scores.get("valuation"))
+    risk = _number(scores.get("risk"))
+    role = item.get("atlasRole", "").lower()
+    valuation_gated = "valuation" in role or (valuation is not None and valuation < 35 and atlas_score is not None and atlas_score >= 62)
+
+    if action == "BUY":
+        if (
+            atlas_score is not None
+            and atlas_score >= 72
+            and quality is not None
+            and quality >= 75
+            and growth is not None
+            and growth >= 70
+            and valuation is not None
+            and valuation >= 45
+            and (risk is None or risk <= 45)
+        ):
+            return {"auditState": "BUY_NOW", "binaryDecision": "BUY", "auditReason": "Clean quality/growth/valuation/risk pass."}
+        return {"auditState": "BUY_CANDIDATE", "binaryDecision": "BUY", "auditReason": "ATLAS quantitative gate passed; primary tie-out still required."}
+
+    if atlas_score is None or quality is None or growth is None or valuation is None:
+        return {"auditState": "DATA_FAIL", "binaryDecision": "NO_BUY", "auditReason": "Insufficient provider data or unresolved ticker mapping."}
+
+    if quality >= 60 and growth >= 40 and atlas_score >= 62 and (risk is None or risk <= 70) and valuation_gated:
+        return {"auditState": "BUY_ON_PULLBACK", "binaryDecision": "BUY", "auditReason": "Quality/growth pass, but valuation is not attractive enough now."}
+
+    if quality >= 45 and growth >= 30 and atlas_score >= 58 and (risk is None or risk <= 75):
+        return {"auditState": "CANONICAL_AUDIT", "binaryDecision": "BUY", "auditReason": "Near-pass candidate; requires filings/IR and sector-normalized review."}
+
+    if atlas_score >= 50 and (quality >= 40 or growth >= 40) and (risk is None or risk <= 80):
+        return {"auditState": "DEPRIORITIZED_SENSOR", "binaryDecision": "NO_BUY", "auditReason": "Not rejected as a business, but deprioritized by current Finnhub sensor calibration."}
+
+    return {"auditState": "NO_BUY", "binaryDecision": "NO_BUY", "auditReason": "Fails the recalibrated quality/growth/risk floor."}
 
 
 @router.get("/monitor/{kind}")
@@ -471,6 +516,57 @@ async def monitor(
         "nextOffset": offset + len(page) if offset + len(page) < len(source) else None,
         "items": rows,
         "guardrail": "Batch monitor is paginated to protect provider limits. Missing ticker data does not fail the entire page.",
+    }
+
+
+@router.get("/top80")
+async def top80(
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=8, ge=1, le=12),
+) -> dict[str, Any]:
+    page = ATLAS_TOP_80[offset: offset + limit]
+
+    async def one(item: dict[str, str]) -> dict[str, Any]:
+        symbol = item.get("symbol") or item["ticker"]
+        try:
+            result = await analyze_symbol(symbol, "candidate")
+            bucket = _top80_bucket(item, result)
+            return {
+                "item": item,
+                "ok": True,
+                **bucket,
+                **result,
+            }
+        except HTTPException as exc:
+            return {
+                "item": item,
+                "ok": False,
+                "auditState": "DATA_FAIL",
+                "binaryDecision": "NO_BUY",
+                "auditReason": "Provider unavailable or ticker not resolved",
+                "error": str(exc.detail),
+                "statusCode": exc.status_code,
+            }
+        except Exception as exc:  # defensive boundary for one ticker; page still returns.
+            return {
+                "item": item,
+                "ok": False,
+                "auditState": "DATA_FAIL",
+                "binaryDecision": "NO_BUY",
+                "auditReason": "Unexpected analyzer boundary error",
+                "error": exc.__class__.__name__,
+            }
+
+    rows = await asyncio.gather(*(one(item) for item in page))
+    return {
+        "kind": "atlasTop80",
+        "snapshotId": "ATLAS-TOP-80-FINNHUB-2026-08-10-v1",
+        "offset": offset,
+        "limit": limit,
+        "total": len(ATLAS_TOP_80),
+        "nextOffset": offset + len(page) if offset + len(page) < len(ATLAS_TOP_80) else None,
+        "items": rows,
+        "guardrail": "Top 80 uses Finnhub-backed quantitative support. BUY_NOW and BUY_CANDIDATE pass current data; BUY_ON_PULLBACK and CANONICAL_AUDIT remain buy-eligible research states, not rejects. DEPRIORITIZED_SENSOR is not a business rejection. DATA_FAIL is never treated as business failure.",
     }
 
 

@@ -75,6 +75,7 @@ jobs:
           assert u['snapshotId'], u
           assert u['counts']['portfolio'] > 0, u
           assert u['counts']['watchlist'] > 0, u
+          assert u['counts']['atlasTop80'] == 80, u
           assert u['status'] in {'AWAITING_USER_CONFIRMATION', 'CONFIRMED'}, u
 
           engines = client.get('/v1/atlas/engines')
@@ -149,6 +150,13 @@ jobs:
           assert ca['actionLabel'] == 'COMPRAR', ca
           assert ca['scores']['businessQuality'] is not None, ca
           assert ca['scores']['capexProductivity'] is not None, ca
+
+          top80 = client.get('/v1/atlas/top80?offset=0&limit=3')
+          assert top80.status_code == 200, top80.text
+          t80 = top80.json()
+          assert t80['total'] == 80, t80
+          assert len(t80['items']) == 3, t80
+          assert {row['binaryDecision'] for row in t80['items']} == {'BUY'}, t80
 
           portfolio = client.get('/v1/atlas/analyze/TEST?context=portfolio')
           assert portfolio.status_code == 200, portfolio.text
