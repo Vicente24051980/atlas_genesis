@@ -1,12 +1,6 @@
-name: ATLAS Ω — EAS APK & GitHub Release
+name: ATLAS Ω — EAS APK & GitHub Release (Manual)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'mobile/**'
-      - '.github/workflows/atlas-eas-build-and-release.yml'
   workflow_dispatch:
     inputs:
       target_ref:
@@ -19,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: atlas-eas-release-${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.ref }}
+  group: atlas-eas-release-${{ inputs.target_ref }}
   cancel-in-progress: false
 
 env:
@@ -28,14 +22,14 @@ env:
 
 jobs:
   eas_apk_release:
-    name: Build signed APK on EAS and publish GitHub Release
+    name: Manual signed APK on EAS and GitHub Release
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
+          ref: ${{ inputs.target_ref }}
           fetch-depth: 0
 
       - name: Resolve build metadata
@@ -63,10 +57,9 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${EXPO_TOKEN:-}" ]; then
-            echo "::error::Missing required GitHub Actions secret EXPO_TOKEN. Add a valid Expo access token in Settings > Secrets and variables > Actions."
+            echo "::error::Missing required GitHub Actions secret EXPO_TOKEN."
             exit 1
           fi
-          echo "EXPO_TOKEN is configured."
 
       - name: Setup Expo and EAS CLI
         uses: expo/expo-github-action@v8
@@ -77,10 +70,7 @@ jobs:
 
       - name: Verify Expo authentication
         working-directory: ${{ env.APP_DIR }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          eas whoami
+        run: eas whoami
 
       - name: Install mobile dependencies
         working-directory: ${{ env.APP_DIR }}
@@ -91,28 +81,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           APP_PROJECT_ID="$(node -e "const c=require('./app.json'); process.stdout.write(c?.expo?.extra?.eas?.projectId || '')")"
-
-          if [ -n "$APP_PROJECT_ID" ]; then
-            echo "EAS projectId already present in mobile/app.json: $APP_PROJECT_ID"
-          else
-            echo "No EAS projectId found; linking/creating the Expo project non-interactively."
-            eas init --force --non-interactive
+          if [ -z "$APP_PROJECT_ID" ]; then
+            eas init --account vbf1980s-team --force --non-interactive
           fi
-
-          RESOLVED_PROJECT_ID="$(node -e "const c=require('./app.json'); process.stdout.write(c?.expo?.extra?.eas?.projectId || '')")"
-          if [ -z "$RESOLVED_PROJECT_ID" ]; then
-            echo "::error::EAS project initialization completed without writing expo.extra.eas.projectId."
-            exit 1
-          fi
-          echo "Resolved EAS projectId: $RESOLVED_PROJECT_ID"
-
-      - name: Verify EAS project
-        working-directory: ${{ env.APP_DIR }}
-        shell: bash
-        run: |
-          set -euo pipefail
           eas project:info --non-interactive
 
       - name: Build Android APK on EAS and wait for completion
@@ -121,34 +93,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          eas build \
-            --platform android \
-            --profile "$EAS_PROFILE" \
-            --non-interactive \
-            --wait \
-            --json > eas-build.json
-
+          eas build --platform android --profile "$EAS_PROFILE" --non-interactive --wait --json > eas-build.json
           node <<'NODE'
           const fs = require('fs');
           const data = JSON.parse(fs.readFileSync('eas-build.json', 'utf8'));
           const build = Array.isArray(data) ? data[0] : data;
           if (!build || !build.id) throw new Error('EAS did not return a build id');
-
           const status = String(build.status || '').toUpperCase();
-          if (status && status !== 'FINISHED') {
-            throw new Error(`EAS build finished with unexpected status: ${status}`);
-          }
-
-          const artifactUrl =
-            build.artifacts?.applicationArchiveUrl ||
-            build.artifacts?.buildUrl ||
-            build.artifactUrl ||
-            build.applicationArchiveUrl;
-
-          if (!artifactUrl) {
-            throw new Error('EAS build completed but no APK artifact URL was returned');
-          }
-
+          if (status && status !== 'FINISHED') throw new Error(`EAS status: ${status}`);
+          const artifactUrl = build.artifacts?.applicationArchiveUrl || build.artifacts?.buildUrl || build.artifactUrl || build.applicationArchiveUrl;
+          if (!artifactUrl) throw new Error('No APK artifact URL returned');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `build_id=${build.id}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `artifact_url=${artifactUrl}\n`);
           NODE
@@ -158,15 +112,10 @@ jobs:
         env:
           ARTIFACT_URL: ${{ steps.eas_build.outputs.artifact_url }}
           APK_NAME: ${{ steps.meta.outputs.apk }}
-        shell: bash
         run: |
-          set -euo pipefail
-          curl --fail --location --retry 3 --retry-delay 2 \
-            --output "$APK_NAME" \
-            "$ARTIFACT_URL"
+          curl --fail --location --retry 3 --retry-delay 2 --output "$APK_NAME" "$ARTIFACT_URL"
           test -s "$APK_NAME"
           unzip -t "$APK_NAME" >/dev/null
-          ls -lh "$APK_NAME"
 
       - name: Upload APK as workflow artifact
         uses: actions/upload-artifact@v4
@@ -185,17 +134,10 @@ jobs:
           BUILD_ID: ${{ steps.eas_build.outputs.build_id }}
         shell: bash
         run: |
-          set -euo pipefail
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release edit "$TAG" \
-              --target "$TARGET_SHA" \
-              --title "ATLAS Ω APK ${SHORT_SHA}" \
-              --notes "Automated EAS Android APK build for commit ${TARGET_SHA}. EAS build ID: ${BUILD_ID}."
+            gh release edit "$TAG" --target "$TARGET_SHA" --title "ATLAS Ω APK ${SHORT_SHA}" --notes "Manual EAS Android APK build. EAS build ID: ${BUILD_ID}."
           else
-            gh release create "$TAG" \
-              --target "$TARGET_SHA" \
-              --title "ATLAS Ω APK ${SHORT_SHA}" \
-              --notes "Automated EAS Android APK build for commit ${TARGET_SHA}. EAS build ID: ${BUILD_ID}."
+            gh release create "$TAG" --target "$TARGET_SHA" --title "ATLAS Ω APK ${SHORT_SHA}" --notes "Manual EAS Android APK build. EAS build ID: ${BUILD_ID}."
           fi
 
       - name: Upload APK to GitHub Release
@@ -204,7 +146,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.meta.outputs.tag }}
           APK_NAME: ${{ steps.meta.outputs.apk }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          gh release upload "$TAG" "$APK_NAME" --clobber
+        run: gh release upload "$TAG" "$APK_NAME" --clobber
