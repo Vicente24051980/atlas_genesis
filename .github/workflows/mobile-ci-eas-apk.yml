@@ -357,6 +357,18 @@ jobs:
         if: steps.expo_token.outputs.available == 'true'
         run: npm install
 
+      - name: Resolve EAS project linkage
+        if: steps.expo_token.outputs.available == 'true'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          eas init --account vbf1980s-team --force --non-interactive
+          eas project:info
+
       - name: Build Android APK with EAS
         if: steps.expo_token.outputs.available == 'true'
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: eas build --platform android --profile preview --non-interactive
