@@ -444,6 +444,48 @@ async def analyze(symbol: str, context: Context = Query(default="candidate")) ->
     return await analyze_symbol(symbol, context)
 
 
+def _top80_bucket(item: dict[str, str], result: dict[str, Any]) -> dict[str, str]:
+    analysis = result.get("analysis") if isinstance(result.get("analysis"), dict) else {}
+    scores = analysis.get("scores") if isinstance(analysis.get("scores"), dict) else {}
+    action = analysis.get("action")
+    atlas_score = _number(analysis.get("atlasScore"))
+    quality = _number(scores.get("businessQuality"))
+    growth = _number(scores.get("growth"))
+    valuation = _number(scores.get("valuation"))
+    risk = _number(scores.get("risk"))
+    role = item.get("atlasRole", "").lower()
+    valuation_gated = "valuation" in role or (valuation is not None and valuation < 35 and atlas_score is not None and atlas_score >= 62)
+
+    if action == "BUY":
+        if (
+            atlas_score is not None
+            and atlas_score >= 72
+            and quality is not None
+            and quality >= 75
+            and growth is not None
+            and growth >= 70
+            and valuation is not None
+            and valuation >= 45
+            and (risk is None or risk <= 45)
+        ):
+            return {"auditState": "BUY_NOW", "binaryDecision": "BUY", "auditReason": "Clean quality/growth/valuation/risk pass."}
+        return {"auditState": "BUY_CANDIDATE", "binaryDecision": "BUY", "auditReason": "ATLAS quantitative gate passed; primary tie-out still required."}
+
+    if atlas_score is None or quality is None or growth is None or valuation is None:
+        return {"auditState": "DATA_FAIL", "binaryDecision": "NO_BUY", "auditReason": "Insufficient provider data or unresolved ticker mapping."}
+
+    if quality >= 60 and growth >= 40 and atlas_score >= 62 and (risk is None or risk <= 70) and valuation_gated:
+        return {"auditState": "BUY_ON_PULLBACK", "binaryDecision": "BUY", "auditReason": "Quality/growth pass, but valuation is not attractive enough now."}
+
+    if quality >= 45 and growth >= 30 and atlas_score >= 58 and (risk is None or risk <= 75):
+        return {"auditState": "CANONICAL_AUDIT", "binaryDecision": "BUY", "auditReason": "Near-pass candidate; requires filings/IR and sector-normalized review."}
+
+    if atlas_score >= 50 and (quality >= 40 or growth >= 40) and (risk is None or risk <= 80):
+        return {"auditState": "DEPRIORITIZED_SENSOR", "binaryDecision": "NO_BUY", "auditReason": "Not rejected as a business, but deprioritized by current Finnhub sensor calibration."}
+
+    return {"auditState": "NO_BUY", "binaryDecision": "NO_BUY", "auditReason": "Fails the recalibrated quality/growth/risk floor."}
+
+
 @router.get("/monitor/{kind}")
 async def monitor(
     kind: Literal["portfolio", "watchlist"] = "portfolio",
@@ -488,20 +530,20 @@ async def top80(
         symbol = item.get("symbol") or item["ticker"]
         try:
             result = await analyze_symbol(symbol, "candidate")
-            action = result["analysis"]["action"]
+            bucket = _top80_bucket(item, result)
             return {
                 "item": item,
                 "ok": True,
-                "binaryDecision": "BUY" if action == "BUY" else "NO_BUY",
-                "binaryReason": "ATLAS quantitative gate passed" if action == "BUY" else "ATLAS quantitative gate not passed or insufficient coverage",
+                **bucket,
                 **result,
             }
         except HTTPException as exc:
             return {
                 "item": item,
                 "ok": False,
+                "auditState": "DATA_FAIL",
                 "binaryDecision": "NO_BUY",
-                "binaryReason": "Provider unavailable or ticker not resolved",
+                "auditReason": "Provider unavailable or ticker not resolved",
                 "error": str(exc.detail),
                 "statusCode": exc.status_code,
             }
@@ -509,8 +551,9 @@ async def top80(
             return {
                 "item": item,
                 "ok": False,
+                "auditState": "DATA_FAIL",
                 "binaryDecision": "NO_BUY",
-                "binaryReason": "Unexpected analyzer boundary error",
+                "auditReason": "Unexpected analyzer boundary error",
                 "error": exc.__class__.__name__,
             }
 
@@ -523,7 +566,7 @@ async def top80(
         "total": len(ATLAS_TOP_80),
         "nextOffset": offset + len(page) if offset + len(page) < len(ATLAS_TOP_80) else None,
         "items": rows,
-        "guardrail": "Top 80 uses Finnhub-backed quantitative support. BUY requires the ATLAS candidate gate; every WAIT, missing-provider case, or unresolved ticker is exposed as binary NO_BUY.",
+        "guardrail": "Top 80 uses Finnhub-backed quantitative support. BUY_NOW and BUY_CANDIDATE pass current data; BUY_ON_PULLBACK and CANONICAL_AUDIT remain buy-eligible research states, not rejects. DEPRIORITIZED_SENSOR is not a business rejection. DATA_FAIL is never treated as business failure.",
     }
 
 
