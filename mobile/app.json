@@ -2,6 +2,7 @@
   "expo": {
     "name": "ATLAS Ω",
     "slug": "atlas",
+    "owner": "vbf1980s-team",
     "version": "0.9.0",
     "orientation": "portrait",
     "scheme": "atlasomega",
