@@ -1,0 +1,54 @@
+import { GREEN_CONTINUITY_OMEGA } from './green-continuity-omega';
+
+export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
+  version: '2026-08-10',
+  primaryEngine: GREEN_CONTINUITY_OMEGA.id,
+  primaryRole: 'selection_and_portfolio_continuity',
+  refinementEngines: [
+    'BUSINESS_QUALITY_OMEGA',
+    'GROWTH_OMEGA',
+    'CAPEX_PRODUCTIVITY_OMEGA',
+    'VALUATION_OMEGA',
+    'RISK_OMEGA',
+    'MONEY_ROTATION_OMEGA',
+    'ENERGY_ROTATION_OMEGA',
+    'GOOD_COMPANIES_CHEAP_OMEGA',
+    'HISTORICAL_DISLOCATION_OMEGA',
+    'SPECIALIZED_ENGINES_OMEGA',
+  ] as const,
+  transversalGates: [
+    'EVIDENCE_INTEGRITY_OMEGA',
+    'DECISION_SAFETY_GATE_OMEGA',
+    'CONFIRMED_STRUCTURAL_FALSIFIERS',
+  ] as const,
+  rules: [
+    'GREEN CONTINUITY Ω is the principal selector and maintenance engine.',
+    'The primary hard entry pattern is 1W > 0, 1M > 0, 3M > 0, 1Y > 0 and TOTAL > 0 on one synchronized market cut.',
+    'Other ATLAS engines refine quality, conviction, ranking, valuation, risk, sizing, regime and thesis context.',
+    'A refinement engine cannot convert a 5/5 GREEN position into SELL merely because of overlap, diversification, sector count or portfolio-size targets.',
+    'A confirmed structural falsifier remains superior to price continuity and may block BUY or force SELL.',
+    'Contrarian engines remain logically independent: a security may fail GREEN CONTINUITY Ω while remaining valid inside Historical Dislocation or Good Companies Cheap.',
+  ] as const,
+} as const;
+
+export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
+  'MOBILE_INPUT',
+  'EVIDENCE_INGESTION_OMEGA',
+  'SOURCE_AUTHENTICITY_OMEGA',
+  'QUANTITATIVE_INTEGRITY_OMEGA',
+  'TEMPORAL_NORMALIZATION_OMEGA',
+  'GLOBAL_DISCOVERY_OMEGA',
+  'GREEN_CONTINUITY_OMEGA_V1',
+  'BUSINESS_QUALITY_OMEGA',
+  'GROWTH_OMEGA',
+  'CAPEX_PRODUCTIVITY_OMEGA',
+  'VALUATION_OMEGA',
+  'RISK_OMEGA',
+  'MONEY_ROTATION_OMEGA',
+  'ENERGY_ROTATION_OMEGA_WHEN_APPLICABLE',
+  'GOOD_COMPANIES_CHEAP_OMEGA_WHEN_APPLICABLE',
+  'HISTORICAL_DISLOCATION_OMEGA_WHEN_APPLICABLE',
+  'SPECIALIZED_ENGINES_OMEGA_WHEN_APPLICABLE',
+  'DECISION_SAFETY_GATE_OMEGA',
+  'DECISION_LOG_OMEGA',
+] as const;
