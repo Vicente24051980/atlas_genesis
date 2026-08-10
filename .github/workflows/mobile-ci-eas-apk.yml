@@ -1,4 +1,4 @@
-name: Mobile CI & EAS APK Build
+name: Mobile CI & ONLINE APK Build
 
 on:
   push:
@@ -34,7 +34,61 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.ref }}
   cancel-in-progress: true
 
+env:
+  PRODUCTION_API: https://atlas-genesis.onrender.com
+
 jobs:
+  production-api-contract:
+    name: LIVE Render API Contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Wait for deployed ATLAS Ω API and verify mobile contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="$PRODUCTION_API"
+          case "$BASE" in https://*) ;; *) echo "::error::Production API must use HTTPS"; exit 1;; esac
+          case "$BASE" in *localhost*|*127.0.0.1*|*10.0.2.2*|*atlas-genesis-api.onrender.com*) echo "::error::Invalid production API target: $BASE"; exit 1;; esac
+
+          ok=0
+          for attempt in $(seq 1 60); do
+            echo "Render LIVE contract attempt $attempt/60"
+            if curl -fsS --retry 2 --retry-delay 2 --max-time 30 "$BASE/health" -o /tmp/health.json \
+              && curl -fsS --retry 2 --retry-delay 2 --max-time 45 "$BASE/v1/atlas/universe" -o /tmp/universe.json \
+              && curl -fsS --retry 2 --retry-delay 2 --max-time 60 "$BASE/v1/market/snapshot" -o /tmp/snapshot.json; then
+              if python3 - <<'PY'
+          import json
+          h=json.load(open('/tmp/health.json'))
+          u=json.load(open('/tmp/universe.json'))
+          s=json.load(open('/tmp/snapshot.json'))
+          assert h.get('ok') is True, h
+          assert h.get('finnhub_configured') is True, h
+          counts=u.get('counts') or {}
+          assert counts.get('portfolio', 0) > 0, u
+          assert counts.get('watchlist', 0) > 0, u
+          items=s.get('items') or []
+          assert len(items) > 0, s
+          assert any(item.get('price') is not None for item in items), s
+          print('ATLAS Ω LIVE Render API contract: PASS')
+          PY
+              then
+                ok=1
+                break
+              fi
+            fi
+            sleep 10
+          done
+
+          if [ "$ok" != 1 ]; then
+            echo "::error::The deployed Render service never satisfied the mobile ONLINE contract. APK build blocked."
+            echo "health:"; cat /tmp/health.json 2>/dev/null || true
+            echo "universe:"; cat /tmp/universe.json 2>/dev/null || true
+            echo "snapshot:"; cat /tmp/snapshot.json 2>/dev/null || true
+            exit 1
+          fi
+
   api-certification:
     name: API + ATLAS Engine + Broker Guardrail Verification
     runs-on: ubuntu-latest
@@ -67,8 +121,6 @@ jobs:
           from api.app import app
 
           client = TestClient(app)
-
-          # Deployment entrypoint must expose the real mobile routers.
           universe = client.get('/v1/atlas/universe')
           assert universe.status_code == 200, universe.text
           u = universe.json()
@@ -90,45 +142,23 @@ jobs:
 
           async def fake_market_quote(symbol: str):
               return {
-                  'symbol': symbol,
-                  'name': symbol,
-                  'sector': 'TEST',
-                  'price': 100.0,
-                  'change': 1.0,
-                  'changePct': 1.0,
-                  'open': 99.0,
-                  'high': 101.0,
-                  'low': 98.0,
-                  'previousClose': 99.0,
-                  'volume': 1_000_000.0,
-                  'asOfDate': '2026-08-07',
-                  'asOfTime': '22:00:00',
-                  'source': 'CI_FIXTURE',
-                  'delayed': True,
+                  'symbol': symbol, 'name': symbol, 'sector': 'TEST', 'price': 100.0,
+                  'change': 1.0, 'changePct': 1.0, 'open': 99.0, 'high': 101.0,
+                  'low': 98.0, 'previousClose': 99.0, 'volume': 1_000_000.0,
+                  'asOfDate': '2026-08-07', 'asOfTime': '22:00:00',
+                  'source': 'CI_FIXTURE', 'delayed': True,
               }
 
           fixture_metrics = {
-              'roiTTM': 25.0,
-              'roeTTM': 30.0,
-              'roaTTM': 15.0,
-              'grossMarginTTM': 60.0,
-              'netProfitMarginTTM': 25.0,
-              'operatingMarginTTM': 25.0,
-              'assetTurnoverTTM': 1.5,
-              'revenueGrowthTTMYoy': 20.0,
-              'epsGrowthTTMYoy': 20.0,
-              'freeCashFlowGrowth5Y': 20.0,
-              'peTTM': 20.0,
-              'forwardPE': 20.0,
-              'pbAnnual': 4.0,
-              'psTTM': 4.0,
-              'dividendYieldIndicatedAnnual': 1.0,
-              'beta': 1.0,
-              'totalDebtToTotalEquityQuarterly': 20.0,
-              'currentRatioQuarterly': 2.0,
-              'quickRatioQuarterly': 1.5,
-              'interestCoverageTTM': 12.0,
-              'freeCashFlowPerShareTTM': 8.0,
+              'roiTTM': 25.0, 'roeTTM': 30.0, 'roaTTM': 15.0,
+              'grossMarginTTM': 60.0, 'netProfitMarginTTM': 25.0,
+              'operatingMarginTTM': 25.0, 'assetTurnoverTTM': 1.5,
+              'revenueGrowthTTMYoy': 20.0, 'epsGrowthTTMYoy': 20.0,
+              'freeCashFlowGrowth5Y': 20.0, 'peTTM': 20.0, 'forwardPE': 20.0,
+              'pbAnnual': 4.0, 'psTTM': 4.0, 'dividendYieldIndicatedAnnual': 1.0,
+              'beta': 1.0, 'totalDebtToTotalEquityQuarterly': 20.0,
+              'currentRatioQuarterly': 2.0, 'quickRatioQuarterly': 1.5,
+              'interestCoverageTTM': 12.0, 'freeCashFlowPerShareTTM': 8.0,
               'capitalSpendingPerShareTTM': 2.0,
           }
 
@@ -142,7 +172,6 @@ jobs:
 
           atlas_core.get_market_quote = fake_market_quote
           atlas_core._fundamental_bundle = fake_fundamental
-
           candidate = client.get('/v1/atlas/analyze/TEST?context=candidate')
           assert candidate.status_code == 200, candidate.text
           ca = candidate.json()['analysis']
@@ -165,13 +194,11 @@ jobs:
           assert pa['action'] not in {'BUY', 'NO_BUY', 'SELL', 'EXIT'}, pa
           assert 'EXIT' in pa['guardrail'], pa
 
-          # Broker remains fail-closed and PAPER by default.
           status = client.get('/v1/broker/status')
           assert status.status_code == 200, status.text
           payload = status.json()
           assert payload['mode'] == 'PAPER', payload
           assert payload['configured'] is False, payload
-
           protected = client.get('/v1/broker/account')
           assert protected.status_code == 503, protected.text
 
@@ -180,22 +207,11 @@ jobs:
           main.ATLAS_BROKER_CONTROL_TOKEN = 'ci-control'
           main.TRADING212_ENV = 'live'
           main.TRADING212_LIVE_TRADING_ENABLED = False
-
-          live_locked = client.post(
-              '/v1/broker/orders/market',
-              headers={'X-Atlas-Broker-Token': 'ci-control'},
-              json={'ticker': 'AAPL_US_EQ', 'quantity': 0.01, 'extended_hours': False, 'confirmation': 'EXECUTE_LIVE'},
-          )
+          live_locked = client.post('/v1/broker/orders/market', headers={'X-Atlas-Broker-Token': 'ci-control'}, json={'ticker': 'AAPL_US_EQ', 'quantity': 0.01, 'extended_hours': False, 'confirmation': 'EXECUTE_LIVE'})
           assert live_locked.status_code == 403, live_locked.text
-
           main.TRADING212_ENV = 'demo'
-          wrong_confirmation = client.post(
-              '/v1/broker/orders/market',
-              headers={'X-Atlas-Broker-Token': 'ci-control'},
-              json={'ticker': 'AAPL_US_EQ', 'quantity': 0.01, 'extended_hours': False, 'confirmation': 'EXECUTE_LIVE'},
-          )
+          wrong_confirmation = client.post('/v1/broker/orders/market', headers={'X-Atlas-Broker-Token': 'ci-control'}, json={'ticker': 'AAPL_US_EQ', 'quantity': 0.01, 'extended_hours': False, 'confirmation': 'EXECUTE_LIVE'})
           assert wrong_confirmation.status_code == 400, wrong_confirmation.text
-
           unauthorized = client.get('/v1/broker/positions', headers={'X-Atlas-Broker-Token': 'wrong'})
           assert unauthorized.status_code == 401, unauthorized.text
           print('ATLAS Ω API + engines + Broker guardrails: PASS')
@@ -213,67 +229,81 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-
       - name: Install mobile dependencies
         run: npm install
-
       - name: Run TypeScript typecheck
         run: npx tsc --noEmit
 
   build-candidate-apk:
-    name: Build Android Candidate APK
+    name: Build ONLINE Android APK
     needs:
+      - production-api-contract
       - api-certification
       - typecheck-and-schema
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: mobile
+    env:
+      EXPO_PUBLIC_ATLAS_API_BASE_URL: https://atlas-genesis.onrender.com
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Install dependencies
         run: npm install
-
+      - name: Assert production API target
+        shell: bash
+        run: |
+          test "$EXPO_PUBLIC_ATLAS_API_BASE_URL" = "https://atlas-genesis.onrender.com"
+          grep -Fq "const DEFAULT_PUBLIC_API = 'https://atlas-genesis.onrender.com';" core/api/atlasOnlineApi.ts
+          ! grep -Fq "const DEFAULT_PUBLIC_API = 'https://atlas-genesis-api.onrender.com';" core/api/atlasOnlineApi.ts
       - name: Generate Android native project
         run: npx expo prebuild --platform android --non-interactive --clean
-
       - name: Build release APK with Gradle
         shell: bash
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
-
-      - name: Upload candidate APK
+      - name: Certify embedded production endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find android/app/build/outputs/apk/release -type f -name '*.apk' | head -n 1)"
+          test -s "$APK"
+          unzip -p "$APK" assets/index.android.bundle > /tmp/index.android.bundle
+          grep -Fq 'https://atlas-genesis.onrender.com' /tmp/index.android.bundle
+          if grep -Fq 'https://atlas-genesis-api.onrender.com' /tmp/index.android.bundle; then
+            echo "::error::Obsolete Render endpoint embedded in APK"
+            exit 1
+          fi
+          sha256sum "$APK"
+      - name: Upload ONLINE candidate APK
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-candidate-apk
+          name: atlas-omega-online-candidate-apk
           path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+          retention-days: 30
 
   functional-emulator-smoke:
-    name: Functional Android Emulator Gate
+    name: ONLINE Android Emulator Gate
     needs: build-candidate-apk
     runs-on: ubuntu-latest
 
@@ -282,21 +312,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-
-      - name: Download candidate APK
+      - name: Download ONLINE candidate APK
         uses: actions/download-artifact@v4
         with:
-          name: atlas-omega-candidate-apk
+          name: atlas-omega-online-candidate-apk
           path: candidate-apk
-
       - name: Enable KVM
         shell: bash
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-
-      - name: Launch app and verify all functional routes
+      - name: Launch app and verify LIVE online operation and routes
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -306,69 +333,10 @@ jobs:
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: bash mobile/scripts/android-functional-smoke.sh
-
-      - name: Publish functional APK artifact
+      - name: Publish certified ONLINE phone APK
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-functional-apk
+          name: atlas-omega-ONLINE-PHONE-APK
           path: candidate-apk/*.apk
           if-no-files-found: error
-
-  eas-preview-after-functional-gate:
-    name: Optional EAS Preview Build After Functional Gate
-    needs: functional-emulator-smoke
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mobile
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_ref || github.sha }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22.13.0'
-
-      - name: Check EXPO_TOKEN availability
-        id: expo_token
-        shell: bash
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: |
-          if [ -n "$EXPO_TOKEN" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "EXPO_TOKEN is not configured; functional local APK remains the certified artifact."
-          fi
-
-      - name: Setup Expo & EAS CLI
-        if: steps.expo_token.outputs.available == 'true'
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install dependencies for EAS
-        if: steps.expo_token.outputs.available == 'true'
-        run: npm install
-
-      - name: Resolve EAS project linkage
-        if: steps.expo_token.outputs.available == 'true'
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          eas init --account vbf1980s-team --force --non-interactive
-          eas project:info
-
-      - name: Build Android APK with EAS
-        if: steps.expo_token.outputs.available == 'true'
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: eas build --platform android --profile preview --non-interactive
+          retention-days: 30
