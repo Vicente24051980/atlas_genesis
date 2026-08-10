@@ -1,0 +1,36 @@
+name: ATLAS Render Endpoint Probe
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/render-endpoint-probe.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe candidate Render endpoints
+        shell: bash
+        run: |
+          set -u
+          for base in \
+            'https://atlas-genesis-api.onrender.com' \
+            'https://atlas-genesis.onrender.com'
+          do
+            echo "===== $base ====="
+            for path in / /health /v1/atlas/universe /v1/market/snapshot
+            do
+              echo "--- $path"
+              code="$(curl -sS -L --connect-timeout 10 --max-time 30 -o /tmp/body.txt -w '%{http_code}' "$base$path" || true)"
+              echo "HTTP $code"
+              head -c 1200 /tmp/body.txt 2>/dev/null || true
+              echo
+            done
+          done
