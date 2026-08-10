@@ -63,7 +63,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${EXPO_TOKEN:-}" ]; then
-            echo "::error::Missing required GitHub Actions secret EXPO_TOKEN. Add it in Settings > Secrets and variables > Actions."
+            echo "::error::Missing required GitHub Actions secret EXPO_TOKEN. Add a valid Expo access token in Settings > Secrets and variables > Actions."
             exit 1
           fi
           echo "EXPO_TOKEN is configured."
@@ -86,10 +86,8 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm install
 
-      - name: Resolve EAS project linkage
+      - name: Ensure EAS project linkage
         working-directory: ${{ env.APP_DIR }}
-        env:
-          EAS_PROJECT_ID: ${{ secrets.EAS_PROJECT_ID }}
         shell: bash
         run: |
           set -euo pipefail
@@ -97,26 +95,18 @@ jobs:
           APP_PROJECT_ID="$(node -e "const c=require('./app.json'); process.stdout.write(c?.expo?.extra?.eas?.projectId || '')")"
 
           if [ -n "$APP_PROJECT_ID" ]; then
-            echo "EAS projectId already present in mobile/app.json."
-            exit 0
+            echo "EAS projectId already present in mobile/app.json: $APP_PROJECT_ID"
+          else
+            echo "No EAS projectId found; linking/creating the Expo project non-interactively."
+            eas init --force --non-interactive
           fi
 
-          if [ -z "${EAS_PROJECT_ID:-}" ]; then
-            echo "::error::EAS project is not linked. mobile/app.json has no expo.extra.eas.projectId and GitHub secret EAS_PROJECT_ID is missing. Run 'eas project:init' or 'eas build:configure' once for this Expo project, then commit the generated projectId, or add EAS_PROJECT_ID as a repository secret."
+          RESOLVED_PROJECT_ID="$(node -e "const c=require('./app.json'); process.stdout.write(c?.expo?.extra?.eas?.projectId || '')")"
+          if [ -z "$RESOLVED_PROJECT_ID" ]; then
+            echo "::error::EAS project initialization completed without writing expo.extra.eas.projectId."
             exit 1
           fi
-
-          node <<'NODE'
-          const fs = require('fs');
-          const path = 'app.json';
-          const config = JSON.parse(fs.readFileSync(path, 'utf8'));
-          config.expo ??= {};
-          config.expo.extra ??= {};
-          config.expo.extra.eas ??= {};
-          config.expo.extra.eas.projectId = process.env.EAS_PROJECT_ID;
-          fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');
-          NODE
-          echo "Injected EAS projectId from GitHub secret EAS_PROJECT_ID."
+          echo "Resolved EAS projectId: $RESOLVED_PROJECT_ID"
 
       - name: Verify EAS project
         working-directory: ${{ env.APP_DIR }}
