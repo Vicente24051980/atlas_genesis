@@ -259,7 +259,7 @@ export type MarketOrderInput = {
 };
 
 const configuredBase = process.env.EXPO_PUBLIC_ATLAS_API_BASE_URL?.replace(/\/$/, '');
-const DEFAULT_PUBLIC_API = 'https://atlas-genesis.onrender.com';
+const DEFAULT_PUBLIC_API = 'https://atlas-genesis-api.onrender.com';
 
 export function atlasApiBaseUrl(): string {
   return configuredBase || DEFAULT_PUBLIC_API;
