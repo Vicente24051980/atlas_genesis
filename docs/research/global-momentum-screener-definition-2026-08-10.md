@@ -1,3 +1,7 @@
+# LEGACY / SUPERSEDED RESEARCH NOTE
+
+Canonical status update — 2026-08-10: this three-horizon research screener is superseded for primary ATLAS Ω selection by `docs/canon/GREEN_CONTINUITY_OMEGA_v1.md`. Preserve this file as historical research context only.
+
 # Global Momentum Screener — definición y notas de investigación
 
 Fecha de registro: 2026-08-10
