@@ -16,6 +16,9 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'HISTORICAL_DISLOCATION_OMEGA',
     'SPECIALIZED_ENGINES_OMEGA',
   ] as const,
+  independentTacticalEngines: [
+    'EVENT_PRICING_OPTIONS_EXPECTATIONS_OMEGA_V1',
+  ] as const,
   transversalGates: [
     'EVIDENCE_INTEGRITY_OMEGA',
     'DECISION_SAFETY_GATE_OMEGA',
@@ -28,6 +31,8 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'A refinement engine cannot convert a 5/5 GREEN position into SELL merely because of overlap, diversification, sector count or portfolio-size targets.',
     'A confirmed structural falsifier remains superior to price continuity and may block BUY or force SELL.',
     'Contrarian engines remain logically independent: a security may fail GREEN CONTINUITY Ω while remaining valid inside Historical Dislocation or Good Companies Cheap.',
+    'EVENT PRICING / OPTIONS EXPECTATIONS Ω remains independent tactical context and cannot overwrite structural engine decisions.',
+    'Yield-driven price expansion is MARKET/VALUATION EFFECT and is not automatic Business Quality or AI-thesis improvement.',
   ] as const,
 } as const;
 
@@ -49,6 +54,8 @@ export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'GOOD_COMPANIES_CHEAP_OMEGA_WHEN_APPLICABLE',
   'HISTORICAL_DISLOCATION_OMEGA_WHEN_APPLICABLE',
   'SPECIALIZED_ENGINES_OMEGA_WHEN_APPLICABLE',
+  'EVENT_PRICING_OPTIONS_EXPECTATIONS_OMEGA_WHEN_EVENT_APPLICABLE',
+  'AI_CAPITAL_EFFICIENCY_CHECKPOINT_WHEN_AI_CAPEX_APPLICABLE',
   'DECISION_SAFETY_GATE_OMEGA',
   'DECISION_LOG_OMEGA',
 ] as const;
