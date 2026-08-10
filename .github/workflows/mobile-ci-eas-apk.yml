@@ -67,9 +67,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-          cache: npm
-          cache-dependency-path: mobile/package-lock.json
-      - run: npm ci
+      - run: npm install
       - run: npx tsc --noEmit
 
   build:
@@ -87,14 +85,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-          cache: npm
-          cache-dependency-path: mobile/package-lock.json
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
-      - run: npm ci
+      - run: npm install
       - name: Reject every obsolete API contract in the mobile client
         shell: bash
         run: |
