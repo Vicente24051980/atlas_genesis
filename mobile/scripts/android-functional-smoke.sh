@@ -119,8 +119,10 @@ open_deep_link() {
   sleep 1
 }
 
-# Home must be a real command center with portfolio/watchlist access.
+# Home must be online against the real production Render API, not only render UI.
 wait_for_text "INVESTMENT INTELLIGENCE"
+wait_for_text "ONLINE"
+wait_for_text "ATLAS + FINNHUB + MARKET"
 wait_for_text "MI CARTERA Ω"
 wait_for_text "WATCHLIST Ω"
 wait_for_text "Cartera"
@@ -168,15 +170,17 @@ adb shell input keyevent 4
 sleep 1
 wait_for_text "Más"
 
-# Ticker detail route is reachable even if the remote provider is temporarily unavailable.
+# Ticker detail route is reachable against production data.
 tap_desc "Inicio"
 wait_for_text "INVESTMENT INTELLIGENCE"
+wait_for_text "ONLINE"
 reset_top
 tap_desc "Abrir SPY"
 wait_for_text "SPY"
 adb shell input keyevent 4
 sleep 1
 wait_for_text "INVESTMENT INTELLIGENCE"
+wait_for_text "ONLINE"
 
 # Every analytical module must be a distinct screen, not the old shared-data facade.
 verify_engine_route() {
@@ -211,4 +215,4 @@ open_deep_link "market"
 wait_for_text "Mercados Ω"
 wait_for_text "MARKET SENSOR"
 
-echo "ATLAS Ω definitive mobile emulator gate: PASS"
+echo "ATLAS Ω ONLINE production emulator gate: PASS"
