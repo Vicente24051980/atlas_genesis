@@ -25,12 +25,21 @@ jobs:
             'https://atlas-genesis.onrender.com'
           do
             echo "===== $base ====="
-            for path in / /health /v1/atlas/universe /v1/market/snapshot
+            for path in \
+              / \
+              /health \
+              /v1/company/KO \
+              /v1/quote/SPY \
+              '/v1/discovery?q=KO' \
+              /v1/decision/KO \
+              /v1/portfolio-live \
+              /v1/atlas/universe \
+              /v1/market/snapshot
             do
               echo "--- $path"
               code="$(curl -sS -L --connect-timeout 10 --max-time 30 -o /tmp/body.txt -w '%{http_code}' "$base$path" || true)"
               echo "HTTP $code"
-              head -c 1200 /tmp/body.txt 2>/dev/null || true
+              head -c 1800 /tmp/body.txt 2>/dev/null || true
               echo
             done
           done
