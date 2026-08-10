@@ -42,6 +42,35 @@ Grade F (`Fundamental Deterioration Candidate`) MUST route to `Auditor Ω -> The
 
 Pre-event `pea_manifest_locked.json` is cryptographically sealed using RFC 8785 (JCS) + SHA-256 and is immutable/independent from later `earnings_outcome.json` and `pev_report.json` artifacts.
 
+## Money Rotation Ω
+
+MONEY_ROTATION Ω v1.3 is the canonical candidate layer for early capital rotation and historical dislocation detection.
+
+Rules:
+
+- Flow totals must use comparable, additive and non-overlapping flow metrics.
+- Price-only momentum is a market sensor, never proof of canonical R3/R4.
+- R3 requires multi-signal confirmation; R4 requires persistent comparable flows plus positive reaction to good news after destruction.
+- R5 is the handoff to the main ATLAS discovery/scoring stack; R6 is consensus/crowding and must not be chased mechanically.
+- Rotation evidence never emits a portfolio order by itself.
+
+### AI Infrastructure Rotation Ω
+
+`AI_INFRASTRUCTURE_ROTATION_OMEGA_v1` is registered under MONEY_ROTATION Ω for AI data-center optics, AI power/grid, industrial networking and defense connectivity beneficiaries.
+
+Canonical rule:
+
+`Excellent business != early rotation opportunity`.
+
+The engine ranks companies by business quality, normalized growth, CAPEX productivity, valuation margin of safety, financial inflection, AI infrastructure purity, cash generation and balance-sheet strength, then penalizes narrative crowding and completed price discovery.
+
+Fujikura/Furukawa application:
+
+- Fujikura may remain a high-quality `BUY_REVIEW`, but maps to `R5_DISCOVERED_BY_ATLAS_MAIN` when the market has already discovered the AI optics story.
+- Furukawa Electric can rank higher as `R4_TO_R5_RELATIVE_OPPORTUNITY` when the same AI optics demand is converting losses into profit/guidance acceleration with less mature consensus and better valuation asymmetry.
+
+The engine rejects mixed-thesis rankings and untraceable claims.
+
 ## Epistemic governance
 
 `Information Received != Admissible Evidence`.
