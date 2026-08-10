@@ -10,6 +10,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Query
 
 from api.market import get_market_quote
+from api.atlas_top80 import ATLAS_TOP_80
 from api.tracked_universe import PORTFOLIO, PORTFOLIO_PENDING, SNAPSHOT_ID, SNAPSHOT_STATUS, WATCHLIST
 
 router = APIRouter(prefix="/v1/atlas", tags=["atlas"])
@@ -427,10 +428,12 @@ async def universe() -> dict[str, Any]:
         "portfolio": PORTFOLIO,
         "portfolioPending": PORTFOLIO_PENDING,
         "watchlist": WATCHLIST,
+        "atlasTop80": ATLAS_TOP_80,
         "counts": {
             "portfolio": len(PORTFOLIO),
             "pending": len(PORTFOLIO_PENDING),
             "watchlist": len(WATCHLIST),
+            "atlasTop80": len(ATLAS_TOP_80),
         },
         "guardrail": "This is a remotely updateable bootstrap snapshot. Trading 212 is the source of truth for quantities/cost basis when connected.",
     }
@@ -471,6 +474,56 @@ async def monitor(
         "nextOffset": offset + len(page) if offset + len(page) < len(source) else None,
         "items": rows,
         "guardrail": "Batch monitor is paginated to protect provider limits. Missing ticker data does not fail the entire page.",
+    }
+
+
+@router.get("/top80")
+async def top80(
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=8, ge=1, le=12),
+) -> dict[str, Any]:
+    page = ATLAS_TOP_80[offset: offset + limit]
+
+    async def one(item: dict[str, str]) -> dict[str, Any]:
+        symbol = item.get("symbol") or item["ticker"]
+        try:
+            result = await analyze_symbol(symbol, "candidate")
+            action = result["analysis"]["action"]
+            return {
+                "item": item,
+                "ok": True,
+                "binaryDecision": "BUY" if action == "BUY" else "NO_BUY",
+                "binaryReason": "ATLAS quantitative gate passed" if action == "BUY" else "ATLAS quantitative gate not passed or insufficient coverage",
+                **result,
+            }
+        except HTTPException as exc:
+            return {
+                "item": item,
+                "ok": False,
+                "binaryDecision": "NO_BUY",
+                "binaryReason": "Provider unavailable or ticker not resolved",
+                "error": str(exc.detail),
+                "statusCode": exc.status_code,
+            }
+        except Exception as exc:  # defensive boundary for one ticker; page still returns.
+            return {
+                "item": item,
+                "ok": False,
+                "binaryDecision": "NO_BUY",
+                "binaryReason": "Unexpected analyzer boundary error",
+                "error": exc.__class__.__name__,
+            }
+
+    rows = await asyncio.gather(*(one(item) for item in page))
+    return {
+        "kind": "atlasTop80",
+        "snapshotId": "ATLAS-TOP-80-FINNHUB-2026-08-10-v1",
+        "offset": offset,
+        "limit": limit,
+        "total": len(ATLAS_TOP_80),
+        "nextOffset": offset + len(page) if offset + len(page) < len(ATLAS_TOP_80) else None,
+        "items": rows,
+        "guardrail": "Top 80 uses Finnhub-backed quantitative support. BUY requires the ATLAS candidate gate; every WAIT, missing-provider case, or unresolved ticker is exposed as binary NO_BUY.",
     }
 
 
