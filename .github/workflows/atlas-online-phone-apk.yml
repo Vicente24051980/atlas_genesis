@@ -1,0 +1,146 @@
+name: ATLAS Ω — ONLINE Phone APK
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'mobile/**'
+      - 'api/**'
+      - 'render.yaml'
+      - '.github/workflows/atlas-online-phone-apk.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'mobile/**'
+      - 'api/**'
+      - 'render.yaml'
+      - '.github/workflows/atlas-online-phone-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: atlas-online-phone-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  online-phone-apk:
+    name: Verify Render LIVE and build ONLINE APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      EXPO_PUBLIC_ATLAS_API_BASE_URL: https://atlas-genesis.onrender.com
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify canonical production endpoint
+        shell: bash
+        working-directory: .
+        run: |
+          set -euo pipefail
+          test "$EXPO_PUBLIC_ATLAS_API_BASE_URL" = "https://atlas-genesis.onrender.com"
+          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in
+            https://*) ;;
+            *) echo "Production API must use HTTPS"; exit 1 ;;
+          esac
+          case "$EXPO_PUBLIC_ATLAS_API_BASE_URL" in
+            *localhost*|*127.0.0.1*|*10.0.2.2*|*atlas-genesis-api.onrender.com*)
+              echo "Invalid production API target: $EXPO_PUBLIC_ATLAS_API_BASE_URL"
+              exit 1
+              ;;
+          esac
+
+      - name: Wait for live Render API contract
+        shell: bash
+        working-directory: .
+        run: |
+          set -euo pipefail
+          BASE="$EXPO_PUBLIC_ATLAS_API_BASE_URL"
+          ok=0
+          for attempt in $(seq 1 60); do
+            echo "Render contract attempt $attempt/60"
+            if curl -fsS --max-time 30 "$BASE/health" -o /tmp/health.json \
+              && curl -fsS --max-time 45 "$BASE/v1/atlas/universe" -o /tmp/universe.json \
+              && curl -fsS --max-time 60 "$BASE/v1/market/snapshot" -o /tmp/snapshot.json; then
+              if python3 - <<'PY'
+import json
+h=json.load(open('/tmp/health.json'))
+u=json.load(open('/tmp/universe.json'))
+s=json.load(open('/tmp/snapshot.json'))
+assert h.get('ok') is True, h
+assert h.get('finnhub_configured') is True, h
+assert isinstance(u.get('counts'), dict) and u['counts'].get('portfolio', 0) > 0, u
+assert isinstance(s.get('items'), list) and len(s['items']) > 0, s
+print('LIVE RENDER CONTRACT PASS')
+PY
+              then
+                ok=1
+                break
+              fi
+            fi
+            sleep 10
+          done
+          if [ "$ok" != 1 ]; then
+            echo "::error::Live Render backend did not satisfy ATLAS mobile contract."
+            echo "health:"; cat /tmp/health.json 2>/dev/null || true
+            echo "universe:"; cat /tmp/universe.json 2>/dev/null || true
+            echo "snapshot:"; cat /tmp/snapshot.json 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: TypeScript gate
+        run: npx tsc --noEmit
+
+      - name: Generate Android project with LIVE endpoint
+        run: npx expo prebuild --platform android --non-interactive --clean
+
+      - name: Build release APK
+        shell: bash
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Certify APK contains LIVE endpoint and no known bad endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find android/app/build/outputs/apk/release -type f -name '*.apk' | head -n 1)"
+          test -s "$APK"
+          unzip -p "$APK" assets/index.android.bundle > /tmp/index.android.bundle
+          grep -Fq 'https://atlas-genesis.onrender.com' /tmp/index.android.bundle
+          if grep -Fq 'https://atlas-genesis-api.onrender.com' /tmp/index.android.bundle; then
+            echo "::error::Bad Render endpoint is still embedded in APK"
+            exit 1
+          fi
+          sha256sum "$APK" | tee /tmp/apk.sha256
+          ls -lh "$APK"
+
+      - name: Upload certified ONLINE APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-omega-ONLINE-phone-apk
+          path: mobile/android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30

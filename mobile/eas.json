@@ -16,7 +16,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_ATLAS_API_BASE_URL": "https://atlas-genesis-api.onrender.com"
+        "EXPO_PUBLIC_ATLAS_API_BASE_URL": "https://atlas-genesis.onrender.com"
       }
     },
     "production": {
@@ -25,7 +25,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_ATLAS_API_BASE_URL": "https://atlas-genesis-api.onrender.com"
+        "EXPO_PUBLIC_ATLAS_API_BASE_URL": "https://atlas-genesis.onrender.com"
       }
     }
   }
