@@ -144,3 +144,5 @@ PY
           path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
+
+# certification trigger 2026-08-10
