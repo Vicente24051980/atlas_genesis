@@ -1,255 +1,112 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
-import { AtlasOnlineApi, BrokerStatus } from '../core/api/atlasOnlineApi';
-import { db } from '../db/client';
-import { auditLog, decisionLog } from '../db/schema';
-
-function pretty(value: unknown): string {
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-}
-
-function eventId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`.toUpperCase();
-}
-
-async function writeDecision(subjectId: string, decisionType: string, rationale: unknown): Promise<void> {
-  await db.insert(decisionLog).values({
-    id: eventId('BRK-DEC'),
-    subjectId,
-    decisionType,
-    rationale: pretty(rationale),
-    evidenceRefsJson: '[]',
-    createdAt: new Date(),
-  });
-}
-
-async function writeAudit(action: string, target: string): Promise<void> {
-  await db.insert(auditLog).values({
-    id: eventId('BRK-AUD'),
-    action,
-    actor: 'ATLAS_MOBILE_USER',
-    target,
-    payloadHash: null,
-    createdAt: new Date(),
-  });
-}
-
-async function safeLog(operation: () => Promise<void>): Promise<void> {
-  try {
-    await operation();
-  } catch {
-    // Broker execution must not be retried merely because local audit persistence failed.
-  }
-}
+import { AtlasOnlineApi, atlasApiBaseUrl, type BrokerStatus } from '../core/api/atlasOnlineApi';
 
 export default function BrokerScreen() {
   const router = useRouter();
   const [status, setStatus] = useState<BrokerStatus | null>(null);
-  const [controlToken, setControlToken] = useState('');
-  const [account, setAccount] = useState<unknown>(null);
-  const [positions, setPositions] = useState<unknown>(null);
-  const [orders, setOrders] = useState<unknown>(null);
-  const [query, setQuery] = useState('AAPL');
-  const [instruments, setInstruments] = useState<Array<Record<string, unknown>>>([]);
-  const [ticker, setTicker] = useState('');
-  const [quantity, setQuantity] = useState('0.01');
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    void AtlasOnlineApi.brokerStatus().then(setStatus).catch((error) => setMessage(error instanceof Error ? error.message : String(error)));
-  }, []);
-
-  const confirmation = status?.mode === 'LIVE' ? 'EXECUTE_LIVE' : 'EXECUTE_DEMO';
-  const liveLocked = status?.mode === 'LIVE' && !status.liveTradingEnabled;
-  const canUsePrivate = Boolean(controlToken.trim() && status?.configured);
-  const parsedQuantity = useMemo(() => Number(quantity.replace(',', '.')), [quantity]);
-
-  async function refreshPrivate() {
-    if (!canUsePrivate) return;
-    setBusy(true);
-    setMessage('');
+  const load = async () => {
+    setLoading(true);
+    setError('');
     try {
-      const [accountResult, positionResult, orderResult] = await Promise.all([
-        AtlasOnlineApi.brokerAccount(controlToken),
-        AtlasOnlineApi.brokerPositions(controlToken),
-        AtlasOnlineApi.brokerOrders(controlToken),
-      ]);
-      setAccount(accountResult.data);
-      setPositions(positionResult.data);
-      setOrders(orderResult.data);
-      setMessage('Cuenta Trading 212 sincronizada.');
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
+      setStatus(await AtlasOnlineApi.brokerStatus());
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+      setStatus(null);
     } finally {
-      setBusy(false);
+      setLoading(false);
     }
-  }
+  };
 
-  async function searchInstrument() {
-    if (!canUsePrivate || !query.trim()) return;
-    setBusy(true);
-    setMessage('');
-    try {
-      const result = await AtlasOnlineApi.brokerInstrumentSearch(query, controlToken);
-      setInstruments(result.items);
-      setMessage(`${result.count} instrumentos encontrados.`);
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : String(error));
-    } finally {
-      setBusy(false);
-    }
-  }
+  useEffect(() => { void load(); }, []);
 
-  async function placeOrder() {
-    if (!canUsePrivate || !ticker.trim() || !Number.isFinite(parsedQuantity) || parsedQuantity === 0 || !status) return;
-    const normalizedTicker = ticker.trim();
-    const intent = {
-      provider: 'Trading212',
-      environment: status.environment,
-      mode: status.mode,
-      ticker: normalizedTicker,
-      quantity: parsedQuantity,
-      extendedHours: false,
-      confirmation,
-    };
-
-    setBusy(true);
-    setMessage('');
-    await safeLog(() => writeDecision(normalizedTicker, 'BROKER_ORDER_INTENT', intent));
-    await safeLog(() => writeAudit('BROKER_ORDER_INTENT', `${status.mode}:${normalizedTicker}`));
-
-    try {
-      const result = await AtlasOnlineApi.brokerMarketOrder({
-        ticker: normalizedTicker,
-        quantity: parsedQuantity,
-        extended_hours: false,
-        confirmation,
-      }, controlToken);
-      await safeLog(() => writeDecision(normalizedTicker, 'BROKER_ORDER_ACCEPTED', { intent, result }));
-      await safeLog(() => writeAudit('BROKER_ORDER_ACCEPTED', `${status.mode}:${normalizedTicker}`));
-      setMessage(`${status.mode} order accepted: ${pretty(result)}`);
-      await refreshPrivate();
-    } catch (error) {
-      const detail = error instanceof Error ? error.message : String(error);
-      await safeLog(() => writeDecision(normalizedTicker, 'BROKER_ORDER_FAILED', { intent, error: detail }));
-      await safeLog(() => writeAudit('BROKER_ORDER_FAILED', `${status.mode}:${normalizedTicker}`));
-      setMessage(detail);
-    } finally {
-      setBusy(false);
-    }
-  }
+  const configured = Boolean(status?.configured);
+  const live = status?.mode === 'LIVE';
+  const liveLocked = live && !status?.liveTradingEnabled;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>‹</Text></Pressable>
-        <View><Text style={styles.brand}>BROKER Ω</Text><Text style={styles.subbrand}>TRADING 212</Text></View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>‹</Text></Pressable>
+        <View><Text style={styles.brand}>BROKER Ω</Text><Text style={styles.subbrand}>TRADING 212 · SECURE ADAPTER</Text></View>
       </View>
 
-      <View style={[styles.card, status?.mode === 'LIVE' ? styles.liveCard : styles.paperCard]}>
-        <Text style={styles.label}>ESTADO</Text>
-        <Text style={styles.big}>{status ? `${status.mode} · ${status.environment.toUpperCase()}` : 'CARGANDO…'}</Text>
-        <Text style={styles.muted}>{status?.configured ? 'Backend configurado' : 'Faltan credenciales/seguridad en el backend'}</Text>
-        {liveLocked ? <Text style={styles.warning}>LIVE bloqueado por servidor. No puede enviar órdenes reales.</Text> : null}
-      </View>
+      {loading ? <View style={styles.loading}><ActivityIndicator size="large" color="#2ed19a" /><Text style={styles.loadingText}>Comprobando conexión segura…</Text></View> : null}
+
+      {!loading ? (
+        <View style={[styles.statusCard, configured ? styles.connectedCard : styles.disconnectedCard]}>
+          <Text style={styles.label}>ESTADO</Text>
+          <Text style={[styles.big, configured ? styles.connected : styles.disconnected]}>{configured ? 'CONECTADO' : 'NO CONECTADO'}</Text>
+          <Text style={styles.statusLine}>{status ? `${status.provider} · ${status.mode} · ${status.environment.toUpperCase()}` : 'Trading 212'}</Text>
+          <Text style={styles.statusMeta}>{configured ? 'Credenciales detectadas en backend.' : 'Faltan credenciales o token de control en el servidor.'}</Text>
+        </View>
+      ) : null}
+
+      {error ? <View style={styles.error}><Text style={styles.errorTitle}>BROKER API NO DISPONIBLE</Text><Text style={styles.errorText}>{error}</Text><Pressable onPress={() => void load()} style={styles.retry}><Text style={styles.retryText}>REINTENTAR</Text></Pressable></View> : null}
 
       <View style={styles.card}>
-        <Text style={styles.label}>CONTROL TOKEN</Text>
-        <TextInput
-          value={controlToken}
-          onChangeText={setControlToken}
-          placeholder="Token privado del Broker Ω"
-          placeholderTextColor="#526170"
-          secureTextEntry
-          autoCapitalize="none"
-          style={styles.input}
-        />
-        <Text style={styles.small}>El token no está incluido en el APK. Debe coincidir con ATLAS_BROKER_CONTROL_TOKEN del servidor.</Text>
-        <Pressable disabled={!canUsePrivate || busy} onPress={refreshPrivate} style={[styles.button, (!canUsePrivate || busy) && styles.disabled]}>
-          <Text style={styles.buttonText}>SINCRONIZAR CUENTA</Text>
-        </Pressable>
+        <Text style={styles.label}>SEGURIDAD</Text>
+        <StatusRow label="Claves dentro del APK" value="NO" positive />
+        <StatusRow label="Control token manual en móvil" value="ELIMINADO" positive />
+        <StatusRow label="Entorno" value={status?.environment?.toUpperCase() || '—'} />
+        <StatusRow label="Modo" value={status?.mode || '—'} />
+        <StatusRow label="LIVE servidor" value={status?.liveTradingEnabled ? 'HABILITADO' : 'BLOQUEADO'} positive={!status?.liveTradingEnabled} warning={status?.liveTradingEnabled} />
       </View>
+
+      {!configured ? (
+        <View style={styles.setupCard}>
+          <Text style={styles.setupTitle}>CONFIGURACIÓN SERVER-SIDE NECESARIA</Text>
+          <Text style={styles.setupText}>Render debe tener TRADING212_API_KEY, TRADING212_API_SECRET y ATLAS_BROKER_CONTROL_TOKEN. La app no vuelve a pedirte que pegues tokens ni claves en una pantalla.</Text>
+          <Text style={styles.setupText}>Hasta que el backend confirme la conexión, órdenes y posiciones privadas permanecen cerradas.</Text>
+        </View>
+      ) : (
+        <View style={styles.readyCard}>
+          <Text style={styles.readyTitle}>BROKER ADAPTER READY</Text>
+          <Text style={styles.readyText}>La conexión está preparada en servidor. La cartera ATLAS permanece separada de la ejecución: una decisión COMPRAR/AÑADIR nunca genera una orden automática.</Text>
+          {liveLocked ? <Text style={styles.liveLocked}>LIVE está bloqueado server-side. Correcto para validación.</Text> : null}
+        </View>
+      )}
 
       <View style={styles.card}>
-        <Text style={styles.label}>BUSCAR INSTRUMENTO T212</Text>
-        <TextInput value={query} onChangeText={setQuery} autoCapitalize="characters" style={styles.input} />
-        <Pressable disabled={!canUsePrivate || busy} onPress={searchInstrument} style={[styles.button, (!canUsePrivate || busy) && styles.disabled]}>
-          <Text style={styles.buttonText}>BUSCAR</Text>
-        </Pressable>
-        {instruments.map((item, index) => {
-          const itemTicker = String(item.ticker || '');
-          return (
-            <Pressable key={`${itemTicker}-${index}`} onPress={() => setTicker(itemTicker)} style={styles.instrument}>
-              <Text style={styles.instrumentTicker}>{itemTicker || '—'}</Text>
-              <Text style={styles.instrumentName}>{String(item.name || item.shortName || '')}</Text>
-            </Pressable>
-          );
-        })}
+        <Text style={styles.label}>ARQUITECTURA DE EJECUCIÓN</Text>
+        <Flow number="1" title="ATLAS analiza" text="Ticker → Quality → Growth → CAPEX → Valuation → Risk → Catalysts → acción." />
+        <Flow number="2" title="Usuario decide" text="La salida COMPRAR / AÑADIR / MANTENER / ESPERAR / REVISAR no equivale a una orden." />
+        <Flow number="3" title="Broker valida" text="Trading 212 solo recibe una orden desde una superficie autenticada y con guardrails de entorno." />
       </View>
 
-      <View style={[styles.card, styles.orderCard]}>
-        <Text style={styles.label}>ORDEN MARKET</Text>
-        <TextInput value={ticker} onChangeText={setTicker} placeholder="AAPL_US_EQ" placeholderTextColor="#526170" autoCapitalize="characters" style={styles.input} />
-        <TextInput value={quantity} onChangeText={setQuantity} placeholder="0.01" placeholderTextColor="#526170" keyboardType="decimal-pad" style={styles.input} />
-        <Text style={styles.small}>Cantidad positiva = compra. Cantidad negativa = venta. La API de Trading 212 usa cantidad de acciones, no importe monetario.</Text>
-        <Text style={styles.confirm}>Confirmación automática del entorno: {confirmation}</Text>
-        <Pressable disabled={!canUsePrivate || busy || liveLocked || !ticker.trim() || !Number.isFinite(parsedQuantity) || parsedQuantity === 0} onPress={placeOrder} style={[styles.execute, (!canUsePrivate || busy || liveLocked) && styles.disabled]}>
-          <Text style={styles.executeText}>{status?.mode === 'LIVE' ? 'EJECUTAR ORDEN REAL' : 'EJECUTAR PAPER ORDER'}</Text>
-        </Pressable>
-      </View>
-
-      {message ? <View style={styles.message}><Text style={styles.messageText}>{message}</Text></View> : null}
-
-      <View style={styles.card}><Text style={styles.label}>CUENTA</Text><Text style={styles.json}>{account ? pretty(account) : 'Sin sincronizar'}</Text></View>
-      <View style={styles.card}><Text style={styles.label}>POSICIONES</Text><Text style={styles.json}>{positions ? pretty(positions) : 'Sin sincronizar'}</Text></View>
-      <View style={styles.card}><Text style={styles.label}>ÓRDENES PENDIENTES</Text><Text style={styles.json}>{orders ? pretty(orders) : 'Sin sincronizar'}</Text></View>
+      <View style={styles.backend}><Text style={styles.backendLabel}>BACKEND</Text><Text style={styles.backendValue}>{atlasApiBaseUrl()}</Text></View>
 
       <View style={styles.guardrail}>
         <Text style={styles.guardrailTitle}>GUARDRAIL Ω</Text>
-        <Text style={styles.guardrailText}>La app no contiene las claves de Trading 212. Las credenciales viven en el backend. LIVE requiere una activación explícita del servidor y una confirmación específica en cada orden. Cada intento de orden queda registrado localmente en Decision Log Ω y Audit Log Ω sin guardar el control token.</Text>
+        <Text style={styles.guardrailText}>No hay credenciales de Trading 212 en el APK. No se expone un token privado en una caja de texto. LIVE permanece bloqueado salvo activación explícita en servidor. ATLAS nunca convierte una recomendación del algoritmo en una orden automática.</Text>
       </View>
     </ScrollView>
   );
 }
 
+function StatusRow({ label, value, positive = false, warning = false }: { label: string; value: string; positive?: boolean; warning?: boolean }) {
+  return <View style={styles.row}><Text style={styles.rowLabel}>{label}</Text><Text style={[styles.rowValue, positive && styles.connected, warning && styles.warning]}>{value}</Text></View>;
+}
+
+function Flow({ number, title, text }: { number: string; title: string; text: string }) {
+  return <View style={styles.flow}><View style={styles.flowNumber}><Text style={styles.flowNumberText}>{number}</Text></View><View style={styles.flex}><Text style={styles.flowTitle}>{title}</Text><Text style={styles.flowText}>{text}</Text></View></View>;
+}
+
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#070b10' },
-  content: { padding: 18, paddingBottom: 70, gap: 14 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
-  back: { width: 42, height: 42, borderRadius: 12, backgroundColor: '#111922', alignItems: 'center', justifyContent: 'center' },
-  backText: { color: '#b8cad9', fontSize: 30, lineHeight: 32 },
-  brand: { color: '#fff', fontSize: 24, fontWeight: '900', letterSpacing: 1.2 },
-  subbrand: { color: '#60778c', fontSize: 9, fontWeight: '900', letterSpacing: 1.5 },
-  card: { backgroundColor: '#0e151d', borderWidth: 1, borderColor: '#20303f', borderRadius: 16, padding: 15, gap: 9 },
-  paperCard: { borderColor: '#24513f', backgroundColor: '#0b1814' },
-  liveCard: { borderColor: '#63313b', backgroundColor: '#1a1014' },
-  orderCard: { borderColor: '#33475b' },
-  label: { color: '#68c9ff', fontSize: 9, fontWeight: '900', letterSpacing: 1.4 },
-  big: { color: '#f8fafc', fontSize: 25, fontWeight: '900' },
-  muted: { color: '#8b9aaa', fontSize: 12 },
-  warning: { color: '#ff9ca9', fontSize: 12, lineHeight: 18, fontWeight: '700' },
-  input: { backgroundColor: '#080d13', color: '#eef5fb', borderWidth: 1, borderColor: '#263848', borderRadius: 11, paddingHorizontal: 12, paddingVertical: 12, fontSize: 14 },
-  small: { color: '#718293', fontSize: 10, lineHeight: 15 },
-  confirm: { color: '#b6cde0', fontSize: 11, fontWeight: '800' },
-  button: { backgroundColor: '#17344a', borderWidth: 1, borderColor: '#2b6288', borderRadius: 11, padding: 13, alignItems: 'center' },
-  buttonText: { color: '#bce6ff', fontSize: 11, fontWeight: '900', letterSpacing: 0.8 },
-  execute: { backgroundColor: '#1b4a34', borderWidth: 1, borderColor: '#34765a', borderRadius: 11, padding: 14, alignItems: 'center' },
-  executeText: { color: '#c7f9df', fontSize: 11, fontWeight: '900', letterSpacing: 0.8 },
-  disabled: { opacity: 0.35 },
-  instrument: { backgroundColor: '#0a1016', borderWidth: 1, borderColor: '#1b2b39', borderRadius: 10, padding: 10 },
-  instrumentTicker: { color: '#d9eefc', fontWeight: '900', fontSize: 12 },
-  instrumentName: { color: '#74879a', fontSize: 10, marginTop: 3 },
-  message: { backgroundColor: '#101b25', borderWidth: 1, borderColor: '#29465d', borderRadius: 12, padding: 12 },
-  messageText: { color: '#b8d6e9', fontSize: 11, lineHeight: 17 },
-  json: { color: '#9eb0c0', fontFamily: 'monospace', fontSize: 10, lineHeight: 15 },
-  guardrail: { backgroundColor: '#17170c', borderWidth: 1, borderColor: '#49451f', borderRadius: 14, padding: 14 },
-  guardrailTitle: { color: '#d2c86d', fontSize: 9, fontWeight: '900', letterSpacing: 1.3 },
-  guardrailText: { color: '#9b9564', fontSize: 11, lineHeight: 17, marginTop: 6 },
+  screen: { flex: 1, backgroundColor: '#050708' }, content: { padding: 18, paddingBottom: 58, gap: 12 }, flex: { flex: 1 },
+  header: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 4, marginBottom: 7 }, back: { width: 43, height: 43, borderRadius: 22, backgroundColor: '#11161a', borderWidth: 1, borderColor: '#293139', alignItems: 'center', justifyContent: 'center' }, backText: { color: '#edf1f3', fontSize: 33, lineHeight: 34, marginTop: -4 }, brand: { color: '#f5f7f8', fontSize: 25, fontWeight: '900', letterSpacing: 1.1 }, subbrand: { color: '#61717d', fontSize: 8, fontWeight: '900', letterSpacing: 1.3, marginTop: 2 },
+  loading: { minHeight: 180, alignItems: 'center', justifyContent: 'center', gap: 12 }, loadingText: { color: '#7c8891', fontSize: 10 },
+  statusCard: { borderRadius: 17, borderWidth: 1, padding: 15 }, connectedCard: { backgroundColor: '#071813', borderColor: '#275e49' }, disconnectedCard: { backgroundColor: '#18100a', borderColor: '#5d4423' }, label: { color: '#6fcbee', fontSize: 8.5, fontWeight: '900', letterSpacing: 1.2 }, big: { fontSize: 33, fontWeight: '900', marginTop: 8 }, connected: { color: '#3bd69d' }, disconnected: { color: '#e6b95b' }, warning: { color: '#edbe63' }, statusLine: { color: '#d2d9dd', fontSize: 12, fontWeight: '800', marginTop: 4 }, statusMeta: { color: '#7d8992', fontSize: 10, lineHeight: 15, marginTop: 5 },
+  error: { borderRadius: 13, borderWidth: 1, borderColor: '#5f2937', backgroundColor: '#1a0d11', padding: 13 }, errorTitle: { color: '#ff788a', fontSize: 9, fontWeight: '900' }, errorText: { color: '#bd858f', fontSize: 10, marginTop: 5 }, retry: { alignSelf: 'flex-start', borderWidth: 1, borderColor: '#613340', borderRadius: 9, paddingHorizontal: 12, paddingVertical: 8, marginTop: 9 }, retryText: { color: '#e88a99', fontSize: 8.5, fontWeight: '900' },
+  card: { borderRadius: 15, borderWidth: 1, borderColor: '#252e34', backgroundColor: '#0c1013', padding: 14 }, row: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#252b30' }, rowLabel: { color: '#7a858e', fontSize: 10 }, rowValue: { color: '#dce2e5', fontSize: 10, fontWeight: '900' },
+  setupCard: { borderRadius: 14, borderWidth: 1, borderColor: '#604923', backgroundColor: '#181307', padding: 14 }, setupTitle: { color: '#e0bb60', fontSize: 9, fontWeight: '900' }, setupText: { color: '#9a895a', fontSize: 10, lineHeight: 15, marginTop: 6 },
+  readyCard: { borderRadius: 14, borderWidth: 1, borderColor: '#285f49', backgroundColor: '#081813', padding: 14 }, readyTitle: { color: '#42d79e', fontSize: 9, fontWeight: '900' }, readyText: { color: '#7fa894', fontSize: 10, lineHeight: 15, marginTop: 6 }, liveLocked: { color: '#e0ba61', fontSize: 9, fontWeight: '800', marginTop: 7 },
+  flow: { flexDirection: 'row', gap: 11, paddingVertical: 11, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#252b30' }, flowNumber: { width: 31, height: 31, borderRadius: 16, backgroundColor: '#112029', borderWidth: 1, borderColor: '#2a4a5d', alignItems: 'center', justifyContent: 'center' }, flowNumberText: { color: '#72cbf0', fontSize: 10, fontWeight: '900' }, flowTitle: { color: '#dce2e5', fontSize: 11, fontWeight: '900' }, flowText: { color: '#78858e', fontSize: 9.5, lineHeight: 14, marginTop: 3 },
+  backend: { borderRadius: 12, borderWidth: 1, borderColor: '#293943', backgroundColor: '#0a1217', padding: 12 }, backendLabel: { color: '#65c4e9', fontSize: 8, fontWeight: '900' }, backendValue: { color: '#71838f', fontSize: 9, marginTop: 4 },
+  guardrail: { borderRadius: 14, borderWidth: 1, borderColor: '#344625', backgroundColor: '#0e150b', padding: 14 }, guardrailTitle: { color: '#a8bd78', fontSize: 9, fontWeight: '900' }, guardrailText: { color: '#81906c', fontSize: 10, lineHeight: 15, marginTop: 5 },
 });
