@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: atlas-omega-api
+    name: atlas-genesis-api
     runtime: python
     plan: free
     buildCommand: pip install -r api/requirements.txt
