@@ -10,7 +10,10 @@ from fastapi import APIRouter, HTTPException
 
 router = APIRouter(prefix="/v1/evidence", tags=["evidence"])
 
-SEC_USER_AGENT = os.getenv("SEC_USER_AGENT", "ATLAS-Omega-Mobile/1.0 atlas@example.com").strip()
+SEC_USER_AGENT = os.getenv(
+    "SEC_USER_AGENT",
+    "ATLAS-OS (contact: vicentebellverfrances@gmail.com)",
+).strip()
 SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 SEC_SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
 SEC_CACHE_TTL_SECONDS = 86_400
