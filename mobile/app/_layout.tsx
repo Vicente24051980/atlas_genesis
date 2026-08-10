@@ -68,6 +68,17 @@ export default function RootLayout() {
         <Stack.Screen name="ticker" />
         <Stack.Screen name="market" />
         <Stack.Screen name="broker" />
+        <Stack.Screen name="overview" />
+        <Stack.Screen name="growth" />
+        <Stack.Screen name="quality" />
+        <Stack.Screen name="capex-productivity" />
+        <Stack.Screen name="valuation" />
+        <Stack.Screen name="risk" />
+        <Stack.Screen name="catalysts" />
+        <Stack.Screen name="news" />
+        <Stack.Screen name="audit" />
+        <Stack.Screen name="daily-intelligence" />
+        <Stack.Screen name="digital-twin" />
       </Stack>
     </>
   );
