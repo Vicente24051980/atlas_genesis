@@ -11,7 +11,7 @@ const ITEMS = [
   { code: 'EVD', title: 'Evidence Ω', subtitle: 'Ticker → SEC / fuentes primarias → prioridad de revisión', route: '/evidence' },
   { code: 'LOG', title: 'Decision Log Ω', subtitle: 'Historial de cambios en Cartera y Watchlist', route: '/decisions' },
   { code: 'MKT', title: 'Mercados Ω', subtitle: 'Índices, sectores, oro, petróleo, dólar, duración y crédito', route: '/market' },
-  { code: 'NWS', title: 'News Ω', subtitle: 'Noticias por ticker y catalizadores', route: '/engine-detail?engine=news' },
+  { code: 'NWS', title: 'News Ω', subtitle: 'Noticias por ticker y catalizadores', route: '/news' },
   { code: 'BRK', title: 'Broker Ω', subtitle: 'Trading 212 · estado seguro y guardrails', route: '/broker' },
 ] as const;
 
