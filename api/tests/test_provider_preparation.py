@@ -18,10 +18,12 @@ def test_finnhub_policy_separates_fast_and_slow_data() -> None:
     assert policy_for('/stock/metric').stale_seconds > policy_for('/stock/metric').ttl_seconds
 
 
-def test_trading212_symbol_keeps_original_mapping_simple_and_explicit() -> None:
+def test_trading212_symbol_mapping_is_safe_and_explicit() -> None:
     assert _symbol_from_broker_ticker('AAPL_US_EQ') == 'AAPL'
     assert _symbol_from_broker_ticker('MSFT_US_EQ') == 'MSFT'
     assert _symbol_from_broker_ticker('V') == 'V'
+    assert _symbol_from_broker_ticker('SU_FR_EQ') == ''
+    assert _symbol_from_broker_ticker('BAE_UK_EQ') == ''
 
 
 def test_readonly_portfolio_router_has_no_write_methods() -> None:
@@ -80,3 +82,4 @@ def test_app_entrypoint_exposes_readonly_portfolio_routes() -> None:
     assert '/v1/portfolio/instruments' in paths
     assert '/v1/mobile/universe' in paths
     assert '/v1/mobile/monitor/{kind}' in paths
+    assert '/v1/mobile/analyze-symbols' in paths
