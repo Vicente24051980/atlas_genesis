@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
+from api.mobile_sync import resolved_portfolio, router as mobile_router
 from api.providers.finnhub_resilient import FinnhubResilientClient, finnhub_get, finnhub_optional, policy_for
 from api.providers.trading212_readonly import _symbol_from_broker_ticker, portfolio_status, router
 
@@ -30,6 +31,13 @@ def test_readonly_portfolio_router_has_no_write_methods() -> None:
     assert methods <= {'GET', 'HEAD'}
 
 
+def test_mobile_sync_router_has_no_write_methods() -> None:
+    methods: set[str] = set()
+    for route in mobile_router.routes:
+        methods.update(getattr(route, 'methods', set()) or set())
+    assert methods <= {'GET', 'HEAD'}
+
+
 def test_portfolio_status_declares_read_only(monkeypatch) -> None:
     monkeypatch.setenv('TRADING212_ENV', 'live')
     monkeypatch.delenv('TRADING212_API_KEY', raising=False)
@@ -39,6 +47,16 @@ def test_portfolio_status_declares_read_only(monkeypatch) -> None:
     assert payload['environment'] == 'live'
     assert payload['configured'] is False
     assert payload['readOnly'] is True
+
+
+def test_mobile_portfolio_keeps_bootstrap_until_t212_is_configured(monkeypatch) -> None:
+    monkeypatch.delenv('TRADING212_API_KEY', raising=False)
+    monkeypatch.delenv('TRADING212_API_SECRET', raising=False)
+    portfolio, meta = asyncio.run(resolved_portfolio())
+    assert portfolio
+    assert meta['provider'] == 'ATLAS_BOOTSTRAP'
+    assert meta['configured'] is False
+    assert meta['readOnly'] is True
 
 
 def test_app_entrypoint_installs_resilient_finnhub_bridge() -> None:
@@ -60,3 +78,5 @@ def test_app_entrypoint_exposes_readonly_portfolio_routes() -> None:
     assert '/v1/portfolio/live' in paths
     assert '/v1/portfolio/account' in paths
     assert '/v1/portfolio/instruments' in paths
+    assert '/v1/mobile/universe' in paths
+    assert '/v1/mobile/monitor/{kind}' in paths
