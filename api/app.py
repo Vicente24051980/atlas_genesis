@@ -6,6 +6,7 @@ from api.atlas_core import router as atlas_router
 from api.evidence import router as evidence_router
 from api.main import app
 from api.market import router as market_router
+from api.mobile_sync import router as mobile_sync_router
 from api.providers.finnhub_resilient import finnhub_get, finnhub_optional
 from api.providers.trading212_readonly import router as trading212_readonly_router
 
@@ -26,3 +27,4 @@ app.include_router(market_router)
 app.include_router(atlas_router)
 app.include_router(evidence_router)
 app.include_router(trading212_readonly_router)
+app.include_router(mobile_sync_router)
