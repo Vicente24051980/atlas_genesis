@@ -71,6 +71,37 @@ Fujikura/Furukawa application:
 
 The engine rejects mixed-thesis rankings and untraceable claims.
 
+## MARKET BOTTOM Ω / STOCK RECOVERY Ω
+
+`CURRENT_CANON/MARKET_BOTTOM_OMEGA.md` is the canonical higher-layer module for detecting probable market/sector bottoms and high-quality single-stock recoveries.
+
+It does **not** modify or expand CORE-00.
+
+Canonical sequence:
+
+`capitulation -> oversold -> divergence -> breadth improvement -> structural break`
+
+MARKET BOTTOM Ω score weights:
+
+- Breadth 25%.
+- Capitulation / volume 20%.
+- Divergences 20%.
+- Price structure 20%.
+- Volatility / credit / sentiment 10%.
+- Relative leadership 5%.
+
+Operational states: 0–39 RED; 40–59 WATCH; 60–69 STARTER; 70–79 BUY; 80–100 STRONG BOTTOM.
+
+Hard gate: `BottomScore >= 75` without SMA50 recovery or a break of the prior reaction high remains **not confirmed**.
+
+STOCK RECOVERY Ω prefers Quality Ω >=85, drawdown approximately 20–60%, positive FCF, healthy/stable ROIC, intact thesis, BottomScore >=60, positive 1M, improving 3M, SMA50 recovery, lower selling volume on retest and improving relative strength.
+
+Canonical cross-check:
+
+`QUALITY Ω × MARKET BOTTOM Ω × STOCK RECOVERY Ω × GREEN CONTINUITY Ω × ENTRY TIMING Ω`
+
+Master recovery rule: the preferred recovery BUY is not the lowest-RSI stock; it is the highest-quality company whose price stops falling before its sector while the business never broke.
+
 ## Epistemic governance
 
 `Information Received != Admissible Evidence`.
