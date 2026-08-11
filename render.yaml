@@ -9,8 +9,10 @@ services:
     envVars:
       - key: FINNHUB_TOKEN
         sync: false
+      - key: FINNHUB_MAX_CALLS_PER_SECOND
+        value: "20"
       - key: TRADING212_ENV
-        value: demo
+        value: live
       - key: TRADING212_API_KEY
         sync: false
       - key: TRADING212_API_SECRET
