@@ -1,0 +1,72 @@
+name: ATLAS Ω Premium Data + T212 Preparation
+
+on:
+  push:
+    branches:
+      - feat/premium-data-t212-live-20260811
+    paths:
+      - 'api/**'
+      - 'mobile/**'
+      - 'docs/2026-08-11-premium-data-t212-plan.md'
+      - '.github/workflows/premium-data-t212-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'mobile/**'
+      - 'docs/2026-08-11-premium-data-t212-plan.md'
+      - '.github/workflows/premium-data-t212-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: premium-data-t212-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-safety:
+    name: Provider safety + Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install API dependencies
+        run: pip install -r api/requirements.txt
+      - name: Compile API
+        run: python -m compileall -q api
+      - name: Run provider preparation tests
+        run: pytest -q api/tests/test_provider_preparation.py
+      - name: Assert no secrets are hard-coded in preparation files
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -RIE '(TRADING212_API_KEY|TRADING212_API_SECRET|FINNHUB_TOKEN)\s*=\s*["'"'][^"'"']+["'"']' api/providers api/tests || {
+            echo '::error::Potential hard-coded provider secret detected'
+            exit 1
+          }
+
+  mobile-regression:
+    name: Existing mobile TypeScript regression gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - run: npm install
+      - run: npx tsc --noEmit
+
+  no-apk-on-prep:
+    name: Confirm preparation does not replace working APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guardrail
+        run: |
+          echo 'Preparation branch only: no APK build, no Render deploy, no main merge.'
