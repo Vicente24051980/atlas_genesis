@@ -17,7 +17,5 @@ services:
         sync: false
       - key: TRADING212_API_SECRET
         sync: false
-      - key: ATLAS_BROKER_CONTROL_TOKEN
-        sync: false
       - key: TRADING212_LIVE_TRADING_ENABLED
         value: "false"
