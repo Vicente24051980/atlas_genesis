@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from api.providers.finnhub_resilient import FinnhubResilientClient, policy_for
+from api.providers.finnhub_resilient import FinnhubResilientClient, finnhub_get, finnhub_optional, policy_for
 from api.providers.trading212_readonly import _symbol_from_broker_ticker, portfolio_status, router
 
 
@@ -39,3 +39,24 @@ def test_portfolio_status_declares_read_only(monkeypatch) -> None:
     assert payload['environment'] == 'live'
     assert payload['configured'] is False
     assert payload['readOnly'] is True
+
+
+def test_app_entrypoint_installs_resilient_finnhub_bridge() -> None:
+    import api.app  # noqa: F401
+    import api.atlas_core as atlas_core
+    import api.main as base_api
+
+    assert base_api._finnhub_get is finnhub_get
+    assert base_api._optional is finnhub_optional
+    assert atlas_core._finnhub is finnhub_get
+    assert atlas_core._optional is finnhub_optional
+
+
+def test_app_entrypoint_exposes_readonly_portfolio_routes() -> None:
+    from api.app import app
+
+    paths = {route.path for route in app.routes}
+    assert '/v1/portfolio/status' in paths
+    assert '/v1/portfolio/live' in paths
+    assert '/v1/portfolio/account' in paths
+    assert '/v1/portfolio/instruments' in paths
