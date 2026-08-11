@@ -3,6 +3,7 @@ import {
   DislocationPayload,
   MarketHistory,
   MarketOverview,
+  MonitorItem,
   MonitorPage,
   RotationPayload,
   TrackedUniverse,
@@ -17,12 +18,20 @@ export type MobileUniverse = TrackedUniverse & {
     sourceStatus?: string;
     generatedAt?: string;
     readOnly?: boolean;
+    unresolvedAnalysisSymbols?: number;
     rateLimit?: Record<string, string>;
   };
   watchlistMeta?: {
     provider?: string;
     analysisProvider?: string;
   };
+};
+
+export type AnalysisBatch = {
+  context: 'portfolio' | 'watchlist';
+  count: number;
+  items: MonitorItem[];
+  guardrail: string;
 };
 
 async function request<T>(path: string, timeoutMs = 30_000): Promise<T> {
@@ -75,6 +84,15 @@ export const AtlasPremiumSyncApi = {
       `/v1/mobile/monitor/${kind}?offset=${Math.max(0, offset)}&limit=${Math.max(1, Math.min(limit, 8))}`,
       () => AtlasOnlineApi.atlasMonitor(kind, offset, limit),
     ),
+
+  analyzeSymbols: (
+    symbols: string[],
+    context: 'portfolio' | 'watchlist' = 'watchlist',
+  ): Promise<AnalysisBatch> => {
+    const cleaned = Array.from(new Set(symbols.map((item) => item.trim().toUpperCase()).filter(Boolean))).slice(0, 8);
+    const query = encodeURIComponent(cleaned.join(','));
+    return request<AnalysisBatch>(`/v1/mobile/analyze-symbols?symbols=${query}&context=${context}`);
+  },
 
   history: (ticker: string, days = 380): Promise<MarketHistory> => newBackendOrFallback(
     `/v1/market/history/${encodeURIComponent(ticker.trim().toUpperCase())}?days=${Math.max(10, Math.min(days, 1900))}`,
