@@ -136,7 +136,7 @@ Price structure: 20
 Volatility/sentiment: 70
 Leadership/rotation: 20
 
-BottomScore: 41.3
+BottomScore: 41.2
 State: WATCH
 ```
 
