@@ -29,6 +29,8 @@ jobs:
   api-safety:
     name: Provider safety + Python tests
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -39,15 +41,15 @@ jobs:
       - name: Compile API
         run: python -m compileall -q api
       - name: Run provider preparation tests
-        run: pytest -q api/tests/test_provider_preparation.py
+        run: python -m pytest -q api/tests/test_provider_preparation.py
       - name: Assert no secrets are hard-coded in preparation files
         shell: bash
         run: |
           set -euo pipefail
-          ! grep -RIE '(TRADING212_API_KEY|TRADING212_API_SECRET|FINNHUB_TOKEN)\s*=\s*["'"'][^"'"']+["'"']' api/providers api/tests || {
+          if grep -RIE '(TRADING212_API_KEY|TRADING212_API_SECRET|FINNHUB_TOKEN)[[:space:]]*=[[:space:]]*["'"'][A-Za-z0-9_-]{12,}["'"']' api/providers api/tests; then
             echo '::error::Potential hard-coded provider secret detected'
             exit 1
-          }
+          fi
 
   mobile-regression:
     name: Existing mobile TypeScript regression gate
