@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import json
 import os
 import time
 from dataclasses import dataclass
@@ -52,19 +53,49 @@ def _auth_header() -> str:
     return "Basic " + base64.b64encode(raw).decode("ascii")
 
 
-def _symbol_from_broker_ticker(ticker: str) -> str:
-    """Best-effort ATLAS symbol from a T212 ticker.
+def _symbol_overrides() -> dict[str, str]:
+    """Optional verified T212 ticker -> analysis symbol mappings.
 
-    T212's full instrument object remains attached to every position. This
-    helper only supplies a convenient analysis candidate; international symbol
-    resolution can later use the cached instrument metadata/ISIN map.
+    The value is non-secret configuration, supplied server-side as a JSON
+    object. International symbols are deliberately not guessed. Example:
+    {"VERIFIED_BROKER_TICKER": "VERIFIED.PROVIDER_SYMBOL"}
+    """
+    raw = os.getenv("ATLAS_T212_SYMBOL_OVERRIDES", "{}").strip() or "{}"
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+    result: dict[str, str] = {}
+    for key, value in payload.items():
+        broker = str(key).strip().upper()
+        symbol = str(value).strip().upper()
+        if broker and symbol and len(symbol) <= 24 and all(ch.isalnum() or ch in ".-" for ch in symbol):
+            result[broker] = symbol
+    return result
+
+
+def _symbol_from_broker_ticker(ticker: str) -> str:
+    """Return a safe analysis symbol or an empty string when unresolved.
+
+    Trading 212 uses unique broker tickers such as AAPL_US_EQ. US equity
+    tickers can be normalized deterministically. International instruments are
+    not stripped blindly because the resulting bare symbol can identify a
+    completely different company on another exchange. They require a verified
+    override after inspecting the real instrument metadata/ISIN.
     """
     value = ticker.strip().upper()
     if not value:
+        return ""
+    override = _symbol_overrides().get(value)
+    if override:
+        return override
+    if value.endswith("_US_EQ"):
+        return value[: -len("_US_EQ")]
+    if "_" not in value and len(value) <= 20 and all(ch.isalnum() or ch in ".-" for ch in value):
         return value
-    if "_" in value:
-        return value.split("_", 1)[0]
-    return value
+    return ""
 
 
 def _cache_ttl(path: str) -> float:
@@ -91,7 +122,13 @@ def _cache_key(path: str, params: dict[str, Any] | None) -> str:
 
 
 def _capture_rate_headers(headers: httpx.Headers) -> None:
-    for key in ("x-ratelimit-limit", "x-ratelimit-period", "x-ratelimit-remaining", "x-ratelimit-reset"):
+    for key in (
+        "x-ratelimit-limit",
+        "x-ratelimit-period",
+        "x-ratelimit-remaining",
+        "x-ratelimit-reset",
+        "x-ratelimit-used",
+    ):
         value = headers.get(key)
         if value is not None:
             _LAST_RATE_HEADERS[key] = value
@@ -151,10 +188,12 @@ async def _request(path: str, *, params: dict[str, Any] | None = None) -> tuple[
 
 def _position_row(raw: dict[str, Any]) -> dict[str, Any]:
     instrument = raw.get("instrument") if isinstance(raw.get("instrument"), dict) else {}
-    broker_ticker = str(instrument.get("ticker") or raw.get("ticker") or "").strip()
+    broker_ticker = str(instrument.get("ticker") or raw.get("ticker") or "").strip().upper()
+    analysis_symbol = _symbol_from_broker_ticker(broker_ticker)
     return {
         "brokerTicker": broker_ticker,
-        "analysisSymbol": _symbol_from_broker_ticker(broker_ticker),
+        "analysisSymbol": analysis_symbol or None,
+        "analysisSymbolStatus": "RESOLVED" if analysis_symbol else "NEEDS_VERIFIED_MAPPING",
         "name": instrument.get("name") or instrument.get("shortName") or broker_ticker,
         "isin": instrument.get("isin"),
         "currency": instrument.get("currencyCode"),
@@ -186,6 +225,7 @@ async def live_portfolio() -> dict[str, Any]:
     payload, source_status = await _request("/equity/positions")
     rows = payload if isinstance(payload, list) else []
     positions = [_position_row(item) for item in rows if isinstance(item, dict)]
+    unresolved = sum(1 for item in positions if not item.get("analysisSymbol"))
     return {
         "provider": "Trading212",
         "environment": _env(),
@@ -193,9 +233,10 @@ async def live_portfolio() -> dict[str, Any]:
         "generatedAt": datetime.now(timezone.utc).isoformat(),
         "sourceStatus": source_status,
         "count": len(positions),
+        "unresolvedAnalysisSymbols": unresolved,
         "positions": positions,
         "rateLimit": dict(_LAST_RATE_HEADERS),
-        "guardrail": "Portfolio state is read from Trading 212. ATLAS analysis is separate; broker data never fabricates an investment decision.",
+        "guardrail": "Portfolio state is read from Trading 212. International analysis symbols are never guessed; unresolved instruments stay visible until an exchange/ISIN mapping is verified.",
     }
 
 
