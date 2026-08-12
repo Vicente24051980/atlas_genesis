@@ -1,0 +1,36 @@
+name: ATLAS Ω Premium Data + T212 Preparation
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  api-safety:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r api/requirements.txt
+      - run: python -m compileall -q api
+      - run: python -m pytest -q api/tests/test_provider_preparation.py
+
+  mobile-regression:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.13.0'
+      - run: npm install
+      - run: npx tsc --noEmit
