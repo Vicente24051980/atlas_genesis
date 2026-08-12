@@ -110,6 +110,11 @@ Universo: **40 emisores únicos; 0 duplicados**
 - El consenso de precio es evidencia secundaria, nunca señal autónoma.
 - `NV` significa **no verificado/no aplicable**, no cero.
 
+## Persistencia dual
+
+- [Réplica legible en Notion](https://app.notion.com/p/3ba7622f946281538111e4e9bb3f6be9?pvs=204)
+- GitHub conserva este informe y el JSON machine-readable; Notion conserva la vista operativa del mismo corte.
+
 ## Guardrail
 
 > **GREEN confirma continuidad; no sustituye calidad, caja, valoración ni precio de entrada. ADVANCE abre diligencia, no una orden.**
