@@ -2,28 +2,30 @@
 
 Status: CANONICAL GOVERNANCE RULE — INVIOLABLE
 Effective date: 2026-08-12
-Scope: ALL ATLAS OS branches and all relevant analytical threads
+Scope: ALL ATLAS OS branches, all relevant analytical threads, decisions, data, research and implementations
 
-## Inviolable rule
+## Universal inviolable rule
 
-Every ATLAS-relevant thread MUST be persisted in both:
+**EVERYTHING RELEVANT TO ATLAS Ω MUST BE PERSISTED IN BOTH GITHUB AND NOTION.**
+
+This includes, without limitation: rules, engines, modules, algorithms, prompts, decisions, portfolio/watchlist changes, rankings, scores, research, evidence, conclusions, falsifiers, alerts, health/other ATLAS branches where applicable, architecture, code, fixes, workflows, deployments, migrations and operational state.
 
 1. **GitHub** — versioned, canonical, implementation and evidence layer.
-2. **Notion** — visual, relational, navigable knowledge layer.
+2. **Notion** — visual, relational, navigable operational/knowledge mirror.
 
-A thread is **not considered archived, implemented or complete** until both writes exist.
+A relevant ATLAS item is **not considered archived, implemented, synchronized or complete** until both writes exist.
 
-This rule is automatic. If the destinations are already known, ATLAS MUST NOT ask for confirmation before attempting the dual write.
+This rule is automatic. If destinations are known, ATLAS MUST NOT ask for confirmation before attempting the dual write.
 
 ## Dual-write contract
 
-`THREAD -> GitHub + Notion -> COMPLETE`
+`ATLAS RELEVANT INFORMATION -> GitHub + Notion -> COMPLETE`
 
 If only one write succeeds:
 
-`THREAD -> PARTIAL_SYNC / PENDING_SECOND_WRITE`
+`ATLAS RELEVANT INFORMATION -> PARTIAL_SYNC / PENDING_SECOND_WRITE`
 
-The system MUST NOT report the thread as fully persisted while either destination is missing.
+The system MUST NOT report full persistence while either destination is missing.
 
 ## Operational enforcement
 
@@ -39,7 +41,7 @@ Every relevant persistence event should preserve, when practical:
 
 ### Completion gate
 
-An ATLAS task that explicitly requires GitHub + Notion persistence cannot be declared **DONE**, **ARCHIVED**, **IMPLEMENTED** or **SYNCED** unless:
+No relevant ATLAS task may be declared **DONE**, **ARCHIVED**, **IMPLEMENTED** or **SYNCED** unless:
 
 `github_write == SUCCESS AND notion_write == SUCCESS`
 
@@ -49,7 +51,7 @@ Otherwise the only admissible persistence state is:
 
 ### Same-interaction rule
 
-When the user instructs `GitHub y Notion`, `ley inviolable`, or an equivalent dual-persistence command, ATLAS must attempt both writes in the same interaction whenever both connectors are available.
+When relevant ATLAS information is created or modified, and especially when the user instructs `GitHub y Notion`, `todo a GitHub y Notion`, `ley inviolable`, or equivalent, ATLAS must attempt both writes in the same interaction whenever both connectors are available.
 
 Chat history alone never satisfies persistence.
 
@@ -83,7 +85,7 @@ A copy in Notion does not by itself promote information to canonical evidence. C
 
 ## Capture standard
 
-Each persisted thread should preserve, when applicable:
+Each persisted item should preserve, when applicable:
 - date and source;
 - raw/user-supplied thesis;
 - facts vs interpretations vs hypotheses;
@@ -125,11 +127,11 @@ No material ATLAS implementation may exist only in chat history, only in GitHub,
 
 This law applies across **all ATLAS branches**, not only Atlas Financiero Ω.
 
-No relevant thread may be intentionally retained only in chat history.
+No relevant information, decision, research result, rule, engine, ranking, score, portfolio/watchlist mutation, implementation or canonical update may be intentionally retained only in chat history.
 
 No material implementation may be declared complete until its GitHub and Notion records both exist.
 
-No arbitrary simplification, pruning, or omission may silently remove a relevant thread from one side of the dual-write system.
+No arbitrary simplification, pruning, or omission may silently remove relevant information from one side of the dual-write system.
 
 ## Governance
 
