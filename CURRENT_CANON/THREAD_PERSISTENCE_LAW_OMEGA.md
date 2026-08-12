@@ -52,12 +52,42 @@ Each persisted thread should preserve, when applicable:
 - falsifiers and unresolved verification items;
 - cross-links to related GitHub and Notion material.
 
+## Implementation dual-sync clause — INVIOLABLE
+
+Every ATLAS implementation — feature, fix, API integration, connector, architecture change, workflow, deployment, migration or rollback — MUST be recorded in both GitHub and Notion.
+
+`IMPLEMENTATION -> GitHub + Notion -> COMPLETE`
+
+An implementation is **not DONE** merely because code works, a workflow is green, an APK builds, a backend deploys, or a Notion page exists. Completion requires both sides:
+
+### GitHub implementation record
+- executable code/configuration and tests where applicable;
+- commit/PR/run traceability;
+- rollback point or recovery path for material changes;
+- implementation documentation when the change affects architecture, providers, data contracts or governance.
+
+### Notion implementation record
+- what changed and why;
+- current operational status;
+- affected ATLAS modules/branches;
+- GitHub commit/PR/run links when applicable;
+- validation result, known limitations and next action;
+- rollback/reference state for material changes.
+
+If either write is missing, the implementation state is:
+
+`PARTIAL_SYNC / NOT COMPLETE`
+
+No material ATLAS implementation may exist only in chat history, only in GitHub, or only in Notion. GitHub remains the canonical executable/versioned layer; Notion remains the navigable operational/knowledge layer. They MUST stay synchronized.
+
 ## Non-negotiable behavior
 
 This law applies across **all ATLAS branches**, not only Atlas Financiero Ω.
 
 No relevant thread may be intentionally retained only in chat history.
 
+No material implementation may be declared complete until its GitHub and Notion records both exist.
+
 ## Governance
 
-This file defines a higher-layer persistence rule and does **not** modify CORE-00 or add a sixth core engine.
+This file defines a higher-layer persistence and implementation-synchronization rule and does **not** modify CORE-00 or add a sixth core engine.
