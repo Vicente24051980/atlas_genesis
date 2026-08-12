@@ -1,6 +1,7 @@
 # ATLAS Ω — Michael Burry / AI CAPEX & Credit Watch
 
-**Fecha:** 10-agosto-2026  
+**Fecha inicial:** 10-agosto-2026  
+**Última actualización:** 12-agosto-2026  
 **Estado:** INFORMATION / RESEARCH ONLY  
 **Efecto canónico:** NINGUNO por sí solo.  
 **Efecto sobre BUY/NO BUY:** NINGUNO por sí solo.  
@@ -226,6 +227,88 @@ La respuesta debe apoyarse en evidencia cuantitativa de cada compañía. Un CAPE
 - No se modifica Broker Ω.
 - No se modifica ningún score canónico.
 - No se mezclan motores independientes.
+
+---
+
+## 10. Actualización Michael Burry — 12-ago-2026
+
+### Hechos / operaciones documentadas
+
+- En el Trading Post del 11-ago-2026, Burry indicó que **aumentó sus tres mayores posiciones cortas**. La parte pública disponible no identifica cuáles son esos tres tickers; ATLAS no debe inferirlos.
+- Burry indicó que **añadió Molina Healthcare (MOH) alrededor de $198**, devolviéndola aproximadamente al tamaño de sus posiciones mayores.
+- Mantiene una tesis de largo plazo favorable sobre MOH; el seguimiento ATLAS debe separar esa convicción de los riesgos operativos reales del negocio y de su exposición a Medicaid/Medicare/ACA.
+- Se registró además una crítica reciente de Burry a **Berkshire Hathaway (BRK.B)** bajo Greg Abel. Esto se trata como opinión de valoración/management, no como posición corta documentada.
+
+### Cambio frente a tesis anteriores
+
+No se observa un giro estructural. El patrón sigue siendo:
+
+`LONG CONTRARIAN EN NEGOCIOS CASTIGADOS + SHORTS CON ALTA CONVICCIÓN EN ÁREAS QUE CONSIDERA SOBREVALORADAS / FRÁGILES`
+
+Esto refuerza que **Burry no debe modelarse como un simple indicador de mercado bajista**. Sus largos y cortos deben auditarse por separado.
+
+### Implicación ATLAS Ω
+
+- **MOH:** candidato para auditoría en Quality at a Discount / Historical Dislocation; no BUY automático.
+- **BRK.B:** comentario de management/valuation; no SELL ni short automático.
+- **Tres mayores cortos:** señal de convicción bajista agregada, pero **ticker = UNKNOWN** hasta evidencia primaria verificable.
+
+---
+
+## 11. IV15 / retorno implícito — marco informativo derivado de Burry
+
+Burry utiliza el concepto **IV15** como un precio de compra que, bajo sus supuestos de valoración, ofrecería aproximadamente un **15% anual compuesto durante 15 años**. No debe confundirse con una predicción garantizada ni con el valor intrínseco único de una compañía.
+
+Principio matemático:
+
+`Precio compatible con retorno r = Valor futuro estimado / (1+r)^n`
+
+Para 15 años:
+
+- IV10 = precio compatible aproximadamente con 10% CAGR.
+- IV12 = precio compatible aproximadamente con 12% CAGR.
+- IV15 = precio compatible aproximadamente con 15% CAGR.
+- IV18 = precio compatible aproximadamente con 18% CAGR.
+
+Orden lógico:
+
+`IV18 < IV15 < IV12 < IV10`
+
+Cuanto mayor retorno requerido, menor precio de compra admisible.
+
+### Ejemplo conceptual
+
+Si una inversión se estima en 1.000 unidades de valor dentro de 15 años:
+
+`IV15 ≈ 1.000 / 1.15^15 ≈ 123`
+
+El objetivo no es afirmar que valdrá 1.000, sino hacer explícita la relación entre **precio pagado hoy, valor futuro supuesto y retorno requerido**.
+
+### Integración permitida en ATLAS Ω
+
+Usar como capa independiente de valoración:
+
+`QUALITY Ω -> IMPLIED RETURN Ω -> GREEN CONTINUITY Ω -> ENTRY TIMING Ω`
+
+Una empresa puede ser extraordinaria en calidad y ofrecer retorno implícito insuficiente al precio actual. De forma inversa, una empresa más barata puede ofrecer mayor retorno potencial pero peor calidad y más riesgo.
+
+ATLAS no debe copiar ni atribuir parámetros privados del DCF de Burry que no estén documentados. Nuestro cálculo de IMPLIED RETURN Ω debe ser propio, reproducible, con escenarios y sensibilidad explícita.
+
+---
+
+## 12. Ley de persistencia aplicable
+
+Todo seguimiento material de Burry, cambios de tesis, operaciones documentadas, nuevas empresas mencionadas y cambios relevantes de esta capa deben persistirse conforme a:
+
+`CURRENT_CANON/THREAD_PERSISTENCE_LAW_OMEGA.md`
+
+Estado válido:
+
+`GitHub + Notion = COMPLETE`
+
+Si falta una de las dos copias:
+
+`PARTIAL_SYNC / PENDING_SECOND_WRITE`
 
 ## Regla de autoridad
 
