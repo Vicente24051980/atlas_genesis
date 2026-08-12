@@ -1,7 +1,7 @@
 # ATLAS Ω — 41 TICKERS · GITHUB ENGINES PREFLIGHT
 
 Fecha: 2026-08-12
-Estado: RESEARCH / RUNTIME_PENDING
+Estado histórico: RESEARCH / RUNTIME_PENDING · Reconciliado con auditoría actual de 40
 Origen: lista única de 41 compañías suministrada por Vicente.
 
 ## Objetivo
@@ -138,3 +138,20 @@ Este documento es un preflight auditable de identificación + enrutado. El sigui
 `No data -> no fabricated score.`
 
 Este preflight no modifica cartera, watchlist ni canon de decisión. Es una entrada de investigación para ejecución posterior del runtime.
+
+## Reconciliación ejecutada · 2026-08-12
+
+Las capturas actuales contienen **40 emisores únicos**, no 41. `CAT` pertenecía al lote histórico anterior y no aparece en las capturas actuales; se conserva aquí como historial y se excluye de la auditoría vigente.
+
+Resolución canónica cerrada:
+- `MTE → MU`
+- `ORC → ORCL`
+- `BSP → BA.L` para BAE Systems
+- `MRSH` se mantiene como ticker vigente de Marsh & McLennan
+- Europa: `ABN.AS`, `IQE.L`, `HAG.DE`, `IFX.DE`, `RHM.DE`, `SAF.PA`, `TKA.DE`, `SU.PA`, `HLMA.L`
+
+El runtime de investigación ya fue ejecutado con cierres ajustados sincronizados al 11-ago-2026 y métricas fundamentales/valoración observadas el 12-ago-2026:
+- [Auditoría legible de 40 acciones](./2026-08-12_40_TICKER_ATLAS_ENGINE_AUDIT.md)
+- [Dataset estructurado de 40 acciones](./2026-08-12_40_TICKER_ATLAS_ENGINE_AUDIT.json)
+
+Resultado agregado: **15 GREEN 5/5**, **6 ADVANCE a diligencia primaria**, sin BUY/SELL automático ni mutación de cartera/canon.
