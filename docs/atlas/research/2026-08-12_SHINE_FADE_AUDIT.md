@@ -39,6 +39,21 @@ Intel upsized a 2026 equity offering from $15B to $20B, priced at $95/share, aft
 7. HIMS — FADE
 8. INTC — PRICE BRIGHT / DILUTION-RISK EQUITY
 
+## QUALITY Ω filter — minimum 85
+Strict cut from the audited radar:
+- APH — 93: PASS clearly.
+- CAH — 88: PASS.
+- COR — 87: PASS.
+- THC — 85: PASS at the minimum threshold, with normalization/healthcare-cycle caveat.
+
+Excluded below 85:
+- GEHC — 84: borderline; strong orders/backlog, but moderate organic growth, low quarterly FCF and PCS deterioration.
+- MRVL — 83: strong business momentum, but SBC, acquisition intensity, preferred stock and higher debt reduce Financial Quality.
+- HIMS — below 85.
+- INTC — below 85.
+
+This is a structural-quality screen, not BUY NOW. Next gates remain IMPLIED RETURN Ω, GREEN CONTINUITY Ω, ENTRY TIMING Ω / NO-CHASE and EVENT_RISK Ω.
+
 ## Rules
 - SHINE/FADE is not BUY/SELL.
 - BUY requires QUALITY Ω × IMPLIED RETURN Ω × GREEN CONTINUITY Ω × ENTRY TIMING Ω / NO-CHASE × EVENT_RISK Ω.
