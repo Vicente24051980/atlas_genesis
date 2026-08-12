@@ -14,7 +14,7 @@ class TrackedTicker(TypedDict, total=False):
 # Bootstrap snapshot only. The mobile client reads this remotely so the tracked
 # universe can be corrected without rebuilding the APK. Exact broker quantities,
 # cost basis and P/L always come from Trading 212 when that connection is enabled.
-SNAPSHOT_ID = "ATLAS-TRACKED-2026-08-09-BOOTSTRAP-v1"
+SNAPSHOT_ID = "ATLAS-TRACKED-2026-08-12-BOOTSTRAP-v2"
 SNAPSHOT_STATUS = "AWAITING_USER_CONFIRMATION"
 
 PORTFOLIO: list[TrackedTicker] = [
@@ -49,7 +49,7 @@ PORTFOLIO: list[TrackedTicker] = [
     {"ticker": "DHR", "name": "Danaher", "sector": "Health"},
     {"ticker": "V", "name": "Visa", "sector": "Payments"},
     {"ticker": "MA", "name": "Mastercard", "sector": "Payments"},
-    {"ticker": "BAE", "symbol": "BAE.L", "name": "BAE Systems", "sector": "Defense"},
+    {"ticker": "BAE", "symbol": "BA.L", "name": "BAE Systems", "sector": "Defense"},
     {"ticker": "QLYS", "name": "Qualys", "sector": "Cybersecurity"},
 ]
 
