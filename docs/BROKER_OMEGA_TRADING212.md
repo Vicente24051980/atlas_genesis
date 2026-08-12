@@ -42,6 +42,22 @@ Do this only after paper validation:
 4. When deliberately ready to permit real execution, set `TRADING212_LIVE_TRADING_ENABLED=true` server-side.
 5. The API still requires `EXECUTE_LIVE` confirmation on every market-order request.
 
+## 24/5 prices and extended-hours discipline
+
+Canonical user setting for portfolio construction:
+
+- Trading 212 `Precios 24/5`: OFF by default.
+- 24/5 prices are permitted only as an optional radar, not as a decision engine.
+- Portfolio construction should be executed primarily during regular market hours, where volume, spreads and price discovery are more reliable.
+- Extended-hours movement is not sufficient evidence for BUY or SELL.
+- No market orders should be placed during pre-market, after-hours or overnight sessions.
+- Any exceptional extended-hours action requires a limit order, a known catalyst, acceptable spread and explicit thesis/falsifier check.
+- Volatility notifications should use high thresholds to avoid noise-driven decisions.
+
+Operational sentence:
+
+> 24/5 informs; ATLAS decides with evidence, volume and confirmed price. A missed upside move is opportunity cost; a bad extended-hours fill is real damage.
+
 ## API endpoints
 
 Public status only:
@@ -68,3 +84,4 @@ Protected calls require the `X-Atlas-Broker-Token` header.
 - Zero-quantity orders are rejected.
 - Trading 212 upstream errors and rate limits are surfaced rather than silently retried, reducing duplicate-order risk.
 - Market orders are not idempotent in the Trading 212 beta API; callers must not blindly retry a failed POST.
+- Extended-hours market orders are forbidden by ATLAS operating policy; use regular-session execution or explicit limit-order discipline.
