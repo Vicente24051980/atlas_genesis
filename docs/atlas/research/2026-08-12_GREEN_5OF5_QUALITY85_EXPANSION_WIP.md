@@ -3,6 +3,7 @@
 Status: WIP / RESEARCH — NOT CANONICAL PASS LIST
 Date: 2026-08-12
 SYNC_ID: ATLAS-GREEN85-EXPANSION-2026-08-12-WIP
+SYNC_STATUS: COMPLETE
 Branch: Atlas Financiero Ω
 
 ## User mandate
@@ -73,10 +74,23 @@ No null output should be silently interpreted as PASS.
 
 ## Persistence state
 
-GitHub copy: this file.
-Notion copy: required under `12 — Atlas Financiero Ω · Inversión, Riesgo y Motores`.
+GitHub copy: `docs/atlas/research/2026-08-12_GREEN_5OF5_QUALITY85_EXPANSION_WIP.md`
 
-Until both copies exist, persistence state is `PARTIAL_SYNC` under THREAD PERSISTENCE LAW Ω.
+Notion copy: `2026-08-12 — GREEN 5/5 + Quality ≥85 · Expansión 30 candidatos · WIP`
+
+Notion page ID: `3ba7622f-9462-81e0-b1e2-c385fbcd7f36`
+
+Notion URL: https://app.notion.com/p/3ba7622f946281e0b1e2c385fbcd7f36?pvs=204
+
+Persistence result:
+
+`GitHub = SUCCESS`
+
+`Notion = SUCCESS`
+
+`SYNC_STATUS = COMPLETE`
+
+The research remains WIP; its persistence is complete under THREAD PERSISTENCE LAW Ω.
 
 ## Epistemic state
 
