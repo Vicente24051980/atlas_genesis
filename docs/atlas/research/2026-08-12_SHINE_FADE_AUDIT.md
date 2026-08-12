@@ -52,7 +52,38 @@ Excluded below 85:
 - HIMS — below 85.
 - INTC — below 85.
 
-This is a structural-quality screen, not BUY NOW. Next gates remain IMPLIED RETURN Ω, GREEN CONTINUITY Ω, ENTRY TIMING Ω / NO-CHASE and EVENT_RISK Ω.
+## Quality>=85 execution gates — 2026-08-12
+Proxy currently used for IMPLIED RETURN Ω in this audit: consensus 12-month price-target upside >=10%. It is a homogeneous execution proxy, not a replacement for full multi-framework valuation.
+
+### APH — PASS / BUY-CANDIDATE, not automatic execution
+- GREEN CONTINUITY evidence: 5-day +5.28%, 1-month +6.66%, 3-month +23.83%, 52-week +55.85%, long-term positive. PASS 5/5 on available current performance data.
+- Consensus target: approximately $189.39. Recent market price around the high-$160s after rebound; implied consensus upside remains roughly low-double-digits, therefore PASS under the >=10% proxy.
+- ENTRY TIMING: price remains below 52-week/ATH area $178.52 and is building/recovering toward the prior high. YELLOW-GREEN: preferable to buy on consolidation/pullback rather than chase a breakout candle.
+- Operational status: PRIORITY #1; only name in this four-stock subset that currently combines Quality>=85 + verified GREEN 5/5 + sufficient consensus-return buffer.
+
+### COR — WATCH / IR FAIL
+- Price $333.87 on 2026-08-11, approximately 11.6% below 52-week high $377.54; short-term recovery is improving.
+- Consensus target captured at $353.50; at $333.87 this is only about +5.9% upside. FAIL the >=10% IR proxy.
+- ENTRY TIMING itself is not stretched versus ATH, but insufficient implied-return buffer blocks BUY NOW.
+
+### CAH — WATCH / IR FAIL + NO-CHASE
+- Price around $245.64 after FY27 guidance-driven rally, at/near record territory.
+- Pre-earnings consensus target captured around $252.40; at $245.64 this is only about +2.8%. Fresh post-earnings targets can move, so re-audit after analyst revisions, but current proxy FAILS.
+- ENTRY TIMING: RED/YELLOW NO-CHASE after breakout/gap and near ATH. Strong business, poor immediate asymmetry.
+
+### THC — WATCH / IR FAIL + NO-CHASE
+- Recent performance: 5-day +2.88%, 1-month +25.53%, 3-month +35.03%, 52-week +60.40%, long-term positive. GREEN 5/5 is confirmed on current available performance data.
+- Last captured price $262.13 versus 52-week high $265.32, only ~1.2% below high.
+- Consensus target captured around $277.48; implied upside about +5.9%. FAIL the >=10% IR proxy.
+- ENTRY TIMING: RED NO-CHASE. Excellent momentum but extended and too close to consensus value.
+
+### Execution ranking
+1. APH — PASS to BUY-CANDIDATE / wait for clean execution rather than chase.
+2. COR — WATCH; good setup but IR buffer insufficient.
+3. CAH — WATCH; excellent business, post-earnings extension and IR insufficient.
+4. THC — WATCH; GREEN 5/5 but most extended and IR insufficient.
+
+This is a structural-quality and execution screen, not a mechanical trade instruction. Full BUY requires QUALITY Ω × IMPLIED RETURN Ω × GREEN CONTINUITY Ω × ENTRY TIMING Ω / NO-CHASE × EVENT_RISK Ω.
 
 ## Rules
 - SHINE/FADE is not BUY/SELL.
