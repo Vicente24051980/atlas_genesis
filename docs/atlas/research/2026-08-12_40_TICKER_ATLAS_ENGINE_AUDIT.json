@@ -1,0 +1,1530 @@
+{
+  "audit_id": "ATLAS-2026-08-12-40-TICKER-ENGINE-AUDIT",
+  "generated_at": "2026-08-12T00:00:00Z",
+  "decision_cutoff": "2026-08-11 regular close",
+  "status": "RESEARCH_GRADE_RUNTIME_EXECUTED",
+  "universe_count": 40,
+  "green_5of5_count": 15,
+  "green_5of5": [
+    "A",
+    "LLY",
+    "JPM",
+    "PANW",
+    "HAG.DE",
+    "NOC",
+    "MDT",
+    "DHR",
+    "ASML",
+    "SAF.PA",
+    "COR",
+    "BA.L",
+    "TMO",
+    "FAST",
+    "SU.PA"
+  ],
+  "advance_to_primary_diligence": [
+    "NOC",
+    "ASML",
+    "COR",
+    "UBER",
+    "ZTS",
+    "INTU"
+  ],
+  "counts": {
+    "WATCH_SECTOR": 17,
+    "BLOCK_NO_CHASE_NO_PRIORITY": 17,
+    "ADVANCE": 6
+  },
+  "methodology": {
+    "green": "Adjusted closes, same completed regular-market cutoff; windows 5/20/60/252 sessions plus total history.",
+    "fundamentals": "StockAnalysis statistics pages, S&P Global Market Intelligence attribution, observed 2026-08-12.",
+    "guardrails": [
+      "ADVANCE is not BUY.",
+      "No Quality>=85 numeric certification without the full canonical scoring dataset.",
+      "Banks and utilities use sector-specific metrics.",
+      "No portfolio or canon mutation from this audit."
+    ]
+  },
+  "entries": [
+    {
+      "broker_symbol": "ABN",
+      "issuer": "ABN AMRO Bank",
+      "canonical_symbol": "ABN.AS",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 39.8,
+        "currency": "EUR",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": -0.1,
+        "m1_pct": 4.65,
+        "m3_pct": 21.97,
+        "y1_pct": 61.25,
+        "total_pct": 315.48,
+        "first_date": "2015-11-20"
+      },
+      "fundamentals": {
+        "forward_pe": 12.5,
+        "price_to_fcf": null,
+        "debt_to_ebitda": null,
+        "roic_pct": null,
+        "wacc_pct": 1.8,
+        "fcf_yield_pct": -110.87,
+        "consensus_upside_pct": -5.16,
+        "rsi_14": 74.29,
+        "change_52w_pct": 60.78,
+        "revenue_growth_3y_pct": 6.37,
+        "eps_growth_3y_pct": 20.02
+      },
+      "engine": "Bank Quality / Money Rotation",
+      "verdict": "SECTOR_NO_CHASE",
+      "rationale": "GREEN 4/5; banco: FCF industrial no aplica; RSI 74,29 y consenso -5,16%.",
+      "fundamental_source": "https://stockanalysis.com/quote/ams/ABN/statistics/"
+    },
+    {
+      "broker_symbol": "A",
+      "issuer": "Agilent Technologies",
+      "canonical_symbol": "A",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 149.49,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 7.39,
+        "m1_pct": 11.32,
+        "m3_pct": 32.66,
+        "y1_pct": 33.08,
+        "total_pct": 470.8,
+        "first_date": "1999-11-18"
+      },
+      "fundamentals": {
+        "forward_pe": 23.66,
+        "price_to_fcf": 38.84,
+        "debt_to_ebitda": 1.93,
+        "roic_pct": 17.72,
+        "wacc_pct": 10.36,
+        "fcf_yield_pct": 2.57,
+        "consensus_upside_pct": 6.58,
+        "rsi_14": 73.88,
+        "change_52w_pct": 30.42,
+        "revenue_growth_3y_pct": 6.55,
+        "eps_growth_3y_pct": 9.56
+      },
+      "engine": "GREEN / Quality",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 5/5, pero FCF yield 2,57%, upside 6,58% y RSI 73,88.",
+      "fundamental_source": "https://stockanalysis.com/stocks/a/statistics/"
+    },
+    {
+      "broker_symbol": "NEE",
+      "issuer": "NextEra Energy",
+      "canonical_symbol": "NEE",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 85.74,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "2/5",
+        "w1_pct": -1.67,
+        "m1_pct": -4.24,
+        "m3_pct": -9.73,
+        "y1_pct": 21.84,
+        "total_pct": 24573.13,
+        "first_date": "1973-02-21"
+      },
+      "fundamentals": {
+        "forward_pe": 20.85,
+        "price_to_fcf": null,
+        "debt_to_ebitda": 6.97,
+        "roic_pct": 3.17,
+        "wacc_pct": 5.81,
+        "fcf_yield_pct": -9.26,
+        "consensus_upside_pct": 14.92,
+        "rsi_14": 42.08,
+        "change_52w_pct": 18.41,
+        "revenue_growth_3y_pct": 11.24,
+        "eps_growth_3y_pct": 8.7
+      },
+      "engine": "Power Grid / Utility",
+      "verdict": "SECTOR_REVIEW",
+      "rationale": "GREEN 2/5; deuda/EBITDA 6,97. Exige métricas reguladas, no filtro industrial.",
+      "fundamental_source": "https://stockanalysis.com/stocks/nee/statistics/"
+    },
+    {
+      "broker_symbol": "AMD",
+      "issuer": "Advanced Micro Devices",
+      "canonical_symbol": "AMD",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 474.32,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "3/5",
+        "w1_pct": -8.53,
+        "m1_pct": -13.47,
+        "m3_pct": 5.47,
+        "y1_pct": 174.55,
+        "total_pct": 14977.72,
+        "first_date": "1980-03-17"
+      },
+      "fundamentals": {
+        "forward_pe": 42.71,
+        "price_to_fcf": 92.15,
+        "debt_to_ebitda": 0.45,
+        "roic_pct": 9.77,
+        "wacc_pct": 17.86,
+        "fcf_yield_pct": 1.09,
+        "consensus_upside_pct": 29.2,
+        "rsi_14": 45.63,
+        "change_52w_pct": 174.55,
+        "revenue_growth_3y_pct": 51.28,
+        "eps_growth_3y_pct": 73.26
+      },
+      "engine": "AI Infrastructure / Capex Payback",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 3/5; FCF yield 1,09%, ROIC < WACC y +174,55% a 1 año.",
+      "fundamental_source": "https://stockanalysis.com/stocks/amd/statistics/"
+    },
+    {
+      "broker_symbol": "MRSH",
+      "issuer": "Marsh & McLennan",
+      "canonical_symbol": "MRSH",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 191.25,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "3/5",
+        "w1_pct": -0.1,
+        "m1_pct": 5.35,
+        "m3_pct": 20.18,
+        "y1_pct": -4.54,
+        "total_pct": 21234.8,
+        "first_date": "1973-02-21"
+      },
+      "fundamentals": {
+        "forward_pe": 17.43,
+        "price_to_fcf": 19.15,
+        "debt_to_ebitda": 3.09,
+        "roic_pct": 14.52,
+        "wacc_pct": 6.61,
+        "fcf_yield_pct": 5.22,
+        "consensus_upside_pct": 7.46,
+        "rsi_14": 60.24,
+        "change_52w_pct": -6.1,
+        "revenue_growth_3y_pct": 5.24,
+        "eps_growth_3y_pct": 8.54
+      },
+      "engine": "Insurance / Money Rotation",
+      "verdict": "WATCH_QUALITY",
+      "rationale": "fPE 17,43 y FCF yield 5,22%; GREEN 3/5 y deuda/EBITDA 3,09.",
+      "fundamental_source": "https://stockanalysis.com/stocks/mrsh/statistics/"
+    },
+    {
+      "broker_symbol": "CEG",
+      "issuer": "Constellation Energy",
+      "canonical_symbol": "CEG",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 278.36,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 4.16,
+        "m1_pct": 8.55,
+        "m3_pct": 1.28,
+        "y1_pct": -16.66,
+        "total_pct": 587.44,
+        "first_date": "2022-01-19"
+      },
+      "fundamentals": {
+        "forward_pe": 22.98,
+        "price_to_fcf": 334.32,
+        "debt_to_ebitda": 2.99,
+        "roic_pct": 7.43,
+        "wacc_pct": 8.75,
+        "fcf_yield_pct": 0.3,
+        "consensus_upside_pct": 25.72,
+        "rsi_14": 60.2,
+        "change_52w_pct": -17.1,
+        "revenue_growth_3y_pct": 13.16,
+        "eps_growth_3y_pct": 21.6
+      },
+      "engine": "AI Power / Resource Constraint",
+      "verdict": "WATCH_AI_POWER",
+      "rationale": "GREEN 4/5; FCF yield 0,30%, P/FCF 334 y ROIC < WACC.",
+      "fundamental_source": "https://stockanalysis.com/stocks/ceg/statistics/"
+    },
+    {
+      "broker_symbol": "ROP",
+      "issuer": "Roper Technologies",
+      "canonical_symbol": "ROP",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 399.5,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 1.72,
+        "m1_pct": 12.24,
+        "m3_pct": 21.81,
+        "y1_pct": -25.08,
+        "total_pct": 24458.17,
+        "first_date": "1992-02-13"
+      },
+      "fundamentals": {
+        "forward_pe": 16.99,
+        "price_to_fcf": 15.07,
+        "debt_to_ebitda": 3.48,
+        "roic_pct": 6.66,
+        "wacc_pct": 7.11,
+        "fcf_yield_pct": 6.64,
+        "consensus_upside_pct": 10.2,
+        "rsi_14": 63.79,
+        "change_52w_pct": -25.24,
+        "revenue_growth_3y_pct": 7.04,
+        "eps_growth_3y_pct": 9.73
+      },
+      "engine": "Quality / Historical Dislocation",
+      "verdict": "WATCH_RECOVERY",
+      "rationale": "GREEN 4/5; fPE 16,99 y FCF yield 6,64%, pero deuda 3,48 y ROIC < WACC.",
+      "fundamental_source": "https://stockanalysis.com/stocks/rop/statistics/"
+    },
+    {
+      "broker_symbol": "IQE",
+      "issuer": "IQE",
+      "canonical_symbol": "IQE.L",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 46.6,
+        "currency": "GBP",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 4.02,
+        "m1_pct": 12.42,
+        "m3_pct": 19.18,
+        "y1_pct": 387.45,
+        "total_pct": -89.23,
+        "first_date": "2000-05-19"
+      },
+      "fundamentals": {
+        "forward_pe": null,
+        "price_to_fcf": null,
+        "debt_to_ebitda": null,
+        "roic_pct": -14.81,
+        "wacc_pct": 15.09,
+        "fcf_yield_pct": -0.22,
+        "consensus_upside_pct": 25.81,
+        "rsi_14": 54.95,
+        "change_52w_pct": 390.53,
+        "revenue_growth_3y_pct": 22.21,
+        "eps_growth_3y_pct": null
+      },
+      "engine": "Speculative Semis",
+      "verdict": "NO_PRIORITY",
+      "rationale": "ROIC -14,81%, FCF negativo y retorno total -89,23%; el 4/5 reciente no sanea el negocio.",
+      "fundamental_source": "https://stockanalysis.com/quote/aim/IQE/statistics/"
+    },
+    {
+      "broker_symbol": "ICE",
+      "issuer": "Intercontinental Exchange",
+      "canonical_symbol": "ICE",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 151.25,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "3/5",
+        "w1_pct": 1.37,
+        "m1_pct": 11.82,
+        "m3_pct": -2.57,
+        "y1_pct": -18.54,
+        "total_pct": 2166.27,
+        "first_date": "2005-11-16"
+      },
+      "fundamentals": {
+        "forward_pe": 18.32,
+        "price_to_fcf": 16.72,
+        "debt_to_ebitda": 2.93,
+        "roic_pct": 8.61,
+        "wacc_pct": 8.13,
+        "fcf_yield_pct": 5.98,
+        "consensus_upside_pct": 22.88,
+        "rsi_14": 61.75,
+        "change_52w_pct": -18.86,
+        "revenue_growth_3y_pct": 7.62,
+        "eps_growth_3y_pct": 12.19
+      },
+      "engine": "Financial Rails / Money Rotation",
+      "verdict": "WATCH_RECOVERY",
+      "rationale": "fPE 18,32, FCF yield 5,98% y upside 22,88%; GREEN 3/5, deuda 2,93.",
+      "fundamental_source": "https://stockanalysis.com/stocks/ice/statistics/"
+    },
+    {
+      "broker_symbol": "META",
+      "issuer": "Meta Platforms",
+      "canonical_symbol": "META",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 599.12,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "2/5",
+        "w1_pct": 1.9,
+        "m1_pct": -9.37,
+        "m3_pct": -3.03,
+        "y1_pct": -21.87,
+        "total_pct": 1480.91,
+        "first_date": "2012-05-18"
+      },
+      "fundamentals": {
+        "forward_pe": 18.71,
+        "price_to_fcf": 37.25,
+        "debt_to_ebitda": 1.02,
+        "roic_pct": 25.4,
+        "wacc_pct": 10.42,
+        "fcf_yield_pct": 2.68,
+        "consensus_upside_pct": 26.34,
+        "rsi_14": 49.93,
+        "change_52w_pct": -22.12,
+        "revenue_growth_3y_pct": 21.54,
+        "eps_growth_3y_pct": 11.98
+      },
+      "engine": "AI Capex Payback",
+      "verdict": "WATCH_AI_CAPEX",
+      "rationale": "ROIC 25,40% y balance sólido; GREEN 2/5 y FCF yield 2,68% bajo CAPEX elevado.",
+      "fundamental_source": "https://stockanalysis.com/stocks/meta/statistics/"
+    },
+    {
+      "broker_symbol": "MTE",
+      "issuer": "Micron Technology",
+      "canonical_symbol": "MU",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 868.52,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "3/5",
+        "w1_pct": -2.71,
+        "m1_pct": -11.66,
+        "m3_pct": 11.94,
+        "y1_pct": 631.7,
+        "total_pct": 64199.24,
+        "first_date": "1984-06-01"
+      },
+      "fundamentals": {
+        "forward_pe": 6.04,
+        "price_to_fcf": 37.48,
+        "debt_to_ebitda": 0.09,
+        "roic_pct": 67.64,
+        "wacc_pct": 16.33,
+        "fcf_yield_pct": 2.67,
+        "consensus_upside_pct": 72.94,
+        "rsi_14": 47.02,
+        "change_52w_pct": 630.52,
+        "revenue_growth_3y_pct": 92.14,
+        "eps_growth_3y_pct": 173.15
+      },
+      "engine": "Memory Cycle / AI Infrastructure",
+      "verdict": "NO_CHASE_CYCLICAL",
+      "rationale": "GREEN 3/5; +631,70% a 1 año y FCF yield 2,67%. Estimaciones cíclicas extremas.",
+      "fundamental_source": "https://stockanalysis.com/stocks/mu/statistics/"
+    },
+    {
+      "broker_symbol": "CTAS",
+      "issuer": "Cintas",
+      "canonical_symbol": "CTAS",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 205.28,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 0.8,
+        "m1_pct": 14.27,
+        "m3_pct": 24.43,
+        "y1_pct": -7.6,
+        "total_pct": 125221.88,
+        "first_date": "1983-08-19"
+      },
+      "fundamentals": {
+        "forward_pe": 37.4,
+        "price_to_fcf": 43.67,
+        "debt_to_ebitda": 0.87,
+        "roic_pct": 27.76,
+        "wacc_pct": 9.11,
+        "fcf_yield_pct": 2.29,
+        "consensus_upside_pct": 4.92,
+        "rsi_14": 60.4,
+        "change_52w_pct": -9.28,
+        "revenue_growth_3y_pct": 7.68,
+        "eps_growth_3y_pct": 11.14
+      },
+      "engine": "Quality Compounder",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 4/5, pero fPE 37,40, FCF yield 2,29% y upside 4,92%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/ctas/statistics/"
+    },
+    {
+      "broker_symbol": "LLY",
+      "issuer": "Eli Lilly",
+      "canonical_symbol": "LLY",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 1215.02,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 8.9,
+        "m1_pct": 5.42,
+        "m3_pct": 20.9,
+        "y1_pct": 95.58,
+        "total_pct": 136066.94,
+        "first_date": "1972-06-01"
+      },
+      "fundamentals": {
+        "forward_pe": 29.67,
+        "price_to_fcf": 59.54,
+        "debt_to_ebitda": 1.54,
+        "roic_pct": 42.24,
+        "wacc_pct": 6.71,
+        "fcf_yield_pct": 1.68,
+        "consensus_upside_pct": 6.96,
+        "rsi_14": 57.29,
+        "change_52w_pct": 94.2,
+        "revenue_growth_3y_pct": 19.84,
+        "eps_growth_3y_pct": 30.36
+      },
+      "engine": "Healthcare Growth",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 5/5; FCF yield 1,68%, +95,58% a 1 año y upside 6,96%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/lly/statistics/"
+    },
+    {
+      "broker_symbol": "ABT",
+      "issuer": "Abbott Laboratories",
+      "canonical_symbol": "ABT",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 109.72,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 4.04,
+        "m1_pct": 24.22,
+        "m3_pct": 30.16,
+        "y1_pct": -16.4,
+        "total_pct": 61695.72,
+        "first_date": "1980-03-17"
+      },
+      "fundamentals": {
+        "forward_pe": 18.92,
+        "price_to_fcf": 24.27,
+        "debt_to_ebitda": 3.03,
+        "roic_pct": 7.51,
+        "wacc_pct": 6.6,
+        "fcf_yield_pct": 4.12,
+        "consensus_upside_pct": 7.93,
+        "rsi_14": 70.52,
+        "change_52w_pct": -18.29,
+        "revenue_growth_3y_pct": 9.63,
+        "eps_growth_3y_pct": 9.26
+      },
+      "engine": "Healthcare Rotation",
+      "verdict": "WATCH_NO_CHASE",
+      "rationale": "GREEN 4/5 y FCF yield 4,12%; deuda 3,03, RSI 70,52 y upside 7,93%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/abt/statistics/"
+    },
+    {
+      "broker_symbol": "HEI",
+      "issuer": "HEICO",
+      "canonical_symbol": "HEI",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 366.92,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": -0.2,
+        "m1_pct": 4.2,
+        "m3_pct": 26.67,
+        "y1_pct": 17.24,
+        "total_pct": 296366.12,
+        "first_date": "1980-03-17"
+      },
+      "fundamentals": {
+        "forward_pe": 57.85,
+        "price_to_fcf": 55.37,
+        "debt_to_ebitda": 1.9,
+        "roic_pct": 12.73,
+        "wacc_pct": 9.75,
+        "fcf_yield_pct": 1.81,
+        "consensus_upside_pct": 5.34,
+        "rsi_14": 61.27,
+        "change_52w_pct": 17.08,
+        "revenue_growth_3y_pct": 12.02,
+        "eps_growth_3y_pct": 17.33
+      },
+      "engine": "Aerospace Quality",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 4/5; fPE 57,85, FCF yield 1,81% y upside 5,34%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/hei/statistics/"
+    },
+    {
+      "broker_symbol": "JPM",
+      "issuer": "JPMorgan Chase",
+      "canonical_symbol": "JPM",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 362.04,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 1.26,
+        "m1_pct": 5.58,
+        "m3_pct": 21.26,
+        "y1_pct": 27.78,
+        "total_pct": 35107.91,
+        "first_date": "1980-03-17"
+      },
+      "fundamentals": {
+        "forward_pe": 15,
+        "price_to_fcf": null,
+        "debt_to_ebitda": null,
+        "roic_pct": null,
+        "wacc_pct": 4.02,
+        "fcf_yield_pct": -16.89,
+        "consensus_upside_pct": 3.27,
+        "rsi_14": 66.48,
+        "change_52w_pct": 25.38,
+        "revenue_growth_3y_pct": 6.49,
+        "eps_growth_3y_pct": 10.73
+      },
+      "engine": "Bank Quality / Money Rotation",
+      "verdict": "SECTOR_HOLD_REVIEW",
+      "rationale": "GREEN 5/5 y fPE 15; banco: validar CET1, ROTCE, NII y crédito. Upside 3,27%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/jpm/statistics/"
+    },
+    {
+      "broker_symbol": "BKNG",
+      "issuer": "Booking Holdings",
+      "canonical_symbol": "BKNG",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 212.87,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 9.57,
+        "m1_pct": 21.09,
+        "m3_pct": 37.65,
+        "y1_pct": -1.2,
+        "total_pct": 992.97,
+        "first_date": "1999-03-31"
+      },
+      "fundamentals": {
+        "forward_pe": 19.11,
+        "price_to_fcf": 16.77,
+        "debt_to_ebitda": 2.12,
+        "roic_pct": 92.45,
+        "wacc_pct": 9.43,
+        "fcf_yield_pct": 5.96,
+        "consensus_upside_pct": 11.72,
+        "rsi_14": 71.13,
+        "change_52w_pct": -1.56,
+        "revenue_growth_3y_pct": 8.76,
+        "eps_growth_3y_pct": 16.37
+      },
+      "engine": "Travel Quality / Recovery",
+      "verdict": "WATCH_RECOVERY_NO_CHASE",
+      "rationale": "FCF yield 5,96% y deuda 2,12; GREEN 4/5, RSI 71,13 tras +21,09% en 1 mes.",
+      "fundamental_source": "https://stockanalysis.com/stocks/bkng/statistics/"
+    },
+    {
+      "broker_symbol": "PANW",
+      "issuer": "Palo Alto Networks",
+      "canonical_symbol": "PANW",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 383.8,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 4.77,
+        "m1_pct": 8.76,
+        "m3_pct": 61.12,
+        "y1_pct": 129.74,
+        "total_pct": 4234.27,
+        "first_date": "2012-07-20"
+      },
+      "fundamentals": {
+        "forward_pe": 97.89,
+        "price_to_fcf": 82.45,
+        "debt_to_ebitda": 0.98,
+        "roic_pct": 3.65,
+        "wacc_pct": 9.1,
+        "fcf_yield_pct": 1.21,
+        "consensus_upside_pct": -11.57,
+        "rsi_14": 69.58,
+        "change_52w_pct": 129.74,
+        "revenue_growth_3y_pct": 19.4,
+        "eps_growth_3y_pct": 12.99
+      },
+      "engine": "Agentic Security / GREEN",
+      "verdict": "BLOCK_VALUATION",
+      "rationale": "GREEN 5/5, pero fPE 97,89, FCF yield 1,21% y consenso -11,57%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/panw/statistics/"
+    },
+    {
+      "broker_symbol": "ACN",
+      "issuer": "Accenture",
+      "canonical_symbol": "ACN",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 179.82,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 5.51,
+        "m1_pct": 33.64,
+        "m3_pct": 10.97,
+        "y1_pct": -23.28,
+        "total_pct": 1630.82,
+        "first_date": "2001-07-19"
+      },
+      "fundamentals": {
+        "forward_pe": 12.54,
+        "price_to_fcf": 8.75,
+        "debt_to_ebitda": 0.64,
+        "roic_pct": 27.09,
+        "wacc_pct": 9.61,
+        "fcf_yield_pct": 11.43,
+        "consensus_upside_pct": -0.52,
+        "rsi_14": 70.22,
+        "change_52w_pct": -24.82,
+        "revenue_growth_3y_pct": 5.05,
+        "eps_growth_3y_pct": 6.89
+      },
+      "engine": "Software Quality / AI Disruption",
+      "verdict": "WATCH_DISLOCATION",
+      "rationale": "fPE 12,54, FCF yield 11,43% y deuda 0,64; GREEN 4/5, 1 año -23,28%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/acn/statistics/"
+    },
+    {
+      "broker_symbol": "HAG",
+      "issuer": "Hensoldt",
+      "canonical_symbol": "HAG.DE",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 90.5,
+        "currency": "EUR",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 3.5,
+        "m1_pct": 21.77,
+        "m3_pct": 22.89,
+        "y1_pct": 6.82,
+        "total_pct": 767.01,
+        "first_date": "2020-09-25"
+      },
+      "fundamentals": {
+        "forward_pe": 41.99,
+        "price_to_fcf": 23.6,
+        "debt_to_ebitda": 3.89,
+        "roic_pct": 8.24,
+        "wacc_pct": 6.41,
+        "fcf_yield_pct": 4.24,
+        "consensus_upside_pct": 0.51,
+        "rsi_14": 69.23,
+        "change_52w_pct": 8.79,
+        "revenue_growth_3y_pct": 16.4,
+        "eps_growth_3y_pct": 30.25
+      },
+      "engine": "Defense Rotation",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 5/5, pero fPE 41,99, deuda 3,89 y upside 0,51%.",
+      "fundamental_source": "https://stockanalysis.com/quote/etr/HAG/statistics/"
+    },
+    {
+      "broker_symbol": "NOC",
+      "issuer": "Northrop Grumman",
+      "canonical_symbol": "NOC",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 575.69,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 4.38,
+        "m1_pct": 8.89,
+        "m3_pct": 5.39,
+        "y1_pct": 0.62,
+        "total_pct": 23312.16,
+        "first_date": "1981-12-31"
+      },
+      "fundamentals": {
+        "forward_pe": 19.7,
+        "price_to_fcf": 22.43,
+        "debt_to_ebitda": 2.79,
+        "roic_pct": 15.02,
+        "wacc_pct": 3.6,
+        "fcf_yield_pct": 4.46,
+        "consensus_upside_pct": 11.74,
+        "rsi_14": 66.83,
+        "change_52w_pct": -0.93,
+        "revenue_growth_3y_pct": 5.94,
+        "eps_growth_3y_pct": 7.53
+      },
+      "engine": "Defense Quality / GREEN",
+      "verdict": "ADVANCE_CONDITIONAL",
+      "rationale": "GREEN 5/5, fPE 19,70, FCF yield 4,46% y ROIC > WACC; deuda 2,79.",
+      "fundamental_source": "https://stockanalysis.com/stocks/noc/statistics/"
+    },
+    {
+      "broker_symbol": "MDT",
+      "issuer": "Medtronic",
+      "canonical_symbol": "MDT",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 90.68,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 5.2,
+        "m1_pct": 8.51,
+        "m3_pct": 20.06,
+        "y1_pct": 2.62,
+        "total_pct": 51438.06,
+        "first_date": "1973-05-02"
+      },
+      "fundamentals": {
+        "forward_pe": 15.24,
+        "price_to_fcf": 21.39,
+        "debt_to_ebitda": 3.09,
+        "roic_pct": 8.25,
+        "wacc_pct": 6.28,
+        "fcf_yield_pct": 4.67,
+        "consensus_upside_pct": 8.56,
+        "rsi_14": 70.17,
+        "change_52w_pct": -2.37,
+        "revenue_growth_3y_pct": 5.04,
+        "eps_growth_3y_pct": 7.91
+      },
+      "engine": "Healthcare Rotation",
+      "verdict": "WATCH_NO_CHASE",
+      "rationale": "GREEN 5/5, fPE 15,24 y FCF yield 4,67%; deuda 3,09 y RSI 70,17.",
+      "fundamental_source": "https://stockanalysis.com/stocks/mdt/statistics/"
+    },
+    {
+      "broker_symbol": "ORC",
+      "issuer": "Oracle",
+      "canonical_symbol": "ORCL",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 145.48,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "2/5",
+        "w1_pct": -0.18,
+        "m1_pct": 13.71,
+        "m3_pct": -25.37,
+        "y1_pct": -41.16,
+        "total_pct": 289483.78,
+        "first_date": "1986-03-12"
+      },
+      "fundamentals": {
+        "forward_pe": 18.07,
+        "price_to_fcf": null,
+        "debt_to_ebitda": 5.6,
+        "roic_pct": 11.48,
+        "wacc_pct": 10.47,
+        "fcf_yield_pct": -5.65,
+        "consensus_upside_pct": 69.9,
+        "rsi_14": 54.12,
+        "change_52w_pct": -41.82,
+        "revenue_growth_3y_pct": 39.28,
+        "eps_growth_3y_pct": 27.46
+      },
+      "engine": "AI Credit & Capex Payback",
+      "verdict": "BLOCK_AI_CREDIT",
+      "rationale": "GREEN 2/5, FCF yield -5,65% y deuda/EBITDA 5,60.",
+      "fundamental_source": "https://stockanalysis.com/stocks/orcl/statistics/"
+    },
+    {
+      "broker_symbol": "AXON",
+      "issuer": "Axon Enterprise",
+      "canonical_symbol": "AXON",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 636.31,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 4.79,
+        "m1_pct": 9.33,
+        "m3_pct": 61.35,
+        "y1_pct": -26.62,
+        "total_pct": 138228.26,
+        "first_date": "2001-06-19"
+      },
+      "fundamentals": {
+        "forward_pe": 70.82,
+        "price_to_fcf": 388.1,
+        "debt_to_ebitda": 13.9,
+        "roic_pct": 1.18,
+        "wacc_pct": 11.68,
+        "fcf_yield_pct": 0.26,
+        "consensus_upside_pct": 8.97,
+        "rsi_14": 63.45,
+        "change_52w_pct": -24.47,
+        "revenue_growth_3y_pct": 30.83,
+        "eps_growth_3y_pct": 26.54
+      },
+      "engine": "Defense Tech / Optionality",
+      "verdict": "BLOCK_VALUATION",
+      "rationale": "GREEN 4/5; fPE 70,82, P/FCF 388, FCF yield 0,26% y deuda 13,90.",
+      "fundamental_source": "https://stockanalysis.com/stocks/axon/statistics/"
+    },
+    {
+      "broker_symbol": "DHR",
+      "issuer": "Danaher",
+      "canonical_symbol": "DHR",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 207.44,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 6.5,
+        "m1_pct": 4.22,
+        "m3_pct": 26.33,
+        "y1_pct": 4.19,
+        "total_pct": 469697.06,
+        "first_date": "1978-12-29"
+      },
+      "fundamentals": {
+        "forward_pe": 23.44,
+        "price_to_fcf": 26.68,
+        "debt_to_ebitda": 3.64,
+        "roic_pct": 6.44,
+        "wacc_pct": 7.39,
+        "fcf_yield_pct": 3.75,
+        "consensus_upside_pct": 9.89,
+        "rsi_14": 61.96,
+        "change_52w_pct": 3.43,
+        "revenue_growth_3y_pct": 7.41,
+        "eps_growth_3y_pct": 9.56
+      },
+      "engine": "Bottom Reversal / Healthcare",
+      "verdict": "WATCH_REVERSAL",
+      "rationale": "GREEN 5/5 y FCF yield 3,75%; deuda 3,64, ROIC < WACC y upside 9,89%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/dhr/statistics/"
+    },
+    {
+      "broker_symbol": "ASML",
+      "issuer": "ASML ADR",
+      "canonical_symbol": "ASML",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 1799.38,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 5.11,
+        "m1_pct": 1.47,
+        "m3_pct": 13.71,
+        "y1_pct": 150.75,
+        "total_pct": 102151.59,
+        "first_date": "1995-03-15"
+      },
+      "fundamentals": {
+        "forward_pe": 31.82,
+        "price_to_fcf": 59.45,
+        "debt_to_ebitda": 0.14,
+        "roic_pct": 65.98,
+        "wacc_pct": 11.74,
+        "fcf_yield_pct": 1.68,
+        "consensus_upside_pct": 21.03,
+        "rsi_14": 56.36,
+        "change_52w_pct": 149.11,
+        "revenue_growth_3y_pct": 25.83,
+        "eps_growth_3y_pct": 39.45
+      },
+      "engine": "AI Infrastructure / GREEN",
+      "verdict": "ADVANCE_CONDITIONAL",
+      "rationale": "GREEN 5/5, ROIC 65,98%, deuda 0,14 y upside 21,03%; FCF yield 1,68% y +150,75% a 1 año.",
+      "fundamental_source": "https://stockanalysis.com/stocks/asml/statistics/"
+    },
+    {
+      "broker_symbol": "IFX",
+      "issuer": "Infineon Technologies",
+      "canonical_symbol": "IFX.DE",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 62.85,
+        "currency": "EUR",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "2/5",
+        "w1_pct": -1.37,
+        "m1_pct": -13.29,
+        "m3_pct": -3.59,
+        "y1_pct": 78.61,
+        "total_pct": 24.4,
+        "first_date": "2000-03-13"
+      },
+      "fundamentals": {
+        "forward_pe": 24.82,
+        "price_to_fcf": 49.62,
+        "debt_to_ebitda": 1.92,
+        "roic_pct": 7.95,
+        "wacc_pct": 13.98,
+        "fcf_yield_pct": 2.02,
+        "consensus_upside_pct": 31.47,
+        "rsi_14": 49.23,
+        "change_52w_pct": 83.36,
+        "revenue_growth_3y_pct": 15.38,
+        "eps_growth_3y_pct": 37.98
+      },
+      "engine": "Semis / Auto Cycle",
+      "verdict": "WATCH_CYCLICAL",
+      "rationale": "GREEN 2/5, ROIC < WACC y FCF yield 2,02%; upside 31,47% requiere verificación primaria.",
+      "fundamental_source": "https://stockanalysis.com/quote/etr/IFX/statistics/"
+    },
+    {
+      "broker_symbol": "RHM",
+      "issuer": "Rheinmetall",
+      "canonical_symbol": "RHM.DE",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 1142.2,
+        "currency": "EUR",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "3/5",
+        "w1_pct": -4.88,
+        "m1_pct": 15.14,
+        "m3_pct": 1.98,
+        "y1_pct": -28.81,
+        "total_pct": 7324.08,
+        "first_date": "1998-08-05"
+      },
+      "fundamentals": {
+        "forward_pe": 25.2,
+        "price_to_fcf": 136.33,
+        "debt_to_ebitda": 1.2,
+        "roic_pct": 18.67,
+        "wacc_pct": 6.49,
+        "fcf_yield_pct": 0.73,
+        "consensus_upside_pct": 43.6,
+        "rsi_14": 60,
+        "change_52w_pct": -24.67,
+        "revenue_growth_3y_pct": 35.65,
+        "eps_growth_3y_pct": 44.19
+      },
+      "engine": "Defense / Historical Dislocation",
+      "verdict": "WATCH_DEFENSE",
+      "rationale": "GREEN 3/5, ROIC 18,67% y upside 43,60%; FCF yield 0,73%.",
+      "fundamental_source": "https://stockanalysis.com/quote/etr/RHM/statistics/"
+    },
+    {
+      "broker_symbol": "SAF",
+      "issuer": "Safran",
+      "canonical_symbol": "SAF.PA",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 361.5,
+        "currency": "EUR",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 1.43,
+        "m1_pct": 7.56,
+        "m3_pct": 34.69,
+        "y1_pct": 25.8,
+        "total_pct": 1074.08,
+        "first_date": "2000-01-03"
+      },
+      "fundamentals": {
+        "forward_pe": 31.12,
+        "price_to_fcf": 28.64,
+        "debt_to_ebitda": 0.83,
+        "roic_pct": 23.59,
+        "wacc_pct": 9.27,
+        "fcf_yield_pct": 3.49,
+        "consensus_upside_pct": 3.05,
+        "rsi_14": 68.59,
+        "change_52w_pct": 27.3,
+        "revenue_growth_3y_pct": 11.93,
+        "eps_growth_3y_pct": 24.42
+      },
+      "engine": "Aerospace Quality / GREEN",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 5/5, deuda 0,83 y FCF yield 3,49%; upside 3,05% y RSI 68,59.",
+      "fundamental_source": "https://stockanalysis.com/quote/epa/SAF/statistics/"
+    },
+    {
+      "broker_symbol": "COR",
+      "issuer": "Cencora",
+      "canonical_symbol": "COR",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 333.87,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 9.01,
+        "m1_pct": 10.38,
+        "m3_pct": 28.86,
+        "y1_pct": 15.06,
+        "total_pct": 17572.45,
+        "first_date": "1995-04-04"
+      },
+      "fundamentals": {
+        "forward_pe": 17.34,
+        "price_to_fcf": 15.69,
+        "debt_to_ebitda": 3.52,
+        "roic_pct": 20.95,
+        "wacc_pct": 6.51,
+        "fcf_yield_pct": 6.37,
+        "consensus_upside_pct": 11.59,
+        "rsi_14": 69.61,
+        "change_52w_pct": 17.09,
+        "revenue_growth_3y_pct": 5.5,
+        "eps_growth_3y_pct": 11.26
+      },
+      "engine": "Healthcare Distribution / GREEN",
+      "verdict": "ADVANCE_CONDITIONAL",
+      "rationale": "GREEN 5/5, fPE 17,34, FCF yield 6,37% y ROIC 20,95%; deuda 3,52.",
+      "fundamental_source": "https://stockanalysis.com/stocks/cor/statistics/"
+    },
+    {
+      "broker_symbol": "BSP",
+      "issuer": "BAE Systems",
+      "canonical_symbol": "BA.L",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 2230,
+        "currency": "GBP",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 2.11,
+        "m1_pct": 20.35,
+        "m3_pct": 18.59,
+        "y1_pct": 29.07,
+        "total_pct": 2134.79,
+        "first_date": "1988-07-01"
+      },
+      "fundamentals": {
+        "forward_pe": 24.85,
+        "price_to_fcf": 13.44,
+        "debt_to_ebitda": 2.23,
+        "roic_pct": 13.69,
+        "wacc_pct": 4.02,
+        "fcf_yield_pct": 7.44,
+        "consensus_upside_pct": 3.15,
+        "rsi_14": 76.11,
+        "change_52w_pct": 31.35,
+        "revenue_growth_3y_pct": 11.48,
+        "eps_growth_3y_pct": 12.55
+      },
+      "engine": "Defense Quality / GREEN",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 5/5 y FCF yield 7,44%; RSI 76,11 y upside 3,15% bloquean entrada inmediata.",
+      "fundamental_source": "https://stockanalysis.com/quote/lon/BA/statistics/"
+    },
+    {
+      "broker_symbol": "NOW",
+      "issuer": "ServiceNow",
+      "canonical_symbol": "NOW",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 127.54,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 7.96,
+        "m1_pct": 21.64,
+        "m3_pct": 40.93,
+        "y1_pct": -26.91,
+        "total_pct": 2492.28,
+        "first_date": "2012-06-29"
+      },
+      "fundamentals": {
+        "forward_pe": 28.15,
+        "price_to_fcf": 28.79,
+        "debt_to_ebitda": 2.47,
+        "roic_pct": 10.28,
+        "wacc_pct": 8.84,
+        "fcf_yield_pct": 3.47,
+        "consensus_upside_pct": 9.97,
+        "rsi_14": 68.83,
+        "change_52w_pct": -26.91,
+        "revenue_growth_3y_pct": 19.88,
+        "eps_growth_3y_pct": 19.97
+      },
+      "engine": "Software Quality / Bottom Reversal",
+      "verdict": "WATCH_RECOVERY",
+      "rationale": "GREEN 4/5, fPE 28,15, FCF yield 3,47% y deuda 2,47; 1 año -26,91%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/now/statistics/"
+    },
+    {
+      "broker_symbol": "UBER",
+      "issuer": "Uber Technologies",
+      "canonical_symbol": "UBER",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 78.54,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": 9.1,
+        "m1_pct": 8.96,
+        "m3_pct": 5.15,
+        "y1_pct": -12.3,
+        "total_pct": 88.93,
+        "first_date": "2019-05-10"
+      },
+      "fundamentals": {
+        "forward_pe": 18.6,
+        "price_to_fcf": 15.86,
+        "debt_to_ebitda": 1.97,
+        "roic_pct": 19.18,
+        "wacc_pct": 9.91,
+        "fcf_yield_pct": 6.31,
+        "consensus_upside_pct": 29.23,
+        "rsi_14": 63.89,
+        "change_52w_pct": -12.3,
+        "revenue_growth_3y_pct": 13.59,
+        "eps_growth_3y_pct": 30.88
+      },
+      "engine": "Platform Quality / Bottom Reversal",
+      "verdict": "ADVANCE_REVERSAL",
+      "rationale": "GREEN 4/5, fPE 18,60, FCF yield 6,31%, deuda 1,97 y upside 29,23%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/uber/statistics/"
+    },
+    {
+      "broker_symbol": "TMO",
+      "issuer": "Thermo Fisher Scientific",
+      "canonical_symbol": "TMO",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 605,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 7.13,
+        "m1_pct": 13.28,
+        "m3_pct": 35.12,
+        "y1_pct": 31.79,
+        "total_pct": 36061.05,
+        "first_date": "1980-03-17"
+      },
+      "fundamentals": {
+        "forward_pe": 23.04,
+        "price_to_fcf": 30.57,
+        "debt_to_ebitda": 3.84,
+        "roic_pct": 8.84,
+        "wacc_pct": 7.99,
+        "fcf_yield_pct": 3.27,
+        "consensus_upside_pct": 4.37,
+        "rsi_14": 74.54,
+        "change_52w_pct": 31.32,
+        "revenue_growth_3y_pct": 6.26,
+        "eps_growth_3y_pct": 9.9
+      },
+      "engine": "Healthcare Rotation / GREEN",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 5/5 y FCF yield 3,27%; deuda 3,84, RSI 74,54 y upside 4,37%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/tmo/statistics/"
+    },
+    {
+      "broker_symbol": "ZTS",
+      "issuer": "Zoetis",
+      "canonical_symbol": "ZTS",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 75.35,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "3/5",
+        "w1_pct": -0.91,
+        "m1_pct": 0.64,
+        "m3_pct": 2.07,
+        "y1_pct": -48.19,
+        "total_pct": 172.96,
+        "first_date": "2013-02-01"
+      },
+      "fundamentals": {
+        "forward_pe": 11.82,
+        "price_to_fcf": 13.44,
+        "debt_to_ebitda": 2.35,
+        "roic_pct": 27.28,
+        "wacc_pct": 6.84,
+        "fcf_yield_pct": 7.44,
+        "consensus_upside_pct": 33.96,
+        "rsi_14": 47.78,
+        "change_52w_pct": -48.86,
+        "revenue_growth_3y_pct": 1.78,
+        "eps_growth_3y_pct": 4.26
+      },
+      "engine": "Historical Dislocation / Healthcare",
+      "verdict": "ADVANCE_DISLOCATION",
+      "rationale": "fPE 11,82, FCF yield 7,44%, deuda 2,35 y upside 33,96%; GREEN 3/5, 1 año -48,19%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/zts/statistics/"
+    },
+    {
+      "broker_symbol": "FAST",
+      "issuer": "Fastenal",
+      "canonical_symbol": "FAST",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 52.38,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 5.37,
+        "m1_pct": 11.94,
+        "m3_pct": 20.33,
+        "y1_pct": 12.72,
+        "total_pct": 278690.66,
+        "first_date": "1987-08-20"
+      },
+      "fundamentals": {
+        "forward_pe": 39.24,
+        "price_to_fcf": 52,
+        "debt_to_ebitda": 0.23,
+        "roic_pct": 32.06,
+        "wacc_pct": 8.11,
+        "fcf_yield_pct": 1.92,
+        "consensus_upside_pct": -8.23,
+        "rsi_14": 73.62,
+        "change_52w_pct": 9.15,
+        "revenue_growth_3y_pct": 10.13,
+        "eps_growth_3y_pct": 11.79
+      },
+      "engine": "Industrial Quality / GREEN",
+      "verdict": "BLOCK_VALUATION",
+      "rationale": "GREEN 5/5, pero fPE 39,24, FCF yield 1,92%, RSI 73,62 y consenso -8,23%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/fast/statistics/"
+    },
+    {
+      "broker_symbol": "TKA",
+      "issuer": "thyssenkrupp",
+      "canonical_symbol": "TKA.DE",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 12.03,
+        "currency": "EUR",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "4/5",
+        "w1_pct": -4.3,
+        "m1_pct": 4.34,
+        "m3_pct": 13.12,
+        "y1_pct": 64.35,
+        "total_pct": 86.68,
+        "first_date": "1999-03-26"
+      },
+      "fundamentals": {
+        "forward_pe": 15.42,
+        "price_to_fcf": null,
+        "debt_to_ebitda": 0.98,
+        "roic_pct": -0.39,
+        "wacc_pct": 11.59,
+        "fcf_yield_pct": -11.95,
+        "consensus_upside_pct": 8.43,
+        "rsi_14": 52.93,
+        "change_52w_pct": 24.97,
+        "revenue_growth_3y_pct": 0.74,
+        "eps_growth_3y_pct": -0.74
+      },
+      "engine": "Cyclical Industrial",
+      "verdict": "NO_PRIORITY",
+      "rationale": "GREEN 4/5, pero ROIC -0,39% y FCF yield -11,95%.",
+      "fundamental_source": "https://stockanalysis.com/quote/etr/TKA/statistics/"
+    },
+    {
+      "broker_symbol": "SU",
+      "issuer": "Schneider Electric",
+      "canonical_symbol": "SU.PA",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 305.75,
+        "currency": "EUR",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "5/5",
+        "w1_pct": 2.17,
+        "m1_pct": 13.39,
+        "m3_pct": 15.92,
+        "y1_pct": 39.75,
+        "total_pct": 1543.01,
+        "first_date": "2000-01-03"
+      },
+      "fundamentals": {
+        "forward_pe": 27.38,
+        "price_to_fcf": 27.79,
+        "debt_to_ebitda": 2.37,
+        "roic_pct": 13.96,
+        "wacc_pct": 9.65,
+        "fcf_yield_pct": 3.6,
+        "consensus_upside_pct": 4.84,
+        "rsi_14": 72.1,
+        "change_52w_pct": 41.78,
+        "revenue_growth_3y_pct": 9.7,
+        "eps_growth_3y_pct": 17.4
+      },
+      "engine": "Electrification / AI Infrastructure",
+      "verdict": "NO_CHASE",
+      "rationale": "GREEN 5/5 y FCF yield 3,60%; RSI 72,10 y upside 4,84%.",
+      "fundamental_source": "https://stockanalysis.com/quote/epa/SU/statistics/"
+    },
+    {
+      "broker_symbol": "HLMA",
+      "issuer": "Halma",
+      "canonical_symbol": "HLMA.L",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 3718,
+        "currency": "GBP",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "3/5",
+        "w1_pct": -0.64,
+        "m1_pct": 3.74,
+        "m3_pct": -17.15,
+        "y1_pct": 13.5,
+        "total_pct": 10344.34,
+        "first_date": "1988-07-01"
+      },
+      "fundamentals": {
+        "forward_pe": 28.8,
+        "price_to_fcf": 32.99,
+        "debt_to_ebitda": 1.39,
+        "roic_pct": 13.7,
+        "wacc_pct": 9.16,
+        "fcf_yield_pct": 3.03,
+        "consensus_upside_pct": 16.17,
+        "rsi_14": 51.25,
+        "change_52w_pct": 14.92,
+        "revenue_growth_3y_pct": 10.2,
+        "eps_growth_3y_pct": 11.44
+      },
+      "engine": "Safety Compounder",
+      "verdict": "WATCH_QUALITY",
+      "rationale": "FCF yield 3,03%, deuda 1,39 y upside 16,17%; GREEN 3/5.",
+      "fundamental_source": "https://stockanalysis.com/quote/lon/HLMA/statistics/"
+    },
+    {
+      "broker_symbol": "INTU",
+      "issuer": "Intuit",
+      "canonical_symbol": "INTU",
+      "reference_close": {
+        "date": "2026-08-11",
+        "value": 336.44,
+        "currency": "USD",
+        "adjusted": true
+      },
+      "green_continuity": {
+        "score": "3/5",
+        "w1_pct": 3.97,
+        "m1_pct": 19.12,
+        "m3_pct": -10.67,
+        "y1_pct": -54.58,
+        "total_pct": 14442.1,
+        "first_date": "1993-03-12"
+      },
+      "fundamentals": {
+        "forward_pe": 12.57,
+        "price_to_fcf": 11.87,
+        "debt_to_ebitda": 1.05,
+        "roic_pct": 20.63,
+        "wacc_pct": 9.06,
+        "fcf_yield_pct": 8.43,
+        "consensus_upside_pct": 35.35,
+        "rsi_14": 65.37,
+        "change_52w_pct": -55.08,
+        "revenue_growth_3y_pct": 11.89,
+        "eps_growth_3y_pct": 15.19
+      },
+      "engine": "Software Quality / AI Disruption",
+      "verdict": "ADVANCE_DISLOCATION",
+      "rationale": "fPE 12,57, FCF yield 8,43%, deuda 1,05 y upside 35,35%; GREEN 3/5, 1 año -54,58%.",
+      "fundamental_source": "https://stockanalysis.com/stocks/intu/statistics/"
+    }
+  ]
+}
