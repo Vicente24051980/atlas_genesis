@@ -42,7 +42,8 @@
       "ADVANCE is not BUY.",
       "No Quality>=85 numeric certification without the full canonical scoring dataset.",
       "Banks and utilities use sector-specific metrics.",
-      "No portfolio or canon mutation from this audit."
+      "No portfolio or canon mutation from this audit.",
+      "Industrial FCF yield for banks is stored as null/NV even when a secondary vendor publishes a derived figure."
     ]
   },
   "entries": [
@@ -71,7 +72,7 @@
         "debt_to_ebitda": null,
         "roic_pct": null,
         "wacc_pct": 1.8,
-        "fcf_yield_pct": -110.87,
+        "fcf_yield_pct": null,
         "consensus_upside_pct": -5.16,
         "rsi_14": 74.29,
         "change_52w_pct": 60.78,
@@ -626,7 +627,7 @@
         "debt_to_ebitda": null,
         "roic_pct": null,
         "wacc_pct": 4.02,
-        "fcf_yield_pct": -16.89,
+        "fcf_yield_pct": null,
         "consensus_upside_pct": 3.27,
         "rsi_14": 66.48,
         "change_52w_pct": 25.38,
