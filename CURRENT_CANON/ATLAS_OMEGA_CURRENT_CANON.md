@@ -102,6 +102,35 @@ Canonical cross-check:
 
 Master recovery rule: the preferred recovery BUY is not the lowest-RSI stock; it is the highest-quality company whose price stops falling before its sector while the business never broke.
 
+## MARKET TOP RISK Ω — INVIOLABLE LAW
+
+`CURRENT_CANON/MARKET_TOP_RISK_OMEGA.md` is the canonical higher-layer risk-regime engine. It does **not** modify or expand CORE-00.
+
+Canonical sequence:
+
+`complacency -> positioning extreme -> breadth deterioration -> volatility divergence -> bond/credit stress -> structural price break`
+
+### Inviolable rule
+
+**No market-top, sentiment, seasonality, VIX, bond-yield or positioning signal may emit an automatic portfolio SELL by itself.**
+
+Corrections are not thesis falsifiers. Tactical correction risk must be separated from structural deterioration.
+
+Operational regimes:
+
+- GREEN — BULL REGIME.
+- YELLOW — COMPLACENCY WATCH.
+- ORANGE — CORRECTION RISK; tighten ENTRY TIMING Ω / NO-CHASE.
+- RED — STRUCTURAL RISK; requires independent confirmation from macro/credit AND market internals/price and triggers mandatory portfolio/falsifier audit, never indiscriminate liquidation.
+
+Primary macro falsifier: Treasury/rates and credit stress in combination with breadth and structural price deterioration. `10Y > 4%` or any single absolute yield threshold is not sufficient by itself.
+
+AI CAPEX rule: `Hyperscaler monetizes spare capacity != semiconductor demand collapse`. Semiconductor-demand deterioration requires multi-company confirmation through utilization, backlog/cancellations, CAPEX revisions, pricing and orders.
+
+Canonical cross-check:
+
+`MARKET TOP RISK Ω × MARKET BOTTOM Ω × MONEY ROTATION Ω × GREEN CONTINUITY Ω × ENTRY TIMING Ω × AI CAPEX PAYBACK Ω × QUALITY Ω`
+
 ## Epistemic governance
 
 `Information Received != Admissible Evidence`.
