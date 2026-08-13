@@ -4,9 +4,11 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import time
 from pathlib import Path
 from typing import Any
 
+import httpx
 import pandas as pd
 
 from api.kronos_validation import evaluate_observations
@@ -37,6 +39,66 @@ def history_to_frame(rows: list[dict[str, Any]]) -> pd.DataFrame:
     return frame
 
 
+async def _yahoo_history(symbol: str, history_days: int) -> list[dict[str, Any]]:
+    """Validation-only fallback when the primary ATLAS/Stooq endpoint is unavailable.
+
+    The selected provider is always recorded in the output. This fallback does not
+    change the canonical ATLAS market provider or any investment decision authority.
+    """
+    period2 = int(time.time()) + 86_400
+    period1 = period2 - max(100, history_days) * 86_400
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}"
+    params = {
+        "period1": period1,
+        "period2": period2,
+        "interval": "1d",
+        "events": "history",
+        "includeAdjustedClose": "true",
+    }
+    headers = {"User-Agent": "Mozilla/5.0 ATLAS-Omega-Kronos-Validation/1.0"}
+    async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
+        response = await client.get(url, params=params, headers=headers)
+    response.raise_for_status()
+    payload = response.json()
+    result = ((payload.get("chart") or {}).get("result") or [None])[0]
+    if not result:
+        raise ValueError("Yahoo validation fallback returned no chart result")
+    timestamps = result.get("timestamp") or []
+    quote = (((result.get("indicators") or {}).get("quote") or [{}])[0])
+    opens = quote.get("open") or []
+    highs = quote.get("high") or []
+    lows = quote.get("low") or []
+    closes = quote.get("close") or []
+    volumes = quote.get("volume") or []
+    rows: list[dict[str, Any]] = []
+    for i, ts in enumerate(timestamps):
+        values = [opens[i], highs[i], lows[i], closes[i]] if i < min(len(opens), len(highs), len(lows), len(closes)) else [None] * 4
+        if any(value is None for value in values):
+            continue
+        rows.append(
+            {
+                "date": pd.Timestamp(ts, unit="s", tz="UTC").date().isoformat(),
+                "open": float(opens[i]),
+                "high": float(highs[i]),
+                "low": float(lows[i]),
+                "close": float(closes[i]),
+                "volume": float(volumes[i]) if i < len(volumes) and volumes[i] is not None else None,
+            }
+        )
+    if not rows:
+        raise ValueError("Yahoo validation fallback returned no usable OHLC rows")
+    return rows
+
+
+async def _load_history(symbol: str, history_days: int) -> tuple[list[dict[str, Any]], str, str | None]:
+    try:
+        rows = await get_market_history(symbol, days=history_days)
+        return rows, "ATLAS_MARKET_STOOQ", None
+    except Exception as primary_exc:
+        rows = await _yahoo_history(symbol, history_days)
+        return rows, "YAHOO_CHART_VALIDATION_FALLBACK", f"{primary_exc.__class__.__name__}: {primary_exc}"
+
+
 async def run_universe(
     symbols: list[str],
     *,
@@ -55,7 +117,7 @@ async def run_universe(
         item = tracked.get(key, {"ticker": key})
         market_symbol = _market_symbol(item)
         try:
-            rows = await get_market_history(market_symbol, days=history_days)
+            rows, provider, primary_failure = await _load_history(market_symbol, history_days)
             frame = history_to_frame(rows)
             if len(frame) < max(100, lookback + max(horizons) + 1):
                 raise ValueError(f"insufficient history: {len(frame)} rows")
@@ -64,6 +126,8 @@ async def run_universe(
                 "ticker": key,
                 "marketSymbol": market_symbol,
                 "rows": len(frame),
+                "dataSource": provider,
+                "primarySourceFailure": primary_failure,
                 "horizons": {},
             }
             for horizon in horizons:
@@ -85,9 +149,10 @@ async def run_universe(
             failures[key] = f"{exc.__class__.__name__}: {exc}"
 
     return {
-        "engine": "KRONOS_MARKET_FORECAST_OMEGA_v0_3",
+        "engine": "KRONOS_MARKET_FORECAST_OMEGA_v0_4",
         "status": "EXPERIMENTAL_NON_CANONICAL",
-        "dataSource": "ATLAS_MARKET_STOOQ",
+        "primaryDataSource": "ATLAS_MARKET_STOOQ",
+        "fallbackPolicy": "YAHOO_CHART_VALIDATION_ONLY_IF_PRIMARY_UNAVAILABLE",
         "symbolsRequested": symbols,
         "results": results,
         "failures": failures,
@@ -122,6 +187,7 @@ def main() -> None:
         "output": str(args.output),
         "completed": sorted(payload["results"].keys()),
         "failed": payload["failures"],
+        "sources": {key: value.get("dataSource") for key, value in payload["results"].items()},
     }, indent=2))
 
 
