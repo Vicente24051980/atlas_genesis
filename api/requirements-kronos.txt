@@ -1,0 +1,10 @@
+# Optional dependencies for KRONOS MARKET FORECAST Ω.
+# Keep separate from api/requirements.txt so the core ATLAS API remains lightweight.
+# Compatibility baseline: shiyu-coder/Kronos @ 67b630e67f6a18c9e9be918d9b4337c960db1e9a
+numpy
+pandas==2.2.2
+torch>=2.0.0
+einops==0.8.1
+huggingface_hub==0.33.1
+tqdm==4.67.1
+safetensors==0.6.2

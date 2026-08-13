@@ -1,0 +1,45 @@
+name: Kronos Contract CI
+
+on:
+  pull_request:
+    paths:
+      - "api/kronos_adapter.py"
+      - "api/kronos_market_forecast.py"
+      - "api/kronos_validation.py"
+      - "api/test_kronos_market_forecast.py"
+      - "api/test_kronos_validation.py"
+      - "api/test_kronos_atlas_universe.py"
+      - "api/requirements-kronos.txt"
+      - "scripts/run_kronos_walk_forward.py"
+      - "scripts/run_kronos_atlas_universe.py"
+      - "docs/KRONOS_MARKET_FORECAST_OMEGA.md"
+      - ".github/workflows/kronos-contract.yml"
+  workflow_dispatch:
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: api/requirements.txt
+
+      - name: Install lightweight API and validation dependencies
+        run: |
+          python -m pip install -r api/requirements.txt
+          python -m pip install pandas==2.2.2
+
+      - name: Run Kronos contract and walk-forward tests
+        run: python -m pytest api/test_kronos_market_forecast.py api/test_kronos_validation.py api/test_kronos_atlas_universe.py -q
+
+      - name: Verify API imports without Kronos runtime
+        env:
+          ATLAS_KRONOS_ENABLED: "false"
+        run: python -c "from api.app import app; assert app is not None"

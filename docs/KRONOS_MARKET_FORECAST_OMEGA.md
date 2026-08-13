@@ -3,6 +3,7 @@
 Status: `EXPERIMENTAL / NON-CANONICAL / NO DECISION AUTHORITY`
 
 Upstream: `shiyu-coder/Kronos` (MIT)
+Pinned upstream commit: `67b630e67f6a18c9e9be918d9b4337c960db1e9a`
 
 ## Purpose
 
@@ -20,6 +21,8 @@ Integrate Kronos as an isolated market-forecasting signal provider for ATLAS Ω.
 
 ATLAS-normalized forecast metadata and probabilistic signal fields, including expected return/range, downside-tail estimates, dispersion/uncertainty, and directional probabilities when calculated from forecast paths.
 
+Forecast return is measured from the **last observed close** to the terminal predicted close. It must never be calculated from the first predicted close, because that would distort the forecast horizon return.
+
 ## Forbidden authority
 
 Kronos MUST NOT:
@@ -35,13 +38,43 @@ Kronos MUST NOT:
 
 1. Start with `Kronos-small`.
 2. Test pretrained inference before any fine-tuning.
-3. Use walk-forward evaluation with strict train/test chronology.
+3. Use leakage-safe walk-forward evaluation with strict chronology.
 4. Evaluate separate 5D, 20D and 60D horizons.
-5. Benchmark against naive zero-return, simple momentum and simple technical baselines.
-6. Measure directional accuracy, rank IC/Spearman IC, calibration, drawdown hit-rate and forecast dispersion.
+5. Benchmark against naive zero-return and simple momentum baselines.
+6. Measure directional accuracy, MAE, improvement versus zero-return and momentum directional accuracy; add rank IC/Spearman IC and calibration in the cross-sectional phase.
 7. Add transaction costs, slippage, turnover and factor-exposure controls before any alpha claim.
 8. Perform explicit leakage checks against Kronos pretraining coverage.
 9. Fine-tuning is permitted only after the pretrained model demonstrates incremental value.
+
+## Walk-forward harness
+
+`api/kronos_validation.py` contains leakage-safe window generation and validation metrics.
+
+`scripts/run_kronos_walk_forward.py` executes one-symbol CSV validation using actual future market timestamps while withholding all future OHLCV values from the model context.
+
+Required CSV columns:
+
+```text
+timestamp,open,high,low,close
+```
+
+Optional columns:
+
+```text
+volume,amount
+```
+
+Example runtime after optional Kronos dependencies and source are installed:
+
+```bash
+ATLAS_KRONOS_ENABLED=true \
+KRONOS_SOURCE_PATH=/opt/kronos \
+python scripts/run_kronos_walk_forward.py data/MSFT.csv \
+  --symbol MSFT --horizon 20 --lookback 256 --step 20 \
+  --sample-count 20 --output results/msft_kronos_20d.json
+```
+
+The output remains validation evidence only and carries `VALIDATION_ONLY_NO_BUY_SELL_AUTHORITY`.
 
 ## Integration boundary
 
