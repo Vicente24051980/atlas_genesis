@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import HTTPException
 
 from api.kronos_market_forecast import (
@@ -8,9 +10,10 @@ from api.kronos_market_forecast import (
 
 
 def _bars(count: int = 32) -> list[KronosBar]:
+    start = datetime(2026, 1, 1, tzinfo=timezone.utc)
     return [
         KronosBar(
-            timestamp=f"2026-01-{(i % 28) + 1:02d}T{i:02d}:00:00Z",
+            timestamp=(start + timedelta(days=i)).isoformat().replace("+00:00", "Z"),
             open=100.0 + i,
             high=102.0 + i,
             low=99.0 + i,
