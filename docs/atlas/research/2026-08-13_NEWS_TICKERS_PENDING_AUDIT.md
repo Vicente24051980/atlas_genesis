@@ -32,6 +32,22 @@ Este archivo acumula los tickers mencionados en noticias compartidas hoy por Vic
   - Riesgos a auditar: desaceleración orgánica, cambio de CEO, valoración y durabilidad del moat.
   - Estado: **Pending Audit / Pending Primary Validation**.
 
+## Lote 4 — ProPicks IA / mejores de mayo 2026 + bonus junio
+
+- 0992.HK — Lenovo Group
+- 001740.KS — SK Networks
+- YEOTK.IS — Yeo Teknoloji
+- 8069.TW — E Ink Holdings
+- 064400.KS — LG CNS
+- MRVL — Marvell Technology
+
+### Correcciones de identificación
+- “Geotecnology” del resumen corresponde a **Yeo Teknoloji (YEOTK)**.
+- “Inholdings” corresponde a **E Ink Holdings (8069.TW)**.
+- Investing.com publicó como top de mayo: Lenovo +105,48%, Yeo Teknoloji +92,65%, SK Networks +92,16%, E Ink +81,09% y LG CNS +75,08%.
+- MRVL figura posteriormente como nueva posición de junio en la estrategia Tech Titans; el rendimiento publicado por Investing.com a 8-jun era +20,8% en junio, no +32% atribuible directamente a la acción.
+- Estado de todos: **Pending Audit / Pending Primary Validation**.
+
 ## Regla operativa
 
 - Añadir sin duplicados cualquier ticker nuevo que aparezca en noticias compartidas durante el 13-ago-2026.
