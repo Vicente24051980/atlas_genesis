@@ -1,0 +1,84 @@
+name: Kronos Runtime Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/kronos-runtime-smoke.yml"
+  workflow_dispatch:
+
+jobs:
+  msft-real-runtime-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ATLAS_KRONOS_ENABLED: "true"
+      KRONOS_SOURCE_PATH: "${{ github.workspace }}/.kronos-upstream"
+      KRONOS_MODEL_ID: "NeoQuasar/Kronos-small"
+      KRONOS_TOKENIZER_ID: "NeoQuasar/Kronos-Tokenizer-base"
+      KRONOS_DEVICE: "cpu"
+    steps:
+      - name: Checkout ATLAS
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            api/requirements.txt
+            api/requirements-kronos.txt
+
+      - name: Install ATLAS and Kronos runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r api/requirements.txt
+          python -m pip install -r api/requirements-kronos.txt
+
+      - name: Bootstrap pinned Kronos source
+        run: bash scripts/bootstrap_kronos.sh
+
+      - name: Verify lazy runtime is ready
+        run: |
+          python - <<'PY'
+          from api.kronos_adapter import KronosSmallAdapter
+          status = KronosSmallAdapter().status()
+          print(status)
+          assert status.enabled
+          assert status.source_available
+          assert status.dependencies_available
+          PY
+
+      - name: Run real MSFT 5D walk-forward smoke
+        run: |
+          python scripts/run_kronos_atlas_universe.py \
+            --symbols MSFT \
+            --horizons 5 \
+            --lookback 128 \
+            --step-multiplier 12 \
+            --sample-count 1 \
+            --history-days 900 \
+            --output artifacts/kronos_msft_5d_smoke.json
+
+      - name: Validate output has real observations
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('artifacts/kronos_msft_5d_smoke.json')
+          data = json.loads(p.read_text())
+          assert not data['failures'], data['failures']
+          msft = data['results']['MSFT']
+          observations = msft['horizons']['5']['observations']
+          assert observations, 'no real Kronos observations produced'
+          print(json.dumps(msft['horizons']['5']['metrics'], indent=2))
+          PY
+
+      - name: Upload smoke artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kronos-msft-5d-smoke
+          path: artifacts/kronos_msft_5d_smoke.json
+          if-no-files-found: warn
