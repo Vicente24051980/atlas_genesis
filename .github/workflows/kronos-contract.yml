@@ -1,0 +1,37 @@
+name: Kronos Contract CI
+
+on:
+  pull_request:
+    paths:
+      - "api/kronos_adapter.py"
+      - "api/kronos_market_forecast.py"
+      - "api/test_kronos_market_forecast.py"
+      - "api/requirements-kronos.txt"
+      - ".github/workflows/kronos-contract.yml"
+  workflow_dispatch:
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: api/requirements.txt
+
+      - name: Install lightweight API dependencies
+        run: python -m pip install -r api/requirements.txt
+
+      - name: Run Kronos contract tests
+        run: python -m pytest api/test_kronos_market_forecast.py -q
+
+      - name: Verify API imports without Kronos runtime
+        env:
+          ATLAS_KRONOS_ENABLED: "false"
+        run: python -c "from api.app import app; assert app is not None"
