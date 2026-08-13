@@ -31,8 +31,10 @@ jobs:
           cache: pip
           cache-dependency-path: api/requirements.txt
 
-      - name: Install lightweight API dependencies
-        run: python -m pip install -r api/requirements.txt
+      - name: Install lightweight API and validation dependencies
+        run: |
+          python -m pip install -r api/requirements.txt
+          python -m pip install pandas==2.2.2
 
       - name: Run Kronos contract and walk-forward tests
         run: python -m pytest api/test_kronos_market_forecast.py api/test_kronos_validation.py api/test_kronos_atlas_universe.py -q
