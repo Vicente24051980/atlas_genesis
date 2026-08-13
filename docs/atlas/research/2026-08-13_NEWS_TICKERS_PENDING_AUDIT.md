@@ -69,6 +69,24 @@ Los siguientes nombres citados en la pieza no se conservan en la cola operativa 
 - Tencent se excluye de la cola operativa al no estar validada como instrumento T212 Invest.
 - Estado: **Pending Audit / Pending Primary Validation**.
 
+## Lote 8 — Javier DV / ETFs poco conocidos
+
+- EEAB.DE — BNP Paribas Easy MSCI ACWI (Acc)
+- IS3R.DE — iShares Edge MSCI World Momentum Factor (Acc)
+- F50A.DE — Amundi Prime Global (Acc)
+- MWEQ.DE — Invesco MSCI World Equal Weight (Acc)
+- EXUS.DE — Xtrackers MSCI World ex USA (Acc)
+- VAGF.DE — Vanguard Global Aggregate Bond (Acc)
+
+### Lectura preliminar
+- EEAB / F50A: candidatos de núcleo pasivo de muy bajo coste; auditar índice, réplica, tracking difference, fiscalidad y tamaño/liquidez.
+- IS3R: factor Momentum; solo candidato satélite por mayor concentración y riesgo de reversión.
+- MWEQ: herramienta de diversificación frente a concentración por capitalización; no sustituto automático de un World cap-weighted.
+- EXUS: herramienta táctica/estructural para reducir peso de EE. UU. sin vender exposición global completa.
+- VAGF: diversificador defensivo de renta fija global cubierto a EUR; analizar duración, yield-to-maturity, calidad crediticia y función real en cartera.
+- El iShares Edge MSCI EM Value Factor del vídeo se identifica como **EMVL (ISIN IE00BG0SKF03)**, pero no se añade a la cola al no haberse validado su disponibilidad en T212 Invest en esta revisión.
+- Estado: **Pending Audit / Pending Primary Validation**.
+
 ## Regla operativa
 
 - Añadir sin duplicados únicamente tickers nuevos **disponibles en Trading 212 Invest** que aparezcan en noticias compartidas durante el 13-ago-2026.
