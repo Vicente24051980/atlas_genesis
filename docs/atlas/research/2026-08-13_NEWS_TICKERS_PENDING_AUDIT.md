@@ -21,6 +21,17 @@ Este archivo acumula los tickers mencionados en noticias compartidas hoy por Vic
   - Tesis preliminar a auditar: NAV, costes de perforación Uinta/Midland/DJ, integración con CIVI, FCF/EV 2027, capex y productividad de pozos.
   - Estado: **Pending Audit / Pending Primary Validation**.
 
+## Lote 3 — Investing.com / large caps castigadas
+
+- LVS — Las Vegas Sands
+  - Tesis preliminar: caída fuerte vs posible infravaloración; exposición a Macao/Singapur, recompras y dividendo.
+  - Riesgos a auditar: deuda, sensibilidad VIP/Macao, capex, calidad del crecimiento y valoración normalizada.
+  - Estado: **Pending Audit / Pending Primary Validation**.
+- CPRT — Copart
+  - Tesis preliminar: compounder de alta calidad castigado; negocio de subastas global, expansión internacional y balance fuerte.
+  - Riesgos a auditar: desaceleración orgánica, cambio de CEO, valoración y durabilidad del moat.
+  - Estado: **Pending Audit / Pending Primary Validation**.
+
 ## Regla operativa
 
 - Añadir sin duplicados cualquier ticker nuevo que aparezca en noticias compartidas durante el 13-ago-2026.
