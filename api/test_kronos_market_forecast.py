@@ -1,5 +1,8 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import HTTPException
 
+from api.kronos_adapter import KronosSmallAdapter
 from api.kronos_market_forecast import (
     KronosBar,
     KronosMarketForecastRequest,
@@ -8,9 +11,10 @@ from api.kronos_market_forecast import (
 
 
 def _bars(count: int = 32) -> list[KronosBar]:
+    start = datetime(2026, 1, 1, 16, 0, tzinfo=timezone.utc)
     return [
         KronosBar(
-            timestamp=f"2026-01-{(i % 28) + 1:02d}T{i:02d}:00:00Z",
+            timestamp=(start + timedelta(days=i)).isoformat(),
             open=100.0 + i,
             high=102.0 + i,
             low=99.0 + i,
@@ -25,7 +29,7 @@ def test_contract_is_signal_only() -> None:
     payload = KronosMarketForecastRequest(symbol="msft", bars=_bars(), horizon_days=20)
     result = validate_kronos_request(payload)
     assert result.symbol == "MSFT"
-    assert result.inferenceStatus == "ADAPTER_NOT_ENABLED"
+    assert result.inferenceStatus == "VALIDATED_NOT_EXECUTED"
     assert result.forecast is None
     assert result.authority == "SIGNAL_ONLY_NO_BUY_SELL_AUTHORITY"
     assert result.status == "EXPERIMENTAL_NON_CANONICAL"
@@ -43,6 +47,22 @@ def test_duplicate_timestamps_rejected() -> None:
         raise AssertionError("duplicate timestamps must be rejected")
 
 
+def test_out_of_order_timestamps_rejected_when_pandas_available() -> None:
+    try:
+        import pandas  # noqa: F401
+    except ImportError:
+        return
+    bars = _bars()
+    bars[-1], bars[-2] = bars[-2], bars[-1]
+    payload = KronosMarketForecastRequest(symbol="TSM", bars=bars, horizon_days=5)
+    try:
+        validate_kronos_request(payload)
+    except HTTPException as exc:
+        assert exc.status_code == 422
+    else:
+        raise AssertionError("out-of-order timestamps must be rejected")
+
+
 def test_invalid_ohlc_rejected() -> None:
     try:
         KronosBar(
@@ -56,3 +76,11 @@ def test_invalid_ohlc_rejected() -> None:
         pass
     else:
         raise AssertionError("invalid OHLC must be rejected")
+
+
+def test_adapter_is_disabled_by_default(monkeypatch) -> None:
+    monkeypatch.delenv("ATLAS_KRONOS_ENABLED", raising=False)
+    local_adapter = KronosSmallAdapter()
+    status = local_adapter.status()
+    assert status.enabled is False
+    assert status.model_loaded is False
