@@ -1,0 +1,87 @@
+name: Kronos Gate 2
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/kronos-gate2.yml"
+
+jobs:
+  gate2-multi-asset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      ATLAS_KRONOS_ENABLED: "true"
+      KRONOS_SOURCE_PATH: "${{ github.workspace }}/.kronos-upstream"
+      KRONOS_MODEL_ID: "NeoQuasar/Kronos-small"
+      KRONOS_TOKENIZER_ID: "NeoQuasar/Kronos-Tokenizer-base"
+      KRONOS_DEVICE: "cpu"
+      PYTHONPATH: "${{ github.workspace }}"
+    steps:
+      - name: Checkout ATLAS
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            api/requirements.txt
+            api/requirements-kronos.txt
+
+      - name: Install ATLAS dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r api/requirements.txt
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python -m pip install -r api/requirements-kronos.txt
+
+      - name: Bootstrap pinned Kronos
+        run: bash scripts/bootstrap_kronos.sh
+
+      - name: Run Gate 2 walk-forward
+        run: |
+          python -m scripts.run_kronos_atlas_universe \
+            --symbols MSFT NVDA GOOG TSM AVGO ASML ANET ETN \
+            --horizons 5 20 60 \
+            --lookback 128 \
+            --step-multiplier 12 \
+            --sample-count 1 \
+            --history-days 1500 \
+            --output artifacts/kronos_gate2.json
+
+      - name: Summarize Gate 2
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('artifacts/kronos_gate2.json').read_text())
+          print('failures=', json.dumps(data['failures'], indent=2))
+          completed = 0
+          for symbol, payload in sorted(data['results'].items()):
+              print(f"\n{symbol} source={payload.get('dataSource')}")
+              for horizon, block in sorted(payload['horizons'].items(), key=lambda x: int(x[0])):
+                  m = block['metrics']
+                  print(
+                      f"  {horizon}D obs={m['observations']} "
+                      f"dir={m['directional_accuracy']:.3f} "
+                      f"mom={m['momentum_directional_accuracy']:.3f} "
+                      f"mae={m['mean_absolute_error_pct']:.3f}% "
+                      f"zero={m['zero_baseline_mae_pct']:.3f}% "
+                      f"impr={m['kronos_mae_improvement_vs_zero_pct']:.3f}%"
+                  )
+                  completed += m['observations']
+          assert data['results'], 'no symbols completed'
+          assert completed > 0, 'no walk-forward observations produced'
+          print(f"\nTOTAL_OBSERVATIONS={completed}")
+          PY
+
+      - name: Upload Gate 2 artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kronos-gate2
+          path: artifacts/kronos_gate2.json
+          if-no-files-found: warn
