@@ -8,8 +8,10 @@ on:
       - "api/kronos_validation.py"
       - "api/test_kronos_market_forecast.py"
       - "api/test_kronos_validation.py"
+      - "api/test_kronos_atlas_universe.py"
       - "api/requirements-kronos.txt"
       - "scripts/run_kronos_walk_forward.py"
+      - "scripts/run_kronos_atlas_universe.py"
       - "docs/KRONOS_MARKET_FORECAST_OMEGA.md"
       - ".github/workflows/kronos-contract.yml"
   workflow_dispatch:
@@ -33,7 +35,7 @@ jobs:
         run: python -m pip install -r api/requirements.txt
 
       - name: Run Kronos contract and walk-forward tests
-        run: python -m pytest api/test_kronos_market_forecast.py api/test_kronos_validation.py -q
+        run: python -m pytest api/test_kronos_market_forecast.py api/test_kronos_validation.py api/test_kronos_atlas_universe.py -q
 
       - name: Verify API imports without Kronos runtime
         env:
