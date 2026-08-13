@@ -10,8 +10,8 @@ TOP 35 MASTER Ω vigente a 2026-08-12:
 MSFT, CSU.TO, GOOGL, ASML, AVGO, TSM, APH, MA, V, SPGI, ANET, HEI, TMO, ISRG, MCO, ICE, BKNG, NOW, DHR, AME, SU.PA, PANW, LLY, IDXX, ETN, CTAS, HWM, SAF.PA, AXON, AMZN, SAP, ZTS, ABT, FAST, RTX.
 
 ### Perfil estructural aproximado por número de nombres
-- EE. UU.: 29/35 (~82,9%).
-- No EE. UU.: 6/35: CSU.TO, ASML, TSM, SU.PA, SAF.PA, SAP.
+- Predominio muy alto de compañías estadounidenses/listadas en EE. UU.; la clasificación exacta por domicilio debe tratarse separadamente para grupos domiciliados fuera de EE. UU.
+- Exposiciones no estadounidenses evidentes: CSU.TO, ASML, TSM, SU.PA, SAF.PA, SAP, además de emisores con domicilio jurídico distinto de su principal mercado operativo.
 - Sesgos dominantes: tecnología/calidad/growth, industriales de calidad, healthcare y financial data/payments.
 - Huecos estructurales relevantes: energía, materiales, utilities, staples y real estate prácticamente ausentes.
 
@@ -26,9 +26,9 @@ El ETF BNP Paribas Easy MSCI World Equal Weight Select UCITS ETF que se venía i
 | ETF | Función | Solapamiento directo ATLAS 35 | Riesgo de duplicación | Diversificación nueva | Veredicto |
 |---|---|---|---|---|---|
 | **IS3S.DE** | MSCI World Enhanced Value | No aparece ningún ATLAS 35 entre sus 10 mayores posiciones a 29-jul-2026; solapamiento exacto total pendiente de fichero completo de holdings | **MEDIO** por estilo/sector: IT ~30% y exposición a semis/hardware | **ALTA** por factor Value y múltiplos mucho más bajos que World | GREEN, pero redundante si ya se usa ESAE y solo queremos 2 ETFs |
-| **EXUS.DE** | MSCI World ex USA | Por construcción incluye desarrollados no USA del TOP35: **CSU, ASML, Schneider, Safran, SAP**. ASML = 2,56% del índice a 31-jul-2026 | **BAJO-MEDIO**: 5 nombres, pero universo de 755 compañías | **MUY ALTA**: elimina EE. UU. y corrige el principal sesgo geográfico del TOP35 | **GREEN / PRIORIDAD #1** |
+| **EXUS.DE** | MSCI World ex USA | **Confirmado públicamente:** ASML = 2,56% del índice a 31-jul-2026. **Esperados por pertenencia al universo desarrollado ex-USA del TOP35:** CSU, Schneider, Safran y SAP; requieren reconfirmación uno a uno contra el fichero completo de holdings antes de declarar pesos exactos | **BAJO-MEDIO**: universo de 755 compañías | **MUY ALTA**: elimina EE. UU. y corrige el principal sesgo geográfico del TOP35 | **GREEN / PRIORIDAD #1** |
 | **5MVL.DE / EMVL** | MSCI EM Enhanced Value | **TSM = 12,89%** del ETF a 29-jul-2026; es el solapamiento directo confirmado más importante | **ALTO EN UNA POSICIÓN** y alto temáticamente: semis 21,32% + hardware 17,13% | **MUY ALTA** geográficamente y por valoración EM | GREEN satélite; no núcleo |
-| **ESAE.DE** | MSCI World Equal Weight Select | Solapamiento nominal probable con varios nombres desarrollados del TOP35, pero cada posición del índice está alrededor de décimas de punto; 1.016 componentes a 31-jul-2026 | **BAJO POR PESO** aunque exista overlap nominal | **MUY ALTA** contra concentración mega-cap; redistribuye peso hacia compañías medianas/grandes | **GREEN / PRIORIDAD #2** |
+| **ESAE.DE** | MSCI World Equal Weight Select | Solapamiento nominal probable con varios nombres desarrollados del TOP35, pero el índice público muestra pesos máximos individuales alrededor de 0,13–0,16%; overlap exacto pendiente de fichero completo | **BAJO POR PESO** aunque exista overlap nominal | **MUY ALTA** contra concentración mega-cap; redistribuye peso hacia compañías medianas/grandes | **GREEN / PRIORIDAD #2** |
 
 ## Datos clave auditados
 
@@ -45,7 +45,7 @@ El ETF BNP Paribas Easy MSCI World Equal Weight Select UCITS ETF que se venía i
 - TER 0,15%.
 - P/E 19,08x; forward P/E 15,59x; P/B 2,40x.
 - Top: ASML 2,56%, HSBC 1,46%, Roche 1,23%, RBC 1,17%, Novartis 1,14%, Nestlé 1,03%, AstraZeneca 1,03%, Shell 1,02%, Siemens 0,96%, MUFG 0,96%.
-- Lectura: es el ETF que mejor corrige el sesgo ~83% USA por número de nombres del TOP35.
+- Lectura: es el ETF que mejor corrige el predominio estadounidense del TOP35.
 
 ### 5MVL.DE / EMVL — Emerging Markets Value
 - 159 posiciones.
