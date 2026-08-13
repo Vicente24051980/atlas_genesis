@@ -3,22 +3,45 @@
 Status: `EXPERIMENTAL / NON-CANONICAL / NO DECISION AUTHORITY`
 
 Upstream: `shiyu-coder/Kronos` (MIT)
+Pinned upstream commit: `67b630e67f6a18c9e9be918d9b4337c960db1e9a`
 
 ## Purpose
 
 Integrate Kronos as an isolated market-forecasting signal provider for ATLAS Ω. Kronos may contribute probabilistic market-structure and entry-timing evidence, but it must never emit or override portfolio BUY/SELL decisions, Quality Ω, Valuation Ω, thesis integrity, or fundamental falsifiers.
 
+## Runtime architecture
+
+The core FastAPI backend does not import PyTorch or download model weights at startup. `api/kronos_adapter.py` lazy-loads the upstream Kronos classes only when `/v1/atlas/kronos/predict` is called and the runtime has explicitly opted in.
+
+Runtime controls:
+
+- `ATLAS_KRONOS_ENABLED=true` — explicit inference opt-in. Default is false.
+- `KRONOS_SOURCE_PATH=/opt/kronos` — checkout of the pinned upstream source.
+- `KRONOS_MODEL_ID=NeoQuasar/Kronos-small` — configured predictor model.
+- `KRONOS_TOKENIZER_ID=NeoQuasar/Kronos-Tokenizer-base` — configured tokenizer.
+- `KRONOS_DEVICE=cpu|cuda:0|...` — runtime device.
+- `api/requirements-kronos.txt` — optional heavy dependencies, isolated from the normal API requirements.
+- `scripts/bootstrap_kronos.sh` — checks out the pinned upstream commit; it does not commit or vendor model weights.
+
+## API surface
+
+- `GET /v1/atlas/kronos/manifest` — immutable integration contract and guardrails.
+- `GET /v1/atlas/kronos/status` — runtime availability without loading model weights.
+- `POST /v1/atlas/kronos/validate` — validates OHLC and timestamp contract without inference.
+- `POST /v1/atlas/kronos/predict` — guarded lazy inference using the configured Kronos-small runtime.
+
 ## Allowed inputs
 
 - OHLC required: `open`, `high`, `low`, `close`
 - Optional: `volume`, `amount`
-- Timestamp series
-- Forecast horizon
+- Strictly increasing, unique timestamp series
+- Forecast horizon: 5D, 20D or 60D
 - Sampling configuration
+- Lookback: 32–512 bars
 
 ## Allowed outputs
 
-ATLAS-normalized forecast metadata and probabilistic signal fields, including expected return/range, downside-tail estimates, dispersion/uncertainty, and directional probabilities when calculated from forecast paths.
+ATLAS-normalized forecast metadata and raw predicted bars. The adapter currently exposes terminal predicted close and predicted close-change metadata. These are experimental signals, not portfolio instructions.
 
 ## Forbidden authority
 
@@ -50,9 +73,11 @@ ATLAS market data
       ↓
 KronosMarketForecastRequest
       ↓
-Kronos adapter (isolated)
+KronosSmallAdapter (isolated / lazy)
       ↓
-Kronos-small / future approved model
+Pinned upstream Kronos source
+      ↓
+Kronos-small + tokenizer
       ↓
 forecast paths
       ↓
@@ -65,7 +90,7 @@ The downstream ATLAS engines decide how much weight, if any, to give the signal.
 
 ## Dependency policy
 
-Kronos model weights must not be committed to Atlas Genesis. Runtime model downloads/storage must be external and version-pinned. The upstream repository is treated as a replaceable dependency, not copied wholesale into ATLAS.
+Kronos model weights must not be committed to Atlas Genesis. Runtime model downloads/storage remain external. The upstream source is pinned for reproducibility and treated as a replaceable dependency, not copied wholesale into ATLAS.
 
 ## Promotion gate
 
