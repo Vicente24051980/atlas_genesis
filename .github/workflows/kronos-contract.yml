@@ -5,8 +5,12 @@ on:
     paths:
       - "api/kronos_adapter.py"
       - "api/kronos_market_forecast.py"
+      - "api/kronos_validation.py"
       - "api/test_kronos_market_forecast.py"
+      - "api/test_kronos_validation.py"
       - "api/requirements-kronos.txt"
+      - "scripts/run_kronos_walk_forward.py"
+      - "docs/KRONOS_MARKET_FORECAST_OMEGA.md"
       - ".github/workflows/kronos-contract.yml"
   workflow_dispatch:
 
@@ -28,8 +32,8 @@ jobs:
       - name: Install lightweight API dependencies
         run: python -m pip install -r api/requirements.txt
 
-      - name: Run Kronos contract tests
-        run: python -m pytest api/test_kronos_market_forecast.py -q
+      - name: Run Kronos contract and walk-forward tests
+        run: python -m pytest api/test_kronos_market_forecast.py api/test_kronos_validation.py -q
 
       - name: Verify API imports without Kronos runtime
         env:
