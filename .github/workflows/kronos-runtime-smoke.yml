@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/kronos-runtime-smoke.yml"
+      - "scripts/run_kronos_atlas_universe.py"
+      - "api/kronos_adapter.py"
   workflow_dispatch:
 
 jobs:
@@ -35,6 +37,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r api/requirements.txt
+          python -m pip install torch --index-url https://download.pytorch.org/whl/cpu
           python -m pip install -r api/requirements-kronos.txt
 
       - name: Bootstrap pinned Kronos source
@@ -73,6 +76,7 @@ jobs:
           msft = data['results']['MSFT']
           observations = msft['horizons']['5']['observations']
           assert observations, 'no real Kronos observations produced'
+          print('source=', msft['dataSource'])
           print(json.dumps(msft['horizons']['5']['metrics'], indent=2))
           PY
 
