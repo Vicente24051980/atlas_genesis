@@ -3,7 +3,7 @@
 **Fecha:** 2026-08-13
 **Estado:** PENDING AUDIT
 
-Este archivo acumula los tickers mencionados en noticias compartidas hoy por Vicente. Su inclusión aquí **no implica BUY, WATCH PRIORITARIA ni evidencia canónica**. Todos quedan pendientes de auditoría ATLAS Ω y validación de fuentes primarias.
+Este archivo acumula únicamente tickers mencionados en noticias compartidas hoy por Vicente que estén **disponibles en Trading 212 Invest**. Su inclusión aquí **no implica BUY, WATCH PRIORITARIA ni evidencia canónica**. Todos quedan pendientes de auditoría ATLAS Ω y validación de fuentes primarias.
 
 ## Lote 1 — Investing.com / ProPicks IA
 
@@ -24,33 +24,54 @@ Este archivo acumula los tickers mencionados en noticias compartidas hoy por Vic
 ## Lote 3 — Investing.com / large caps castigadas
 
 - LVS — Las Vegas Sands
-  - Tesis preliminar: caída fuerte vs posible infravaloración; exposición a Macao/Singapur, recompras y dividendo.
-  - Riesgos a auditar: deuda, sensibilidad VIP/Macao, capex, calidad del crecimiento y valoración normalizada.
-  - Estado: **Pending Audit / Pending Primary Validation**.
 - CPRT — Copart
-  - Tesis preliminar: compounder de alta calidad castigado; negocio de subastas global, expansión internacional y balance fuerte.
-  - Riesgos a auditar: desaceleración orgánica, cambio de CEO, valoración y durabilidad del moat.
+  - CPRT queda como candidato preliminar Good Companies Cheap Ω / Quality Recovery Ω.
+  - LVS queda como candidato preliminar Value + Cyclical Recovery.
   - Estado: **Pending Audit / Pending Primary Validation**.
 
-## Lote 4 — ProPicks IA / mejores de mayo 2026 + bonus junio
+## Lote 4 — ProPicks IA / mayo-junio 2026
 
-- 0992.HK — Lenovo Group
-- 001740.KS — SK Networks
-- YEOTK.IS — Yeo Teknoloji
-- 8069.TW — E Ink Holdings
-- 064400.KS — LG CNS
 - MRVL — Marvell Technology
 
-### Correcciones de identificación
-- “Geotecnology” del resumen corresponde a **Yeo Teknoloji (YEOTK)**.
-- “Inholdings” corresponde a **E Ink Holdings (8069.TW)**.
-- Investing.com publicó como top de mayo: Lenovo +105,48%, Yeo Teknoloji +92,65%, SK Networks +92,16%, E Ink +81,09% y LG CNS +75,08%.
-- MRVL figura posteriormente como nueva posición de junio en la estrategia Tech Titans; el rendimiento publicado por Investing.com a 8-jun era +20,8% en junio, no +32% atribuible directamente a la acción.
-- Estado de todos: **Pending Audit / Pending Primary Validation**.
+### Exclusiones por regla Trading 212
+Los siguientes nombres citados en la pieza no se conservan en la cola operativa por no haberse validado como instrumentos T212 Invest en esta revisión: Lenovo Group, SK Networks, Yeo Teknoloji, E Ink Holdings y LG CNS.
+
+## Lote 5 — Spirax / recuperación industrial
+
+- SPX.GB — Spirax Group
+  - T212 Invest validado.
+  - Tesis preliminar: Good Companies Cheap Ω / Quality Recovery Ω.
+  - Claves a auditar: ETS + margen, recuperación Watson-Marlow/Biopharma, China, STS backlog, FCF, ROIC/ROCE y valoración.
+  - Estado: **Pending Audit / Pending Primary Validation**.
+
+## Lote 6 — Ormuz / energía
+
+- REP.ES — Repsol
+  - T212 Invest validado.
+  - Tesis preliminar: exposición integrada a Brent/refino en régimen de shock energético.
+  - No BUY por Brent alto; auditar upstream, refino, balance, FCF y sensibilidad a escenarios de Ormuz.
+  - Estado: **Pending Audit / Pending Primary Validation**.
+
+## Lote 7 — Alex Dito / AI CAPEX y neoclouds
+
+- NVDA — Nvidia
+- MSFT — Microsoft
+- AMZN — Amazon
+- NBIS — Nebius Group
+- CRWV — CoreWeave
+- IREN — IREN
+
+### Lectura preliminar
+- Aplicar **AI CAPEX PAYBACK Ω** y Risk Ω; el vídeo no genera SELL mecánico.
+- Nebius y CoreWeave presentan crecimiento extraordinario pero CAPEX/deuda/financiación y concentración de clientes deben auditarse.
+- IREN queda como infraestructura/AI compute de mayor riesgo.
+- Nvidia, Microsoft y Amazon sirven para contrastar la tesis de circularidad/capex, no como nuevas recomendaciones.
+- Tencent se excluye de la cola operativa al no estar validada como instrumento T212 Invest.
+- Estado: **Pending Audit / Pending Primary Validation**.
 
 ## Regla operativa
 
-- Añadir sin duplicados cualquier ticker nuevo que aparezca en noticias compartidas durante el 13-ago-2026.
+- Añadir sin duplicados únicamente tickers nuevos **disponibles en Trading 212 Invest** que aparezcan en noticias compartidas durante el 13-ago-2026.
 - Mantener estado **Pending Audit** hasta revisión completa.
-- No convertir rendimiento reciente, narrativa promocional, upgrades de analistas o selección algorítmica externa en señal BUY/SELL.
+- No convertir rendimiento reciente, narrativa promocional, upgrades de analistas, vídeos o selecciones algorítmicas externas en señal BUY/SELL.
 - Validar posteriormente resultados, crecimiento, FCF, balance, valoración, estructura competitiva, catalizadores, riesgos y encaje con los motores ATLAS Ω.
