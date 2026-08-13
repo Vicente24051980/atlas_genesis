@@ -124,6 +124,9 @@ class KronosSmallAdapter:
         top_p: float,
     ) -> dict[str, Any]:
         predictor = self._load_predictor()
+        if not bars:
+            raise KronosAdapterError("bars cannot be empty")
+        last_observed_close = float(bars[-1]["close"])
         try:
             pd = importlib.import_module("pandas")
             frame = pd.DataFrame(bars)
@@ -148,13 +151,17 @@ class KronosSmallAdapter:
             raise KronosAdapterError("Kronos returned an empty forecast")
 
         rows = pred.reset_index(drop=True).to_dict(orient="records")
-        first_close = float(rows[0]["close"])
         terminal_close = float(rows[-1]["close"])
+        predicted_return_pct = (
+            round((terminal_close / last_observed_close - 1.0) * 100.0, 4)
+            if last_observed_close
+            else None
+        )
         return {
             "predictedBars": rows,
-            "firstPredictedClose": first_close,
+            "lastObservedClose": last_observed_close,
             "terminalPredictedClose": terminal_close,
-            "predictedCloseChangePct": round((terminal_close / first_close - 1.0) * 100.0, 4) if first_close else None,
+            "predictedReturnPct": predicted_return_pct,
         }
 
 
