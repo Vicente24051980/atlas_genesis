@@ -17,6 +17,7 @@ jobs:
       KRONOS_MODEL_ID: "NeoQuasar/Kronos-small"
       KRONOS_TOKENIZER_ID: "NeoQuasar/Kronos-Tokenizer-base"
       KRONOS_DEVICE: "cpu"
+      PYTHONPATH: "${{ github.workspace }}"
     steps:
       - name: Checkout ATLAS
         uses: actions/checkout@v4
@@ -52,7 +53,7 @@ jobs:
 
       - name: Run real MSFT 5D walk-forward smoke
         run: |
-          python scripts/run_kronos_atlas_universe.py \
+          python -m scripts.run_kronos_atlas_universe \
             --symbols MSFT \
             --horizons 5 \
             --lookback 128 \
