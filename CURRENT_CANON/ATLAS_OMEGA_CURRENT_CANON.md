@@ -131,6 +131,27 @@ Canonical cross-check:
 
 `MARKET TOP RISK Ω × MARKET BOTTOM Ω × MONEY ROTATION Ω × GREEN CONTINUITY Ω × ENTRY TIMING Ω × AI CAPEX PAYBACK Ω × QUALITY Ω`
 
+## MACRO REGIME GOLD–BTC Ω
+
+`CURRENT_CANON/MACRO_REGIME_GOLD_BTC_OMEGA.md` is the canonical higher-layer macro regime sensor for gold, Bitcoin, rates, dollar, credit, oil and breadth.
+
+It classifies four regimes:
+
+- `BROAD_LIQUIDITY_RISK_ON`
+- `FLIGHT_TO_SAFETY`
+- `INFLATION_GEOPOLITICAL_HEDGE`
+- `MONETARY_UNCERTAINTY_MIXED`
+
+It computes Gold Strength, Bitcoin Liquidity, Monetary Ease and Risk Transmission scores, then converts the active regime into a per-stock MacroImpact score for the canonical PORTFOLIO_35.
+
+Allowed actions are limited to ENTRY TIMING / NO_CHASE calibration, research prioritization, dislocation handoff and tactical sizing review. Gold/BTC divergence alone can never emit an automatic BUY or SELL or modify the fixed portfolio composition.
+
+Cross-engine flow:
+
+`MACRO REGIME GOLD–BTC Ω -> MONEY ROTATION Ω -> HISTORICAL DISLOCATION Ω -> MARKET TOP RISK Ω -> ENTRY TIMING Ω`
+
+Initialization on 2026-08-14: `YELLOW / MONETARY_UNCERTAINTY_MIXED` pending multi-session confirmation from credit and breadth.
+
 ## Epistemic governance
 
 `Information Received != Admissible Evidence`.
