@@ -1,7 +1,7 @@
 # ATLAS Ω — Aerostar S.A. (BVB: ARS) audit
 
 As of: 2026-08-14
-Status: WATCHLIST_PRIORITY / STARTER_CONDITIONAL / NOT_CANONICAL_PORTFOLIO_CHANGE
+Status: WATCHLIST_PRIORITY / NO_EXECUTION_BROKER_CONSTRAINT / NOT_CANONICAL_PORTFOLIO_CHANGE
 
 ## Verified evidence
 - BVB confirms H1 2026 reporting date: 14-Aug-2026.
@@ -15,9 +15,16 @@ Status: WATCHLIST_PRIORITY / STARTER_CONDITIONAL / NOT_CANONICAL_PORTFOLIO_CHANG
 H1 EPS annualized mechanically = RON 1.138. At RON 18.30 this implies ~16.1x annualized H1 earnings, materially below the backward-looking BVB PER of 28.42x. This is not a forecast: H2 may differ. Net cash is substantial and operating leverage improved sharply.
 
 Strengths: debt-free balance sheet; high cash; strong H1 earnings acceleration; margin expansion; civil aerospace + defence diversification; F-16 MRO structural runway.
-Risks: very limited free float/liquidity; price approximately doubled versus 52-week low; H1 margins may normalize; customer/program concentration; no validated live 14-Aug post-results close yet.
+Risks: very limited free float/liquidity; price approximately doubled versus 52-week low; H1 margins may normalize; customer/program concentration.
+
+## Broker constraint update
+User brokerage constraint: Trading 212 does not provide access to the Romanian/Bucharest Stock Exchange for this security. Therefore ARS is currently non-executable through the user's primary broker.
 
 ## Decision gate
-Do not replace LMT or HWM solely for ARS. ARS is a satellite/small-cap candidate, not a like-for-like core replacement. Conditional starter only if executable price remains <= RON 19.00 and liquidity/spread are acceptable; RON 19–20.30 = no chase; >RON 20.30 = wait for consolidation. Final portfolio change requires current executable quote and explicit user execution decision.
+- Portfolio action: NO CHANGE.
+- Do not sell or reduce a current portfolio position solely to make room for ARS while ARS is non-executable.
+- ARS remains WATCHLIST / BENCHMARK for defence + civil aerospace quality and valuation comparisons.
+- Prior STARTER_CONDITIONAL gate is superseded by NO_EXECUTION_BROKER_CONSTRAINT until broker access changes.
+- If future access becomes available, re-run valuation, liquidity/spread, GREEN Continuity and entry timing before any execution.
 
-Persistence: GitHub side written; reconcile with Notion mirror.
+Persistence: reconciled in GitHub + Notion.
