@@ -3,6 +3,7 @@ import {
   AI_INFRASTRUCTURE_ROTATION_OMEGA_V1,
   FUJIKURA_FURUKAWA_AI_OPTICS_CASES,
 } from './ai-infrastructure-rotation-omega';
+import { INSTITUTIONAL_CAPITAL_ROTATION_OMEGA_V1 } from './institutional-capital-rotation-omega';
 import {
   MARKET_REGIME_FAMILIES,
   R3_TO_R4_TRIGGER_OMEGA,
@@ -38,6 +39,7 @@ export const MONEY_ROTATION_OMEGA_V1_3 = {
     'Gold is split into structural and tactical signals; one cannot substitute for the other.',
     'Oil forecasts remain conditional when primary supply-demand evidence or geopolitical transmission is unresolved.',
     'The gold/oil matrix selects what to investigate; it never emits a mechanical sector trade.',
+    'INSTITUTIONAL CAPITAL ROTATION Ω is a sibling evidence engine: it measures real capital migration across sectors/regions and never overwrites R1-R6 lifecycle states.',
     'Rotation evidence never emits a portfolio order by itself.',
   ] as const,
   gates: {
@@ -52,6 +54,7 @@ export const MONEY_ROTATION_OMEGA_V1_3 = {
     oil: assessOilScenario,
     goldOilRegime: inferGoldOilRegime,
   },
+  institutionalCapitalRotation: INSTITUTIONAL_CAPITAL_ROTATION_OMEGA_V1,
   sectorEngines: {
     aiInfrastructure: AI_INFRASTRUCTURE_ROTATION_OMEGA_V1,
   },
