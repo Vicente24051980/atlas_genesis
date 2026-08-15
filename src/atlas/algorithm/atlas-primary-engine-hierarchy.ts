@@ -1,7 +1,7 @@
 import { GREEN_CONTINUITY_OMEGA } from './green-continuity-omega';
 
 export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
-  version: '2026-08-10',
+  version: '2026-08-15',
   primaryEngine: GREEN_CONTINUITY_OMEGA.id,
   primaryRole: 'selection_and_portfolio_continuity',
   refinementEngines: [
@@ -11,6 +11,7 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'VALUATION_OMEGA',
     'RISK_OMEGA',
     'MONEY_ROTATION_OMEGA',
+    'INSTITUTIONAL_CAPITAL_ROTATION_OMEGA',
     'ENERGY_ROTATION_OMEGA',
     'GOOD_COMPANIES_CHEAP_OMEGA',
     'HISTORICAL_DISLOCATION_OMEGA',
@@ -31,6 +32,8 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'A refinement engine cannot convert a 5/5 GREEN position into SELL merely because of overlap, diversification, sector count or portfolio-size targets.',
     'A confirmed structural falsifier remains superior to price continuity and may block BUY or force SELL.',
     'Contrarian engines remain logically independent: a security may fail GREEN CONTINUITY Ω while remaining valid inside Historical Dislocation or Good Companies Cheap.',
+    'MONEY ROTATION Ω and INSTITUTIONAL CAPITAL ROTATION Ω are independent but complementary: Money Rotation models lifecycle/dislocation; Institutional Rotation detects evidence-backed capital migration across sectors, subsectors, factors and regions.',
+    'INSTITUTIONAL CAPITAL ROTATION Ω cannot label CONFIRMED_RECEIVER from price/volume alone and cannot issue a portfolio order by itself.',
     'EVENT PRICING / OPTIONS EXPECTATIONS Ω remains independent tactical context and cannot overwrite structural engine decisions.',
     'Yield-driven price expansion is MARKET/VALUATION EFFECT and is not automatic Business Quality or AI-thesis improvement.',
   ] as const,
@@ -50,6 +53,7 @@ export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'VALUATION_OMEGA',
   'RISK_OMEGA',
   'MONEY_ROTATION_OMEGA',
+  'INSTITUTIONAL_CAPITAL_ROTATION_OMEGA',
   'ENERGY_ROTATION_OMEGA_WHEN_APPLICABLE',
   'GOOD_COMPANIES_CHEAP_OMEGA_WHEN_APPLICABLE',
   'HISTORICAL_DISLOCATION_OMEGA_WHEN_APPLICABLE',
