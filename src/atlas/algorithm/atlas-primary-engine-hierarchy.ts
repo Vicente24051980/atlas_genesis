@@ -11,6 +11,7 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'CAPEX_PRODUCTIVITY_OMEGA',
     'VALUATION_OMEGA',
     'RISK_OMEGA',
+    'GLOBAL_LIQUIDITY_TRANSMISSION_OMEGA_V1',
     'INSTITUTIONAL_CAPITAL_ROTATION_OMEGA_V1',
     'MONEY_ROTATION_OMEGA',
     'ENERGY_ROTATION_OMEGA',
@@ -29,6 +30,7 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
   rules: [
     'GREEN CONTINUITY Ω is the principal selector and maintenance engine.',
     'LEADERSHIP BIAS CONTROL Ω forces incumbent-versus-challenger comparison and prevents market-cap, familiarity, prestige and survivorship bias without imposing an anti-megacap quota.',
+    'GLOBAL LIQUIDITY TRANSMISSION Ω separates monetary liquidity, market liquidity and asset-specific liquidity, identifies destination of capital, and cannot infer flow from price alone.',
     'The primary hard entry pattern is 1W > 0, 1M > 0, 3M > 0, 1Y > 0 and TOTAL > 0 on one synchronized market cut.',
     'Other ATLAS engines refine quality, conviction, ranking, valuation, risk, sizing, regime and thesis context.',
     'A refinement engine cannot convert a 5/5 GREEN position into SELL merely because of overlap, diversification, sector count or portfolio-size targets.',
@@ -53,6 +55,7 @@ export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'CAPEX_PRODUCTIVITY_OMEGA',
   'VALUATION_OMEGA',
   'RISK_OMEGA',
+  'GLOBAL_LIQUIDITY_TRANSMISSION_OMEGA_V1',
   'INSTITUTIONAL_CAPITAL_ROTATION_OMEGA_V1',
   'MONEY_ROTATION_OMEGA',
   'ENERGY_ROTATION_OMEGA_WHEN_APPLICABLE',
