@@ -17,6 +17,8 @@ Desde 17-ago-2026 se activan además **CAPITAL FUNDING QUALITY Ω v1.0** y **FIN
 
 Desde 17-ago-2026 se activa también **FUTURE IPO GATE Ω v1.0** para todo candidato privado/Future que pretenda migrar a cartera pública. Impide convertir un listing, una valoración privada, un sponsor famoso o una subida de primera sesión en señal de compra. Su canon está en `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md` y su implementación técnica en `src/atlas/algorithm/future-ipo-gate-omega.ts`.
 
+Desde 17-ago-2026 queda fijada además la **FUTURE WATCHLIST Ω** listada y separada estrictamente de cartera. El universo bruto entregado contiene 71 identificadores; tras normalización y exclusión de 19 posiciones ya presentes en Portfolio 36, el universo Future canónico activo contiene **52 tickers**. Fuente: `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`; datos ejecutables: `src/atlas/data/future-watchlist-omega.ts`; auditoría: `docs/atlas/research/2026-08-17_FUTURE_52_DEEP_AUDIT_V311_CFQ_FD.md`.
+
 Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reemplazado por v3.1 y sus módulos canónicos incorporados por referencia.
 
 ## Pipeline activo
@@ -41,13 +43,14 @@ Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reem
 - **IPO EVENT ≠ BUY SIGNAL.**
 - **PRIVATE VALUATION ≠ PUBLIC FAIR VALUE.**
 - **RUN-RATE REVENUE ≠ AUDITED REVENUE.**
+- **ACTIVE_PORTFOLIO ∩ FUTURE_WATCHLIST = ∅.**
 - **COLLATERAL VALUE ≠ CASH FLOW.**
 - **LIQUIDITY SOURCE ≠ LIQUIDITY DESTINATION.**
 
 ## Active engine families
 
 ### Core / selection
-Principal Ω; Good Companies Cheap Ω; Historical Dislocation/Burry Ω; Money Rotation Ω; Institutional Capital Rotation Ω; Leadership Bias Control Ω; Successor Detection Ω.
+Principal Ω; Good Companies Cheap Ω; Historical Dislocation/Burry Ω; Money Rotation Ω; Institutional Capital Rotation Ω; Leadership Bias Control Ω; Successor Detection Ω; Future Watchlist Ω.
 
 ### Systemic / specialized
 **Global CAPEX Chain Ω**; AI CAPEX Payback Ω; **Capital Funding Quality Ω**; **Financed Demand Ω**; AI Financial Fragility Ω; AI Credit Transmission Ω; Systemic Cascade Ω; Energy Rotation Ω; Global Liquidity Transmission Ω; Sovereign Liquidity Plumbing Ω; European Fragmentation & Energy Security Ω; EU Fiscal Stress Ω; China Industrial Displacement Ω; Hard Assets/Gold Ω; Speculative Liquidity Canary Ω; Tokenization/Digital Infrastructure Ω; Market Bottom Ω; Market Top Risk Ω; Entry Timing Ω; Event Pricing Ω.
@@ -89,9 +92,24 @@ Estados: `IPO_READY_PASS / IPO_READY_CONDITIONAL / IPO_DATA_INCOMPLETE / IPO_EXP
 
 No hay BUY automático por primer día, oversubscription, baja float, index inclusion, sponsor, escasez o rally de debut.
 
+## Future Watchlist Ω — governance
+
+Canon: `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`.
+
+- Raw supplied universe: **71** unique identifiers.
+- Active-portfolio overlaps removed: **19**.
+- Strict Future universe: **52**.
+- Portfolio↔Future duplicates are a canonical violation.
+- `BITF` is normalized to `KEEL`; `EXENS` to `EXENS.PA`.
+- `TERA` stays DATA_FAIL until issuer identity is verified.
+- `FUFU` is `WATCHLIST_PRIORITARIA / EARNINGS_INFLECTION`, never an automatic BUY.
+- `DATA_FAIL ≠ NO_BUY`; `CATEGORY_MISMATCH ≠ BUSINESS_FAILURE`; `NO_PASS_OPERATING_SHELL` is distinct from a weak operating company.
+- Power-to-AI candidates must pass CFQ + FD + contract quality + project-finance recourse + commissioned-capacity/cash-conversion gates.
+- If a Future ticker enters the active portfolio, it is removed from Future in the same reconciliation.
+
 ## Portfolio rule
 
-**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1, Global CAPEX Chain Ω, Capital Funding Quality Ω, Financed Demand Ω y Future IPO Gate Ω no modifican la cartera por sí solas. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
+**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1, Global CAPEX Chain Ω, Capital Funding Quality Ω, Financed Demand Ω, Future Watchlist Ω y Future IPO Gate Ω no modifican la cartera por sí solas. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
 
 ## Mandatory output ending
 
@@ -105,4 +123,4 @@ No hay BUY automático por primer día, oversubscription, baja float, index incl
 
 **Real demand can coexist with bad capital allocation. Good payback can coexist with fragile funding. External funding can coexist with excellent economics. ATLAS must identify which combination actually exists.**
 
-Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md`; para Funding/Financed Demand usar `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`; para Future/IPO usar `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md` como módulos canónicos compatibles incorporados por referencia.
+Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md`; para Funding/Financed Demand usar `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`; para Future list usar `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`; para Future/IPO usar `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md` como módulos canónicos compatibles incorporados por referencia.
