@@ -10,6 +10,8 @@ on:
       - 'api/test_mobile_v2.py'
       - 'api/trading212_v2.py'
       - 'api/test_trading212_v2.py'
+      - 'api/global_capex_chain_mobile.py'
+      - 'api/test_global_capex_chain_mobile.py'
       - 'api/app.py'
       - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
@@ -21,6 +23,8 @@ on:
       - 'api/test_mobile_v2.py'
       - 'api/trading212_v2.py'
       - 'api/test_trading212_v2.py'
+      - 'api/global_capex_chain_mobile.py'
+      - 'api/test_global_capex_chain_mobile.py'
       - 'api/app.py'
       - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
@@ -38,7 +42,7 @@ env:
 
 jobs:
   api-unit:
-    name: Mobile backend + Trading 212 contract tests
+    name: Mobile backend + Trading 212 + CAPEX contract tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -47,7 +51,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r api/requirements.txt
-      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_trading212_v2.py
+      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_trading212_v2.py api/test_global_capex_chain_mobile.py
 
   typecheck:
     name: Mobile TypeScript gate
