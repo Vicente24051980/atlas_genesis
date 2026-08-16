@@ -15,6 +15,8 @@ El 16-ago-2026 se activa además **GLOBAL CAPEX CHAIN Ω v1.0** como módulo can
 
 Desde 17-ago-2026 se activan además **CAPITAL FUNDING QUALITY Ω v1.0** y **FINANCED DEMAND Ω v1.0** como módulos canónicos compatibles con v3.1/v3.1.1. Separan obligatoriamente **Demand Proof Ω**, **Economic Payback Ω** y **Funding Sustainability Ω**, y distinguen demanda orgánica de demanda apoyada/interdependiente/reflexiva. Su canon está en `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`.
 
+Desde 17-ago-2026 se activa también **FUTURE IPO GATE Ω v1.0** para todo candidato privado/Future que pretenda migrar a cartera pública. Impide convertir un listing, una valoración privada, un sponsor famoso o una subida de primera sesión en señal de compra. Su canon está en `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md` y su implementación técnica en `src/atlas/algorithm/future-ipo-gate-omega.ts`.
+
 Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reemplazado por v3.1 y sus módulos canónicos incorporados por referencia.
 
 ## Pipeline activo
@@ -36,6 +38,9 @@ Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reem
 - **FINANCED DEMAND ≠ FAKE DEMAND.**
 - **STRATEGIC INVESTOR/SUPPLIER ≠ INDEPENDENT END DEMAND.**
 - **BACKLOG ≠ CASH FLOW without contract-quality analysis.**
+- **IPO EVENT ≠ BUY SIGNAL.**
+- **PRIVATE VALUATION ≠ PUBLIC FAIR VALUE.**
+- **RUN-RATE REVENUE ≠ AUDITED REVENUE.**
 - **COLLATERAL VALUE ≠ CASH FLOW.**
 - **LIQUIDITY SOURCE ≠ LIQUIDITY DESTINATION.**
 
@@ -48,7 +53,7 @@ Principal Ω; Good Companies Cheap Ω; Historical Dislocation/Burry Ω; Money Ro
 **Global CAPEX Chain Ω**; AI CAPEX Payback Ω; **Capital Funding Quality Ω**; **Financed Demand Ω**; AI Financial Fragility Ω; AI Credit Transmission Ω; Systemic Cascade Ω; Energy Rotation Ω; Global Liquidity Transmission Ω; Sovereign Liquidity Plumbing Ω; European Fragmentation & Energy Security Ω; EU Fiscal Stress Ω; China Industrial Displacement Ω; Hard Assets/Gold Ω; Speculative Liquidity Canary Ω; Tokenization/Digital Infrastructure Ω; Market Bottom Ω; Market Top Risk Ω; Entry Timing Ω; Event Pricing Ω.
 
 ### Auxiliary governance layers
-Institutional Convergence Ω; Winner Preservation Ω; Optionality Reserve Ω; Capital Safety & Leverage Discipline Ω; Special Situations Ω.
+Institutional Convergence Ω; Winner Preservation Ω; Optionality Reserve Ω; Capital Safety & Leverage Discipline Ω; **Future IPO Gate Ω**; Special Situations Ω.
 
 ## Global CAPEX Chain Ω — mandatory structural fields
 
@@ -70,9 +75,23 @@ Estados FD: `FD0_ORGANIC / FD1_SUPPORTED / FD2_INTERDEPENDENT / FD3_REFLEXIVE / 
 
 No existen umbrales universales de CAPEX/OCF, deuda, commitments o financiación hasta calibración empírica. Comparar contra historia propia, peers y estructura contractual.
 
+## Future IPO Gate Ω — mandatory lifecycle
+
+Todo candidato privado o Future debe registrar:
+
+`F0_PRIVATE_DISCOVERY → F1_CONFIDENTIAL_FILING_REPORTED → F2_PUBLIC_S1_AVAILABLE → F3_PRICED → F4_LISTED_PRICE_DISCOVERY → F5_LOCKUP_SUPPLY_DISCOVERY → F6_NORMALIZED_PUBLIC_COMPANY`.
+
+Antes de una entrada pública revisar obligatoriamente:
+
+**audited financials → revenue quality → gross margin → OCF → FCF/share → CAPEX/compute commitments → CFQ → Financed Demand → debt/leases/recourse → dilution → governance/minority rights → related-party transactions → customer concentration → reverse valuation → primary/secondary offering mix → float/lockups → Entry Timing Ω.**
+
+Estados: `IPO_READY_PASS / IPO_READY_CONDITIONAL / IPO_DATA_INCOMPLETE / IPO_EXPECTATION_DENSE / IPO_SUPPLY_DISTORTED / IPO_NO_PASS`.
+
+No hay BUY automático por primer día, oversubscription, baja float, index inclusion, sponsor, escasez o rally de debut.
+
 ## Portfolio rule
 
-**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1, Global CAPEX Chain Ω, Capital Funding Quality Ω y Financed Demand Ω no modifican la cartera por sí solas. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
+**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1, Global CAPEX Chain Ω, Capital Funding Quality Ω, Financed Demand Ω y Future IPO Gate Ω no modifican la cartera por sí solas. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
 
 ## Mandatory output ending
 
@@ -86,4 +105,4 @@ No existen umbrales universales de CAPEX/OCF, deuda, commitments o financiación
 
 **Real demand can coexist with bad capital allocation. Good payback can coexist with fragile funding. External funding can coexist with excellent economics. ATLAS must identify which combination actually exists.**
 
-Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md`; para Funding/Financed Demand usar `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md` como módulos canónicos compatibles incorporados por referencia.
+Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md`; para Funding/Financed Demand usar `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`; para Future/IPO usar `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md` como módulos canónicos compatibles incorporados por referencia.
