@@ -1,0 +1,78 @@
+name: ATLAS Ω — Publish Certified Mobile APK
+
+on:
+  workflow_run:
+    workflows:
+      - "ATLAS Ω Mobile v1 Clean Rebuild"
+    types:
+      - completed
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: atlas-certified-apk-release-${{ github.event.workflow_run.id }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Resolve certified build metadata
+        id: meta
+        shell: bash
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          SHORT_SHA="${HEAD_SHA:0:7}"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "tag=mobile-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "apk=ATLAS-Omega-${SHORT_SHA}.apk" >> "$GITHUB_OUTPUT"
+          echo "source_run_id=$SOURCE_RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Download emulator-certified APK
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ steps.meta.outputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p certified-apk
+          gh run download "$SOURCE_RUN_ID" \
+            --repo "$GITHUB_REPOSITORY" \
+            --name atlas-omega-mobile-v1-certified-apk \
+            --dir certified-apk
+          SOURCE_APK="$(find certified-apk -type f -name '*.apk' | head -n 1)"
+          test -s "$SOURCE_APK"
+          cp "$SOURCE_APK" "${{ steps.meta.outputs.apk }}"
+          sha256sum "${{ steps.meta.outputs.apk }}" | tee "${{ steps.meta.outputs.apk }}.sha256"
+
+      - name: Create immutable GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          APK_NAME: ${{ steps.meta.outputs.apk }}
+          SOURCE_RUN_ID: ${{ steps.meta.outputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          NOTES="Certified ATLAS Ω Android APK. Source commit: ${HEAD_SHA}. Source CI run: ${SOURCE_RUN_ID}. Passed backend contract tests, TypeScript gate, release build, provider-secret leak inspection and Android emulator launch/navigation gate."
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK_NAME" "$APK_NAME.sha256" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$HEAD_SHA" \
+              --title "ATLAS Ω Certified APK ${{ steps.meta.outputs.short_sha }}" \
+              --notes "$NOTES" \
+              "$APK_NAME" "$APK_NAME.sha256"
+          fi
