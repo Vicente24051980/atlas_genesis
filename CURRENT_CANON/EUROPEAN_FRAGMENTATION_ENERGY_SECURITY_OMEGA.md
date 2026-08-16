@@ -1,106 +1,115 @@
 # EUROPEAN FRAGMENTATION & ENERGY SECURITY Ω
 
-**Status:** CANONICAL MODULE — ACTIVE
-**Version:** 1.0
-**Date:** 2026-08-16
-**Scope:** ATLAS Ω Enterprise
+**Status:** CANONICAL MODULE — ACTIVE  
+**Version:** 1.1  
+**Date:** 2026-08-16  
+**Scope:** ATLAS Ω Enterprise v3.1
 
 ## Mission
-Detect an emerging euro-area sovereign/banking/FX fragmentation regime early, while separately measuring the structural European energy-security CAPEX cycle. The module is an early-warning and cross-engine context layer; it is NOT an automatic portfolio trading engine.
+Detect an emerging euro-area sovereign/banking/FX fragmentation regime early, while separately measuring the European energy-security CAPEX cycle and fiscal-stress dynamics. The module is an early-warning/context layer; it is NOT an automatic trading engine.
 
 ## Constitutional laws
 - EVIDENCE > NARRATIVE.
 - PRICE ≠ FUNDAMENTAL EVIDENCE.
 - MARKET_CAP_CHANGE ≠ CAPITAL_FLOW.
-- One political dispute, one spread move or one YouTube thesis cannot establish euro fragmentation.
-- Historical Plan Z / Grexit contingency evidence is not evidence of a current euro-breakup plan.
-- Tail risk probability and tail risk impact must be recorded separately.
+- One political proposal, one spread move or one video cannot establish euro fragmentation.
+- Historical Plan Z / Grexit evidence is not evidence of a current euro-breakup plan.
+- Tail-risk probability and impact are recorded separately.
+- ACCOUNTING CANCELLATION OF DEBT != ECONOMIC COST DISAPPEARS.
 
 ## Evidence stack
+
 ### Sovereign / rates
-- BTP–Bund spread and velocity.
-- OAT–Bund spread and velocity.
-- Sovereign CDS levels and changes.
+- OAT–Bund and BTP–Bund spread level + velocity.
+- Sovereign CDS.
 - EUR rates volatility and cross-country dispersion.
+- Auction tails / bid quality where available.
+
+### EU Fiscal Stress Ω
+Track country-by-country:
+- debt/GDP;
+- primary balance;
+- interest/revenue and interest/GDP;
+- effective funding cost;
+- nominal growth;
+- **r-g**;
+- maturity/refinancing profile;
+- political feasibility of stabilization;
+- ECB transmission dependence.
+
+States:
+- `E0_NORMAL`
+- `E1_DETERIORATING`
+- `E2_FISCAL_PRESSURE`
+- `E3_FRAGMENTATION_RISK`
+- `E4_SYSTEMIC_EVENT`
+
+France/Italy can be stressed without implying euro breakup. Escalation requires market and funding confirmation.
 
 ### Banking / funding
 - European bank CDS and subordinated-credit stress.
 - Peripheral vs core bank equity relative strength.
-- Deposit/funding stress when reliable data are available.
-- TARGET2 / Eurosystem balance signals only with correct interpretation; balances alone are not capital-flight proof.
+- Deposit/funding stress when reliable.
+- TARGET2/Eurosystem signals with correct interpretation; balances alone are not proof of capital flight.
 
 ### FX / safe havens
 - EUR/USD and EUR/CHF.
 - Gold in EUR.
-- CHF and Bund safe-haven demand.
+- CHF/Bund safe-haven demand.
 - Cross-asset confirmation required.
 
 ### Energy security
-- TTF gas level, curve and volatility.
-- EU storage vs seasonal norms.
-- LNG supply, terminal constraints and shipping disruption.
-- Russian gas/LNG phase-out implementation and exemptions.
-- European grid, generation, storage and industrial-electrification CAPEX.
+- TTF gas level/curve/volatility.
+- Storage vs seasonal norms.
+- LNG supply, terminals and shipping disruption.
+- Russian gas/LNG phase-out implementation/exemptions.
+- Grid, generation, storage and industrial-electrification CAPEX.
 
 ### Institutional capital
-- Europe equity fund flows.
+- Europe equity/bond/money-market flows.
 - Country/sector flows when verifiable.
-- Bond and money-market flows.
 - No ticker-level institutional-flow claim without ticker-level evidence.
 
 ## State machine
-### GREEN — contained fragmentation
-Spreads/CDS contained, EUR/funding broadly stable and no multi-market stress confirmation. Energy-security CAPEX may still be structurally positive.
+### GREEN
+Contained fragmentation; fiscal stress manageable; funding/FX orderly.
 
-### ORANGE — emerging fragmentation
-Multiple independent stress channels deteriorate together: sovereign spreads/CDS, banks/funding, FX/safe havens, rates volatility and/or energy shock. Requires cross-source confirmation; a single trigger is insufficient.
+### ORANGE
+Multiple independent channels deteriorate together: sovereign/fiscal, banking/funding, FX/safe haven, rates volatility and/or energy shock.
 
-### RED — systemic fragmentation
-Persistent simultaneous sovereign + banking/funding + FX stress with evidence of material capital reallocation or policy transmission impairment. RED requires primary/high-quality evidence and reconciliation across independent channels.
+### RED
+Persistent simultaneous sovereign + banking/funding + FX stress with evidence of transmission impairment/material capital flight.
 
 ## Composite architecture
-Maintain five independent sub-scores (0–100):
+Maintain six independent sub-scores:
 1. SovereignStress Ω
-2. BankingFundingStress Ω
-3. FXSafeHavenStress Ω
-4. EnergySecurityStress Ω
-5. InstitutionalReallocation Ω
+2. EUFiscalStress Ω
+3. BankingFundingStress Ω
+4. FXSafeHavenStress Ω
+5. EnergySecurityStress Ω
+6. InstitutionalReallocation Ω
 
-Do not collapse them into a single signal until Evidence Integrity and Temporal Normalization have passed. State escalation requires breadth across channels, not merely a high arithmetic average.
+No single arithmetic average may override evidence breadth. Escalation requires cross-channel confirmation.
 
 ## Cross-engine integration
-Outputs feed, without overwriting independent decisions:
-- Money Rotation Ω
+Feeds:
+- Sovereign Liquidity Plumbing Ω
 - Global Liquidity Transmission Ω
-- Gold/Oil Macro Regime Ω
+- Money Rotation Ω
+- Gold Ω
 - Energy Rotation Ω
 - Institutional Capital Rotation Ω
-- Successor Detection Ω
-- Portfolio Risk & Capital Allocation Ω
+- China Industrial Displacement Ω
+- Systemic Cascade Ω
+- Portfolio Risk Ω
 
 ## Structural beneficiary discovery
-Energy-security evidence can raise discovery priority for businesses exposed to grid reinforcement, power generation, electrical equipment, LNG infrastructure, storage, industrial electrification and selected defense/infrastructure CAPEX. It does NOT create an automatic BUY.
-
-## Portfolio law
-GREEN/ORANGE/RED is contextual evidence. Portfolio changes require the normal ATLAS Decision Safety Gate plus company-level thesis/valuation/risk evidence. No portfolio change is authorized solely by this module.
+Energy-security/fiscal reindustrialization can raise research priority for grid, generation, electrical equipment, LNG, defense, industrial automation and selected insurers/financial infrastructure. This is discovery, not BUY.
 
 ## Current initialization — 2026-08-16
-Classification: **EURO BREAKUP = LOW-PROBABILITY / HIGH-IMPACT TAIL RISK; no evidence of imminent systemic fragmentation established.**
+`EURO BREAKUP = LOW-PROBABILITY / HIGH-IMPACT TAIL RISK`.
 
-Primary legal evidence confirms an active, stepwise EU phase-out framework for Russian natural gas under Regulation (EU) 2026/261. Energy-security transition is therefore a real policy input, but it must not be converted mechanically into an equity-flow or beneficiary claim.
-
-## Daily/weekly monitor output
-Record:
-- timestamp and evidence cutoff;
-- five sub-score states;
-- GREEN / ORANGE / RED;
-- new evidence vs prior snapshot;
-- confirmed divergences;
-- affected ATLAS engines;
-- falsifiers / de-escalation evidence;
-- portfolio action: normally NONE unless Decision Safety Gate separately passes.
+`EU FISCAL STRESS = ORANGE WATCH`, driven by elevated debt/funding sensitivity in major sovereigns, but **systemic fragmentation is not confirmed**.
 
 ## Falsifiers / de-escalation
-Fragmentation thesis weakens when sovereign spreads/CDS normalize, bank funding remains orderly, EUR/safe-haven markets do not confirm stress, policy transmission remains functional and institutional flows do not show persistent flight.
-
-Energy-security beneficiary thesis weakens if CAPEX programs are delayed/cancelled, demand assumptions fall, project economics/ROIC deteriorate, financing constraints dominate, or company-level execution fails.
+Fragmentation thesis weakens when spreads/CDS normalize, bank funding remains orderly, EUR/safe-haven markets do not confirm stress, fiscal trajectories improve and ECB transmission remains functional.
