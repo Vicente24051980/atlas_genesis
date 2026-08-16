@@ -1,0 +1,22 @@
+name: FinancialData.Net Adapter
+
+on:
+  push:
+    paths:
+      - 'atlas_financiero/integrations/**'
+      - '.github/workflows/financialdatanet-adapter.yml'
+  pull_request:
+    paths:
+      - 'atlas_financiero/integrations/**'
+      - '.github/workflows/financialdatanet-adapter.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --upgrade pip pytest
+      - run: pytest -q atlas_financiero/integrations/test_financialdatanet_adapter.py
