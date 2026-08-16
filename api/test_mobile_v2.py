@@ -12,22 +12,51 @@ def test_portfolio_snapshot_is_36_and_unique():
     assert "NVDA" in mobile_v2.PORTFOLIO_36
 
 
-def test_summary_normalizer_handles_common_provider_keys():
+def test_summary_normalizer_handles_official_financialdatanet_keys():
     sections = {
-        "company": [{"Company Name": "Example Corp", "Currency": "USD"}],
-        "quote": [{"last_price": 101.5}],
-        "keyMetrics": [{"Revenue TTM": 1234}],
-        "valuation": [{"PE Ratio": 20.1}],
-        "marketCap": [{"market_cap": 9999, "change_in_market_cap": 55}],
-        "cashFlow": [{"free_cash_flow": 88}],
+        "company": [{"registrant_name": "MICROSOFT CORP", "industry": "Information technology", "market_cap": 2800000000000}],
+        "quote": [{"price": 502.42}],
+        "keyMetrics": [{"price_to_earnings_ratio": 38.51, "free_cash_flow": 56311000000.0}],
+        "incomeStatement": [{"currency_code": "USD", "revenue": 245122000000.0}],
+        "valuation": [],
+        "marketCap": [{"market_cap": 2800000000000, "change_in_market_cap": 55}],
+        "cashFlow": [{"cash_from_operating_activities": 118548000000.0}],
     }
-    summary = mobile_v2._summary_from_sections("TEST", sections)
-    assert summary["name"] == "Example Corp"
-    assert summary["price"] == 101.5
-    assert summary["marketCap"] == 9999
-    assert summary["pe"] == 20.1
-    assert summary["freeCashFlow"] == 88
+    summary = mobile_v2._summary_from_sections("MSFT", sections)
+    assert summary["name"] == "MICROSOFT CORP"
+    assert summary["currency"] == "USD"
+    assert summary["price"] == 502.42
+    assert summary["marketCap"] == 2800000000000
+    assert summary["pe"] == 38.51
+    assert summary["revenue"] == 245122000000.0
+    assert summary["freeCashFlow"] == 56311000000.0
     assert "capitalFlow" not in summary
+
+
+@pytest.mark.asyncio
+async def test_fdn_bundle_uses_documented_year_period(monkeypatch):
+    monkeypatch.setattr(mobile_v2, "FDN_API_KEY", "configured")
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    async def fake_optional(endpoint: str, params: dict[str, object]):
+        calls.append((endpoint, dict(params)))
+        if endpoint == "company-information":
+            return [{"registrant_name": "MICROSOFT CORP"}], "OK"
+        if endpoint == "stock-quotes":
+            return [{"price": 500}], "OK"
+        if endpoint == "key-metrics":
+            return [{"price_to_earnings_ratio": 30, "free_cash_flow": 100}], "OK"
+        if endpoint == "income-statements":
+            return [{"currency_code": "USD", "revenue": 1000}], "OK"
+        return [], "OK"
+
+    monkeypatch.setattr(mobile_v2, "_fdn_optional", fake_optional)
+    result = await mobile_v2._fdn_company_bundle("MSFT")
+    assert result["provider"] == "FinancialData.Net"
+    period_calls = [(endpoint, params) for endpoint, params in calls if "period" in params]
+    assert period_calls
+    assert all(params["period"] == "year" for _, params in period_calls)
+    assert ("stock-quotes", {"identifiers": "MSFT"}) in calls
 
 
 @pytest.mark.asyncio
