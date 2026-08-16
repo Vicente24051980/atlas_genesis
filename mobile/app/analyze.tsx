@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { CapexChainApi, CapexChainPayload } from '../core/api/capexChainApi';
 import { CompanyPayload, MobileApi } from '../core/api/mobileApi';
 
 export default function AnalyzeScreen() {
   const params = useLocalSearchParams<{ ticker?: string }>();
   const [ticker, setTicker] = useState(typeof params.ticker === 'string' ? params.ticker.toUpperCase() : 'MSFT');
   const [data, setData] = useState<CompanyPayload | null>(null);
+  const [capex, setCapex] = useState<CapexChainPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,14 +19,21 @@ export default function AnalyzeScreen() {
     setTicker(symbol);
     setLoading(true);
     setError(null);
-    try {
-      setData(await MobileApi.company(symbol));
-    } catch (cause) {
+
+    const [companyResult, capexResult] = await Promise.allSettled([
+      MobileApi.company(symbol),
+      CapexChainApi.profile(symbol),
+    ]);
+
+    if (companyResult.status === 'fulfilled') {
+      setData(companyResult.value);
+    } else {
       setData(null);
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setLoading(false);
+      setError(companyResult.reason instanceof Error ? companyResult.reason.message : String(companyResult.reason));
     }
+
+    setCapex(capexResult.status === 'fulfilled' ? capexResult.value : null);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -37,7 +46,7 @@ export default function AnalyzeScreen() {
       <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>← Inicio</Text></Pressable>
       <Text style={styles.eyebrow}>ANÁLISIS DE EMPRESA</Text>
       <Text style={styles.title}>Analizar empresa</Text>
-      <Text style={styles.subtitle}>Ticker-first. FinancialData.Net es la fuente preferida del nuevo contrato; Finnhub queda como continuidad si el proveedor principal no está disponible.</Text>
+      <Text style={styles.subtitle}>Ticker-first. FinancialData.Net es la fuente cuantitativa preferida; Global CAPEX Chain Ω añade la posición económica estructural sin mezclarla con valoración o BUY/SELL.</Text>
 
       <View style={styles.searchCard}>
         <TextInput
@@ -81,6 +90,8 @@ export default function AnalyzeScreen() {
             <Metric label="Free cash flow" value={formatCompact(data.summary.freeCashFlow)} />
           </View>
 
+          {capex ? <CapexCard payload={capex} /> : null}
+
           <Text style={styles.sectionTitle}>Cobertura del proveedor</Text>
           <View style={styles.statusCard}>
             {Object.entries(data.sourceStatus || {}).map(([name, status]) => (
@@ -101,8 +112,36 @@ export default function AnalyzeScreen() {
   );
 }
 
+function CapexCard({ payload }: { payload: CapexChainPayload }) {
+  return (
+    <View style={styles.capexCard}>
+      <View style={styles.capexHeader}>
+        <Text style={styles.capexTitle}>GLOBAL CAPEX CHAIN Ω</Text>
+        <Text style={payload.mapped ? styles.ok : styles.warn}>{payload.mapped ? 'MAPPED' : 'RESEARCH'}</Text>
+      </View>
+      {payload.mapped ? (
+        <>
+          <View style={styles.capexMetrics}>
+            <Metric label="EDD" value={`EDD-${payload.edd ?? '—'}`} />
+            <Metric label="Modo económico" value={pretty(payload.economicMode)} />
+          </View>
+          <Text style={styles.capexRole}>{pretty(payload.role)}</Text>
+          <Text style={styles.capexRivers}>{(payload.rivers || []).map(pretty).join('  →  ') || 'Río CAPEX pendiente'}</Text>
+        </>
+      ) : <Text style={styles.muted}>Ticker aún no mapeado: ATLAS no inventa una posición económica.</Text>}
+      <Text style={styles.capexEvidence}>Evidence Gate: {pretty(payload.evidenceGate)}</Text>
+      <Text style={styles.capexGuardrail}>{payload.guardrail}</Text>
+    </View>
+  );
+}
+
 function Metric({ label, value }: { label: string; value: string }) {
   return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={styles.metricValue}>{value}</Text></View>;
+}
+
+function pretty(value: unknown): string {
+  if (!value) return 'N/D';
+  return String(value).replaceAll('_', ' ');
 }
 
 function clean(value: unknown): string {
@@ -160,7 +199,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   metric: { width: '48%', minHeight: 80, backgroundColor: '#0f141c', borderRadius: 14, padding: 13, borderWidth: 1, borderColor: '#1e293b' },
   metricLabel: { color: '#64748b', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
-  metricValue: { color: '#f8fafc', fontSize: 19, fontWeight: '900', marginTop: 8 },
+  metricValue: { color: '#f8fafc', fontSize: 17, fontWeight: '900', marginTop: 8 },
   sectionTitle: { color: '#cbd5e1', fontWeight: '900', marginTop: 5, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 },
   statusCard: { backgroundColor: '#0c1118', borderRadius: 14, borderWidth: 1, borderColor: '#1e293b', padding: 13, gap: 9 },
   statusLine: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
@@ -170,4 +209,12 @@ const styles = StyleSheet.create({
   guardrailCard: { backgroundColor: '#111827', borderRadius: 14, padding: 14, gap: 7 },
   guardrailTitle: { color: '#a5b4fc', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
   guardrailText: { color: '#cbd5e1', lineHeight: 19 },
+  capexCard: { backgroundColor: '#10151d', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: '#334155', gap: 10 },
+  capexHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
+  capexTitle: { color: '#f8fafc', fontWeight: '900', fontSize: 12, letterSpacing: 0.8 },
+  capexMetrics: { flexDirection: 'row', gap: 9 },
+  capexRole: { color: '#7dd3fc', fontWeight: '900', fontSize: 16 },
+  capexRivers: { color: '#cbd5e1', lineHeight: 20 },
+  capexEvidence: { color: '#fbbf24', fontWeight: '800', fontSize: 12 },
+  capexGuardrail: { color: '#94a3b8', lineHeight: 18, fontSize: 12 },
 });
