@@ -97,18 +97,20 @@ def _summary_from_sections(symbol: str, sections: dict[str, Any]) -> dict[str, A
     metrics = _first(sections.get("keyMetrics"))
     valuation = _first(sections.get("valuation"))
     market_cap = _first(sections.get("marketCap"))
+    income = _first(sections.get("incomeStatement"))
     cash_flow = _first(sections.get("cashFlow"))
+
     return {
         "ticker": symbol,
-        "name": _pick(company, "name", "companyName", "company_name") or symbol,
-        "currency": _pick(company, "currency", "reportingCurrency", "currencyCode"),
-        "industry": _pick(company, "industry", "industryName"),
+        "name": _pick(company, "registrant_name", "registrantName", "name", "companyName", "company_name") or symbol,
+        "currency": _pick(income, "currency_code", "currencyCode") or _pick(company, "currency", "reportingCurrency", "currencyCode"),
+        "industry": _pick(company, "industry", "sic_description", "industryName"),
         "sector": _pick(company, "sector", "sectorName"),
         "price": _pick(quote, "price", "lastPrice", "last_price", "close", "adjClose", "adj_close", "c"),
-        "marketCap": _pick(market_cap, "marketCap", "market_cap", "marketCapitalization") or _pick(metrics, "marketCap", "market_cap"),
-        "pe": _pick(valuation, "peRatio", "pERatio", "priceEarningsRatio", "price_to_earnings") or _pick(metrics, "pe", "peRatio"),
-        "revenue": _pick(metrics, "revenue", "revenueTTM", "totalRevenue"),
-        "freeCashFlow": _pick(cash_flow, "freeCashFlow", "free_cash_flow", "fcf"),
+        "marketCap": _pick(market_cap, "market_cap", "marketCap", "marketCapitalization") or _pick(company, "market_cap", "marketCap") or _pick(metrics, "market_cap", "marketCap"),
+        "pe": _pick(metrics, "price_to_earnings_ratio", "peRatio", "pe") or _pick(valuation, "price_to_earnings_ratio", "price_earnings_ratio", "peRatio", "priceEarningsRatio"),
+        "revenue": _pick(income, "revenue", "total_revenue", "totalRevenue") or _pick(metrics, "revenue", "revenueTTM", "totalRevenue"),
+        "freeCashFlow": _pick(metrics, "free_cash_flow", "freeCashFlow", "fcf") or _pick(cash_flow, "free_cash_flow", "freeCashFlow", "fcf"),
     }
 
 
@@ -118,12 +120,13 @@ async def _fdn_company_bundle(symbol: str) -> dict[str, Any]:
         ("company", "international-company-information" if international else "company-information", {"identifier": symbol}),
         ("quote", "international-stock-prices" if international else "stock-quotes", {"identifier": symbol} if international else {"identifiers": symbol}),
         ("keyMetrics", "international-key-metrics" if international else "key-metrics", {"identifier": symbol}),
-        ("cashFlow", "international-cash-flow-statements" if international else "cash-flow-statements", {"identifier": symbol, "period": "annual"}),
+        ("incomeStatement", "international-income-statements" if international else "income-statements", {"identifier": symbol, "period": "year"}),
+        ("cashFlow", "international-cash-flow-statements" if international else "cash-flow-statements", {"identifier": symbol, "period": "year"}),
     ]
     if not international:
         endpoints.extend([
-            ("valuation", "valuation-ratios", {"identifier": symbol, "period": "annual"}),
-            ("profitability", "profitability-ratios", {"identifier": symbol, "period": "annual"}),
+            ("valuation", "valuation-ratios", {"identifier": symbol, "period": "year"}),
+            ("profitability", "profitability-ratios", {"identifier": symbol, "period": "year"}),
             ("marketCap", "market-cap", {"identifier": symbol}),
         ])
 
@@ -196,7 +199,7 @@ async def mobile_health() -> dict[str, Any]:
     return {
         "ok": True,
         "service": "atlas-mobile-v2",
-        "version": "1.0.0",
+        "version": "1.0.1",
         "financialdatanet_configured": bool(FDN_API_KEY),
         "finnhub_configured": bool(legacy.FINNHUB_TOKEN),
         "preferred_provider": "FinancialData.Net" if FDN_API_KEY else ("Finnhub" if legacy.FINNHUB_TOKEN else "none"),
