@@ -8,10 +8,12 @@ from api.main import app
 from api.market import router as market_router
 from api.mobile_v2 import router as mobile_v2_router
 from api.realizable_alpha import router as realizable_alpha_router
+from api.trading212_v2 import router as trading212_v2_router
 
 # Deployment entrypoint. Legacy routers remain available for compatibility while
-# the rebuilt phone app uses the isolated /v1/mobile contract.
+# the rebuilt phone app uses isolated /v1/mobile contracts.
 app.include_router(mobile_v2_router)
+app.include_router(trading212_v2_router)
 app.include_router(market_router)
 app.include_router(atlas_router)
 app.include_router(bottom_score_router)
