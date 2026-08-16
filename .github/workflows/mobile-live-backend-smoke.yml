@@ -21,30 +21,35 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Wait for deployed mobile health
+      - name: Resolve deployed Render backend and wait for mobile health
         shell: bash
         run: |
           set -euo pipefail
-          BASE="https://atlas-genesis.onrender.com"
+          CANDIDATES=(
+            "https://atlas-genesis-api.onrender.com"
+            "https://atlas-genesis.onrender.com"
+          )
           for attempt in $(seq 1 36); do
-            code=$(curl -sS --max-time 25 -o /tmp/mobile-health.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
-            if [ "$code" = "200" ]; then
-              if python3 -c 'import json; p=json.load(open("/tmp/mobile-health.json")); assert p.get("ok") is True; assert p.get("service") == "atlas-mobile-v2"'; then
+            for BASE in "${CANDIDATES[@]}"; do
+              code=$(curl -sS --max-time 25 -o /tmp/mobile-health.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
+              echo "probe attempt=$attempt base=$BASE http=$code"
+              if [ "$code" = "200" ] && python3 -c 'import json; p=json.load(open("/tmp/mobile-health.json")); assert p.get("ok") is True; assert p.get("service") == "atlas-mobile-v2"'; then
+                echo "ATLAS_PRODUCTION_API=$BASE" >> "$GITHUB_ENV"
+                echo "resolved production backend=$BASE"
                 cat /tmp/mobile-health.json
                 exit 0
               fi
-            fi
-            echo "waiting for Render deployment attempt=$attempt http=$code"
+            done
             sleep 10
           done
-          cat /tmp/mobile-health.json 2>/dev/null || true
+          echo "No candidate Render URL exposed the ATLAS mobile-v2 health contract."
           exit 1
 
       - name: Verify portfolio, company, CAPEX and broker status endpoints
         shell: bash
         run: |
           set -euo pipefail
-          BASE="https://atlas-genesis.onrender.com"
+          BASE="$ATLAS_PRODUCTION_API"
           curl -fsS --max-time 30 "$BASE/v1/mobile/health" -o /tmp/mobile-health.json
           curl -fsS --max-time 30 "$BASE/v1/mobile/portfolio" -o /tmp/portfolio.json
           curl -fsS --max-time 45 "$BASE/v1/mobile/company/MSFT" -o /tmp/company.json
