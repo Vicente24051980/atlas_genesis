@@ -1,154 +1,36 @@
-# AI Credit & Macro Convexity Ω v1
+# AI Credit & Macro Convexity Ω v1 — SUPERSEDED
 
-Status: CANONICAL MODULE
-Date: 2026-08-12
-Scope: AI infrastructure financing, credit risk, macro volatility, inflation surprise, market structure, gamma/convexity risk
-Source context: User-provided summaries of Simple Finanzas video "5 empresas en mínimos: ¿Es hora de comprar o vender?" and Diego Puertas video "Wall Street está DEMASIADO TRANQUILO antes del IPC". This module records the thesis as an ATLAS Ω engine input pending primary-source verification for exact market data.
+**Status:** HISTORICAL / SUPERSEDED AS ACTIVE ARCHITECTURE  
+**Original date:** 2026-08-12  
+**Superseded:** 2026-08-16 by ATLAS Ω ENTERPRISE v3.1
 
-## 1. Mission
+This document remains in the repository for audit history only.
 
-AI Credit & Macro Convexity Ω detects when the AI cycle stops being only a growth/semiconductor/capex story and becomes a credit, refinancing, energy, inflation and market-structure story.
+Its valid analytical content is now split into independent, more precise components:
 
-Canonical sentence:
+- **AI CAPEX Payback Ω v2** — utilization, monetization, OCF, FCF/share, incremental ROIC and payback.
+- **AI Financial Fragility Ω v1** — F0 HEALTHY → F4 CASCADE RISK.
+- **AI Credit Transmission Ω v1** — buyer/lender/vehicle/collateral/backstop/debt service/refinancing.
+- **Systemic Cascade Ω v1** — multi-channel escalation from economic deterioration to credit/sovereign deleveraging.
+- **Global Liquidity Transmission Ω v2** — liquidity stock, momentum and destination.
+- **Market Top Risk Ω / Energy Rotation Ω / Macro-Regime Ω** — market-structure, rates and energy context.
 
-> When the AI cycle starts being financed with massive credit, ATLAS must measure not only demand and chips, but cost of capital, CDS, energy, water, margins and real payback.
+## Supersession reason
 
-## 2. Separation rule
+The original module was too broad and could mix independent causal channels. v3.1 requires engine separation so that:
 
-This module does not replace:
+- high CAPEX is not confused with financing fragility;
+- financing fragility is not confused with market-top risk;
+- credit stress is not inferred from equity price alone;
+- macro/rate volatility cannot silently overwrite company-level AI economics;
+- one engine cannot double-count evidence used by another.
 
-- Principal Ω
-- Green Continuity Ω
-- AI Capex Payback Ω
-- AI Infrastructure Ω
-- Energy Ω
-- Macro Liquidity Ω
-- Credit Stress Ω
-- Entry Timing Ω
+## Preserved laws
 
-It connects them and raises audit priority when several macro/credit/market-structure risks cluster.
+- Strong AI demand can coexist with rising financing fragility.
+- Credit-risk watch is not an automatic SELL.
+- Private credit, leases, commitments and vendor financing must be audited.
+- Energy/rates can impair AI economics through cost of capital and operating costs.
+- Unverified video numbers remain discovery evidence only.
 
-## 3. Core thesis
-
-The AI infrastructure boom can remain fundamentally strong while becoming more fragile at the financing layer.
-
-ATLAS Ω must monitor whether AI investment is funded by:
-
-- retained cash flow from hyperscalers,
-- vendor financing,
-- private credit,
-- structured credit vehicles,
-- infrastructure funds,
-- debt issuance,
-- or equity dilution.
-
-The more the cycle depends on external credit, the more important it becomes to monitor cost of capital, CDS, refinancing, counterparty risk and downside convexity.
-
-## 4. Key risk channels
-
-### AI Credit Risk Ω
-
-Track:
-
-- CDS spreads for key AI names where available.
-- New debt issuance tied to data centers, GPUs and AI infrastructure.
-- Private credit and infrastructure financing commitments.
-- Off-balance-sheet obligations, leases and purchase commitments.
-- Vendor financing and circular demand risk.
-- Counterparty concentration.
-
-### Energy / Inflation Pass-Through Ω
-
-Track:
-
-- Brent and WTI levels.
-- Geopolitical chokepoints such as Strait of Hormuz risk.
-- Electricity costs for data centers.
-- Water/refrigeration constraints.
-- Transmission/grid bottlenecks.
-- Whether energy shocks feed CPI, rates and margins.
-
-### Macro Liquidity / MOVE Ω
-
-Track:
-
-- MOVE Index and rate volatility.
-- Treasury curve levels and changes, especially long-end volatility.
-- Dollar strength.
-- Real rates.
-- Fed path repricing.
-
-Rule: equities can tolerate high rates better than fast rate-volatility shocks. Speed of rates matters, not only level.
-
-### Market Structure / Gamma Risk Ω
-
-Track:
-
-- Index proximity to major gamma levels.
-- Dealer positioning.
-- Vol-control and systematic strategy de-risking thresholds.
-- Equal-weight versus cap-weight leadership.
-- Downside convexity risk after calm periods.
-
-### Inflation Surprise Ω
-
-Track:
-
-- CPI consensus versus energy and commodity impulse.
-- Core inflation momentum.
-- Shelter lag.
-- Wage and services pressure.
-- Fed reaction function.
-
-## 5. Signals from the current input
-
-Video-derived signals to audit:
-
-- Brent near high levels due to geopolitical stress: Energy Ω positive, inflation risk negative.
-- AI infrastructure financing packages around hundreds of billions: AI Credit Risk Ω positive watch / fragility monitor.
-- Nvidia CDS widening: credit market starting to price AI infrastructure risk.
-- Equity calm ahead of CPI: Inflation Surprise Ω and Market Structure Ω watch.
-- MOVE/rate volatility: monitor rate-vol shock risk.
-- S&P gamma zone: watch downside convexity if key support breaks.
-- Bitcoin lateral: Crypto Risk Ω neutral / no strong near-term signal.
-
-## 6. Engine state outputs
-
-AI Credit & Macro Convexity Ω can classify regime as:
-
-- GREEN: AI capex funded mostly by internal cash flow, credit calm, energy stable, rate volatility contained.
-- YELLOW: credit usage rising, CDS widening, energy/rates noisy, but no systemic stress.
-- RED: credit spreads widen sharply, financing conditions tighten, energy shock hits inflation/rates, market-structure convexity triggers forced selling.
-
-Current video-input state: **YELLOW WATCH**.
-
-## 7. Interaction with portfolio construction
-
-When YELLOW or RED:
-
-- Do not blindly add to AI/semis solely on strong revenue narratives.
-- Cross-check AI Capex Payback Ω with cost of capital and financing quality.
-- Prefer AI beneficiaries with strong balance sheets and cash flow.
-- Watch infrastructure financiers separately: BX, APO, BLK, KKR, GS, BAM/Brookfield.
-- Maintain AI + semiconductors hard cap in the 35-stock portfolio.
-- Increase ballast audit priority: Consumer Defensive Ω, Healthcare, Energy, Financial Infrastructure, Industrials.
-
-## 8. Required primary-source audit
-
-Before using this module for portfolio action, verify:
-
-- Company filings: debt, leases, capex commitments, purchase obligations.
-- Earnings call commentary on AI infra financing.
-- CDS/bond spread data where available.
-- Treasury yields and MOVE index.
-- CPI/energy data from official sources.
-- Options/gamma data from reliable market-structure sources.
-- Oil chokepoint/shipping data from reputable sources.
-
-## 9. Decision safety
-
-- Credit risk watch is not an automatic SELL.
-- Strong AI demand can coexist with higher financing fragility.
-- Macro calm can hide convexity; do not equate low volatility with low risk.
-- Do not use unverified video numbers as final evidence.
-- Use this module to raise audit priority and position-sizing discipline, not to override core engines mechanically.
+For current operation use `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md` v3.1 and `CURRENT_CANON/ATLAS_OMEGA_SYSTEM_EXTENSION_2026-08-16.md`.
