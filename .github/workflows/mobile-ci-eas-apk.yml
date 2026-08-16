@@ -8,6 +8,8 @@ on:
       - 'mobile/**'
       - 'api/mobile_v2.py'
       - 'api/test_mobile_v2.py'
+      - 'api/trading212_v2.py'
+      - 'api/test_trading212_v2.py'
       - 'api/app.py'
       - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
@@ -17,6 +19,8 @@ on:
       - 'mobile/**'
       - 'api/mobile_v2.py'
       - 'api/test_mobile_v2.py'
+      - 'api/trading212_v2.py'
+      - 'api/test_trading212_v2.py'
       - 'api/app.py'
       - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
@@ -34,7 +38,7 @@ env:
 
 jobs:
   api-unit:
-    name: Mobile backend contract tests
+    name: Mobile backend + Trading 212 contract tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -43,7 +47,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r api/requirements.txt
-      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py
+      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_trading212_v2.py
 
   typecheck:
     name: Mobile TypeScript gate
@@ -83,7 +87,7 @@ jobs:
         run: npx expo prebuild --platform android --non-interactive --clean
       - name: Build release APK
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
-      - name: Certify backend URL and keep provider key server-side
+      - name: Certify backend URL and keep provider keys server-side
         shell: bash
         run: |
           set -euo pipefail
@@ -93,6 +97,10 @@ jobs:
           grep -Fq "$PRODUCTION_API" /tmp/index.android.bundle
           if grep -Fq 'financialdata.net/api/v1' /tmp/index.android.bundle; then
             echo '::error::FinancialData.Net direct API endpoint leaked into APK. Use server proxy only.'
+            exit 1
+          fi
+          if grep -Fq 'live.trading212.com/api/v0' /tmp/index.android.bundle || grep -Fq 'demo.trading212.com/api/v0' /tmp/index.android.bundle; then
+            echo '::error::Trading 212 direct API endpoint leaked into APK. Use server proxy only.'
             exit 1
           fi
           sha256sum "$APK" | tee /tmp/atlas-mobile-v1.sha256
