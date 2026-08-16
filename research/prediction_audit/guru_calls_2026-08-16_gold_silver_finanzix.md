@@ -17,6 +17,20 @@ Finanzix argues that the recent gold/silver correction is a cyclical correction 
 5. Three proposed paths: gradual recovery over 12–18 months; explosive move if equity capital rotates into metals; or prolonged consolidation.
 6. Explicit falsification/risk factors include unexpectedly higher/stronger rates and renewed USD strength.
 
+## Timestamped source map
+
+This is an expansion of the same original case, not a second prediction record.
+
+- **01:34–01:49** — distinguishes cyclical correction from secular trend reversal; explicitly allows roughly 20–40% corrections inside a secular bull market.
+- **03:03–03:34** — interprets the scale of the correction and negative sentiment as possible bottom formation / speculative cleansing.
+- **06:29–07:09** — argues that a large rotation from equities into metals has not yet occurred and treats this as evidence the cycle may still be early.
+- **09:12–09:45** — links 10Y–2Y yield-curve steepening with a historically supportive environment for gold via inflation/recession and potential central-bank easing.
+- **11:38–13:47** — highlights real rates, inflation expectations, Fed policy and the US dollar as the principal macro drivers.
+- **14:09 and 16:04** — explicitly acknowledges risks from unexpected rate reversal/strength and renewed USD strength.
+- **16:55** — Scenario 1: gradual recovery over the next 12–18 months.
+- **17:31** — Scenario 2: explosive upside if capital rotates massively from equities into metals.
+- **18:13** — Scenario 3: prolonged consolidation / range before the secular trend resumes.
+
 ## ATLAS Ω status at capture
 
 - Secular Gold Thesis: ACTIVE
@@ -64,6 +78,8 @@ At every checkpoint record:
 ## Anti-hindsight rule
 
 Future reviews must quote this frozen snapshot and must not rewrite the original thesis using information learned later. Track both **directional accuracy** and **time-to-correctness**. A guru who eventually becomes right after an undefined delay is not scored the same as a correctly timed forecast.
+
+The most falsifiable component is the **12–18 month gradual-recovery horizon**. The explosive and prolonged-consolidation scenarios are conditional branches and must only be scored if their stated conditions occur; they must not be used retrospectively as an escape hatch that makes every market path count as a successful prediction.
 
 ## Wider ATLAS Ω use
 
