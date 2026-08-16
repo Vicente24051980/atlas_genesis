@@ -43,7 +43,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r api/requirements.txt
-      - run: pytest -q api/test_mobile_v2.py
+      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py
 
   typecheck:
     name: Mobile TypeScript gate
