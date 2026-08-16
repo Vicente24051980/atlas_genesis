@@ -1,10 +1,11 @@
-name: ATLAS Ω Mobile Live Backend Smoke
+name: ATLAS Mobile Live Backend Smoke
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
-      - '.github/workflows/mobile-live-backend-smoke.yml'
+      - .github/workflows/mobile-live-backend-smoke.yml
   workflow_dispatch:
 
 permissions:
@@ -12,53 +13,34 @@ permissions:
 
 jobs:
   live-mobile-api:
-    name: Verify deployed /v1/mobile contract
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Wait for Render deployment and verify health
+      - name: Wait for deployed mobile health
         shell: bash
         run: |
           set -euo pipefail
-          BASE='https://atlas-genesis.onrender.com'
-          ok=0
+          BASE="https://atlas-genesis.onrender.com"
           for attempt in $(seq 1 30); do
-            code=$(curl -sS --max-time 25 -o /tmp/mobile-health.json -w '%{http_code}' "$BASE/v1/mobile/health" || true)
-            if [ "$code" = '200' ] && python3 - <<'PY'
-import json
-p=json.load(open('/tmp/mobile-health.json'))
-assert p.get('ok') is True
-assert p.get('service') == 'atlas-mobile-v2'
-PY
-            then
-              ok=1
-              break
+            code=$(curl -sS --max-time 25 -o /tmp/mobile-health.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
+            if [ "$code" = "200" ]; then
+              if python3 -c 'import json; p=json.load(open("/tmp/mobile-health.json")); assert p.get("ok") is True; assert p.get("service") == "atlas-mobile-v2"'; then
+                cat /tmp/mobile-health.json
+                exit 0
+              fi
             fi
-            echo "waiting for Render mobile contract: attempt $attempt, HTTP $code"
+            echo "waiting for Render deployment attempt=$attempt http=$code"
             sleep 10
           done
-          test "$ok" = '1'
-          cat /tmp/mobile-health.json
+          cat /tmp/mobile-health.json 2>/dev/null || true
+          exit 1
 
-      - name: Verify portfolio and company fallback/live provider
+      - name: Verify portfolio and company endpoint
         shell: bash
         run: |
           set -euo pipefail
-          BASE='https://atlas-genesis.onrender.com'
+          BASE="https://atlas-genesis.onrender.com"
+          curl -fsS --max-time 30 "$BASE/v1/mobile/health" -o /tmp/mobile-health.json
           curl -fsS --max-time 30 "$BASE/v1/mobile/portfolio" -o /tmp/portfolio.json
           curl -fsS --max-time 45 "$BASE/v1/mobile/company/MSFT" -o /tmp/company.json
-          python3 - <<'PY'
-import json
-h=json.load(open('/tmp/mobile-health.json'))
-p=json.load(open('/tmp/portfolio.json'))
-c=json.load(open('/tmp/company.json'))
-assert p.get('count') == 36, p
-assert len(p.get('items') or []) == 36, p
-assert c.get('symbol') == 'MSFT', c
-assert c.get('provider') in {'FinancialData.Net','Finnhub'}, c
-assert isinstance(c.get('summary'), dict) and c['summary'].get('ticker') == 'MSFT', c
-print('LIVE_MOBILE_API_PASS')
-print('preferred_provider=', h.get('preferred_provider'))
-print('financialdatanet_configured=', h.get('financialdatanet_configured'))
-print('company_provider=', c.get('provider'))
-PY
+          python3 -c 'import json; h=json.load(open("/tmp/mobile-health.json")); p=json.load(open("/tmp/portfolio.json")); c=json.load(open("/tmp/company.json")); assert p.get("count") == 36; assert len(p.get("items") or []) == 36; assert c.get("symbol") == "MSFT"; assert c.get("provider") in {"FinancialData.Net", "Finnhub"}; assert isinstance(c.get("summary"), dict) and c["summary"].get("ticker") == "MSFT"; print("LIVE_MOBILE_API_PASS"); print("preferred_provider=", h.get("preferred_provider")); print("financialdatanet_configured=", h.get("financialdatanet_configured")); print("company_provider=", c.get("provider"))'
