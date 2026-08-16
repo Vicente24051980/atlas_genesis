@@ -63,7 +63,7 @@ export default function HomeScreen() {
       <Text style={styles.sectionTitle}>Acciones principales</Text>
       <ActionCard
         label="Analizar ticker"
-        description="Consulta empresa, precio, métricas, valoración y cash flow con FinancialData.Net cuando esté activo."
+        description="Consulta empresa y datos reales; añade la posición EDD y el mapa Global CAPEX Chain Ω sin fabricar scores no auditados."
         onPress={() => router.push('/analyze')}
       />
       <ActionCard
@@ -72,8 +72,13 @@ export default function HomeScreen() {
         onPress={() => router.push('/portfolio')}
       />
       <ActionCard
+        label="Broker Ω · Trading 212"
+        description="Verifica el bridge, sincroniza cuenta/posiciones/órdenes e identifica tickers exactos T212. Ejecución live bloqueada por defecto."
+        onPress={() => router.push('/broker')}
+      />
+      <ActionCard
         label="Estado del sistema"
-        description="Comprueba backend, proveedor de datos y URL de producción sin exponer ninguna credencial."
+        description="Comprueba backend, proveedor de datos y preparación de Trading 212 sin exponer credenciales."
         onPress={() => router.push('/settings')}
       />
 
