@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from financialdatanet_adapter import FinancialDataNetAdapter
+from atlas_financiero.integrations.financialdatanet_adapter import FinancialDataNetAdapter
 
 
 class FakeClient:
