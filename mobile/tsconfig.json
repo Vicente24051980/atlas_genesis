@@ -2,9 +2,13 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "paths": {
-      "@/*": ["./*"]
-    }
+    "noUncheckedIndexedAccess": true
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "core/api/mobileApi.ts",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }

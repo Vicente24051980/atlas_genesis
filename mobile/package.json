@@ -1,6 +1,6 @@
 {
   "name": "atlas-omega-mobile",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
@@ -8,26 +8,21 @@
     "android": "expo start --android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
     "build:apk": "eas build -p android --profile preview",
     "build:aab": "eas build -p android --profile production"
   },
   "dependencies": {
     "expo": "~57.0.8",
     "expo-router": "~57.0.8",
-    "expo-sqlite": "~57.0.1",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.2",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.0",
-    "drizzle-orm": "rc"
+    "react-native-screens": "~4.26.0"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "babel-plugin-inline-import": "^3.0.0",
     "babel-preset-expo": "~57.0.4",
-    "typescript": "~6.0.3",
-    "drizzle-kit": "rc"
+    "typescript": "~6.0.3"
   }
 }

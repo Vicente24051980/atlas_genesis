@@ -1,4 +1,4 @@
-name: ATLAS Ω ONLINE Phone APK
+name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
   pull_request:
@@ -6,11 +6,19 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'mobile/**'
+      - 'api/mobile_v2.py'
+      - 'api/test_mobile_v2.py'
+      - 'api/app.py'
+      - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
   push:
     branches: [main]
     paths:
       - 'mobile/**'
+      - 'api/mobile_v2.py'
+      - 'api/test_mobile_v2.py'
+      - 'api/app.py'
+      - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
   workflow_dispatch:
 
@@ -18,46 +26,27 @@ permissions:
   contents: read
 
 concurrency:
-  group: atlas-online-phone-${{ github.ref }}
+  group: atlas-mobile-v1-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   PRODUCTION_API: https://atlas-genesis.onrender.com
 
 jobs:
-  live-contract:
-    name: Prove actual LIVE backend contract
+  api-unit:
+    name: Mobile backend contract tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Verify live ATLAS v0.4 routes and real Finnhub data
-        shell: bash
-        run: |
-          set -euo pipefail
-          BASE="$PRODUCTION_API"
-          test "$BASE" = 'https://atlas-genesis.onrender.com'
-          curl -fsS --retry 5 --retry-delay 3 --max-time 45 "$BASE/health" -o /tmp/health.json
-          curl -fsS --retry 5 --retry-delay 3 --max-time 45 "$BASE/v1/company/KO" -o /tmp/company.json
-          curl -fsS --retry 5 --retry-delay 3 --max-time 45 "$BASE/v1/quote/SPY" -o /tmp/quote.json
-          curl -fsS --retry 5 --retry-delay 3 --max-time 45 "$BASE/v1/decision/KO" -o /tmp/decision.json
-          python3 - <<'PY'
-          import json
-          h=json.load(open('/tmp/health.json'))
-          c=json.load(open('/tmp/company.json'))
-          q=json.load(open('/tmp/quote.json'))
-          d=json.load(open('/tmp/decision.json'))
-          assert h.get('ok') is True, h
-          assert h.get('finnhub_configured') is True, h
-          assert c.get('symbol') == 'KO', c
-          assert isinstance(c.get('metrics'), dict) and c['metrics'], c
-          assert q.get('ticker') == 'SPY' and q.get('price') is not None, q
-          assert d.get('symbol') == 'KO' and d.get('decision') in {'BUY','NO_BUY'}, d
-          assert isinstance(d.get('scores'), dict) and d['scores'], d
-          print('LIVE BACKEND CONTRACT PASS')
-          PY
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r api/requirements.txt
+      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py
 
   typecheck:
-    name: TypeScript compatibility gate
+    name: Mobile TypeScript gate
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -67,12 +56,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-      - run: npm install
+      - run: npm install --no-audit --no-fund
       - run: npx tsc --noEmit
 
   build:
-    name: Build production ONLINE APK
-    needs: [live-contract, typecheck]
+    name: Build clean Android APK
+    needs: [api-unit, typecheck]
     runs-on: ubuntu-latest
     timeout-minutes: 40
     defaults:
@@ -89,43 +78,34 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - run: npm install
-      - name: Reject every obsolete API contract in the mobile client
-        shell: bash
-        run: |
-          set -euo pipefail
-          grep -Fq "const DEFAULT_PUBLIC_API = 'https://atlas-genesis.onrender.com';" core/api/atlasOnlineApi.ts
-          grep -Fq '/v1/quote/' core/api/atlasOnlineApi.ts
-          grep -Fq '/v1/decision/' core/api/atlasOnlineApi.ts
-          if grep -Fq "request<MarketSnapshot>('/v1/market/snapshot'" core/api/atlasOnlineApi.ts; then exit 1; fi
-          if grep -Fq "request<TrackedUniverse>('/v1/atlas/universe'" core/api/atlasOnlineApi.ts; then exit 1; fi
+      - run: npm install --no-audit --no-fund
       - name: Generate Android project
         run: npx expo prebuild --platform android --non-interactive --clean
-      - name: Build release APK locally with Gradle
+      - name: Build release APK
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
-      - name: Certify production URL inside compiled APK
+      - name: Certify backend URL and keep provider key server-side
         shell: bash
         run: |
           set -euo pipefail
           APK="$(find android/app/build/outputs/apk/release -type f -name '*.apk' | head -n 1)"
           test -s "$APK"
           unzip -p "$APK" assets/index.android.bundle > /tmp/index.android.bundle
-          grep -Fq 'https://atlas-genesis.onrender.com' /tmp/index.android.bundle
-          if grep -Fq 'https://atlas-genesis-api.onrender.com' /tmp/index.android.bundle; then
-            echo '::error::Dead Render hostname embedded in APK'
+          grep -Fq "$PRODUCTION_API" /tmp/index.android.bundle
+          if grep -Fq 'financialdata.net/api/v1' /tmp/index.android.bundle; then
+            echo '::error::FinancialData.Net direct API endpoint leaked into APK. Use server proxy only.'
             exit 1
           fi
-          sha256sum "$APK" | tee /tmp/atlas-apk.sha256
+          sha256sum "$APK" | tee /tmp/atlas-mobile-v1.sha256
           ls -lh "$APK"
       - uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-online-candidate
+          name: atlas-omega-mobile-v1-apk
           path: mobile/android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
           retention-days: 30
 
-  phone-online-gate:
-    name: Physical-contract Android ONLINE gate
+  phone-ui-gate:
+    name: Android launch + navigation gate
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -133,7 +113,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: atlas-omega-online-candidate
+          name: atlas-omega-mobile-v1-apk
           path: candidate-apk
       - name: Enable KVM
         shell: bash
@@ -141,7 +121,7 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Launch APK and require ONLINE + real production data
+      - name: Launch and verify clean navigation
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
@@ -153,7 +133,7 @@ jobs:
           script: bash mobile/scripts/android-functional-smoke.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: atlas-omega-ONLINE-CERTIFIED-PHONE-APK
+          name: atlas-omega-mobile-v1-certified-apk
           path: candidate-apk/*.apk
           if-no-files-found: error
           retention-days: 30

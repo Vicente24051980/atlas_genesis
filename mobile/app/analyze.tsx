@@ -1,68 +1,173 @@
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-const MODULES = [
-  { id: 'decision', code: 'Ω', title: 'ATLAS Decision', subtitle: 'COMPRAR · ESPERAR · NO COMPRAR' },
-  { id: 'quality', code: 'QLT', title: 'Business Quality Ω', subtitle: 'ROIC · ROE · márgenes · eficiencia' },
-  { id: 'growth', code: 'GRW', title: 'Growth Ω', subtitle: 'Ingresos · EPS · FCF' },
-  { id: 'moat', code: 'MOT', title: 'Moat Ω', subtitle: 'Proxy cuantitativo + gate de evidencia primaria' },
-  { id: 'financial', code: 'FIN', title: 'Financial Quality Ω', subtitle: 'Liquidez · deuda · cobertura' },
-  { id: 'management', code: 'MGT', title: 'Management Ω', subtitle: 'Ejecución cuantitativa + evidencia' },
-  { id: 'capex', code: 'CPX', title: 'CAPEX Productivity Ω', subtitle: 'ROIC · FCF/CAPEX · monetización' },
-  { id: 'valuation', code: 'VAL', title: 'Valuation Ω', subtitle: 'P/E · Forward P/E · P/B · P/S' },
-  { id: 'risk', code: 'RSK', title: 'Risk Ω', subtitle: 'Beta · deuda · liquidez · flags' },
-  { id: 'catalysts', code: 'CAT', title: 'Catalysts Ω', subtitle: 'Noticias y consenso como sensores' },
-  { id: 'news', code: 'NWS', title: 'News Ω', subtitle: 'Flujo de noticias separado del score' },
-] as const;
+import { CompanyPayload, MobileApi } from '../core/api/mobileApi';
 
-export default function AnalyzeHubScreen() {
-  const router = useRouter();
-  const [ticker, setTicker] = useState('');
-  const symbol = ticker.trim().toUpperCase();
-  const valid = /^[A-Z0-9.\-]{1,20}$/.test(symbol);
+export default function AnalyzeScreen() {
+  const params = useLocalSearchParams<{ ticker?: string }>();
+  const [ticker, setTicker] = useState(typeof params.ticker === 'string' ? params.ticker.toUpperCase() : 'MSFT');
+  const [data, setData] = useState<CompanyPayload | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const open = (engine: string) => {
-    router.push({ pathname: '/engine-detail', params: { engine, ...(valid ? { symbol } : {}) } });
+  const analyze = async (value = ticker) => {
+    const symbol = value.trim().toUpperCase();
+    if (!symbol) return;
+    setTicker(symbol);
+    setLoading(true);
+    setError(null);
+    try {
+      setData(await MobileApi.company(symbol));
+    } catch (cause) {
+      setData(null);
+      setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (typeof params.ticker === 'string' && params.ticker.trim()) void analyze(params.ticker);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <View style={styles.topRow}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>‹</Text></Pressable>
-        <View><Text style={styles.eyebrow}>ANALYZE Ω</Text><Text style={styles.title}>Analizar ticker</Text></View>
-      </View>
-      <Text style={styles.subtitle}>Escribe el ticker una vez y elige el motor. Cada pantalla usa inputs y salidas propios; no hay formularios de métricas.</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>← Inicio</Text></Pressable>
+      <Text style={styles.eyebrow}>ANÁLISIS DE EMPRESA</Text>
+      <Text style={styles.title}>Analizar empresa</Text>
+      <Text style={styles.subtitle}>Ticker-first. FinancialData.Net es la fuente preferida del nuevo contrato; Finnhub queda como continuidad si el proveedor principal no está disponible.</Text>
 
       <View style={styles.searchCard}>
-        <Text style={styles.searchLabel}>TICKER</Text>
-        <TextInput value={ticker} onChangeText={setTicker} autoCapitalize="characters" autoCorrect={false} placeholder="NVDA" placeholderTextColor="#5d6972" style={styles.input} />
-        <Text style={[styles.validity, valid ? styles.ok : styles.pending]}>{valid ? `${symbol} · LISTO` : 'Introduce ticker para preseleccionarlo en todos los motores'}</Text>
+        <TextInput
+          accessibilityLabel="Ticker"
+          value={ticker}
+          onChangeText={setTicker}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          placeholder="MSFT"
+          placeholderTextColor="#64748b"
+          style={styles.input}
+          returnKeyType="search"
+          onSubmitEditing={() => { void analyze(); }}
+        />
+        <Pressable accessibilityRole="button" accessibilityLabel="Analizar ahora" onPress={() => { void analyze(); }} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
+          <Text style={styles.buttonText}>ANALIZAR AHORA</Text>
+        </Pressable>
       </View>
 
-      <Pressable accessibilityRole="button" accessibilityLabel="Abrir terminal completo" disabled={!valid} onPress={() => router.push({ pathname: '/ticker', params: { symbol, context: 'candidate' } })} style={[styles.terminal, !valid && styles.disabled]}>
-        <View><Text style={styles.terminalTitle}>TERMINAL COMPLETO</Text><Text style={styles.terminalSub}>Precio · gráfico · ATLAS · financiero · noticias</Text></View><Text style={styles.arrow}>›</Text>
-      </Pressable>
+      {loading ? <View style={styles.loading}><ActivityIndicator color="#7dd3fc" /><Text style={styles.muted}>Consultando ATLAS…</Text></View> : null}
+      {error ? <View style={styles.errorCard}><Text style={styles.errorTitle}>No se pudo consultar {ticker}</Text><Text style={styles.errorText}>{error}</Text></View> : null}
 
-      <Text style={styles.section}>MOTORES SEPARADOS</Text>
-      {MODULES.map((module) => (
-        <Pressable key={module.id} accessibilityRole="button" accessibilityLabel={`Abrir ${module.title}`} onPress={() => open(module.id)} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
-          <View style={styles.code}><Text style={styles.codeText}>{module.code}</Text></View>
-          <View style={styles.flex}><Text style={styles.cardTitle}>{module.title}</Text><Text style={styles.cardSub}>{module.subtitle}</Text></View>
-          <Text style={styles.arrow}>›</Text>
-        </Pressable>
-      ))}
+      {data ? (
+        <>
+          <View style={styles.resultHeader}>
+            <View style={styles.providerBadge}><Text style={styles.providerText}>{data.provider}</Text></View>
+            <Text style={styles.symbol}>{data.symbol}</Text>
+            {data.fallbackReason ? <Text style={styles.fallback}>{data.fallbackReason}</Text> : null}
+          </View>
 
-      <View style={styles.rule}><Text style={styles.ruleTitle}>REGLA Ω</Text><Text style={styles.ruleText}>Un motor no hereda automáticamente la conclusión de otro. ATLAS conserva estados incompletos, muestra cobertura y solo converge en la decisión final después del pipeline.</Text></View>
+          <View style={styles.companyCard}>
+            <Text style={styles.companyName}>{data.summary.name || data.symbol}</Text>
+            <Text style={styles.companyMeta}>{clean(data.summary.sector) || clean(data.summary.industry) || 'Sector no disponible'}{clean(data.summary.currency) ? ` · ${clean(data.summary.currency)}` : ''}</Text>
+          </View>
+
+          <View style={styles.grid}>
+            <Metric label="Precio" value={formatNumber(data.summary.price)} />
+            <Metric label="Market cap" value={formatCompact(data.summary.marketCap)} />
+            <Metric label="P/E" value={formatNumber(data.summary.pe)} />
+            <Metric label="Revenue" value={formatCompact(data.summary.revenue)} />
+            <Metric label="Free cash flow" value={formatCompact(data.summary.freeCashFlow)} />
+          </View>
+
+          <Text style={styles.sectionTitle}>Cobertura del proveedor</Text>
+          <View style={styles.statusCard}>
+            {Object.entries(data.sourceStatus || {}).map(([name, status]) => (
+              <View key={name} style={styles.statusLine}><Text style={styles.statusName}>{name}</Text><Text style={status === 'OK' ? styles.ok : styles.warn}>{status}</Text></View>
+            ))}
+            {!Object.keys(data.sourceStatus || {}).length ? <Text style={styles.muted}>Sin detalle de cobertura.</Text> : null}
+          </View>
+
+          {data.guardrails?.length ? (
+            <View style={styles.guardrailCard}>
+              <Text style={styles.guardrailTitle}>GUARDRAILS Ω</Text>
+              {data.guardrails.map((item) => <Text key={item} style={styles.guardrailText}>• {item}</Text>)}
+            </View>
+          ) : null}
+        </>
+      ) : null}
     </ScrollView>
   );
 }
 
+function Metric({ label, value }: { label: string; value: string }) {
+  return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={styles.metricValue}>{value}</Text></View>;
+}
+
+function clean(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '';
+  return String(value);
+}
+
+function asNumber(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function formatNumber(value: unknown): string {
+  const n = asNumber(value);
+  if (n === null) return 'N/D';
+  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(n);
+}
+
+function formatCompact(value: unknown): string {
+  const n = asNumber(value);
+  if (n === null) return clean(value) || 'N/D';
+  return new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 2 }).format(n);
+}
+
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#050708' }, content: { padding: 18, paddingBottom: 52, gap: 11 }, flex: { flex: 1 }, pressed: { opacity: 0.58 }, disabled: { opacity: 0.35 },
-  topRow: { flexDirection: 'row', alignItems: 'center', gap: 12 }, back: { width: 43, height: 43, borderRadius: 22, backgroundColor: '#11161a', borderWidth: 1, borderColor: '#293139', alignItems: 'center', justifyContent: 'center' }, backText: { color: '#edf1f3', fontSize: 31, lineHeight: 33, marginTop: -4 }, eyebrow: { color: '#67c9ef', fontSize: 8.5, fontWeight: '900', letterSpacing: 1.3 }, title: { color: '#f5f7f8', fontSize: 29, fontWeight: '900', marginTop: 2 }, subtitle: { color: '#84919a', fontSize: 11, lineHeight: 17 },
-  searchCard: { borderRadius: 15, borderWidth: 1, borderColor: '#2b3f4a', backgroundColor: '#0c1419', padding: 13 }, searchLabel: { color: '#6fcbee', fontSize: 8.5, fontWeight: '900' }, input: { minHeight: 49, borderRadius: 11, borderWidth: 1, borderColor: '#29343c', backgroundColor: '#070b0d', color: '#f0f4f6', paddingHorizontal: 12, fontSize: 17, fontWeight: '900', marginTop: 8 }, validity: { fontSize: 8.5, fontWeight: '900', marginTop: 7 }, ok: { color: '#41d69d' }, pending: { color: '#7b8790' },
-  terminal: { minHeight: 75, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: 15, borderWidth: 1, borderColor: '#315f72', backgroundColor: '#0b1c24', padding: 14 }, terminalTitle: { color: '#83d5f4', fontSize: 10, fontWeight: '900' }, terminalSub: { color: '#718995', fontSize: 9.5, marginTop: 4 }, arrow: { color: '#5b8297', fontSize: 28 }, section: { color: '#64727c', fontSize: 8.5, fontWeight: '900', letterSpacing: 1.2, marginTop: 4 },
-  card: { minHeight: 78, flexDirection: 'row', alignItems: 'center', gap: 11, borderRadius: 14, borderWidth: 1, borderColor: '#232d34', backgroundColor: '#0c1013', padding: 12 }, code: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: '#101b22', borderWidth: 1, borderColor: '#29404e' }, codeText: { color: '#6fcbee', fontSize: 8.5, fontWeight: '900' }, cardTitle: { color: '#edf1f3', fontSize: 14, fontWeight: '900' }, cardSub: { color: '#75818a', fontSize: 9.5, marginTop: 4 },
-  rule: { borderRadius: 13, borderWidth: 1, borderColor: '#384625', backgroundColor: '#101509', padding: 13, marginTop: 4 }, ruleTitle: { color: '#a8bd78', fontSize: 8.5, fontWeight: '900' }, ruleText: { color: '#82916c', fontSize: 9.5, lineHeight: 15, marginTop: 5 },
+  screen: { flex: 1, backgroundColor: '#07090d' },
+  content: { paddingTop: 54, paddingHorizontal: 18, paddingBottom: 44, gap: 12 },
+  back: { alignSelf: 'flex-start', paddingVertical: 8, paddingRight: 14 },
+  backText: { color: '#7dd3fc', fontWeight: '800' },
+  eyebrow: { color: '#7dd3fc', fontWeight: '900', letterSpacing: 1.2, fontSize: 12 },
+  title: { color: '#f8fafc', fontSize: 31, fontWeight: '900' },
+  subtitle: { color: '#94a3b8', lineHeight: 21 },
+  searchCard: { backgroundColor: '#0f141c', borderRadius: 18, borderWidth: 1, borderColor: '#223047', padding: 14, gap: 10 },
+  input: { backgroundColor: '#070a0f', borderRadius: 12, borderWidth: 1, borderColor: '#334155', color: '#f8fafc', paddingHorizontal: 15, paddingVertical: 13, fontSize: 19, fontWeight: '800', letterSpacing: 1 },
+  button: { backgroundColor: '#0ea5e9', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  buttonText: { color: '#03111a', fontWeight: '900' },
+  pressed: { opacity: 0.72 },
+  loading: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14 },
+  muted: { color: '#94a3b8' },
+  errorCard: { backgroundColor: '#241318', borderColor: '#6b2737', borderWidth: 1, borderRadius: 15, padding: 15, gap: 6 },
+  errorTitle: { color: '#fecdd3', fontWeight: '900' },
+  errorText: { color: '#fda4af', lineHeight: 20 },
+  resultHeader: { marginTop: 4, gap: 7 },
+  providerBadge: { alignSelf: 'flex-start', backgroundColor: '#102b24', borderColor: '#1d6b54', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  providerText: { color: '#a7f3d0', fontWeight: '800', fontSize: 12 },
+  symbol: { color: '#f8fafc', fontWeight: '900', fontSize: 28 },
+  fallback: { color: '#fbbf24', fontSize: 12 },
+  companyCard: { backgroundColor: '#0c1118', borderRadius: 16, padding: 15, borderWidth: 1, borderColor: '#1e293b' },
+  companyName: { color: '#f8fafc', fontSize: 21, fontWeight: '900' },
+  companyMeta: { color: '#94a3b8', marginTop: 5 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
+  metric: { width: '48%', minHeight: 80, backgroundColor: '#0f141c', borderRadius: 14, padding: 13, borderWidth: 1, borderColor: '#1e293b' },
+  metricLabel: { color: '#64748b', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
+  metricValue: { color: '#f8fafc', fontSize: 19, fontWeight: '900', marginTop: 8 },
+  sectionTitle: { color: '#cbd5e1', fontWeight: '900', marginTop: 5, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 },
+  statusCard: { backgroundColor: '#0c1118', borderRadius: 14, borderWidth: 1, borderColor: '#1e293b', padding: 13, gap: 9 },
+  statusLine: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
+  statusName: { color: '#cbd5e1', fontWeight: '700' },
+  ok: { color: '#34d399', fontWeight: '900' },
+  warn: { color: '#fbbf24', fontWeight: '800' },
+  guardrailCard: { backgroundColor: '#111827', borderRadius: 14, padding: 14, gap: 7 },
+  guardrailTitle: { color: '#a5b4fc', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
+  guardrailText: { color: '#cbd5e1', lineHeight: 19 },
 });
