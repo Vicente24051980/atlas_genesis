@@ -68,7 +68,7 @@ wait_text() {
   local needle="$1"
   for _ in $(seq 1 35); do
     capture_ui
-    if grep -Fq "$needle" window.xml 2>/dev/null; then return 0; fi
+    if grep -Fiq "$needle" window.xml 2>/dev/null; then return 0; fi
     sleep 2
   done
   echo "::error::Timed out waiting for: $needle"
