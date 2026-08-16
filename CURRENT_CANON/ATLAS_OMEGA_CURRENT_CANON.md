@@ -1,51 +1,56 @@
 # ATLAS Ω — CURRENT CANON
 
 **Status:** SOLE_CANON / ACTIVE  
-**Effective date:** 2026-08-15  
+**Effective date:** 2026-08-16  
 **Canonical source:** `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`  
-**Canonical version:** **ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v3.0**
+**Canonical version:** **ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v3.1**
 
 ## Authority rule
 
-As of 15-ago-2026, **PROMPT MAESTRO MINI v3.0 is the sole active canonical operating authority for ATLAS Ω ENTERPRISE**.
+Desde 16-ago-2026, **PROMPT MAESTRO MINI v3.1 es la única autoridad operativa canónica de ATLAS Ω ENTERPRISE**.
 
-All prior ATLAS Ω constitutions, prompt masters/minis, governance baselines, engine-definition documents, scoring frameworks, portfolio-governance rules and operating laws are **SUPERSEDED AS CANON** wherever they conflict with, extend beyond, or attempt to override v3.0.
+v3.1 conserva el núcleo de v3.0 y añade por instrucción explícita del usuario la arquitectura sistémica desarrollada el 16-ago-2026: Successor Detection, Winner Preservation, AI Financial Fragility, AI Credit Transmission, Systemic Cascade, Sovereign Liquidity Plumbing, EU Fiscal Stress, China Industrial Displacement, Institutional Convergence, Speculative Liquidity Canary, Optionality Reserve, Capital Safety/Leverage Discipline y las tesis de semiconductor sovereignty/agentic compute y machine economy.
 
-Historical files may remain in the repository only as implementation history, evidence, research, test fixtures or non-authoritative documentation. They do not possess canonical precedence unless the user explicitly re-adopts them later.
+Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reemplazado por v3.1.
 
-## Active canonical architecture
+## Pipeline activo
 
-**Input → Evidence Integrity Ω → Source Authenticity Ω → Quantitative Integrity Ω → Temporal Normalization Ω → Global Discovery Ω → Leadership Bias Control Ω → independent engines → Decision Safety Gate Ω → Decision Log Ω.**
+**Input → Evidence Integrity Ω → Source Authenticity Ω → Quantitative Integrity Ω → Temporal Normalization Ω → Global Discovery Ω → Leadership Bias Control Ω → motores independientes → Cross-Engine Synthesis Ω → Portfolio Construction Ω → Decision Safety Gate Ω → Execution Ω → Monitoring + Falsification Ω → Decision Log Ω → GitHub + Notion.**
 
-Core laws:
+## Leyes centrales
 
 - **EVIDENCE > NARRATIVE.**
 - **PRICE ≠ FUNDAMENTAL EVIDENCE.**
 - **MARKET_CAP_CHANGE ≠ CAPITAL_FLOW.**
-- **FACTS ≠ HYPOTHESES ≠ INTERPRETATIONS ≠ NOISE.**
+- **POSITION DISCLOSURE ≠ REAL-TIME FLOW.**
+- **TECHNOLOGY REVOLUTION ≠ GOOD INVESTMENT AT ANY PRICE.**
+- **CAPEX GROWTH ≠ CAPEX PRODUCTIVITY.**
+- **COLLATERAL VALUE ≠ CASH FLOW.**
+- **LIQUIDITY SOURCE ≠ LIQUIDITY DESTINATION.**
 
-Independent engines:
+## Active engine families
 
-- Principal Ω
-- Good Companies Cheap Ω
-- Historical Dislocation / Burry Ω
-- Money Rotation Ω
-- Institutional Capital Rotation Ω
-- Leadership Bias Control Ω
-- Specialized engines only when applicable: AI CAPEX Payback, Energy Rotation, Entry Timing, Market Bottom, Market Top Risk, Event Pricing, etc.
+### Core / selection
+Principal Ω; Good Companies Cheap Ω; Historical Dislocation/Burry Ω; Money Rotation Ω; Institutional Capital Rotation Ω; Leadership Bias Control Ω; Successor Detection Ω.
 
-Mandatory portfolio rule:
+### Systemic / specialized
+AI CAPEX Payback Ω; AI Financial Fragility Ω; AI Credit Transmission Ω; Systemic Cascade Ω; Energy Rotation Ω; Global Liquidity Transmission Ω; Sovereign Liquidity Plumbing Ω; European Fragmentation & Energy Security Ω; EU Fiscal Stress Ω; China Industrial Displacement Ω; Hard Assets/Gold Ω; Speculative Liquidity Canary Ω; Tokenization/Digital Infrastructure Ω; Market Bottom Ω; Market Top Risk Ω; Entry Timing Ω; Event Pricing Ω.
 
-**Structural portfolio ≠ tactical engines.** No structural change from one red session, one news item, isolated momentum, isolated valuation, one week of rotation, or one macro signal. A structural change requires a clearly superior candidate, multidimensional evidence, explicit displaced-holding comparison and Decision Safety Gate.
+### Auxiliary governance layers
+Institutional Convergence Ω; Winner Preservation Ω; Optionality Reserve Ω; Capital Safety & Leverage Discipline Ω; Special Situations Ω.
 
-Mandatory output ending:
+## Portfolio rule
+
+**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1 no modifica la cartera por sí sola. La cartera se auditará de forma separada tras completar esta implementación.
+
+## Mandatory output ending
 
 **Hechos nuevos → Cambio estructural/ruido → Motor afectado → Estado Ω → candidatos → riesgos/falsificadores → acción permitida.**
 
-Final law:
+## Final law
 
-**ATLAS does not exist to defend companies it already knows. It exists to keep the best while they remain the best and discover their successors before the market makes them obvious.**
+**ATLAS no existe para defender las empresas que ya conoce. Existe para mantener las mejores mientras sigan siendo las mejores, descubrir sucesoras antes del consenso y detectar cuándo la financiación/liquidez convierte una buena tecnología en una mala estructura de capital.**
 
-**Quality × Growth × Forward Asymmetry × Capital Rotation × Evidence Integrity > Familiarity.**
+**Quality × Growth × Forward Asymmetry × Capital Rotation × Evidence Integrity × Financial Robustness > Familiarity.**
 
-For complete authoritative wording, use only `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`.
+Para el texto autoritativo completo usar únicamente `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`.
