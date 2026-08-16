@@ -13,7 +13,9 @@ v3.1 conserva el núcleo de v3.0 y añade por instrucción explícita del usuari
 
 El 16-ago-2026 se activa además **GLOBAL CAPEX CHAIN Ω v1.0** como módulo canónico compatible bajo v3.1 para mapear la posición económica de cada empresa en el próximo ciclo mundial de CAPEX. Introduce **Economic Dependency Distance Ω (EDD), CAPEX Position Ω, Economic Proof E0–E4, CAPEX Convergence Ω, Bottleneck Persistence Ω y CAPEX Fragility Ω**. Su canon operativo está en `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md` y no modifica por sí solo cartera, valoración ni señales de otros motores.
 
-Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reemplazado por v3.1.
+Desde 17-ago-2026 se activan además **CAPITAL FUNDING QUALITY Ω v1.0** y **FINANCED DEMAND Ω v1.0** como módulos canónicos compatibles con v3.1/v3.1.1. Separan obligatoriamente **Demand Proof Ω**, **Economic Payback Ω** y **Funding Sustainability Ω**, y distinguen demanda orgánica de demanda apoyada/interdependiente/reflexiva. Su canon está en `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`.
+
+Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reemplazado por v3.1 y sus módulos canónicos incorporados por referencia.
 
 ## Pipeline activo
 
@@ -30,6 +32,10 @@ Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reem
 - **GLOBAL CAPEX EXPOSURE ≠ BUY SIGNAL.**
 - **EDD-0 PAYBACK ≠ SUPPLIER CAPTURE.**
 - **CAPEX POSITION ≠ CAPEX FRAGILITY.**
+- **DEMAND PROOF ≠ ECONOMIC PAYBACK ≠ FUNDING SUSTAINABILITY.**
+- **FINANCED DEMAND ≠ FAKE DEMAND.**
+- **STRATEGIC INVESTOR/SUPPLIER ≠ INDEPENDENT END DEMAND.**
+- **BACKLOG ≠ CASH FLOW without contract-quality analysis.**
 - **COLLATERAL VALUE ≠ CASH FLOW.**
 - **LIQUIDITY SOURCE ≠ LIQUIDITY DESTINATION.**
 
@@ -39,7 +45,7 @@ Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reem
 Principal Ω; Good Companies Cheap Ω; Historical Dislocation/Burry Ω; Money Rotation Ω; Institutional Capital Rotation Ω; Leadership Bias Control Ω; Successor Detection Ω.
 
 ### Systemic / specialized
-**Global CAPEX Chain Ω**; AI CAPEX Payback Ω; AI Financial Fragility Ω; AI Credit Transmission Ω; Systemic Cascade Ω; Energy Rotation Ω; Global Liquidity Transmission Ω; Sovereign Liquidity Plumbing Ω; European Fragmentation & Energy Security Ω; EU Fiscal Stress Ω; China Industrial Displacement Ω; Hard Assets/Gold Ω; Speculative Liquidity Canary Ω; Tokenization/Digital Infrastructure Ω; Market Bottom Ω; Market Top Risk Ω; Entry Timing Ω; Event Pricing Ω.
+**Global CAPEX Chain Ω**; AI CAPEX Payback Ω; **Capital Funding Quality Ω**; **Financed Demand Ω**; AI Financial Fragility Ω; AI Credit Transmission Ω; Systemic Cascade Ω; Energy Rotation Ω; Global Liquidity Transmission Ω; Sovereign Liquidity Plumbing Ω; European Fragmentation & Energy Security Ω; EU Fiscal Stress Ω; China Industrial Displacement Ω; Hard Assets/Gold Ω; Speculative Liquidity Canary Ω; Tokenization/Digital Infrastructure Ω; Market Bottom Ω; Market Top Risk Ω; Entry Timing Ω; Event Pricing Ω.
 
 ### Auxiliary governance layers
 Institutional Convergence Ω; Winner Preservation Ω; Optionality Reserve Ω; Capital Safety & Leverage Discipline Ω; Special Situations Ω.
@@ -52,9 +58,21 @@ Cuando el objeto sea una empresa cotizada, Discovery/Research debe poder registr
 
 EDD-0 se evalúa por `PAYBACK`; EDD-1 a EDD-5 por `CAPTURE`; EDD-6 por `DOWNSTREAM_PRODUCTIVITY`. Sólo E2+ con evidencia trazable puede recibir estado estructural confirmado.
 
+## Capital Funding Quality Ω + Financed Demand Ω — mandatory structural fields
+
+Para empresas intensivas en CAPEX, AI, infraestructura o crecimiento financiado, registrar obligatoriamente:
+
+**DEMAND_PROOF_STATE → PAYBACK_STATE → CFQ_STATE → FD_STATE → FUNDING_SOURCES → RECOURSE → DEBT/LEASE MATURITIES → EQUITY/DILUTION → CUSTOMER PREPAYMENTS → VENDOR/BUYER FINANCING → GUARANTEES/BACKSTOPS → RELATED_PARTY_OVERLAP → BACKLOG_QUALITY → REFINANCING_DEPENDENCY → FALSIFIERS.**
+
+Estados CFQ: `CFQ0_SELF_FUNDED / CFQ1_AUGMENTED_ROBUST / CFQ2_DEPENDENT / CFQ3_FRAGILE / CFQ4_REFLEXIVE_CASCADE`.
+
+Estados FD: `FD0_ORGANIC / FD1_SUPPORTED / FD2_INTERDEPENDENT / FD3_REFLEXIVE / FD4_SYNTHETIC_FRAGILITY`.
+
+No existen umbrales universales de CAPEX/OCF, deuda, commitments o financiación hasta calibración empírica. Comparar contra historia propia, peers y estructura contractual.
+
 ## Portfolio rule
 
-**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1 y Global CAPEX Chain Ω no modifican la cartera por sí solas. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
+**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1, Global CAPEX Chain Ω, Capital Funding Quality Ω y Financed Demand Ω no modifican la cartera por sí solas. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
 
 ## Mandatory output ending
 
@@ -66,4 +84,6 @@ EDD-0 se evalúa por `PAYBACK`; EDD-1 a EDD-5 por `CAPTURE`; EDD-6 por `DOWNSTRE
 
 **Quality × Growth × Forward Asymmetry × Capital Rotation × Global CAPEX Position × Evidence Integrity × Financial Robustness > Familiarity.**
 
-Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md` como módulo canónico compatible incorporado por referencia.
+**Real demand can coexist with bad capital allocation. Good payback can coexist with fragile funding. External funding can coexist with excellent economics. ATLAS must identify which combination actually exists.**
+
+Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md`; para Funding/Financed Demand usar `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md` como módulos canónicos compatibles incorporados por referencia.
