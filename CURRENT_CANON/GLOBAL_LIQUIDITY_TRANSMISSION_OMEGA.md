@@ -1,50 +1,77 @@
-# GLOBAL LIQUIDITY TRANSMISSION Ω v1.0
+# GLOBAL LIQUIDITY TRANSMISSION Ω v2.0
 
-Status: CANONICAL HIGHER-LAYER MACRO / ROTATION ENGINE
-Date: 2026-08-15
+**Status:** CANONICAL HIGHER-LAYER MACRO / ROTATION ENGINE  
+**Date:** 2026-08-16
 
 ## Mission
-Detect whether liquidity is expanding or contracting, identify who is generating it, and determine where it is actually being transmitted before converting macro liquidity narratives into asset conclusions.
+Detect whether liquidity is expanding or contracting, identify who creates it, measure its momentum and determine where it actually travels before drawing conclusions for assets.
 
 ## Inviolable laws
 - MONETARY_LIQUIDITY != MARKET_LIQUIDITY.
 - MARKET_LIQUIDITY != ASSET_SPECIFIC_LIQUIDITY.
 - GLOBAL_LIQUIDITY_GROWTH != UNIVERSAL_RISK_ASSET_INFLOW.
 - LIQUIDITY_SOURCE != LIQUIDITY_DESTINATION.
+- LIQUIDITY_STOCK != LIQUIDITY_MOMENTUM.
 - PRICE_MOVE != LIQUIDITY_FLOW.
 
-## Five transmission channels
-1. Central-bank liquidity: Fed/ECB/PBoC/BoJ balance-sheet and reserve conditions.
-2. Treasury liquidity: TGA, reserve balances, RRP and issuance/refunding effects.
-3. Credit liquidity: bank credit, international USD/EUR/JPY credit, HY/IG conditions.
-4. Market liquidity: fund/ETF flows, breadth, volatility, positioning and market depth.
-5. Destination Ω: equities, gold, Bitcoin, credit, commodities and real-economy/CAPEX absorption.
+## Three compulsory dimensions
 
-## BTC Liquidity Trigger Ω
-A confirmed BTC liquidity trigger requires multi-signal convergence. Price or SMA behavior alone can never confirm it.
-Preferred signals:
-- Fed reserve balances rising.
-- TGA falling.
-- Real yields falling.
-- DXY falling.
-- Stablecoin liquidity rising.
-- BTC ETF flows rising.
-- BTC relative strength improving.
+### 1. Liquidity Stock Ω
+Absolute amount/capacity of monetary and credit liquidity available.
 
-CONFIRMED_TRIGGER requires at least five of seven signals plus macro-core confirmation (reserves up + TGA down + real yields down) and at least one market/liquidity confirmation.
+### 2. Liquidity Momentum Ω
+Rate of change and acceleration/deceleration of liquidity. Markets can weaken while stock remains high if marginal growth deteriorates.
 
-## Current evidence baseline — 15 Aug 2026
-Federal Reserve H.4.1 for 29 Jul 2026 showed reserve balances around $2.985T, down about $77.6B on the week, while the TGA average was about $910.8B and the Wednesday level about $970.4B. This is consistent with Treasury cash accumulation absorbing reserve liquidity during that observation window.
+### 3. Liquidity Destination Ω
+Where liquidity is actually transmitted: equities, bonds, gold, Bitcoin, commodities, private credit, real-economy CAPEX, bank reserves or Treasury collateral.
 
-BIS global liquidity indicators define global liquidity as ease of financing and track bank and market-based credit to non-bank borrowers. At end-2025, foreign-currency USD and EUR credit was still growing robustly, and cross-border bank credit grew 11% year-on-year. Therefore credit liquidity can expand while asset-specific transmission to Bitcoin remains weak.
+## Transmission channels
+1. Central-bank liquidity: Fed/ECB/PBoC/BoJ balance sheets and reserve conditions.
+2. Treasury/liquidity plumbing: TGA, reserves, RRP, issuance/refunding and FIMA/swap context.
+3. Credit liquidity: bank credit, USD/EUR/JPY international credit, IG/HY, private credit.
+4. Market liquidity: ETF/fund flows, breadth, volatility, positioning, market depth.
+5. Destination Ω: asset and real-economy absorption.
+
+## Speculative Liquidity Canary Ω
+BTC is a marginal-risk-liquidity sensor, not a market oracle.
+
+Required inputs:
+- BTC trend/relative strength.
+- Stablecoin liquidity.
+- BTC ETF flows.
+- Real yields.
+- DXY.
+- HY spreads.
+- Global Liquidity Momentum Ω.
+- Nasdaq/equity breadth.
+
+### Canary states
+- `RISK_LIQUIDITY_HEALTHY`: BTC/risk breadth improving, real yields/DXY supportive, HY calm.
+- `DIVERGENCE_WATCH`: BTC weak but credit/breadth stable.
+- `LIQUIDITY_STRESS`: BTC weak + liquidity momentum down + DXY/real yields up and/or HY widening.
+- `CASCADE_CONFIRMATION`: canary stress plus independent Systemic Cascade evidence.
+
+BTC alone cannot confirm any systemic state.
+
+## Destination examples
+- PBoC easing may transmit to domestic credit, industry or gold rather than Bitcoin.
+- Fed liquidity can remain in reserves/Treasury plumbing rather than equities.
+- Private capital can fund AI infrastructure rather than listed equities.
+- Strong equity inflows can coexist with money-market and gold inflows.
 
 ## Integration
-GLOBAL LIQUIDITY TRANSMISSION Ω feeds:
-- MACRO REGIME GOLD–BTC Ω
-- INSTITUTIONAL CAPITAL ROTATION Ω
-- MONEY ROTATION Ω
-- MARKET TOP RISK Ω
-- ENTRY TIMING Ω
-- DIGITAL ASSETS VALUE CAPTURE Ω
+Feeds:
+- Macro Regime / Gold Ω
+- Speculative Liquidity Canary Ω
+- Sovereign Liquidity Plumbing Ω
+- Institutional Capital Rotation Ω
+- Money Rotation Ω
+- Market Top Risk Ω
+- Entry Timing Ω
+- Systemic Cascade Ω
 
-It never emits an automatic portfolio BUY/SELL.
+## Decision law
+This engine cannot emit an automatic portfolio BUY/SELL. It changes regime context, research priority, NO_CHASE/entry thresholds and Cascade Gate sensitivity only.
+
+## Current initialization — 16 Aug 2026
+Working state: `LIQUIDITY_MOMENTUM = MIXED/DECELERATING; DESTINATION = SELECTIVE`. This is a research state, not a portfolio action.
