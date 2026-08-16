@@ -315,3 +315,16 @@ async def broker_cancel_order(order_id: int, x_atlas_broker_token: str | None = 
     _require_broker_control(x_atlas_broker_token)
     data = await _trading212_request("DELETE", f"/equity/orders/{order_id}")
     return {"provider": "Trading212", "environment": TRADING212_ENV, "orderId": order_id, "result": data}
+
+
+# Mount the isolated mobile-v2 contracts here as well as in api.app. Render may
+# retain a dashboard start command that points at api.main:app even when the
+# repository Blueprint says api.app:app. Keeping these routes on the legacy
+# entrypoint makes deployment resilient to either start command.
+from api.global_capex_chain_mobile import router as _global_capex_chain_mobile_router  # noqa: E402
+from api.mobile_v2 import router as _mobile_v2_router  # noqa: E402
+from api.trading212_v2 import router as _trading212_v2_router  # noqa: E402
+
+app.include_router(_mobile_v2_router)
+app.include_router(_trading212_v2_router)
+app.include_router(_global_capex_chain_mobile_router)
