@@ -2,24 +2,34 @@ import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { BrokerApi, BrokerStatus } from '../core/api/brokerApi';
 import { apiBaseUrl, MobileApi, MobileHealth } from '../core/api/mobileApi';
 
 export default function SettingsScreen() {
   const [health, setHealth] = useState<MobileHealth | null>(null);
+  const [broker, setBroker] = useState<BrokerStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
     setError(null);
-    try {
-      setHealth(await MobileApi.health());
-    } catch (cause) {
-      setHealth(null);
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setLoading(false);
-    }
+    const [healthResult, brokerResult] = await Promise.allSettled([
+      MobileApi.health(),
+      BrokerApi.status(),
+    ]);
+
+    if (healthResult.status === 'fulfilled') setHealth(healthResult.value);
+    else setHealth(null);
+
+    if (brokerResult.status === 'fulfilled') setBroker(brokerResult.value);
+    else setBroker(null);
+
+    const failures: string[] = [];
+    if (healthResult.status === 'rejected') failures.push(healthResult.reason instanceof Error ? healthResult.reason.message : String(healthResult.reason));
+    if (brokerResult.status === 'rejected') failures.push(`Trading 212 bridge: ${brokerResult.reason instanceof Error ? brokerResult.reason.message : String(brokerResult.reason)}`);
+    if (failures.length) setError(failures.join('\n'));
+    setLoading(false);
   };
 
   useEffect(() => { void load(); }, []);
@@ -29,15 +39,27 @@ export default function SettingsScreen() {
       <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>← Inicio</Text></Pressable>
       <Text style={styles.eyebrow}>SYSTEM STATUS</Text>
       <Text style={styles.title}>Estado del sistema</Text>
-      <Text style={styles.subtitle}>La app nunca contiene la API key de FinancialData.Net. La credencial vive únicamente en el backend como secreto de entorno.</Text>
+      <Text style={styles.subtitle}>FinancialData.Net y Trading 212 se conectan a través del backend de ATLAS. Ninguna credencial del proveedor se incrusta en la APK.</Text>
 
       <View style={styles.card}>
+        <Text style={styles.sectionTitle}>DATOS DE MERCADO</Text>
         <Row label="Backend" value={apiBaseUrl()} />
         <Row label="Servicio" value={health?.service || '—'} />
         <Row label="Versión" value={health?.version || '—'} />
         <Row label="Proveedor preferido" value={health?.preferred_provider || '—'} />
         <Row label="FinancialData.Net" value={health?.financialdatanet_configured ? 'CONFIGURADO' : 'PENDIENTE EN SERVIDOR'} good={health?.financialdatanet_configured} />
         <Row label="Finnhub fallback" value={health?.finnhub_configured ? 'CONFIGURADO' : 'NO CONFIGURADO'} good={health?.finnhub_configured} />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>TRADING 212</Text>
+        <Row label="Bridge" value={broker ? 'DISPONIBLE' : 'NO DESPLEGADO / SIN RESPUESTA'} good={Boolean(broker)} />
+        <Row label="API" value={broker?.apiVersion || 'v0 beta'} />
+        <Row label="Entorno" value={broker ? `${broker.environment.toUpperCase()} · ${broker.mode}` : 'DEMO PREPARADO'} />
+        <Row label="Credenciales T212" value={broker?.credentialsConfigured ? 'CONFIGURADAS EN SERVIDOR' : 'PENDIENTES'} good={broker?.credentialsConfigured} />
+        <Row label="Token de control" value={broker?.controlTokenConfigured ? 'CONFIGURADO' : 'PENDIENTE'} good={broker?.controlTokenConfigured} />
+        <Row label="Lectura cuenta/posiciones" value={broker?.readReady ? 'LISTA' : 'BLOQUEADA HASTA CREDENCIALES'} good={broker?.readReady} />
+        <Row label="Órdenes reales" value={broker?.liveExecutionLocked === false ? 'HABILITADAS' : 'BLOQUEADAS'} good={broker?.liveExecutionLocked !== false} />
       </View>
 
       {loading ? <View style={styles.loading}><ActivityIndicator color="#7dd3fc" /><Text style={styles.muted}>Comprobando…</Text></View> : null}
@@ -48,8 +70,8 @@ export default function SettingsScreen() {
       </Pressable>
 
       <View style={styles.securityCard}>
-        <Text style={styles.securityTitle}>SEGURIDAD</Text>
-        <Text style={styles.securityText}>FINANCIALDATANET_API_KEY se lee únicamente en Render/backend. No se usa EXPO_PUBLIC para la clave y no se incrusta en el APK.</Text>
+        <Text style={styles.securityTitle}>SEGURIDAD Y EJECUCIÓN</Text>
+        <Text style={styles.securityText}>FINANCIALDATANET_API_KEY, TRADING212_API_KEY y TRADING212_API_SECRET son variables privadas del backend. Trading 212 queda en DEMO por defecto. LIVE requiere habilitación explícita en servidor y confirmación EXECUTE_LIVE en cada orden; además, cada orden usa clientRequestId para bloquear duplicados accidentales.</Text>
       </View>
     </ScrollView>
   );
@@ -68,6 +90,7 @@ const styles = StyleSheet.create({
   title: { color: '#f8fafc', fontSize: 31, fontWeight: '900' },
   subtitle: { color: '#94a3b8', lineHeight: 21 },
   card: { backgroundColor: '#0f141c', borderRadius: 16, borderWidth: 1, borderColor: '#223047', padding: 14, gap: 11 },
+  sectionTitle: { color: '#7dd3fc', fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
   row: { gap: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#253044', paddingBottom: 9 },
   label: { color: '#64748b', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
   value: { color: '#e2e8f0', fontWeight: '700' },
