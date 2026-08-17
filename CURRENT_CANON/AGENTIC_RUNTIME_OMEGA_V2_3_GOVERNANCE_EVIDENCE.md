@@ -1,8 +1,10 @@
 # ATLAS Ω — Agentic Runtime Ω v2.3 Governance Evidence
 
-**Status:** IMPLEMENTED · MERGE CANDIDATE
+**Status:** ACTIVE · IMPLEMENTED · MAIN
 **Effective:** 2026-08-17
 **Extends:** Agentic Runtime Ω v2.2 Evidence Bridge.
+**Integrated to main:** PR #58 · squash `6b151558f36642e2b4e6b83da52948ae71a1d58d`
+**Focused CI:** `Agentic Runtime Omega v2 CI` run `32071267219` · SUCCESS
 
 ## Purpose
 
@@ -13,67 +15,32 @@ Materialize two remaining governance requirements as executable evidence rather 
 
 ## Capability Evidence Ω
 
-`RouteDescriptor` fingerprints:
+`RouteDescriptor` fingerprints provider, base URL, model, non-credential headers/beta controls and route options. Authorization/API-key credential values are excluded from persisted route identity. Credential rotation therefore does not invalidate an otherwise identical route, while model/beta/options changes create a distinct fingerprint.
 
-- provider;
-- base URL;
-- model;
-- non-credential headers/beta controls;
-- route options.
+Evidence states are `confirmed`, `asserted`, `unprobeable` and `failed`. Only confirmed/asserted are trusted; asserted requires `owner_ack`. Unknown/unprobeable/failed evidence fails closed. Records may carry `valid_until`; stale evidence fails when `require_fresh=true`.
 
-Credential headers such as Authorization/API keys are excluded from both the fingerprint inputs persisted as evidence and the safe route identity returned by the API. Rotating a credential therefore does not invalidate an otherwise identical capability route; changing model, beta/routing headers or options creates a distinct fingerprint.
-
-### Evidence statuses
-
-- `confirmed` — provider metadata, local health or a probe supplied evidence;
-- `asserted` — explicit owner acknowledgement;
-- `unprobeable` — capability could not be established;
-- `failed` — capability evidence attempt failed.
-
-Only `confirmed` and `asserted` are trusted states. An asserted record requires source `owner_ack`. Unknown/unprobeable/failed records fail closed.
-
-### Freshness
-
-Capability records may include `valid_until`. When `require_fresh=true`, expired or unparsable validity fails closed. Freshness policy remains explicit at the check call site.
-
-### Exact-route authorization
-
-Checks support:
-
-- boolean capability must be true;
-- numeric capability must meet an `at_least` threshold.
-
-An otherwise identical record under a different route fingerprint cannot authorize the new route.
+Checks support boolean-true and numeric `at_least` authorization and are scoped to the exact route fingerprint.
 
 ## Dual-Persistence Receipt Ω
 
-`DualPersistenceRegistry` records append-only receipts with:
+`DualPersistenceRegistry` records append-only receipts containing change ID, GitHub commit SHA/path, Notion page ID/URL and timestamp/detail.
 
-- `change_id`;
-- GitHub commit SHA;
-- optional GitHub path;
-- Notion page ID;
-- optional Notion URL;
-- timestamp/detail.
-
-State is computed mechanically:
+Mechanical state:
 
 - both concrete IDs → `COMPLETE`;
 - GitHub only → `GITHUB_ONLY`;
 - Notion only → `NOTION_ONLY`;
 - neither → `INCOMPLETE`.
 
-`require_complete(change_id)` fails unless the latest receipt is `COMPLETE`.
-
-The registry does not execute connector writes itself and therefore cannot claim synchronization from requested/intended operations.
+`require_complete(change_id)` fails unless the latest receipt is COMPLETE. The registry never claims connector writes from intention alone.
 
 ## Durable concurrency
 
-Capability and persistence registries share the existing `DurableAgenticLedger`. Read paths call `refresh()` when supported before selecting the latest event, preventing another process's completed write from remaining invisible because of a stale in-memory view.
+Capability and persistence registries share `DurableAgenticLedger`. Read paths refresh durable state before selecting the latest event so another process's completed write is not hidden by a stale in-memory view.
 
 ## API
 
-New protected router: `api/agentic_governance.py` under `/v1/agentic-omega/v2/governance`.
+Protected router: `api/agentic_governance.py` under `/v1/agentic-omega/v2/governance`.
 
 Endpoints:
 
@@ -83,37 +50,38 @@ Endpoints:
 - `POST /sync-receipts`;
 - `GET /sync-receipts/{change_id}`.
 
-Governance write endpoints use the existing `ATLAS_AGENT_CONTROL_TOKEN` gate. Capability checks and receipt reads return safe non-secret route/receipt evidence.
+Governance write endpoints use `ATLAS_AGENT_CONTROL_TOKEN`. Safe route responses contain no credential header values.
 
 ## Security invariants
 
 - credential values are never persisted in capability route identity;
-- write endpoints require the agent control token;
+- write endpoints require agent control authorization;
 - unknown capability never authorizes;
-- stale capability does not authorize when fresh evidence is required;
-- owner assertion requires explicit `owner_ack` source;
-- GitHub-only persistence cannot be reported as COMPLETE;
-- Notion-only persistence cannot be reported as COMPLETE.
+- stale capability does not authorize when freshness is required;
+- owner assertion requires explicit owner acknowledgement;
+- one-destination persistence cannot be reported as COMPLETE.
 
-## Tests
+## Validation
 
-Focused tests cover:
+GitHub Actions `Agentic Runtime Omega v2 CI` run `32071267219` completed `SUCCESS` on head `390667093b3a046af212d28b873a38275d20dc52`. The accumulated suite reran v1/v2/v2.1/v2.2 invariants and added route fingerprint, capability freshness/status/source, secret non-persistence, dual-persistence and governance API tests.
 
-1. credential rotation keeps the same route fingerprint;
-2. model/beta change creates a different route fingerprint;
-3. unknown and failed capability evidence fails closed;
-4. confirmed numeric capability is route-scoped;
-5. asserted evidence requires owner acknowledgement;
-6. stale capability fails a fresh check;
-7. credential values are absent from persisted capability events;
-8. dual persistence remains incomplete with one/no destination;
-9. a later complete receipt upgrades prior partial state;
-10. governance write endpoints reject an invalid control token;
-11. API capability check is fail-closed on a different route;
-12. API dual-persistence COMPLETE requires both concrete identifiers.
+## Integration record
 
-The existing Agentic Runtime v2 CI workflow is extended again so this phase cannot regress any v1/v2/v2.1/v2.2 invariant.
+- Branch: `agent/agentic-runtime-omega-v2-governance-receipts`.
+- PR #58: merged to `main` on 2026-08-17.
+- Squash commit: `6b151558f36642e2b4e6b83da52948ae71a1d58d`.
+- Focused CI run: `32071267219` = SUCCESS.
+- Governance runtime/API: MAIN.
+- GitHub + Notion dual persistence: completed in the same work session.
 
 ## Invariants preserved
 
-No majority voting. Falsifiers Ω absolute veto. External evidence remains candidate-only until admitted. Missing evidence is not positive evidence. READY_FOR_EXECUTION_GATE remains separate from BUY/SELL and broker execution. Evolution remains proposal-only. CORE-00 remains frozen.
+No majority voting. Falsifiers Ω absolute veto. External evidence remains candidate-only until admitted. Missing evidence is not positive evidence. `READY_FOR_EXECUTION_GATE` remains separate from BUY/SELL and broker execution. Evolution remains proposal-only. CORE-00 remains frozen.
+
+## Active architecture after v2.3
+
+`Agent Infrastructure Ω → EvidenceEnvelope candidates → Evidence Bridge v2.2 → typed observations → v2.1 hardened workers/evidence/recovery → Contradiction Graph → Evidence Director → Falsifiers Ω → OutcomeReceipt → separate execution gate → forecast settlement/calibration`
+
+Cross-cutting governance:
+
+`Capability Evidence Ω exact-route fail-closed checks + DurableAgenticLedger + Dual-Persistence Receipt Ω`.
