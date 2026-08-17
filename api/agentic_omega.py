@@ -10,13 +10,13 @@ from pydantic import BaseModel, Field
 
 from runtime.agentic_omega import (
     AgenticOmegaOrchestrator,
-    AppendOnlyEventLedger,
     EpistemicLabel,
     EvidenceAssertion,
     GateState,
     Specialist,
     SpecialistResult,
 )
+from runtime.agentic_omega.durable_ledger import DurableAgenticLedger
 
 
 router = APIRouter(prefix="/v1/agentic-omega", tags=["agentic-omega"])
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/v1/agentic-omega", tags=["agentic-omega"])
 _LEDGER_PATH = Path(
     os.getenv("ATLAS_AGENTIC_LEDGER_PATH", ".atlas_state/agentic_omega/events.jsonl")
 )
-_ENGINE = AgenticOmegaOrchestrator(AppendOnlyEventLedger(_LEDGER_PATH))
+_ENGINE = AgenticOmegaOrchestrator(DurableAgenticLedger(_LEDGER_PATH))
 _ENGINE_LOCK = RLock()
 
 
@@ -88,9 +88,10 @@ def agentic_omega_health() -> dict[str, Any]:
     return {
         "ok": True,
         "engine": "Agentic Runtime Ω",
-        "version": "1.0",
+        "version": "1.0+durable-ledger",
         "ledgerPath": str(_LEDGER_PATH),
         "ledgerEvents": len(_ENGINE.ledger.events),
+        "durableLedger": True,
         "invariants": {
             "majorityVoting": False,
             "falsifiersAbsoluteVeto": True,
