@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from api.agent_infrastructure import router as agent_infrastructure_router
 from api.atlas_core import router as atlas_router
 from api.bottom_score import router as bottom_score_router
 from api.evidence import router as evidence_router
@@ -23,6 +24,7 @@ app.include_router(bottom_score_router)
 app.include_router(realizable_alpha_router)
 app.include_router(evidence_router)
 app.include_router(kronos_market_forecast_router)
+app.include_router(agent_infrastructure_router)
 
 
 @app.exception_handler(HTTPException)
