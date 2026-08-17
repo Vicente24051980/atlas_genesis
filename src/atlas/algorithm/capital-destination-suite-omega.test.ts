@@ -8,6 +8,7 @@ import { evaluateCapexCaptureElasticity } from './capex-capture-elasticity-omega
 
 const destinationCase: DestinationInput = {
   destination: 'COOLING_THERMAL',
+  destinationMode: 'REAL_ECONOMY',
   evidenceTraceable: true,
   evidenceIds: ['flow', 'orders', 'fcf', 'capex'],
   evidenceTypes: ['PUBLIC_FUND_FLOW', 'CORPORATE_CAPEX', 'ORDERS_BACKLOG_CONTRACTS', 'REVENUE_MARGIN_FCF'],
@@ -28,14 +29,14 @@ const destinationCase: DestinationInput = {
 };
 
 describe('ATLAS capital destination engine suite', () => {
-  it('confirms a multi-source destination only when economic proof is present', () => {
+  it('confirms a multi-source real-economy destination only when economic proof is present', () => {
     const result = evaluateDestinationOfMoney(destinationCase);
     expect(result.evidenceGate).toBe('CONFIRMED');
     expect(['R3_CONFIRMED_RECEIVER', 'R4_ACCELERATING']).toContain(result.stage);
     expect(result.action).toBe('PRIORITIZE_RESEARCH');
   });
 
-  it('does not let price alone confirm a destination', () => {
+  it('does not let price alone confirm a real-economy destination', () => {
     const result = evaluateDestinationOfMoney({
       ...destinationCase,
       evidenceIds: ['price'],
@@ -45,6 +46,26 @@ describe('ATLAS capital destination engine suite', () => {
       fcfEconomicProofScore: 20,
     });
     expect(result.evidenceGate).toBe('PROVISIONAL');
+  });
+
+  it('requires verified fund-flow evidence for an asset-class destination', () => {
+    const result = evaluateDestinationOfMoney({
+      ...destinationCase,
+      destination: 'BONDS',
+      destinationMode: 'ASSET_CLASS',
+      evidenceIds: ['lipper-flow', 'bond-performance'],
+      evidenceTypes: ['PUBLIC_FUND_FLOW', 'PRICE_RELATIVE_STRENGTH'],
+      publicFlowScore: 95,
+      creditFundingScore: 85,
+      sovereignFiscalScore: 70,
+      revisionsScore: 65,
+      relativeStrengthScore: 72,
+      flowAccelerationScore: 85,
+      fundamentalAccelerationScore: 50,
+      crowdingRiskScore: 45,
+    });
+    expect(result.evidenceGate).toBe('CONFIRMED');
+    expect(result.structuralDestinationScore).toBeGreaterThan(75);
   });
 
   it('recognizes real memory scarcity but keeps crowding separate', () => {
