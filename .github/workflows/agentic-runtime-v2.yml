@@ -11,7 +11,10 @@ on:
       - "api/test_agentic_omega_v2.py"
       - "api/test_agentic_evidence_bridge.py"
       - "api/test_agentic_governance.py"
+      - "api/test_deployment_contract.py"
       - "api/app.py"
+      - "render.yaml"
+      - ".github/workflows/mobile-live-backend-smoke.yml"
       - ".github/workflows/agentic-runtime-v2.yml"
   workflow_dispatch:
 
@@ -24,7 +27,7 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install focused dependencies
-        run: python -m pip install --upgrade pip pytest fastapi pydantic httpx
+        run: python -m pip install --upgrade pip pytest fastapi pydantic httpx python-multipart markitdown
       - name: Run Agentic Runtime tests
         env:
           ATLAS_AGENTIC_LEDGER_PATH: .pytest_state/agentic_omega/events.jsonl
@@ -39,3 +42,4 @@ jobs:
           api/test_agentic_omega_v2.py
           api/test_agentic_evidence_bridge.py
           api/test_agentic_governance.py
+          api/test_deployment_contract.py
