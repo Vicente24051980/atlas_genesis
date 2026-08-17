@@ -30,6 +30,7 @@ from .calibration import CalibrationEngine, CalibrationResult, PredictionRecord
 from .recovery import RecoveredRunView, RunRecovery
 from .durable_ledger import DurableAgenticLedger
 from .hardening import GovernedWorkerCoordinator
+from .evidence_adapter import EvidenceAdapterResult, EvidenceEnvelopeAdapter
 
 __all__ = [
     "AgenticOmegaOrchestrator",
@@ -51,6 +52,8 @@ __all__ = [
     "WorkerPacket",
     "WorkerCoordinator",
     "GovernedWorkerCoordinator",
+    "EvidenceAdapterResult",
+    "EvidenceEnvelopeAdapter",
     "PredictionRecord",
     "CalibrationResult",
     "CalibrationEngine",
