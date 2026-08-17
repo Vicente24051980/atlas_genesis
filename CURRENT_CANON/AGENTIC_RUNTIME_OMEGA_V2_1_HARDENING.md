@@ -1,8 +1,10 @@
 # ATLAS Ω — Agentic Runtime Ω v2.1 Hardening
 
-**Status:** IMPLEMENTED · MERGE CANDIDATE
+**Status:** ACTIVE · IMPLEMENTED · MAIN
 **Effective:** 2026-08-17
 **Extends:** Agentic Runtime Ω v2.
+**Integrated to main:** PR #56 · squash `3ce2f3ae829aaf0c7e0f4f23bebbfd6ae475f028`
+**Focused CI:** `Agentic Runtime Omega v2 CI` run `32070413389` · SUCCESS
 
 ## Purpose
 
@@ -62,14 +64,14 @@ The operational `api/agentic_omega.py` engine now uses `DurableAgenticLedger`; v
 
 - `falsifier_review_complete` (default false).
 
-Capabilities now disclose:
+Capabilities disclose:
 
 - Red Team completion required;
 - critical metric provenance required;
 - explicit temporal supersession;
 - durable multi-process ledger.
 
-## Tests
+## Validation
 
 Hardening tests cover:
 
@@ -80,8 +82,27 @@ Hardening tests cover:
 - API readiness requires completed Falsifiers review;
 - API readiness requires critical metric provenance.
 
-The dedicated Agentic Runtime v2 CI workflow is extended to run the hardening suite in addition to all v1/v2 tests.
+GitHub Actions `Agentic Runtime Omega v2 CI` run `32070413389` completed `SUCCESS` on hardening head `a39575d019903e4f9e71003e9890dd57cb303828`. The job ran the original v1 invariants, v2 workers/recovery/calibration tests, hardening tests and API v2 tests.
+
+## Integration record
+
+- Branch: `agent/agentic-runtime-omega-v2-hardening`.
+- PR #56: merged to `main` on 2026-08-17.
+- Squash commit: `3ce2f3ae829aaf0c7e0f4f23bebbfd6ae475f028`.
+- Focused CI run: `32070413389` = SUCCESS.
+- Runtime/API/hardening: MAIN.
+- GitHub + Notion dual persistence: required and completed in the same work session.
 
 ## Invariants preserved
 
 No majority voting. Falsifiers Ω veto remains absolute. Missing evidence remains non-evidence. External candidate evidence remains non-canonical by default. `READY_FOR_EXECUTION_GATE` remains separate from BUY/SELL and broker execution. Evolution remains proposal-only. CORE-00 is untouched.
+
+## Next admissible extensions
+
+- governed adapters from Agent Infrastructure Ω evidence envelopes into typed `MetricObservation` candidates;
+- evidence-ID graph edges and source lineage across contradictions;
+- calibration sliced by specialist, horizon and regime;
+- persistent lifecycle checkpoints for scheduled forecast settlement;
+- source-specific freshness policies per evidence class.
+
+Any extension that converts absence of evidence into positive evidence, bypasses Red Team completion, auto-promotes external content, weakens provenance or bypasses the execution gate is invalid unless explicitly superseded by the owner.
