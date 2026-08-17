@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 
 from api.agent_infrastructure import router as agent_infrastructure_router
 from api.agentic_evidence_bridge import router as agentic_evidence_bridge_router
+from api.agentic_governance import router as agentic_governance_router
 from api.agentic_omega import router as agentic_omega_router
 from api.agentic_omega_v2 import router as agentic_omega_v2_router
 from api.atlas_core import router as atlas_router
@@ -28,6 +29,7 @@ app.include_router(kronos_market_forecast_router)
 app.include_router(agentic_omega_router)
 app.include_router(agentic_omega_v2_router)
 app.include_router(agentic_evidence_bridge_router)
+app.include_router(agentic_governance_router)
 app.include_router(agent_infrastructure_router)
 app.include_router(document_ingestion_router)
 
