@@ -18,6 +18,16 @@ from .orchestrator import (
     Specialist,
     SpecialistResult,
 )
+from .workers import (
+    Contradiction,
+    ContradictionGraph,
+    EvidenceDirectorWorker,
+    MetricObservation,
+    WorkerCoordinator,
+    WorkerPacket,
+)
+from .calibration import CalibrationEngine, CalibrationResult, PredictionRecord
+from .recovery import RecoveredRunView, RunRecovery
 
 __all__ = [
     "AgenticOmegaOrchestrator",
@@ -31,4 +41,15 @@ __all__ = [
     "RunStatus",
     "Specialist",
     "SpecialistResult",
+    "MetricObservation",
+    "Contradiction",
+    "ContradictionGraph",
+    "EvidenceDirectorWorker",
+    "WorkerPacket",
+    "WorkerCoordinator",
+    "PredictionRecord",
+    "CalibrationResult",
+    "CalibrationEngine",
+    "RecoveredRunView",
+    "RunRecovery",
 ]
