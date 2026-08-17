@@ -117,6 +117,11 @@ class CapabilityEvidenceRegistry:
             parsed = parsed.replace(tzinfo=timezone.utc)
         return parsed.astimezone(timezone.utc)
 
+    def _refresh_if_supported(self) -> None:
+        refresh = getattr(self.ledger, "refresh", None)
+        if callable(refresh):
+            refresh()
+
     @staticmethod
     def _validate_source(status: CapabilityStatus, source: CapabilitySource) -> None:
         if status is CapabilityStatus.CONFIRMED and source not in {
@@ -162,6 +167,7 @@ class CapabilityEvidenceRegistry:
         return record
 
     def latest(self, *, route: RouteDescriptor, capability: str) -> CapabilityEvidenceRecord | None:
+        self._refresh_if_supported()
         fingerprint = route.fingerprint()
         for event in reversed(self.ledger.events):
             if event.get("event_type") != "CAPABILITY_EVIDENCE_RECORDED":
