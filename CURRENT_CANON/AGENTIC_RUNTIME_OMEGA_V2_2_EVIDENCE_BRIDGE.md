@@ -1,8 +1,10 @@
 # ATLAS Ω — Agentic Runtime Ω v2.2 Evidence Bridge
 
-**Status:** IMPLEMENTED · MERGE CANDIDATE
+**Status:** ACTIVE · IMPLEMENTED · MAIN
 **Effective:** 2026-08-17
 **Extends:** Agentic Runtime Ω v2.1 Hardening.
+**Integrated to main:** PR #57 · squash `8011b85e4b30d7d105d07000f33266af746767a9`
+**Focused CI:** `Agentic Runtime Omega v2 CI` run `32070760485` · SUCCESS
 
 ## Purpose
 
@@ -96,7 +98,7 @@ The execution endpoint shares the v2.1 `DurableAgenticLedger`, governance lock, 
 - `READY_FOR_EXECUTION_GATE` is not a trade instruction;
 - bridge `decisionAuthority=false`.
 
-## Tests
+## Validation
 
 The focused suite covers:
 
@@ -110,8 +112,23 @@ The focused suite covers:
 8. unstructured envelope fails closed;
 9. missing metric observation date fails critical provenance downstream.
 
-The existing Agentic Runtime v2 CI workflow is extended to execute both runtime adapter tests and API bridge tests in addition to all v1/v2/v2.1 suites.
+GitHub Actions `Agentic Runtime Omega v2 CI` run `32070760485` completed `SUCCESS` on head `766823bee516294b34af671d679822d06fbbcc8f`. The job executed all v1/v2/v2.1 suites plus runtime evidence-adapter tests and API evidence-bridge tests.
+
+## Integration record
+
+- Branch: `agent/agentic-runtime-omega-v2-evidence-adapter`.
+- PR #57: merged to `main` on 2026-08-17.
+- Squash commit: `8011b85e4b30d7d105d07000f33266af746767a9`.
+- Focused CI run: `32070760485` = SUCCESS.
+- Bridge/API/runtime: MAIN.
+- GitHub + Notion dual persistence: completed in the same work session.
 
 ## Invariants preserved
 
 No majority voting. Falsifiers Ω retains absolute independent veto. External infrastructure has no investment-decision authority. Evidence candidates remain non-canonical by default. Broker execution remains separate. Evolution remains proposal-only. CORE-00 remains frozen.
+
+## Current architecture after v2.2
+
+`Agent Infrastructure Ω → candidate envelopes → Evidence Bridge v2.2 → governed observations → Agentic Runtime v2.1 → eight workers → Contradiction Graph → Evidence Director → Falsifiers Ω → OutcomeReceipt → separate execution gate → prediction settlement/calibration`
+
+No component in this chain has authority to manufacture missing evidence or convert research readiness directly into a broker order.
