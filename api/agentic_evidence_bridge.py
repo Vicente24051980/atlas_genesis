@@ -27,6 +27,23 @@ class EvidenceWorkerRunRequest(BaseModel):
     no_opportunity: bool = False
 
 
+@router.get("/evidence-capabilities")
+def evidence_bridge_capabilities() -> dict[str, Any]:
+    return {
+        "engine": "Agentic Runtime Ω",
+        "version": "2.2-evidence-bridge",
+        "inputContract": "Agent Infrastructure EvidenceEnvelope",
+        "structuredMetricPath": "metadata.metrics",
+        "parseEnvelopeProse": False,
+        "externalEvidenceAutoCanonical": False,
+        "retrievalTimeIsObservationTime": False,
+        "contentHashPreserved": True,
+        "sourceTypePreserved": True,
+        "candidateOnly": True,
+        "decisionAuthority": False,
+    }
+
+
 @router.post("/from-evidence")
 def run_from_governed_evidence(request: EvidenceWorkerRunRequest) -> dict[str, Any]:
     """Run ATLAS workers from explicit structured metrics inside evidence envelopes.
