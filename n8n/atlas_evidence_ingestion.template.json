@@ -1,0 +1,32 @@
+{
+  "name": "ATLAS Ω Evidence Ingestion",
+  "nodes": [
+    {
+      "parameters": {"httpMethod": "POST", "path": "atlas-evidence", "responseMode": "lastNode"},
+      "name": "Evidence Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.ATLAS_API_BASE_URL}}/v1/agent-infra/n8n/event",
+        "sendHeaders": true,
+        "headerParameters": {"parameters": [{"name": "X-N8N-Secret", "value": "={{$env.N8N_WEBHOOK_SECRET}}"}]},
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json) }}"
+      },
+      "name": "ATLAS Evidence Bus",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [280, 0]
+    }
+  ],
+  "connections": {"Evidence Trigger": {"main": [[{"node": "ATLAS Evidence Bus", "type": "main", "index": 0}]]}},
+  "active": false,
+  "settings": {"executionOrder": "v1"},
+  "meta": {"atlasDecisionAuthority": false, "canonical": false}
+}
