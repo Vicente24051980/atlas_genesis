@@ -15,9 +15,14 @@ export type FutureWatchStatus =
 
 export type FutureBucket =
   | 'FUTURE_LEADERS_GROWTH'
+  | 'AI_SEMIS_CONNECTIVITY'
   | 'POWER_GRID_AI_INFRA'
+  | 'POWER_GRID_INDUSTRIAL_BUILDOUT'
   | 'POWER_TO_AI_HPC_NEOCLOUD'
   | 'ENERGY_LNG'
+  | 'AEROSPACE_DEFENSE_NUCLEAR'
+  | 'HEALTHCARE_MEDTECH'
+  | 'SOFTWARE_FINTECH_CONSUMER'
   | 'EUROPE_DEFENSE_INDUSTRIALS'
   | 'HARD_ASSETS'
   | 'FINANCIAL_PLUMBING'
@@ -58,6 +63,14 @@ export const FUTURE_WATCHLIST_OMEGA: FutureWatchItem[] = [
   { ticker: 'FN', bucket: 'FUTURE_LEADERS_GROWTH', status: 'PENDING_EVENT', note: 'Q4/FY26 event gate; do not pre-judge.' },
   { ticker: 'UBER', bucket: 'FUTURE_LEADERS_GROWTH', status: 'ADVANCE' },
 
+  // New AI / semis / connectivity additions
+  { ticker: 'ALAB', bucket: 'AI_SEMIS_CONNECTIVITY', status: 'ADVANCE_CONDITIONAL', note: 'Exceptional AI-connectivity growth; customer concentration and expectations require a valuation gate.' },
+  { ticker: 'MRVL', bucket: 'AI_SEMIS_CONNECTIVITY', status: 'ADVANCE', note: 'Record revenue/OCF and strong data-center mix; hyperscaler concentration and integration remain monitored.' },
+  { ticker: 'COHR', bucket: 'AI_SEMIS_CONNECTIVITY', status: 'ADVANCE_CONDITIONAL', note: 'Optical demand inflection is strong; valuation, capacity expansion and concentration remain gates.' },
+  { ticker: 'LITE', bucket: 'AI_SEMIS_CONNECTIVITY', status: 'ADVANCE_CONDITIONAL', note: 'Very strong optical revenue/margin inflection; funding/capacity and AI concentration require scrutiny.' },
+  { ticker: 'CLS', bucket: 'AI_SEMIS_CONNECTIVITY', status: 'ADVANCE', note: 'Strong revenue/EPS acceleration; hidden hyperscaler and AI-CAPEX concentration.' },
+  { ticker: 'ANET', bucket: 'AI_SEMIS_CONNECTIVITY', status: 'ADVANCE', note: 'Exceptional cloud networking economics; major-cloud customer concentration remains the key risk.' },
+
   // Power / Grid / AI Infrastructure
   { ticker: 'VRT', bucket: 'POWER_GRID_AI_INFRA', status: 'ADVANCE' },
   { ticker: 'ETN', bucket: 'POWER_GRID_AI_INFRA', status: 'ADVANCE' },
@@ -68,6 +81,15 @@ export const FUTURE_WATCHLIST_OMEGA: FutureWatchItem[] = [
   { ticker: 'NEE', bucket: 'POWER_GRID_AI_INFRA', status: 'ADVANCE' },
   { ticker: 'DLR', bucket: 'POWER_GRID_AI_INFRA', status: 'ADVANCE_CONDITIONAL', note: 'Strong demand; asset-heavy funding/leverage gate.' },
   { ticker: 'EQIX', bucket: 'POWER_GRID_AI_INFRA', status: 'ADVANCE' },
+
+  // New power/grid/industrial buildout additions
+  { ticker: 'CEG', bucket: 'POWER_GRID_INDUSTRIAL_BUILDOUT', status: 'ADVANCE_CONDITIONAL', note: 'Strong contracted power economics; Calpine integration, balance sheet and project timing keep it conditional.' },
+  { ticker: 'TLN', bucket: 'POWER_GRID_INDUSTRIAL_BUILDOUT', status: 'ADVANCE_CONDITIONAL', note: 'Strong EBITDA/FCF; acquisition financing and PJM/commodity exposure make CFQ material.' },
+  { ticker: 'POWL', bucket: 'POWER_GRID_INDUSTRIAL_BUILDOUT', status: 'ADVANCE', note: 'High book-to-bill and record data-center order; project/customer lumpiness is the main risk.' },
+  { ticker: 'STRL', bucket: 'POWER_GRID_INDUSTRIAL_BUILDOUT', status: 'ADVANCE', note: 'Strong organic plus acquired growth and cash generation; integration must remain normalized.' },
+  { ticker: 'DY', bucket: 'POWER_GRID_INDUSTRIAL_BUILDOUT', status: 'ADVANCE', note: 'Strong organic growth, EBITDA acceleration and backlog; fiber/data-center customer concentration monitored.' },
+  { ticker: 'MOD', bucket: 'POWER_GRID_INDUSTRIAL_BUILDOUT', status: 'ADVANCE_CONDITIONAL', note: 'Data-center sales +90% but segment gross margin compressed sharply; payback/margin conversion is the gate.' },
+  { ticker: 'EME', bucket: 'POWER_GRID_INDUSTRIAL_BUILDOUT', status: 'ADVANCE', note: 'Record revenue, margin, EPS and RPO; one of the cleanest real-economy data-center infrastructure compounders.' },
 
   // Power-to-AI / Miner -> HPC / Neocloud
   { ticker: 'CORZ', bucket: 'POWER_TO_AI_HPC_NEOCLOUD', status: 'ADVANCE_CONDITIONAL', note: 'Large contracted AI/HPC demand; CAPEX/funding execution still material.' },
@@ -98,6 +120,29 @@ export const FUTURE_WATCHLIST_OMEGA: FutureWatchItem[] = [
   { ticker: 'RRC', bucket: 'ENERGY_LNG', status: 'ADVANCE' },
   { ticker: 'CRK', bucket: 'ENERGY_LNG', status: 'ADVANCE_CONDITIONAL', note: 'Improving economics but high development CAPEX; CFQ scrutiny.' },
 
+  // New aerospace / defense / nuclear additions
+  { ticker: 'RKLB', bucket: 'AEROSPACE_DEFENSE_NUCLEAR', status: 'ADVANCE_CONDITIONAL', note: 'Record revenue/backlog; Neutron timing, losses, acquisitions and capital intensity remain gates.' },
+  { ticker: 'KTOS', bucket: 'AEROSPACE_DEFENSE_NUCLEAR', status: 'ADVANCE_CONDITIONAL', note: 'Strong organic defense growth; heavy drone/engine investment raises execution/payback risk.' },
+  { ticker: 'AVAV', bucket: 'AEROSPACE_DEFENSE_NUCLEAR', status: 'ADVANCE_CONDITIONAL', note: 'Transformational growth/backlog; BlueHalo integration and purchase-accounting normalization required.' },
+  { ticker: 'BWXT', bucket: 'AEROSPACE_DEFENSE_NUCLEAR', status: 'ADVANCE', note: 'Strong nuclear/defense backlog and raised cash-flow guidance; high-quality bottleneck.' },
+  { ticker: 'CW', bucket: 'AEROSPACE_DEFENSE_NUCLEAR', status: 'ADVANCE', note: 'Strong orders, margin expansion and defense/nuclear/aerospace exposure.' },
+  { ticker: 'ATI', bucket: 'AEROSPACE_DEFENSE_NUCLEAR', status: 'ADVANCE', note: 'High-performance aerospace/defense materials bottleneck with improving earnings/backlog.' },
+  { ticker: 'WAB', bucket: 'AEROSPACE_DEFENSE_NUCLEAR', status: 'ADVANCE', note: 'Rail/industrial platform with strong backlog and margin; acquisition/debt integration monitored.' },
+
+  // New healthcare / medtech additions
+  { ticker: 'TMDX', bucket: 'HEALTHCARE_MEDTECH', status: 'ADVANCE_CONDITIONAL', note: 'Strong OCS/logistics growth; gross-margin compression and scale investment must normalize.' },
+  { ticker: 'NTRA', bucket: 'HEALTHCARE_MEDTECH', status: 'ADVANCE_CONDITIONAL', note: 'Strong oncology/test growth and improving cash; operating loss and dilution remain gates.' },
+  { ticker: 'TEM', bucket: 'HEALTHCARE_MEDTECH', status: 'ADVANCE_CONDITIONAL', note: 'Strong diagnostics/data growth and MRD ramp; large GAAP loss/SBC and cash conversion require proof.' },
+  { ticker: 'PRCT', bucket: 'HEALTHCARE_MEDTECH', status: 'ADVANCE_CONDITIONAL', note: 'Procedure/install-base growth strong; commercial execution and opex leverage remain gates.' },
+  { ticker: 'HIMS', bucket: 'HEALTHCARE_MEDTECH', status: 'WATCH_HIGH_RISK', note: 'Top-line/subscriber growth strong, but GLP-1 mix, margin pressure, regulatory and litigation risks prevent clean ADVANCE.' },
+
+  // New software / fintech / consumer additions
+  { ticker: 'CVLT', bucket: 'SOFTWARE_FINTECH_CONSUMER', status: 'ADVANCE', note: 'ARR/SaaS growth plus strong FCF and NDRR; clean cyber-resilience economics.' },
+  { ticker: 'DT', bucket: 'SOFTWARE_FINTECH_CONSUMER', status: 'ADVANCE_CONDITIONAL', note: 'Healthy ARR/revenue growth; FX-adjusted guide and CFO transition keep it conditional.' },
+  { ticker: 'TOST', bucket: 'SOFTWARE_FINTECH_CONSUMER', status: 'ADVANCE', note: 'Strong ARR, locations, GPV, operating leverage and FCF; vertical software + payments proof.' },
+  { ticker: 'CAVA', bucket: 'SOFTWARE_FINTECH_CONSUMER', status: 'ADVANCE_CONDITIONAL', note: 'Strong traffic/same-store/EBITDA growth; consumer, food-safety and restaurant-margin risk.' },
+  { ticker: 'HOOD', bucket: 'SOFTWARE_FINTECH_CONSUMER', status: 'ADVANCE_CONDITIONAL', note: 'Platform assets/deposits scale strongly; trading, crypto, prediction-market cyclicality and regulation remain material.' },
+
   // Europe / Defense / Industrials
   { ticker: 'RHM.DE', bucket: 'EUROPE_DEFENSE_INDUSTRIALS', status: 'ADVANCE_CONDITIONAL', note: 'Huge backlog/demand; guidance/program timing and working-capital/advance-payment effects matter.' },
   { ticker: 'HAG.DE', bucket: 'EUROPE_DEFENSE_INDUSTRIALS', status: 'ADVANCE_CONDITIONAL', note: 'Record backlog; FCF and customer-advance normalization required.' },
@@ -125,8 +170,21 @@ export function assertFuturePortfolioSeparation(): void {
   }
 }
 
+export function assertFutureUniqueTickers(): void {
+  const seen = new Set<string>();
+  const duplicates: string[] = [];
+  for (const item of FUTURE_WATCHLIST_OMEGA) {
+    if (seen.has(item.ticker)) duplicates.push(item.ticker);
+    seen.add(item.ticker);
+  }
+  if (duplicates.length > 0) {
+    throw new Error(`ATLAS Future duplicate ticker violation: ${duplicates.join(', ')}`);
+  }
+}
+
 export function normalizeFutureTicker(ticker: string): string {
   return FUTURE_IDENTIFIER_NORMALIZATION[ticker] ?? ticker;
 }
 
 assertFuturePortfolioSeparation();
+assertFutureUniqueTickers();
