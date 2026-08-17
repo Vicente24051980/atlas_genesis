@@ -17,13 +17,13 @@ from runtime.agentic_omega import (
     CalibrationEngine,
     MetricObservation,
     RunRecovery,
-    WorkerCoordinator,
     WorkerPacket,
 )
+from runtime.agentic_omega.hardening import GovernedWorkerCoordinator
 
 
 router = APIRouter(prefix="/v1/agentic-omega", tags=["agentic-omega-v2"])
-_COORDINATOR = WorkerCoordinator()
+_COORDINATOR = GovernedWorkerCoordinator()
 _RECOVERY = RunRecovery(_ENGINE.ledger)
 _CALIBRATION = CalibrationEngine(_ENGINE.ledger)
 _ACTIVE_RUNS: dict[str, AgenticRun] = {}
@@ -47,6 +47,7 @@ class WorkerRunRequest(BaseModel):
     context: dict[str, Any] = Field(default_factory=dict)
     observations: list[MetricObservationPayload] = Field(default_factory=list)
     confirmed_falsifiers: list[str] = Field(default_factory=list)
+    falsifier_review_complete: bool = False
     policies: dict[str, dict[str, float]] = Field(default_factory=dict)
     no_opportunity: bool = False
 
@@ -100,11 +101,15 @@ def _load_open_run(run_id: str) -> AgenticRun:
 def agentic_v2_capabilities() -> dict[str, Any]:
     return {
         "engine": "Agentic Runtime Ω",
-        "version": "2.0",
+        "version": "2.1-hardened",
         "workers": 8,
         "deterministicWorkers": True,
         "contradictionGraph": True,
+        "explicitTemporalSupersession": True,
         "evidenceDirectorScoring": True,
+        "criticalMetricProvenanceRequired": True,
+        "falsifierReviewCompleteRequired": True,
+        "durableMultiProcessLedger": True,
         "replayRecovery": True,
         "predictionCalibration": True,
         "externalEvidenceAutoCanonical": False,
@@ -124,13 +129,16 @@ def run_workers(request: WorkerRunRequest) -> dict[str, Any]:
         with _ENGINE_LOCK:
             run = _ENGINE.start_run(request.objective, request.context)
             _RECOVERY.snapshot_context(run)
-            results = _COORDINATOR.run(packet)
+            results = _COORDINATOR.run(
+                packet,
+                falsifier_review_complete=request.falsifier_review_complete,
+            )
             for result in results:
                 _ENGINE.submit_result(run, result)
             receipt = _ENGINE.finalize(run, no_opportunity=request.no_opportunity)
             return {
                 "engine": "Agentic Runtime Ω",
-                "version": "2.0",
+                "version": "2.1-hardened",
                 "runId": run.run_id,
                 "receipt": receipt.to_dict(),
                 "results": [result.to_dict() for result in results],
@@ -138,6 +146,8 @@ def run_workers(request: WorkerRunRequest) -> dict[str, Any]:
                     "externalEvidenceAutoCanonical": False,
                     "majorityVoting": False,
                     "falsifiersAbsoluteVeto": True,
+                    "falsifierReviewCompleteRequired": True,
+                    "criticalMetricProvenanceRequired": True,
                     "readyForExecutionIsTrade": False,
                 },
             }

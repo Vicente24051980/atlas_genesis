@@ -28,4 +28,5 @@ jobs:
           python -m pytest -q
           runtime/agentic_omega/test_orchestrator.py
           runtime/agentic_omega/test_v2.py
+          runtime/agentic_omega/test_hardening.py
           api/test_agentic_omega_v2.py
