@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: atlas-genesis-api
+    name: atlas-genesis
     runtime: python
     plan: free
     buildCommand: pip install -r api/requirements.txt
@@ -21,3 +21,13 @@ services:
         sync: false
       - key: TRADING212_LIVE_TRADING_ENABLED
         value: "false"
+      - key: ATLAS_AGENT_CONTROL_TOKEN
+        generateValue: true
+      - key: FIRECRAWL_API_KEY
+        sync: false
+      - key: MEM0_API_KEY
+        sync: false
+      - key: N8N_WEBHOOK_SECRET
+        generateValue: true
+      - key: ATLAS_AGENTIC_LEDGER_PATH
+        value: .atlas_state/agentic_omega/events.jsonl
