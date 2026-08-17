@@ -3,6 +3,7 @@
 **Status:** ACTIVE · IMPLEMENTED v1.0
 **Effective:** 2026-08-17
 **Implementation:** `runtime/agentic_omega/`
+**API:** `api/agentic_omega.py`
 **Reference architecture studied:** `razzant/ouroboros`
 
 ## Purpose
@@ -93,6 +94,16 @@ The runtime can create an `EvolutionProposal` backed by evidence IDs, but v1.0 h
 
 No runtime component is authorized to rewrite ATLAS code, Constitution, canon, gates, prompts or dependencies autonomously.
 
+### 9. Operational API
+
+`api/agentic_omega.py` exposes the runtime through:
+
+- `GET /v1/agentic-omega/health`;
+- `POST /v1/agentic-omega/evaluate`;
+- `POST /v1/agentic-omega/evolution-proposals`.
+
+The router is mounted in `api/app.py`. Evaluation is atomic at request level and guarded by the same software invariants as the Python runtime. The API explicitly states that `READY_FOR_EXECUTION_GATE` is not a trade instruction.
+
 ## Ouroboros adaptation boundary
 
 ### Adopt
@@ -144,20 +155,23 @@ The initial implementation includes tests proving:
 6. ledger records are hash chained and reload-verifiable;
 7. evolution remains proposal-only.
 
-Initial local validation on 2026-08-17: **7/7 tests passed**.
+Initial local validation on 2026-08-17: **7/7 tests passed**. API smoke validation also returned `READY_FOR_EXECUTION_GATE` for a complete eight-specialist PASS packet without creating a trade action.
+
+## Persistence
+
+The implementation is subject to `GITHUB_NOTION_SYNC_LAW.md`. GitHub is the versioned technical source of truth; the operational mirror lives under Notion `13 — Proyectos · Atlas Genesis, App, Software y GitHub` in `ATLAS Ω — Agentic Runtime Ω · Ouroboros Adaptation · 17-ago-2026`.
 
 ## Next runtime layers
 
 The following extensions may build on v1.0 without changing its invariants:
 
-- API/router surface for starting/evaluating runs;
 - persistent state backend for multi-process deployments;
 - specialist worker adapters;
 - Evidence Director source-quality/freshness scoring;
 - contradiction graph;
 - replay/recovery of interrupted runs;
 - post-decision forecast-vs-realized calibration;
-- Notion/GitHub synchronization receipts;
+- automated GitHub↔Notion synchronization receipts;
 - model/tool capability evidence by exact route fingerprint.
 
 Any extension that weakens Falsifiers Ω, provenance, no-majority-vote, null-opportunity or execution separation is constitutionally invalid unless explicitly superseded by Vicente.
