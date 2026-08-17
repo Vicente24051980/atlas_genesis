@@ -28,11 +28,14 @@ from .workers import (
 )
 from .calibration import CalibrationEngine, CalibrationResult, PredictionRecord
 from .recovery import RecoveredRunView, RunRecovery
+from .durable_ledger import DurableAgenticLedger
+from .hardening import GovernedWorkerCoordinator
 
 __all__ = [
     "AgenticOmegaOrchestrator",
     "AgenticRun",
     "AppendOnlyEventLedger",
+    "DurableAgenticLedger",
     "EpistemicLabel",
     "EvidenceAssertion",
     "EvolutionProposal",
@@ -47,6 +50,7 @@ __all__ = [
     "EvidenceDirectorWorker",
     "WorkerPacket",
     "WorkerCoordinator",
+    "GovernedWorkerCoordinator",
     "PredictionRecord",
     "CalibrationResult",
     "CalibrationEngine",
