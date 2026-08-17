@@ -45,6 +45,11 @@ class DualPersistenceRegistry:
     def __init__(self, ledger: AppendOnlyEventLedger) -> None:
         self.ledger = ledger
 
+    def _refresh_if_supported(self) -> None:
+        refresh = getattr(self.ledger, "refresh", None)
+        if callable(refresh):
+            refresh()
+
     @staticmethod
     def _status(github_commit_sha: str, notion_page_id: str) -> DualPersistenceStatus:
         github = bool(github_commit_sha.strip())
@@ -85,6 +90,7 @@ class DualPersistenceRegistry:
         return receipt
 
     def latest(self, change_id: str) -> DualPersistenceReceipt | None:
+        self._refresh_if_supported()
         for event in reversed(self.ledger.events):
             if event.get("event_type") != "DUAL_PERSISTENCE_RECEIPT":
                 continue
