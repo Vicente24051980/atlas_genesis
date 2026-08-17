@@ -26,30 +26,81 @@ permissions:
 jobs:
   kick-render-deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     env:
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
     steps:
-      - name: Trigger Render deploy when hook is configured
+      - name: Trigger Render deploy through available credential
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${RENDER_DEPLOY_HOOK_URL:-}" ]; then
-            echo "RENDER_DEPLOY_HOOK_URL is not configured; relying on Render auto-deploy/Blueprint sync."
+
+          if [ -n "${RENDER_DEPLOY_HOOK_URL:-}" ]; then
+            code=$(curl -sS --max-time 30 -o /tmp/render-deploy.json -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK_URL" || true)
+            cat /tmp/render-deploy.json 2>/dev/null || true
+            if [ "$code" != "200" ] && [ "$code" != "201" ] && [ "$code" != "202" ]; then
+              echo "Render deploy hook failed: HTTP $code"
+              exit 1
+            fi
+            echo "RENDER_DEPLOY_TRIGGER=hook"
             exit 0
           fi
-          code=$(curl -sS --max-time 30 -o /tmp/render-deploy.json -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK_URL" || true)
-          cat /tmp/render-deploy.json 2>/dev/null || true
-          if [ "$code" != "200" ] && [ "$code" != "202" ]; then
-            echo "Render deploy hook failed: HTTP $code"
+
+          if [ -z "${RENDER_API_KEY:-}" ]; then
+            echo "RENDER_DEPLOY_TRIGGER=none"
+            echo "Neither RENDER_DEPLOY_HOOK_URL nor RENDER_API_KEY is configured; relying on Render auto-deploy/Blueprint sync."
+            exit 0
+          fi
+
+          SERVICE_ID="${RENDER_SERVICE_ID:-}"
+          if [ -z "$SERVICE_ID" ]; then
+            curl -fsS --max-time 30 \
+              -H "Accept: application/json" \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              "https://api.render.com/v1/services?limit=100" > /tmp/render-services.json
+            SERVICE_ID=$(python3 - <<'PY'
+          import json
+          data=json.load(open('/tmp/render-services.json'))
+          preferred=('atlas-genesis','atlas-genesis-api')
+          matches=[]
+          for item in data if isinstance(data,list) else []:
+              service=item.get('service', item) if isinstance(item,dict) else {}
+              name=str(service.get('name') or '')
+              sid=str(service.get('id') or '')
+              if name in preferred and sid:
+                  matches.append((preferred.index(name), sid, name))
+          if matches:
+              matches.sort()
+              print(matches[0][1])
+          PY
+            )
+          fi
+
+          if [ -z "$SERVICE_ID" ]; then
+            echo "Render API credential is configured but no atlas-genesis service could be resolved."
             exit 1
           fi
-          echo "Render deploy requested: HTTP $code"
+
+          code=$(curl -sS --max-time 30 -o /tmp/render-api-deploy.json -w "%{http_code}" \
+            -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+            -H "Accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            --data "{\"commitId\":\"$GITHUB_SHA\",\"clearCache\":\"do_not_clear\"}" || true)
+          if [ "$code" != "201" ] && [ "$code" != "202" ]; then
+            echo "Render API deploy failed: HTTP $code"
+            cat /tmp/render-api-deploy.json 2>/dev/null || true
+            exit 1
+          fi
+          echo "RENDER_DEPLOY_TRIGGER=api"
+          echo "Render API accepted deploy for resolved service."
 
   resolve-render-host:
     needs: kick-render-deploy
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
     outputs:
       production_api: ${{ steps.resolve.outputs.production_api }}
     steps:
@@ -62,7 +113,7 @@ jobs:
             "https://atlas-genesis.onrender.com"
             "https://atlas-genesis-api.onrender.com"
           )
-          for attempt in $(seq 1 60); do
+          for attempt in $(seq 1 36); do
             for BASE in "${CANDIDATES[@]}"; do
               mobile=$(curl -sS --max-time 25 -o /tmp/mobile-health.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
               governance=$(curl -sS --max-time 25 -o /tmp/governance.json -w "%{http_code}" "$BASE/v1/agentic-omega/v2/governance/capabilities" || true)
