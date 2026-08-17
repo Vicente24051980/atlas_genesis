@@ -7,8 +7,10 @@ on:
       - "api/agentic_omega.py"
       - "api/agentic_omega_v2.py"
       - "api/agentic_evidence_bridge.py"
+      - "api/agentic_governance.py"
       - "api/test_agentic_omega_v2.py"
       - "api/test_agentic_evidence_bridge.py"
+      - "api/test_agentic_governance.py"
       - "api/app.py"
       - ".github/workflows/agentic-runtime-v2.yml"
   workflow_dispatch:
@@ -32,5 +34,8 @@ jobs:
           runtime/agentic_omega/test_v2.py
           runtime/agentic_omega/test_hardening.py
           runtime/agentic_omega/test_evidence_adapter.py
+          runtime/agentic_omega/test_capability_evidence.py
+          runtime/agentic_omega/test_sync_receipts.py
           api/test_agentic_omega_v2.py
           api/test_agentic_evidence_bridge.py
+          api/test_agentic_governance.py
