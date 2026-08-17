@@ -31,6 +31,18 @@ from .recovery import RecoveredRunView, RunRecovery
 from .durable_ledger import DurableAgenticLedger
 from .hardening import GovernedWorkerCoordinator
 from .evidence_adapter import EvidenceAdapterResult, EvidenceEnvelopeAdapter
+from .capability_evidence import (
+    CapabilityEvidenceRecord,
+    CapabilityEvidenceRegistry,
+    CapabilitySource,
+    CapabilityStatus,
+    RouteDescriptor,
+)
+from .sync_receipts import (
+    DualPersistenceReceipt,
+    DualPersistenceRegistry,
+    DualPersistenceStatus,
+)
 
 __all__ = [
     "AgenticOmegaOrchestrator",
@@ -54,6 +66,14 @@ __all__ = [
     "GovernedWorkerCoordinator",
     "EvidenceAdapterResult",
     "EvidenceEnvelopeAdapter",
+    "CapabilityEvidenceRecord",
+    "CapabilityEvidenceRegistry",
+    "CapabilitySource",
+    "CapabilityStatus",
+    "RouteDescriptor",
+    "DualPersistenceReceipt",
+    "DualPersistenceRegistry",
+    "DualPersistenceStatus",
     "PredictionRecord",
     "CalibrationResult",
     "CalibrationEngine",
