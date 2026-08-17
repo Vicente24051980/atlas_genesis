@@ -18,6 +18,11 @@ export type CapitalDestination =
   | 'GOLD_REAL_ASSETS'
   | 'EMERGING_MARKETS'
   | 'CONSUMER_DEFENSIVE'
+  | 'US_EQUITIES'
+  | 'EUROPE_EQUITIES'
+  | 'ASIA_EQUITIES'
+  | 'BONDS'
+  | 'MONEY_MARKETS'
   | 'OTHER';
 
 export type CapitalStage =
