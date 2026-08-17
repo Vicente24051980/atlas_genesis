@@ -5,6 +5,7 @@
 **Implementation:** `runtime/agentic_omega/`
 **API:** `api/agentic_omega.py`
 **Reference architecture studied:** `razzant/ouroboros`
+**Integrated to main:** PR #52 · squash `89bed0eba1532ddad0edaadd1d6bb63b200270a3`
 
 ## Purpose
 
@@ -160,6 +161,14 @@ Initial local validation on 2026-08-17: **7/7 tests passed**. API smoke validati
 ## Persistence
 
 The implementation is subject to `GITHUB_NOTION_SYNC_LAW.md`. GitHub is the versioned technical source of truth; the operational mirror lives under Notion `13 — Proyectos · Atlas Genesis, App, Software y GitHub` in `ATLAS Ω — Agentic Runtime Ω · Ouroboros Adaptation · 17-ago-2026`.
+
+## Integration record
+
+- PR #52: merged to `main` on 2026-08-17.
+- Squash integration commit: `89bed0eba1532ddad0edaadd1d6bb63b200270a3`.
+- Focused runtime tests: 7/7 PASS.
+- API smoke: PASS.
+- GitHub + Notion dual persistence: COMPLETE.
 
 ## Next runtime layers
 
