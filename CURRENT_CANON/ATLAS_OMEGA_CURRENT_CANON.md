@@ -1,7 +1,7 @@
 # ATLAS Ω — CURRENT CANON
 
 **Status:** SOLE_CANON / ACTIVE  
-**Effective date:** 2026-08-16  
+**Effective date:** 2026-08-17  
 **Canonical source:** `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`  
 **Canonical version:** **ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v3.1**
 
@@ -18,6 +18,8 @@ Desde 17-ago-2026 se activan además **CAPITAL FUNDING QUALITY Ω v1.0** y **FIN
 Desde 17-ago-2026 se activa también **FUTURE IPO GATE Ω v1.0** para todo candidato privado/Future que pretenda migrar a cartera pública. Impide convertir un listing, una valoración privada, un sponsor famoso o una subida de primera sesión en señal de compra. Su canon está en `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md` y su implementación técnica en `src/atlas/algorithm/future-ipo-gate-omega.ts`.
 
 Desde 17-ago-2026 queda fijada además la **FUTURE WATCHLIST Ω** listada y separada estrictamente de cartera. El universo bruto entregado contiene 71 identificadores; tras normalización y exclusión de 19 posiciones ya presentes en Portfolio 36, el universo Future canónico activo contiene **52 tickers**. Fuente: `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`; datos ejecutables: `src/atlas/data/future-watchlist-omega.ts`; auditoría: `docs/atlas/research/2026-08-17_FUTURE_52_DEEP_AUDIT_V311_CFQ_FD.md`.
+
+Desde 17-ago-2026 se incorpora por referencia **CAPITAL DESTINATION ENGINE SUITE Ω v1.0** para responder de forma sector-agnostic a la pregunta `¿dónde está yendo el dinero y quién lo convierte en caja?`. Activa **Destination of Money Ω, Memory Scarcity Ω, Capital Migration Ω, False AI Disruption Ω, Liquidity Survival Ω, Crowding Risk Ω, Forced Liquidation Dislocation Ω, Macro Options Liquidity Ω, Home Builders Asymmetry Ω, Buffett Quality Audit Ω y CAPEX Capture Elasticity Ω**. Su canon está en `CURRENT_CANON/CAPITAL_DESTINATION_ENGINE_SUITE_OMEGA.md`. La suite no crea BUY automáticos y mantiene separados destino de capital, captura económica, financiación, crowding, valoración y construcción de cartera.
 
 Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reemplazado por v3.1 y sus módulos canónicos incorporados por referencia.
 
@@ -46,17 +48,25 @@ Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reem
 - **ACTIVE_PORTFOLIO ∩ FUTURE_WATCHLIST = ∅.**
 - **COLLATERAL VALUE ≠ CASH FLOW.**
 - **LIQUIDITY SOURCE ≠ LIQUIDITY DESTINATION.**
+- **FOLLOW THE DOLLAR, NOT THE SECTOR LABEL.**
+- **RELATIVE STRENGTH ≠ VERIFIED FUND FLOW.**
+- **PRIVATE CAPITAL SIGNAL ≠ PUBLIC FLOW CONFIRMATION.**
+- **SCARCITY ≠ PERMANENT MOAT.**
+- **CROWDING ≠ FUNDAMENTAL FALSIFIER.**
+- **TECHNICAL LIQUIDATION ≠ FUNDAMENTAL BREAK.**
+- **BEST CAPEX CAPTOR ≠ BEST STOCK AT CURRENT PRICE.**
+- **MULTIPLE TICKERS CAN BE ONE FUNDING POOL.**
 
 ## Active engine families
 
 ### Core / selection
-Principal Ω; Good Companies Cheap Ω; Historical Dislocation/Burry Ω; Money Rotation Ω; Institutional Capital Rotation Ω; Leadership Bias Control Ω; Successor Detection Ω; Future Watchlist Ω.
+Principal Ω; Good Companies Cheap Ω; Historical Dislocation/Burry Ω; Money Rotation Ω; Institutional Capital Rotation Ω; Leadership Bias Control Ω; Successor Detection Ω; Future Watchlist Ω; **Destination of Money Ω**.
 
 ### Systemic / specialized
-**Global CAPEX Chain Ω**; AI CAPEX Payback Ω; **Capital Funding Quality Ω**; **Financed Demand Ω**; AI Financial Fragility Ω; AI Credit Transmission Ω; Systemic Cascade Ω; Energy Rotation Ω; Global Liquidity Transmission Ω; Sovereign Liquidity Plumbing Ω; European Fragmentation & Energy Security Ω; EU Fiscal Stress Ω; China Industrial Displacement Ω; Hard Assets/Gold Ω; Speculative Liquidity Canary Ω; Tokenization/Digital Infrastructure Ω; Market Bottom Ω; Market Top Risk Ω; Entry Timing Ω; Event Pricing Ω.
+**Global CAPEX Chain Ω**; CAPEX Hunters Ω; **CAPEX Capture Elasticity Ω**; AI CAPEX Payback Ω; **Capital Funding Quality Ω**; **Financed Demand Ω**; **Memory Scarcity Ω**; **Capital Migration Ω**; **False AI Disruption Ω**; **Liquidity Survival Ω**; **Crowding Risk Ω**; **Forced Liquidation Dislocation Ω**; **Macro Options Liquidity Ω**; **Home Builders Asymmetry Ω**; AI Financial Fragility Ω; AI Credit Transmission Ω; Systemic Cascade Ω; Energy Rotation Ω; Global Liquidity Transmission Ω; Sovereign Liquidity Plumbing Ω; European Fragmentation & Energy Security Ω; EU Fiscal Stress Ω; China Industrial Displacement Ω; Hard Assets/Gold Ω; Speculative Liquidity Canary Ω; Tokenization/Digital Infrastructure Ω; Market Bottom Ω; Market Top Risk Ω; Entry Timing Ω; Event Pricing Ω.
 
 ### Auxiliary governance layers
-Institutional Convergence Ω; Winner Preservation Ω; Optionality Reserve Ω; Capital Safety & Leverage Discipline Ω; **Future IPO Gate Ω**; Special Situations Ω.
+Institutional Convergence Ω; Winner Preservation Ω; Optionality Reserve Ω; Capital Safety & Leverage Discipline Ω; **Buffett Quality Audit Ω**; **Future IPO Gate Ω**; Special Situations Ω.
 
 ## Global CAPEX Chain Ω — mandatory structural fields
 
@@ -77,6 +87,14 @@ Estados CFQ: `CFQ0_SELF_FUNDED / CFQ1_AUGMENTED_ROBUST / CFQ2_DEPENDENT / CFQ3_F
 Estados FD: `FD0_ORGANIC / FD1_SUPPORTED / FD2_INTERDEPENDENT / FD3_REFLEXIVE / FD4_SYNTHETIC_FRAGILITY`.
 
 No existen umbrales universales de CAPEX/OCF, deuda, commitments o financiación hasta calibración empírica. Comparar contra historia propia, peers y estructura contractual.
+
+## Capital Destination Engine Suite Ω — mandatory capital-routing fields
+
+Cuando el análisis pregunte por destino del dinero, registrar:
+
+**CAPITAL_SOURCE → DESTINATION_POOL → PUBLIC_FLOW → PRIVATE_CAPITAL → CORPORATE_CAPEX → SOVEREIGN/FISCAL → CREDIT/PROJECT_FINANCE → ORDERS/BACKLOG → REVENUE/MARGIN/FCF → REVISIONS → RELATIVE_STRENGTH_CONFIRMATION → CROWDING → FUNDING_FRAGILITY → VALUATION_EXPECTATION_RISK → R1–R6 STATE.**
+
+Para captadores concretos añadir **CAPEX Capture Elasticity Ω** y leakage por own-CAPEX/dilución. Para memoria añadir Memory Scarcity Ω. Para software deprimido añadir Capital Migration Ω + False AI Disruption Ω. Para eventos de desapalancamiento añadir Liquidity Survival Ω + Forced Liquidation Dislocation Ω. Para ventanas JPY/yields/VIX/OpEx añadir Macro Options Liquidity Ω.
 
 ## Future IPO Gate Ω — mandatory lifecycle
 
@@ -109,7 +127,7 @@ Canon: `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`.
 
 ## Portfolio rule
 
-**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1, Global CAPEX Chain Ω, Capital Funding Quality Ω, Financed Demand Ω, Future Watchlist Ω y Future IPO Gate Ω no modifican la cartera por sí solas. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
+**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1, Global CAPEX Chain Ω, Capital Funding Quality Ω, Financed Demand Ω, Future Watchlist Ω, Future IPO Gate Ω y Capital Destination Engine Suite Ω no modifican la cartera por sí solas. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
 
 ## Mandatory output ending
 
@@ -123,4 +141,6 @@ Canon: `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`.
 
 **Real demand can coexist with bad capital allocation. Good payback can coexist with fragile funding. External funding can coexist with excellent economics. ATLAS must identify which combination actually exists.**
 
-Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md`; para Funding/Financed Demand usar `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`; para Future list usar `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`; para Future/IPO usar `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md` como módulos canónicos compatibles incorporados por referencia.
+**Capital can migrate before public price confirms it. Scarcity can be real and still be over-owned. A forced seller can create price dislocation without changing intrinsic value. ATLAS must separate these states.**
+
+Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md`; para Funding/Financed Demand usar `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`; para Future list usar `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`; para Future/IPO usar `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md`; y para la nueva arquitectura sector-agnostic de destino de capital usar `CURRENT_CANON/CAPITAL_DESTINATION_ENGINE_SUITE_OMEGA.md` como módulos canónicos compatibles incorporados por referencia.
