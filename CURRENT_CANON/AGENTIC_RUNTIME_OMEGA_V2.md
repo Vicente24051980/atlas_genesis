@@ -1,9 +1,11 @@
 # ATLAS Ω — Agentic Runtime Ω v2
 
-**Status:** IMPLEMENTED · MERGE CANDIDATE
+**Status:** ACTIVE · IMPLEMENTED · MAIN
 **Effective:** 2026-08-17
 **Extends:** `CURRENT_CANON/AGENTIC_RUNTIME_OMEGA.md` v1.0
 **Authority:** subordinate to Constitution ATLAS Ω, CORE-00, Investment Committee Ω and Falsifiers Ω.
+**Integrated to main:** PR #55 · squash `e23c9352a40b34a6556a73e2ab41e360afa5d1f0`
+**Focused CI:** `Agentic Runtime Omega v2 CI` run `32070044210` · SUCCESS
 
 ## Purpose
 
@@ -128,21 +130,34 @@ The v2 API reuses the v1 engine ledger and lock. It does not create a second aud
 - Evolution remains proposal-only; no self-modification.
 - CORE-00 remains untouched/frozen.
 
-## Validation contract
-
-Focused tests cover:
-
-1. all eight workers execute;
-2. missing metric fails closed;
-3. Falsifiers veto;
-4. contradiction detection and Evidence Director downgrade;
-5. predicted-vs-realized calibration;
-6. run recovery with context-hash validation;
-7. v1 invariants remain covered by the original test suite;
-8. API worker execution never converts execution readiness into a trade.
+## Validation
 
 Dedicated workflow: `.github/workflows/agentic-runtime-v2.yml`.
 
-## Promotion rule
+GitHub Actions run `32070044210` completed `SUCCESS` on head `dd910fce6011e279fdb36fa5dca7fcb4ae819789`. The focused job ran:
 
-v2 may be marked `ACTIVE · MAIN` only after merge and successful focused CI. GitHub + Notion dual persistence remains mandatory.
+- original `runtime/agentic_omega/test_orchestrator.py` v1 invariants;
+- `runtime/agentic_omega/test_v2.py` workers/contradictions/calibration/recovery;
+- `api/test_agentic_omega_v2.py` operational API tests.
+
+The local pre-publication v2 runtime suite was 6/6 PASS; GitHub Actions independently completed the combined focused suite successfully.
+
+## Integration record
+
+- Branch: `agent/agentic-runtime-omega-v2`.
+- PR #55: merged to `main` on 2026-08-17.
+- Squash commit: `e23c9352a40b34a6556a73e2ab41e360afa5d1f0`.
+- Focused CI run: `32070044210` = SUCCESS.
+- Runtime/API/canon: MAIN.
+- Notion mirror: required by `GITHUB_NOTION_SYNC_LAW.md` and synchronized in the same work session.
+
+## Next admissible extensions
+
+- provider adapters that transform governed evidence candidates into structured observations without auto-canonical promotion;
+- richer contradiction graphs with explicit evidence IDs and temporal supersession;
+- calibration by specialist, horizon and regime;
+- durable multi-process locking/storage for the append-only ledger;
+- scheduled calibration checkpoints;
+- worker-specific source requirements and stronger Falsifiers review-completeness gates.
+
+Any extension weakening provenance, fail-closed behavior, no-majority-vote, independent Falsifiers veto, execution separation or proposal-only evolution is invalid unless explicitly superseded by the owner.
