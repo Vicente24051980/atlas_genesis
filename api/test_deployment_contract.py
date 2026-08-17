@@ -4,7 +4,11 @@ from api.app import app
 
 
 def _paths() -> set[str]:
-    return {route.path for route in app.routes}
+    return {
+        path
+        for route in app.routes
+        if isinstance((path := getattr(route, "path", None)), str)
+    }
 
 
 def test_production_app_exposes_mobile_and_agentic_surfaces() -> None:
