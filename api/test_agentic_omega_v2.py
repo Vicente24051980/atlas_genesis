@@ -30,6 +30,7 @@ def _request() -> WorkerRunRequest:
     return WorkerRunRequest(
         objective="worker-api-smoke",
         context={"ticker": "TEST"},
+        falsifier_review_complete=True,
         observations=[
             _metric("demand_growth", 0.20),
             _metric("capture_growth", 0.15),
@@ -53,6 +54,26 @@ def test_worker_api_reaches_execution_gate_without_trade() -> None:
     assert response["receipt"]["status"] == "READY_FOR_EXECUTION_GATE"
     assert len(response["results"]) == 8
     assert response["guardrails"]["readyForExecutionIsTrade"] is False
+
+
+def test_worker_api_requires_completed_falsifiers_review() -> None:
+    request = _request()
+    request.falsifier_review_complete = False
+    response = run_workers(request)
+    assert response["receipt"]["status"] == "WATCH"
+    falsifiers = response["results"][6]
+    assert falsifiers["gate_state"] == "NOT_EVALUATED"
+    assert falsifiers["metadata"]["reviewComplete"] is False
+
+
+def test_worker_api_requires_critical_metric_provenance() -> None:
+    request = _request()
+    request.observations[0].source = ""
+    response = run_workers(request)
+    assert response["receipt"]["status"] == "WATCH"
+    economic = response["results"][0]
+    assert economic["gate_state"] == "NOT_EVALUATED"
+    assert "demand_growth" in economic["metadata"]["provenanceGap"]
 
 
 def test_worker_api_material_contradiction_does_not_pass_evidence_director() -> None:
