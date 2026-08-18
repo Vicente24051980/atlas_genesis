@@ -1,5 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { RefreshControlProps } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,7 +20,7 @@ export default function AtlasBrokerShell({
   title: string;
   eyebrow?: string;
   children: ReactNode;
-  refreshControl?: ReactElement;
+  refreshControl?: ReactElement<RefreshControlProps>;
   keyboardShouldPersistTaps?: 'always' | 'never' | 'handled';
   hideBottomNav?: boolean;
 }) {
