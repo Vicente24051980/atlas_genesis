@@ -11,7 +11,7 @@
 ## System extension
 - `CURRENT_CANON/ATLAS_OMEGA_SYSTEM_EXTENSION_2026-08-16.md`
 - `CURRENT_CANON/SUCCESSOR_DETECTION_OMEGA.md`
-- `CURRENT_CANON/AI_FINANCIAL_FRAGILITY_OMEGA.md` → v1.1
+- `CURRENT_CANON/AI_FINANCIAL_FRAGILITY_OMEGA.md` → v1.2
 - `CURRENT_CANON/AI_CREDIT_TRANSMISSION_OMEGA.md`
 - `CURRENT_CANON/SYSTEMIC_CASCADE_OMEGA.md`
 - `CURRENT_CANON/SOVEREIGN_LIQUIDITY_PLUMBING_OMEGA.md`
@@ -19,7 +19,7 @@
 
 ## Upgraded modules
 - `docs/atlas/AI_CAPEX_PAYBACK_OMEGA.md` → v2.1
-- `CURRENT_CANON/AI_FINANCIAL_FRAGILITY_OMEGA.md` → v1.1
+- `CURRENT_CANON/AI_FINANCIAL_FRAGILITY_OMEGA.md` → v1.2
 - `CURRENT_CANON/GLOBAL_LIQUIDITY_TRANSMISSION_OMEGA.md` → v2.0
 - `CURRENT_CANON/EUROPEAN_FRAGMENTATION_ENERGY_SECURITY_OMEGA.md` → v1.1
 - `CURRENT_CANON/INSTITUTIONAL_CAPITAL_ROTATION_OMEGA.md` → v1.1
@@ -35,9 +35,35 @@ Canonical additions:
 - Falling token/API/workload unit prices are not a falsifier by themselves; volume elasticity, unit-cost decline, utilization, indirect monetization, gross-profit conversion, OCF/FCF and incremental ROIC must be audited together.
 - Research registration: `CURRENT_CANON/research/2026-08-18_AI_CAPEX_FINANCIAL_FRAGILITY_IMPLEMENTATION.md`.
 
+## 2026-08-18 NVIDIA Financing Quality Gate Ω
+AI Financial Fragility Ω upgraded to **v1.2**.
+
+Canonical chain:
+`third-party capital → NVDA direct capital commitment → guarantees/backstops → residual-value support → GPU utilization → residual value → credit loss/cash outflow → FCF/share → capital returns`
+
+Mandatory variables:
+- third-party capital share;
+- maximum direct/contingent NVIDIA capital commitment;
+- residual-value support ratio and aggregate/project caps;
+- contingent exposure / FCF;
+- counterparty/customer credit quality;
+- GPU utilization and residual-value durability;
+- realized guarantee calls/losses;
+- displacement of buybacks, dividends or strategic reinvestment.
+
+Escalation law:
+- financing capacity alone is not a falsifier;
+- residual-value support is contingent exposure, not realized loss;
+- strong falsifier candidate requires financed-demand dependence plus deteriorating collateral/residual values plus cash calls/losses plus FCF/share deterioration and constrained capital returns.
+
+Current status: `Financing Quality Gate Ω = ACTIVE / NOT FAILED`; `W2_YELLOW_HIGH`; F3/F4 not confirmed; Falsifiers Ω veto not triggered.
+
+Research registration: `CURRENT_CANON/research/2026-08-18_NVIDIA_FINANCING_QUALITY_GATE_IMPLEMENTATION.md`.
+
 ## Technical implementation
 - `src/atlas/algorithm/systemic-extension-omega.ts` → AI Financial Fragility Ω v1.1 manifest and W0–W3 overlay.
-- `src/atlas/algorithm/atlas-primary-engine-hierarchy.ts` → 2026-08-18-v4.1 hierarchy; AI CAPEX Payback Ω v2.1 and AI Financial Fragility Ω v1.1 wired as conditional specialized engines.
+- `src/atlas/algorithm/atlas-primary-engine-hierarchy.ts` → 2026-08-18-v4.1 hierarchy; AI CAPEX Payback Ω v2.1 and AI Financial Fragility Ω wired as conditional specialized engines.
+- Canonical specification now supersedes the Financial Fragility version label to v1.2; code manifest version synchronization is a technical follow-up and does not block the analytical gate.
 
 ## Notion mirror
 Parent: `13 — Proyectos · Atlas Genesis, App, Software y GitHub`
@@ -73,6 +99,8 @@ Every material implementation must also be persisted as a dated Notion page unde
 - `e332f1726075c365e41c0c115190a9e7bfc64842` — systemic-extension manifest v1.1
 - `0324cdf29fbc952b50244a5a470273b75bf03967` — hierarchy v4.1 wiring
 - `7704262baecd11f281c42813cb8be8fe5058938b` — research/implementation checkpoint
+- `273aec90db2cca38c49dcca79e750336218b990d` — AI Financial Fragility Ω v1.2 / NVIDIA Financing Quality Gate
+- `bed254648b8cfbcae98040dea0c8f2f50e0b58e4` — NVIDIA Financing Quality Gate research registration
 
 ## Portfolio law
 This registration does not change portfolio membership. Portfolio action remains a separate audit subject to evidence, regime, valuation and Falsifiers Ω.
