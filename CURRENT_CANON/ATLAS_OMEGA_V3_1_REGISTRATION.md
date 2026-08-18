@@ -16,6 +16,9 @@
 - `CURRENT_CANON/SYSTEMIC_CASCADE_OMEGA.md`
 - `CURRENT_CANON/SOVEREIGN_LIQUIDITY_PLUMBING_OMEGA.md`
 - `CURRENT_CANON/CHINA_INDUSTRIAL_DISPLACEMENT_OMEGA.md`
+- `CURRENT_CANON/INTELLIGENCE_CAPTURE_OMEGA.md` → v1.0
+- `CURRENT_CANON/PROPRIETARY_INTELLIGENCE_MOAT_OMEGA.md` → v1.0
+- `CURRENT_CANON/PHYSICAL_AI_DEPLOYMENT_PROOF_OMEGA.md` → v1.0
 
 ## Upgraded modules
 - `docs/atlas/AI_CAPEX_PAYBACK_OMEGA.md` → v2.1
@@ -60,10 +63,54 @@ Current status: `Financing Quality Gate Ω = ACTIVE / NOT FAILED`; `W2_YELLOW_HI
 
 Research registration: `CURRENT_CANON/research/2026-08-18_NVIDIA_FINANCING_QUALITY_GATE_IMPLEMENTATION.md`.
 
+## 2026-08-18 Symbiotic Enterprise / Intelligence Capture implementation
+New canonical transversal engines:
+- `INTELLIGENCE CAPTURE Ω v1.0`
+- `PROPRIETARY INTELLIGENCE MOAT Ω v1.0`
+- `PHYSICAL AI DEPLOYMENT PROOF Ω v1.0`
+
+### Intelligence Capture Ω
+Core law: `AI adoption != AI economic capture`.
+
+Five capture layers:
+1. L1 Compute Tax — GPU / ASIC / memory / networking.
+2. L2 Infrastructure Tax — data center / power / cooling / electrical.
+3. L3 Intelligence Tax — foundation models / inference.
+4. L4 Orchestration Tax — agents / routing / permissions / APIs / observability / security / evaluation / enterprise integration.
+5. L5 Physical Intelligence Tax — edge compute / sensing / actuators / simulation / robot orchestration.
+
+Canonical scoring proxy:
+`AI workload growth × capture % × incremental margin × FCF conversion ÷ incremental capital required`.
+
+### Proprietary Intelligence Moat Ω
+Core law: `AI adoption != AI moat`.
+
+Candidate moat chain:
+`proprietary data + proprietary skills + embedded workflow + continuous feedback + switching costs → compounding intelligence advantage`.
+
+Strong proprietary moat must survive a foundation-model swap; otherwise the intelligence advantage is primarily rented rather than owned.
+
+### Physical AI Deployment Proof Ω
+Canonical deployment gate:
+`cost/unit ↓ → battery uptime ↑ → dexterity ↑ → task success ↑ → human interventions ↓ → cost/hour ↓ → payback ↓ → deployment scale`.
+
+Evidence ladder:
+`DEMO → PILOT → REPEATABLE → ECONOMIC → SCALE`.
+
+Strong failure pattern:
+`pilots ↑ + demos ↑ + deployments flat + uptime weak + interventions high + cost/hour > human/legacy automation + payback long`.
+
+### Governance
+- These engines feed Discovery Ω and research prioritization.
+- They remain separate from Principal Ω and do not overwrite other engines.
+- Promotion to Principal Ω still requires independent Economic Proof, valuation and Falsifiers review.
+- No automatic portfolio change is created by this implementation.
+
 ## Technical implementation
 - `src/atlas/algorithm/systemic-extension-omega.ts` → AI Financial Fragility Ω v1.1 manifest and W0–W3 overlay.
 - `src/atlas/algorithm/atlas-primary-engine-hierarchy.ts` → 2026-08-18-v4.1 hierarchy; AI CAPEX Payback Ω v2.1 and AI Financial Fragility Ω wired as conditional specialized engines.
 - Canonical specification now supersedes the Financial Fragility version label to v1.2; code manifest version synchronization is a technical follow-up and does not block the analytical gate.
+- Intelligence Capture / Proprietary Intelligence Moat / Physical AI Deployment Proof are canonically active analytical engines; code-manifest wiring is a follow-up and does not block their research use.
 
 ## Notion mirror
 Parent: `13 — Proyectos · Atlas Genesis, App, Software y GitHub`
@@ -101,6 +148,9 @@ Every material implementation must also be persisted as a dated Notion page unde
 - `7704262baecd11f281c42813cb8be8fe5058938b` — research/implementation checkpoint
 - `273aec90db2cca38c49dcca79e750336218b990d` — AI Financial Fragility Ω v1.2 / NVIDIA Financing Quality Gate
 - `bed254648b8cfbcae98040dea0c8f2f50e0b58e4` — NVIDIA Financing Quality Gate research registration
+- `0bbb3bd6f31f6829c59fe8de6336137a88e65992` — Intelligence Capture Ω v1.0
+- `2a0936c664bedfc923bd81ba85ef6e829ebbfac6` — Proprietary Intelligence Moat Ω v1.0
+- `a28fae9f07cc529eb659ceff19df5fdee2035489` — Physical AI Deployment Proof Ω v1.0
 
 ## Portfolio law
 This registration does not change portfolio membership. Portfolio action remains a separate audit subject to evidence, regime, valuation and Falsifiers Ω.
