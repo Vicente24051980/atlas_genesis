@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 
 import AtlasBrokerShell from '../components/AtlasBrokerShell';
 import { Card, InstrumentRow, MetricTile, Pill, SectionHeader } from '../components/BrokerUi';
-import { AtlasOnlineApi, type TrackedUniverse } from '../core/api/atlasOnlineApi';
+import { AtlasOnlineApi, type TrackedUniverse } from '../core/api/atlasOnlineUiCompat';
 import { brokerTheme as t } from '../ui/brokerTheme';
 
 export default function WatchlistScreen() {
