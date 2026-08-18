@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 
 import AtlasBrokerShell from '../components/AtlasBrokerShell';
 import { Card, EmptyState, InstrumentRow, Pill, SectionHeader } from '../components/BrokerUi';
-import { AtlasOnlineApi, type EnginesPayload, type MarketOverview, type MarketScanner } from '../core/api/atlasOnlineApi';
+import { AtlasOnlineApi, type EnginesPayload, type MarketOverview, type MarketScanner } from '../core/api/atlasOnlineUiCompat';
 import { brokerTheme as t } from '../ui/brokerTheme';
 
 export default function RadarScreen() {
