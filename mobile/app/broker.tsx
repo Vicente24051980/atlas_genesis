@@ -99,7 +99,8 @@ function BrokerPosition({ row }: { row: Record<string, unknown> }) {
   const quantity = getNumber(row, ['quantity','qty']);
   const current = getNumber(row, ['currentPrice','price']);
   const ppl = getNumber(row, ['ppl','result','profitLoss']);
-  return <InstrumentRow ticker={ticker} name={quantity == null ? 'Posición Trading 212' : `${quantity} acciones`} meta={ppl == null ? 'Broker verified' : `P/L ${formatMoney(ppl)}`} value={current == null ? undefined : current.toFixed(2)} onPress={() => router.push({ pathname: '/analyze', params: { ticker: ticker.split('_')[0] } })} />;
+  const analysisTicker = ticker.split('_')[0] || ticker;
+  return <InstrumentRow ticker={ticker} name={quantity == null ? 'Posición Trading 212' : `${quantity} acciones`} meta={ppl == null ? 'Broker verified' : `P/L ${formatMoney(ppl)}`} value={current == null ? undefined : current.toFixed(2)} onPress={() => router.push({ pathname: '/analyze', params: { ticker: analysisTicker } })} />;
 }
 
 function BrokerInstrumentResults({ value }: { value: unknown }) {
