@@ -87,7 +87,7 @@ describe('Gurus & Funds Omega v1.0', () => {
     expect(['WEAK_SIGNAL', 'NEUTRAL', 'DISCOVERY', 'ACCUMULATION']).toContain(result.state);
   });
 
-  it('marks a high-weight new position as exceptional but never emits BUY', () => {
+  it('marks a high-weight new position as exceptional but never calls one manager convergence', () => {
     const result = assessGurusFundsCandidate({
       ticker: 'new',
       observations: [obs('Manager A', 'CONCENTRATED_QUALITY', 'NEW', 18, 100, 'sec:a')],
@@ -95,7 +95,10 @@ describe('Gurus & Funds Omega v1.0', () => {
 
     expect(result.factors.exceptionality).toBe(100);
     expect(result.outputs).toContain('NEW_POSITION_OMEGA');
-    expect(result.action).not.toBe('BUY' as never);
+    expect(result.outputs).not.toContain('SMART_MONEY_CONVERGENCE_OMEGA');
+    expect(result.state).toBe('ACCUMULATION');
+    expect(result.action).toBe('RESEARCH');
+    expect(result.reasons).toContain('single_manager_signal_cannot_be_smart_money_convergence');
     expect(result.reasons).toContain(
       'guru_signal_requires_economic_proof_quality_valuation_expected_return_and_falsifiers_before_portfolio_action',
     );
