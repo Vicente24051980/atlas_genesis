@@ -1,184 +1,153 @@
 import { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { BrokerApi, BrokerEnvelope, BrokerStatus } from '../core/api/brokerApi';
+import AtlasBrokerShell from '../components/AtlasBrokerShell';
+import { Card, EmptyState, InstrumentRow, MetricTile, Pill, SectionHeader } from '../components/BrokerUi';
+import { BrokerApi, type BrokerEnvelope, type BrokerStatus } from '../core/api/brokerApi';
+import { brokerTheme as t } from '../ui/brokerTheme';
 
 export default function BrokerScreen() {
   const [status, setStatus] = useState<BrokerStatus | null>(null);
-  const [controlToken, setControlToken] = useState('');
+  const [token, setToken] = useState('');
   const [account, setAccount] = useState<BrokerEnvelope | null>(null);
   const [positions, setPositions] = useState<BrokerEnvelope | null>(null);
   const [orders, setOrders] = useState<BrokerEnvelope | null>(null);
   const [query, setQuery] = useState('');
   const [instruments, setInstruments] = useState<BrokerEnvelope | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
-  const loadStatus = async () => {
-    try {
-      setStatus(await BrokerApi.status());
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    }
-  };
+  useEffect(() => { void BrokerApi.status().then(setStatus).catch((cause) => setError(cause instanceof Error ? cause.message : String(cause))); }, []);
 
-  useEffect(() => { void loadStatus(); }, []);
-
-  const syncPrivate = async () => {
-    if (!controlToken.trim()) {
-      setError('Introduce el token de control ATLAS Broker configurado en el servidor.');
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    const [accountResult, positionsResult, ordersResult] = await Promise.allSettled([
-      BrokerApi.account(controlToken),
-      BrokerApi.positions(controlToken),
-      BrokerApi.orders(controlToken),
-    ]);
+  const sync = async () => {
+    if (!token.trim()) { setError('Introduce el token de control ATLAS Broker configurado en el servidor.'); return; }
+    setLoading(true); setError('');
+    const [accountResult, positionsResult, ordersResult] = await Promise.allSettled([BrokerApi.account(token), BrokerApi.positions(token), BrokerApi.orders(token)]);
     setAccount(accountResult.status === 'fulfilled' ? accountResult.value : null);
     setPositions(positionsResult.status === 'fulfilled' ? positionsResult.value : null);
     setOrders(ordersResult.status === 'fulfilled' ? ordersResult.value : null);
-    const failures = [accountResult, positionsResult, ordersResult]
-      .filter((item): item is PromiseRejectedResult => item.status === 'rejected')
-      .map((item) => item.reason instanceof Error ? item.reason.message : String(item.reason));
-    if (failures.length) setError(failures.join('\n'));
+    const messages = [accountResult, positionsResult, ordersResult].flatMap((item) => item.status === 'rejected' ? [item.reason instanceof Error ? item.reason.message : String(item.reason)] : []);
+    if (messages.length) setError(messages.join('\n'));
     setLoading(false);
   };
 
   const search = async () => {
-    if (!query.trim() || !controlToken.trim()) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setInstruments(await BrokerApi.instruments(controlToken, query));
-    } catch (cause) {
-      setInstruments(null);
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setLoading(false);
-    }
+    if (!token.trim() || !query.trim()) return;
+    setLoading(true); setError('');
+    try { setInstruments(await BrokerApi.instruments(token, query)); }
+    catch (cause) { setInstruments(null); setError(cause instanceof Error ? cause.message : String(cause)); }
+    finally { setLoading(false); }
   };
 
+  const accountRow = asRecord(account?.data);
+  const positionRows = asArray(positions?.data);
+  const orderRows = asArray(orders?.data);
+
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>← Inicio</Text></Pressable>
-      <Text style={styles.eyebrow}>BROKER Ω · TRADING 212</Text>
-      <Text style={styles.title}>Cuenta conectada</Text>
-      <Text style={styles.subtitle}>Bridge server-side. La APK no contiene tu API key ni tu API secret de Trading 212. Esta pantalla es de lectura y verificación.</Text>
-
-      <View style={styles.card}>
-        <Row label="Bridge" value={status ? 'ONLINE' : 'CONECTANDO'} good={Boolean(status)} />
-        <Row label="Entorno" value={status ? `${status.environment.toUpperCase()} · ${status.mode}` : '—'} />
-        <Row label="Credenciales" value={status?.credentialsConfigured ? 'CONFIGURADAS' : 'PENDIENTES EN SERVIDOR'} good={status?.credentialsConfigured} />
-        <Row label="Lectura" value={status?.readReady ? 'LISTA' : 'BLOQUEADA'} good={status?.readReady} />
-        <Row label="Órdenes live" value={status?.liveExecutionLocked === false ? 'HABILITADAS' : 'BLOQUEADAS'} good={status?.liveExecutionLocked !== false} />
+    <AtlasBrokerShell active="more" title="Broker Ω" keyboardShouldPersistTaps="handled">
+      <View style={styles.heading}>
+        <View style={{ flex: 1 }}><Text style={styles.kicker}>TRADING 212 BRIDGE</Text><Text style={styles.title}>Cuenta conectada</Text><Text style={styles.subtitle}>Credenciales en servidor. La APK solo usa el token de control del bridge.</Text></View>
+        <Pill label={status?.environment?.toUpperCase() || 'CHECK'} tone={status?.readReady ? 'positive' : 'warning'} />
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>ACCESO PRIVADO</Text>
-        <TextInput
-          accessibilityLabel="Token de control ATLAS Broker"
-          value={controlToken}
-          onChangeText={setControlToken}
-          secureTextEntry
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholder="ATLAS_BROKER_CONTROL_TOKEN"
-          placeholderTextColor="#64748b"
-          style={styles.input}
-        />
-        <Pressable accessibilityRole="button" accessibilityLabel="Sincronizar cuenta" onPress={() => { void syncPrivate(); }} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
-          <Text style={styles.buttonText}>SINCRONIZAR CUENTA</Text>
-        </Pressable>
+      <View style={styles.metrics}>
+        <MetricTile label="Bridge" value={status ? 'ONLINE' : '—'} tone={status ? 'positive' : 'default'} />
+        <MetricTile label="Lectura" value={status?.readReady ? 'READY' : 'LOCKED'} tone={status?.readReady ? 'positive' : 'default'} />
+        <MetricTile label="Modo" value={status?.mode || '—'} tone="info" />
+        <MetricTile label="Live execution" value={status?.liveExecutionLocked === false ? 'ON' : 'OFF'} tone={status?.liveExecutionLocked === false ? 'negative' : 'positive'} />
       </View>
 
-      {loading ? <View style={styles.loading}><ActivityIndicator color="#7dd3fc" /><Text style={styles.muted}>Consultando Trading 212…</Text></View> : null}
+      <Card>
+        <Text style={styles.label}>ACCESO PRIVADO</Text>
+        <TextInput value={token} onChangeText={setToken} secureTextEntry autoCapitalize="none" autoCorrect={false} placeholder="ATLAS_BROKER_CONTROL_TOKEN" placeholderTextColor={t.textFaint} style={styles.input} />
+        <Pressable onPress={() => { void sync(); }} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}><Text style={styles.primaryText}>Sincronizar cuenta</Text></Pressable>
+      </Card>
+
+      {loading ? <View style={styles.loading}><ActivityIndicator color={t.accent} /><Text style={styles.muted}>Consultando Trading 212…</Text></View> : null}
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      {account ? <JsonCard title="ACCOUNT SUMMARY" envelope={account} /> : null}
-      {positions ? <JsonCard title="POSITIONS" envelope={positions} /> : null}
-      {orders ? <JsonCard title="PENDING ORDERS" envelope={orders} /> : null}
+      <SectionHeader title="Resumen de cuenta" />
+      {account ? (
+        <View style={styles.metrics}>
+          {summaryMetric(accountRow, ['total','totalValue','value','accountValue'], 'Valor cuenta')}
+          {summaryMetric(accountRow, ['free','freeFunds','cash','availableToTrade'], 'Disponible')}
+          {summaryMetric(accountRow, ['invested','investedValue'], 'Invertido')}
+          {summaryMetric(accountRow, ['ppl','result','profitLoss'], 'Resultado')}
+        </View>
+      ) : <EmptyState title="Cuenta protegida" text="Sincroniza con el token de control para ver los datos reales que devuelve Trading 212." />}
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>INSTRUMENTOS TRADING 212</Text>
-        <TextInput
-          accessibilityLabel="Buscar instrumento Trading 212"
-          value={query}
-          onChangeText={setQuery}
-          autoCapitalize="characters"
-          autoCorrect={false}
-          placeholder="AAPL / ASML / TSM"
-          placeholderTextColor="#64748b"
-          style={styles.input}
-          returnKeyType="search"
-          onSubmitEditing={() => { void search(); }}
-        />
-        <Pressable accessibilityRole="button" accessibilityLabel="Buscar instrumento" onPress={() => { void search(); }} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
-          <Text style={styles.secondaryText}>BUSCAR TICKER EXACTO T212</Text>
-        </Pressable>
-        {instruments ? <Text style={styles.jsonText}>{prettyJson(instruments.data)}</Text> : null}
-      </View>
+      <SectionHeader title={`Posiciones${positionRows.length ? ` · ${positionRows.length}` : ''}`} action="Cartera ATLAS" onAction={() => router.push('/portfolio')} />
+      {positions ? <Card style={styles.listCard}>{positionRows.length ? positionRows.slice(0, 60).map((row, index) => <BrokerPosition key={`${getText(row, ['ticker','instrumentCode','symbol'])}-${index}`} row={row} />) : <Text style={styles.muted}>Trading 212 no devolvió posiciones.</Text>}</Card> : <EmptyState title="Sin posiciones sincronizadas" text="La app no sustituye estos datos por el snapshot ATLAS; son capas distintas." />}
 
-      <View style={styles.guardrailCard}>
-        <Text style={styles.guardrailTitle}>EXECUTION GUARDRAIL</Text>
-        <Text style={styles.guardrailText}>La infraestructura market/limit/stop/stop-limit está preparada en el backend, pero esta pantalla no ofrece botones de ejecución. LIVE permanece bloqueado por defecto y nunca se activa por una señal de inversión automáticamente.</Text>
-      </View>
-    </ScrollView>
+      <SectionHeader title={`Órdenes pendientes${orderRows.length ? ` · ${orderRows.length}` : ''}`} action="Historial" onAction={() => router.push('/orders')} />
+      {orders ? <Card>{orderRows.length ? orderRows.slice(0, 20).map((row, index) => <View key={index} style={styles.rawRow}><Text style={styles.rawTitle}>{getText(row, ['ticker','instrumentCode','type','status']) || `Orden ${index + 1}`}</Text><Text style={styles.rawText}>{compact(row)}</Text></View>) : <Text style={styles.muted}>Sin órdenes pendientes.</Text>}</Card> : <EmptyState title="Órdenes protegidas" text="Se cargan con la sincronización privada." />}
+
+      <SectionHeader title="Buscar instrumento T212" />
+      <Card>
+        <View style={styles.searchRow}><TextInput value={query} onChangeText={setQuery} placeholder="AAPL / ASML / TSM" placeholderTextColor={t.textFaint} autoCapitalize="characters" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => { void search(); }} style={[styles.input, styles.searchInput]} /><Pressable onPress={() => { void search(); }} style={styles.searchButton}><Text style={styles.searchButtonText}>Buscar</Text></Pressable></View>
+        {instruments ? <BrokerInstrumentResults value={instruments.data} /> : null}
+      </Card>
+
+      <Card><Text style={styles.guardrailTitle}>EXECUTION GUARDRAIL</Text><Text style={styles.guardrail}>La infraestructura de órdenes existe en el backend, pero esta vista mantiene la ejecución separada de análisis y señales. LIVE sigue bloqueado salvo habilitación explícita del servidor.</Text></Card>
+    </AtlasBrokerShell>
   );
 }
 
-function Row({ label, value, good }: { label: string; value: string; good?: boolean }) {
-  return <View style={styles.row}><Text style={styles.label}>{label}</Text><Text style={[styles.value, good === true && styles.good, good === false && styles.warn]}>{value}</Text></View>;
+function BrokerPosition({ row }: { row: Record<string, unknown> }) {
+  const ticker = getText(row, ['ticker','instrumentCode','symbol']) || 'T212';
+  const quantity = getNumber(row, ['quantity','qty']);
+  const current = getNumber(row, ['currentPrice','price']);
+  const ppl = getNumber(row, ['ppl','result','profitLoss']);
+  return <InstrumentRow ticker={ticker} name={quantity == null ? 'Posición Trading 212' : `${quantity} acciones`} meta={ppl == null ? 'Broker verified' : `P/L ${formatMoney(ppl)}`} value={current == null ? undefined : current.toFixed(2)} onPress={() => router.push({ pathname: '/analyze', params: { ticker: ticker.split('_')[0] } })} />;
 }
 
-function JsonCard({ title, envelope }: { title: string; envelope: BrokerEnvelope }) {
-  return (
-    <View style={styles.card}>
-      <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.rate}>Rate remaining: {envelope.rateLimit?.remaining ?? 'N/D'} · reset: {envelope.rateLimit?.reset ?? 'N/D'}</Text>
-      <Text style={styles.jsonText}>{prettyJson(envelope.data)}</Text>
-    </View>
-  );
+function BrokerInstrumentResults({ value }: { value: unknown }) {
+  const rows = asArray(value);
+  if (!rows.length) return <Text style={styles.muted}>Sin coincidencias.</Text>;
+  return <View style={{ marginTop: 8 }}>{rows.slice(0, 15).map((row, index) => <InstrumentRow key={index} ticker={getText(row, ['ticker','symbol','instrumentCode']) || `#${index + 1}`} name={getText(row, ['name','shortName']) || 'Trading 212'} meta={getText(row, ['exchange','currency','type']) || 'Instrumento'} />)}</View>;
 }
 
-function prettyJson(value: unknown): string {
-  try {
-    const text = JSON.stringify(value, null, 2);
-    return text.length > 6000 ? `${text.slice(0, 6000)}\n…` : text;
-  } catch {
-    return String(value);
+function summaryMetric(row: Record<string, unknown>, keys: string[], label: string) {
+  const value = getNumber(row, keys);
+  return <MetricTile label={label} value={value == null ? 'N/D' : formatMoney(value)} />;
+}
+function asRecord(value: unknown): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
+function asArray(value: unknown): Record<string, unknown>[] {
+  if (Array.isArray(value)) return value.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object');
+  if (value && typeof value === 'object') {
+    const row = value as Record<string, unknown>;
+    for (const key of ['items','positions','orders','data']) if (Array.isArray(row[key])) return (row[key] as unknown[]).filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object');
   }
+  return [];
 }
+function getText(row: Record<string, unknown>, keys: string[]): string { for (const key of keys) if (row[key] != null) return String(row[key]); return ''; }
+function getNumber(row: Record<string, unknown>, keys: string[]): number | null { for (const key of keys) { const value = row[key]; const num = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN; if (Number.isFinite(num)) return num; } return null; }
+function formatMoney(value: number): string { return value.toLocaleString('es-ES', { maximumFractionDigits: 2 }); }
+function compact(value: unknown): string { try { const text = JSON.stringify(value); return text.length > 220 ? `${text.slice(0, 220)}…` : text; } catch { return String(value); } }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#07090d' },
-  content: { paddingTop: 54, paddingHorizontal: 18, paddingBottom: 44, gap: 12 },
-  back: { alignSelf: 'flex-start', paddingVertical: 8, paddingRight: 14 },
-  backText: { color: '#7dd3fc', fontWeight: '800' },
-  eyebrow: { color: '#7dd3fc', fontWeight: '900', fontSize: 12, letterSpacing: 1.1 },
-  title: { color: '#f8fafc', fontSize: 31, fontWeight: '900' },
-  subtitle: { color: '#94a3b8', lineHeight: 21 },
-  card: { backgroundColor: '#0f141c', borderRadius: 16, borderWidth: 1, borderColor: '#223047', padding: 14, gap: 10 },
-  cardTitle: { color: '#cbd5e1', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
-  row: { gap: 3, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#253044', paddingBottom: 8 },
-  label: { color: '#64748b', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
-  value: { color: '#e2e8f0', fontWeight: '800' },
-  good: { color: '#34d399' },
-  warn: { color: '#fbbf24' },
-  input: { backgroundColor: '#070a0f', borderRadius: 12, borderWidth: 1, borderColor: '#334155', color: '#f8fafc', paddingHorizontal: 14, paddingVertical: 13 },
-  button: { backgroundColor: '#0ea5e9', paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
-  buttonText: { color: '#03111a', fontWeight: '900' },
-  secondaryButton: { borderWidth: 1, borderColor: '#0ea5e9', paddingVertical: 13, borderRadius: 12, alignItems: 'center' },
-  secondaryText: { color: '#7dd3fc', fontWeight: '900' },
-  pressed: { opacity: 0.7 },
-  loading: { flexDirection: 'row', alignItems: 'center', gap: 9, padding: 8 },
-  muted: { color: '#94a3b8' },
-  error: { color: '#fca5a5', backgroundColor: '#241318', padding: 13, borderRadius: 12 },
-  rate: { color: '#64748b', fontSize: 11 },
-  jsonText: { color: '#cbd5e1', fontFamily: 'monospace', fontSize: 11, lineHeight: 16 },
-  guardrailCard: { backgroundColor: '#111827', borderRadius: 14, padding: 14, gap: 7 },
-  guardrailTitle: { color: '#a5b4fc', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
-  guardrailText: { color: '#cbd5e1', lineHeight: 19 },
+  heading: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  kicker: { color: t.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1.1 },
+  title: { color: t.text, fontSize: 26, fontWeight: '900', marginTop: 4 },
+  subtitle: { color: t.textMuted, fontSize: 12, lineHeight: 18, marginTop: 4 },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
+  label: { color: t.textFaint, fontSize: 9, fontWeight: '900', letterSpacing: 1 },
+  input: { marginTop: 8, backgroundColor: t.surfaceSoft, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, borderRadius: 12, color: t.text, paddingHorizontal: 12, paddingVertical: 12 },
+  primaryButton: { marginTop: 9, backgroundColor: t.accent, borderRadius: 12, alignItems: 'center', paddingVertical: 13 },
+  primaryText: { color: '#07110E', fontWeight: '900', fontSize: 12 },
+  pressed: { opacity: 0.65 },
+  loading: { flexDirection: 'row', gap: 8, alignItems: 'center', padding: 10 },
+  muted: { color: t.textMuted, fontSize: 11, lineHeight: 17 },
+  error: { color: t.negative, backgroundColor: t.negativeSoft, padding: 12, borderRadius: 12 },
+  listCard: { paddingTop: 2, paddingBottom: 2 },
+  rawRow: { paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.borderSoft },
+  rawTitle: { color: t.text, fontWeight: '800', fontSize: 12 },
+  rawText: { color: t.textMuted, fontSize: 10, lineHeight: 15, marginTop: 4 },
+  searchRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchInput: { flex: 1, marginTop: 0 },
+  searchButton: { backgroundColor: t.surfaceRaised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border },
+  searchButtonText: { color: t.accent, fontWeight: '800', fontSize: 11 },
+  guardrailTitle: { color: t.warning, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  guardrail: { color: t.textMuted, fontSize: 11, lineHeight: 17, marginTop: 6 },
 });
