@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import type { StyleProp, ViewStyle } from 'react-native';
 import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 
@@ -13,7 +14,7 @@ export function SectionHeader({ title, action, onAction }: { title: string; acti
   );
 }
 
-export function Card({ children, style }: { children: ReactNode; style?: object }) {
+export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
