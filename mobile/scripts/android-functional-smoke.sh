@@ -112,21 +112,22 @@ PY
   exit 1
 }
 
-wait_text "Investment Intelligence"
-wait_text "Acciones principales"
+# Broker UI v2 smoke: verify the release APK boots and every persistent primary
+# navigation destination renders its broker-native screen without runtime errors.
+wait_text "CENTRO DE INVERSIÓN"
+wait_text "Acciones rápidas"
 
-tap_desc "Analizar ticker"
-wait_text "Analizar empresa"
-adb shell input keyevent 4
-wait_text "Investment Intelligence"
+tap_desc "Cartera"
+wait_text "Cartera ATLAS"
 
-tap_desc "Cartera 36"
-wait_text "Cartera 36"
-adb shell input keyevent 4
-wait_text "Investment Intelligence"
+tap_desc "Watchlist"
+wait_text "DISCOVERY Ω"
 
-tap_desc "Estado del sistema"
-wait_text "Estado del sistema"
+tap_desc "Radar"
+wait_text "MARKET INTELLIGENCE"
+
+tap_desc "Más"
+wait_text "Todas las herramientas"
 
 capture_ui
-echo "ATLAS Ω Mobile v1 clean UI gate: PASS"
+echo "ATLAS Ω broker UI v2 clean navigation gate: PASS"
