@@ -9,7 +9,7 @@ const ALERT_TYPES = [
   ['Falsifier', 'Escalada de una condición que puede vetar la tesis.', 'GATE'],
   ['Evidence coverage', 'Cobertura insuficiente o fuente degradada.', 'ACTIVE'],
   ['Price alarm', 'Requiere endpoint de alarmas del broker; no se simula.', 'PENDING'],
-];
+] as const;
 
 export default function AlertsScreen() {
   return (
