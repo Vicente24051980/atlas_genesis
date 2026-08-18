@@ -27,17 +27,25 @@ export const SUCCESSOR_DETECTION_OMEGA_V1_1: AtlasEngineManifest = {
   ],
 };
 
-export const AI_FINANCIAL_FRAGILITY_OMEGA_V1: AtlasEngineManifest = {
-  id: 'AI_FINANCIAL_FRAGILITY_OMEGA_V1',
-  version: '1.0.0',
+export const AI_FINANCIAL_FRAGILITY_OMEGA_V1_1: AtlasEngineManifest = {
+  id: 'AI_FINANCIAL_FRAGILITY_OMEGA_V1_1',
+  version: '1.1.0',
   authority: 'SPECIALIZED',
-  role: 'measure whether AI investment economics are becoming financially fragile',
+  role: 'measure whether AI investment economics are becoming financially fragile while separating accounting debt from forward economic commitments',
   emitsAutomaticTrade: false,
-  states: ['F0_HEALTHY', 'F1_EXPANSION', 'F2_STRETCHED', 'F3_FRAGILE', 'F4_CASCADE_RISK'],
+  states: [
+    'F0_HEALTHY', 'F1_EXPANSION', 'F2_STRETCHED', 'F3_FRAGILE', 'F4_CASCADE_RISK',
+    'W0_NORMAL', 'W1_ELEVATED', 'W2_YELLOW_HIGH', 'W3_RED_REVIEW',
+  ],
   rules: [
     'High CAPEX is not fragility by itself.',
-    'Track CAPEX/OCF, FCF/share, commitments, leases, utilization, concentration and financing dependence.',
-    'F4 requires multi-source confirmation including financing or collateral stress.',
+    'Classify recognized debt, recognized lease liabilities, non-commenced leases, purchase/capacity commitments and guarantees/backstops separately.',
+    'Off-balance commitments are real economic obligations when enforceable but are not automatically financial debt.',
+    'Track CAPEX/OCF, FCF/share, commitments/OCF, leases/OCF, utilization, concentration and financing dependence.',
+    'Token/API/workload price compression alone is not a falsifier; test volume elasticity, unit-cost decline, utilization, indirect monetization and gross-profit conversion.',
+    'W2_YELLOW_HIGH tightens surveillance without automatically promoting the structural state to F3/F4.',
+    'Escalate only when commitments rise together with inadequate volume/cost offsets, weakening gross profit/FCF/ROIC and increasing financing dependence.',
+    'F4 requires multi-source confirmation including financing, refinancing or collateral stress.',
   ],
 };
 
@@ -177,7 +185,7 @@ export const CAPITAL_SAFETY_LEVERAGE_DISCIPLINE_OMEGA_V1: AtlasEngineManifest = 
 
 export const ATLAS_V3_1_SYSTEMIC_EXTENSION_ENGINES = [
   SUCCESSOR_DETECTION_OMEGA_V1_1,
-  AI_FINANCIAL_FRAGILITY_OMEGA_V1,
+  AI_FINANCIAL_FRAGILITY_OMEGA_V1_1,
   AI_CREDIT_TRANSMISSION_OMEGA_V1,
   SOVEREIGN_LIQUIDITY_PLUMBING_OMEGA_V1,
   EU_FISCAL_STRESS_OMEGA_V1,
