@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import AtlasBrokerShell from '../components/AtlasBrokerShell';
 import { Card, InstrumentRow, MetricTile, Pill, SectionHeader } from '../components/BrokerUi';
 import { MobileApi, type MobileHealth, type PortfolioPayload } from '../core/api/mobileApi';
-import { AtlasOnlineApi, type MarketSnapshot } from '../core/api/atlasOnlineApi';
+import { AtlasOnlineApi, type MarketSnapshot } from '../core/api/atlasOnlineUiCompat';
 import { BrokerApi, type BrokerStatus } from '../core/api/brokerApi';
 import { brokerTheme as t } from '../ui/brokerTheme';
 
