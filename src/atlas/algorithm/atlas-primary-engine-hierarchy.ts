@@ -1,5 +1,5 @@
 export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
-  version: '2026-08-17-v4.0',
+  version: '2026-08-18-v4.1',
   primaryEngine: 'PRINCIPAL_OMEGA',
   primaryRole: 'structural_selection_quality_growth_asymmetry',
   refinementEngines: [
@@ -13,7 +13,7 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'SPECIALIZED_ENGINES_OMEGA',
   ] as const,
   conditionalSpecializedEngines: [
-    'AI_CAPEX_PAYBACK_OMEGA_V2', 'AI_FINANCIAL_FRAGILITY_OMEGA_V1', 'AI_CREDIT_TRANSMISSION_OMEGA_V1',
+    'AI_CAPEX_PAYBACK_OMEGA_V2_1', 'AI_FINANCIAL_FRAGILITY_OMEGA_V1_1', 'AI_CREDIT_TRANSMISSION_OMEGA_V1',
     'MARKET_TOP_RISK_OMEGA', 'MARKET_BOTTOM_DETECTION_OMEGA', 'ENTRY_TIMING_OMEGA',
     'EVENT_PRICING_OPTIONS_EXPECTATIONS_OMEGA_V1', 'SPECIAL_SITUATIONS_OMEGA_V1',
   ] as const,
@@ -28,7 +28,10 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'FALSIFIER VETO is independent and absolute: a confirmed structural falsifier overrides E-Proof, valuation and Expected Return.',
     'Unverified evidence cannot be promoted to a confirmed falsifier.',
     'Price is not evidence and a trigger is not a falsifier.',
+    'AI CAPEX PAYBACK must audit price-volume-cost elasticity: unit price declines are not payback failure unless volume, unit-cost and indirect monetization fail to offset them.',
+    'AI FINANCIAL FRAGILITY must separate recognized debt, recognized leases, non-commenced leases, purchase commitments and contingent/backstop exposure.',
     'AI FINANCIAL FRAGILITY and AI CREDIT TRANSMISSION remain independent from AI CAPEX PAYBACK and cannot double-count evidence.',
+    'W2_YELLOW_HIGH is a surveillance overlay, not a structural F3/F4 state and not a confirmed falsifier.',
     'SYSTEMIC CASCADE escalates only on temporally aligned multi-channel evidence and never emits a structural SELL by itself.',
     'WINNER PRESERVATION prevents automatic profit-taking solely because a validated leader has multiplied.',
   ] as const,
@@ -66,8 +69,8 @@ export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'CHINA_INDUSTRIAL_DISPLACEMENT_OMEGA_WHEN_APPLICABLE',
   'GOOD_COMPANIES_CHEAP_OMEGA_WHEN_APPLICABLE',
   'HISTORICAL_DISLOCATION_OMEGA_WHEN_APPLICABLE',
-  'AI_CAPEX_PAYBACK_OMEGA_V2_WHEN_APPLICABLE',
-  'AI_FINANCIAL_FRAGILITY_OMEGA_V1_WHEN_APPLICABLE',
+  'AI_CAPEX_PAYBACK_OMEGA_V2_1_WHEN_APPLICABLE',
+  'AI_FINANCIAL_FRAGILITY_OMEGA_V1_1_WHEN_APPLICABLE',
   'AI_CREDIT_TRANSMISSION_OMEGA_V1_WHEN_APPLICABLE',
   'SPECIALIZED_ENGINES_OMEGA_WHEN_APPLICABLE',
   'SYSTEMIC_CASCADE_OMEGA_V1',
