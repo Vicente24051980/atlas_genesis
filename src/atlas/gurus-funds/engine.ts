@@ -91,6 +91,7 @@ export const GURUS_FUNDS_OMEGA_MANIFEST = {
     'THIRTEEN_F_IS_DELAYED_AND_INCOMPLETE',
     'CONCENTRATION_MATTERS_MORE_THAN_RAW_HOLDER_COUNT',
     'CROSS_STYLE_CONVERGENCE_MATTERS_MORE_THAN_CORRELATED_MANAGER_COUNT',
+    'SINGLE_MANAGER_SIGNAL_CANNOT_BE_SMART_MONEY_CONVERGENCE',
     'DIVERGENCE_MUST_REMAIN_VISIBLE',
     'ESTIMATED_ENTRY_PRICE_IS_NOT_EXACT_COST_BASIS',
     'NO_PORTFOLIO_ORDER_EMITTED_BY_ENGINE',
@@ -252,6 +253,11 @@ export function assessGurusFundsCandidate(input: GurusFundsCandidateInput): Guru
     reasons.push('not_every_manager_has_unique_traceable_evidence');
   }
 
+  if (managers.size < 2 && stateRank(state) > stateRank('ACCUMULATION')) {
+    state = 'ACCUMULATION';
+    reasons.push('single_manager_signal_cannot_be_smart_money_convergence');
+  }
+
   const distributionShare = distributors / input.observations.length;
   if (distributionShare >= 0.4 && stateRank(state) > stateRank('ACCUMULATION')) {
     state = 'ACCUMULATION';
@@ -274,7 +280,7 @@ export function assessGurusFundsCandidate(input: GurusFundsCandidateInput): Guru
 
   const outputs: GurusFundsResult['outputs'] = [];
   if (factors.conviction >= 70) outputs.push('GURU_CONVICTION_OMEGA');
-  if (factors.convergence >= 70) outputs.push('SMART_MONEY_CONVERGENCE_OMEGA');
+  if (factors.convergence >= 70 && managers.size >= 2) outputs.push('SMART_MONEY_CONVERGENCE_OMEGA');
   if (newPositions > 0) outputs.push('NEW_POSITION_OMEGA');
   if (accumulators > distributors) outputs.push('ACCUMULATION_OMEGA');
   if (distributors > 0) outputs.push('DISTRIBUTION_OMEGA');
