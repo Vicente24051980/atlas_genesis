@@ -7,7 +7,7 @@ import { brokerTheme as t } from '../ui/brokerTheme';
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" backgroundColor={t.bg} />
+      <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: t.bg }, animation: 'fade' }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="portfolio" />
