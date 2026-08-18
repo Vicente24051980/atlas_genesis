@@ -3,7 +3,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 
 import AtlasBrokerShell from '../components/AtlasBrokerShell';
 import { Card, Pill, SectionHeader } from '../components/BrokerUi';
-import { AtlasOnlineApi, type EnginesPayload } from '../core/api/atlasOnlineApi';
+import { AtlasOnlineApi, type EnginesPayload } from '../core/api/atlasOnlineUiCompat';
 import { brokerTheme as t } from '../ui/brokerTheme';
 
 const CANON = [
