@@ -18,24 +18,41 @@ export default function BrokerScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => { void BrokerApi.status().then(setStatus).catch((cause) => setError(cause instanceof Error ? cause.message : String(cause))); }, []);
+  useEffect(() => {
+    let active = true;
+    void BrokerApi.status()
+      .then((value) => { if (active) setStatus(value); })
+      .catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : String(cause)); });
+    return () => { active = false; };
+  }, []);
 
   const sync = async () => {
-    if (!token.trim()) { setError('Introduce el token de control ATLAS Broker configurado en el servidor.'); return; }
+    const controlToken = token.trim();
+    if (!controlToken) { setError('Introduce el token de control ATLAS Broker configurado en el servidor.'); return; }
     setLoading(true); setError('');
-    const [accountResult, positionsResult, ordersResult] = await Promise.allSettled([BrokerApi.account(token), BrokerApi.positions(token), BrokerApi.orders(token)]);
-    setAccount(accountResult.status === 'fulfilled' ? accountResult.value : null);
-    setPositions(positionsResult.status === 'fulfilled' ? positionsResult.value : null);
-    setOrders(ordersResult.status === 'fulfilled' ? ordersResult.value : null);
-    const messages = [accountResult, positionsResult, ordersResult].flatMap((item) => item.status === 'rejected' ? [item.reason instanceof Error ? item.reason.message : String(item.reason)] : []);
-    if (messages.length) setError(messages.join('\n'));
-    setLoading(false);
+    try {
+      const [accountResult, positionsResult, ordersResult] = await Promise.allSettled([
+        BrokerApi.account(controlToken),
+        BrokerApi.positions(controlToken),
+        BrokerApi.orders(controlToken),
+      ]);
+      setAccount(accountResult.status === 'fulfilled' ? accountResult.value : null);
+      setPositions(positionsResult.status === 'fulfilled' ? positionsResult.value : null);
+      setOrders(ordersResult.status === 'fulfilled' ? ordersResult.value : null);
+      const messages = [accountResult, positionsResult, ordersResult].flatMap((item) => item.status === 'rejected' ? [item.reason instanceof Error ? item.reason.message : String(item.reason)] : []);
+      if (messages.length) setError(messages.join('\n'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const search = async () => {
-    if (!token.trim() || !query.trim()) return;
+    const controlToken = token.trim();
+    const instrumentQuery = query.trim();
+    if (!controlToken) { setError('Introduce primero el token de control ATLAS Broker.'); return; }
+    if (!instrumentQuery) { setError('Introduce un ticker o instrumento para buscar.'); return; }
     setLoading(true); setError('');
-    try { setInstruments(await BrokerApi.instruments(token, query)); }
+    try { setInstruments(await BrokerApi.instruments(controlToken, instrumentQuery)); }
     catch (cause) { setInstruments(null); setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setLoading(false); }
   };
@@ -60,12 +77,12 @@ export default function BrokerScreen() {
 
       <Card>
         <Text style={styles.label}>ACCESO PRIVADO</Text>
-        <TextInput value={token} onChangeText={setToken} secureTextEntry autoCapitalize="none" autoCorrect={false} placeholder="ATLAS_BROKER_CONTROL_TOKEN" placeholderTextColor={t.textFaint} style={styles.input} />
-        <Pressable onPress={() => { void sync(); }} style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}><Text style={styles.primaryText}>Sincronizar cuenta</Text></Pressable>
+        <TextInput accessibilityLabel="Token de control ATLAS Broker" value={token} onChangeText={setToken} secureTextEntry autoCapitalize="none" autoCorrect={false} placeholder="ATLAS_BROKER_CONTROL_TOKEN" placeholderTextColor={t.textFaint} style={styles.input} />
+        <Pressable accessibilityRole="button" accessibilityLabel="Sincronizar cuenta Trading 212" disabled={loading} onPress={() => { void sync(); }} style={({ pressed }) => [styles.primaryButton, (pressed || loading) && styles.pressed]}><Text style={styles.primaryText}>Sincronizar cuenta</Text></Pressable>
       </Card>
 
-      {loading ? <View style={styles.loading}><ActivityIndicator color={t.accent} /><Text style={styles.muted}>Consultando Trading 212…</Text></View> : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {loading ? <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color={t.accent} /><Text style={styles.muted}>Consultando Trading 212…</Text></View> : null}
+      {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
 
       <SectionHeader title="Resumen de cuenta" />
       {account ? (
@@ -85,7 +102,7 @@ export default function BrokerScreen() {
 
       <SectionHeader title="Buscar instrumento T212" />
       <Card>
-        <View style={styles.searchRow}><TextInput value={query} onChangeText={setQuery} placeholder="AAPL / ASML / TSM" placeholderTextColor={t.textFaint} autoCapitalize="characters" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => { void search(); }} style={[styles.input, styles.searchInput]} /><Pressable onPress={() => { void search(); }} style={styles.searchButton}><Text style={styles.searchButtonText}>Buscar</Text></Pressable></View>
+        <View style={styles.searchRow}><TextInput accessibilityLabel="Buscar instrumento Trading 212" value={query} onChangeText={setQuery} placeholder="AAPL / ASML / TSM" placeholderTextColor={t.textFaint} autoCapitalize="characters" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => { void search(); }} style={[styles.input, styles.searchInput]} /><Pressable accessibilityRole="button" accessibilityLabel="Buscar instrumento Trading 212" disabled={loading} onPress={() => { void search(); }} style={({ pressed }) => [styles.searchButton, (pressed || loading) && styles.pressed]}><Text style={styles.searchButtonText}>Buscar</Text></Pressable></View>
         {instruments ? <BrokerInstrumentResults value={instruments.data} /> : null}
       </Card>
 
@@ -95,18 +112,31 @@ export default function BrokerScreen() {
 }
 
 function BrokerPosition({ row }: { row: Record<string, unknown> }) {
-  const ticker = getText(row, ['ticker','instrumentCode','symbol']) || 'T212';
+  const brokerTicker = getText(row, ['ticker','instrumentCode','symbol']) || 'T212';
   const quantity = getNumber(row, ['quantity','qty']);
   const current = getNumber(row, ['currentPrice','price']);
   const ppl = getNumber(row, ['ppl','result','profitLoss']);
-  const analysisTicker = ticker.split('_')[0] || ticker;
-  return <InstrumentRow ticker={ticker} name={quantity == null ? 'Posición Trading 212' : `${quantity} acciones`} meta={ppl == null ? 'Broker verified' : `P/L ${formatMoney(ppl)}`} value={current == null ? undefined : current.toFixed(2)} onPress={() => router.push({ pathname: '/analyze', params: { ticker: analysisTicker } })} />;
+  const analysisTicker = resolveAnalysisTicker(row);
+  return <InstrumentRow ticker={brokerTicker} name={quantity == null ? 'Posición Trading 212' : `${quantity} acciones`} meta={ppl == null ? 'Broker verified' : `P/L ${formatMoney(ppl)}`} value={current == null ? undefined : current.toFixed(2)} onPress={analysisTicker ? () => router.push({ pathname: '/analyze', params: { ticker: analysisTicker } }) : undefined} />;
 }
 
 function BrokerInstrumentResults({ value }: { value: unknown }) {
   const rows = asArray(value);
   if (!rows.length) return <Text style={styles.muted}>Sin coincidencias.</Text>;
-  return <View style={{ marginTop: 8 }}>{rows.slice(0, 15).map((row, index) => <InstrumentRow key={index} ticker={getText(row, ['ticker','symbol','instrumentCode']) || `#${index + 1}`} name={getText(row, ['name','shortName']) || 'Trading 212'} meta={getText(row, ['exchange','currency','type']) || 'Instrumento'} />)}</View>;
+  return <View style={{ marginTop: 8 }}>{rows.slice(0, 15).map((row, index) => {
+    const ticker = getText(row, ['ticker','symbol','instrumentCode']) || `#${index + 1}`;
+    const analysisTicker = resolveAnalysisTicker(row);
+    return <InstrumentRow key={`${ticker}-${index}`} ticker={ticker} name={getText(row, ['name','shortName']) || 'Trading 212'} meta={getText(row, ['exchange','currency','type']) || 'Instrumento'} onPress={analysisTicker ? () => router.push({ pathname: '/analyze', params: { ticker: analysisTicker } }) : undefined} />;
+  })}</View>;
+}
+
+function resolveAnalysisTicker(row: Record<string, unknown>): string | null {
+  const direct = getText(row, ['ticker','symbol']).trim();
+  if (direct && /^[A-Z0-9.-]{1,20}$/i.test(direct)) return direct.toUpperCase();
+  const instrumentCode = getText(row, ['instrumentCode']).trim();
+  if (!instrumentCode) return null;
+  const candidate = instrumentCode.split('_')[0]?.trim();
+  return candidate && /^[A-Z0-9.-]{1,20}$/i.test(candidate) ? candidate.toUpperCase() : null;
 }
 
 function summaryMetric(row: Record<string, unknown>, keys: string[], label: string) {
