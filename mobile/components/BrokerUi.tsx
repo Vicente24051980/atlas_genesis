@@ -9,7 +9,7 @@ export function SectionHeader({ title, action, onAction }: { title: string; acti
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      {action && onAction ? <Pressable onPress={onAction}><Text style={styles.sectionAction}>{action}</Text></Pressable> : null}
+      {action && onAction ? <Pressable accessibilityRole="button" accessibilityLabel={action} onPress={onAction}><Text style={styles.sectionAction}>{action}</Text></Pressable> : null}
     </View>
   );
 }
@@ -21,7 +21,7 @@ export function Card({ children, style }: { children: ReactNode; style?: StylePr
 export function MetricTile({ label, value, tone = 'default', hint }: { label: string; value: string; tone?: 'default' | 'positive' | 'negative' | 'info'; hint?: string }) {
   const toneStyle = tone === 'positive' ? styles.positive : tone === 'negative' ? styles.negative : tone === 'info' ? styles.info : styles.metricValue;
   return (
-    <View style={styles.metricTile}>
+    <View style={styles.metricTile} accessible accessibilityLabel={`${label}: ${value}${hint ? `. ${hint}` : ''}`}>
       <Text style={styles.metricLabel}>{label}</Text>
       <Text style={toneStyle}>{value}</Text>
       {hint ? <Text style={styles.metricHint}>{hint}</Text> : null}
@@ -45,16 +45,17 @@ export function InstrumentRow({ ticker, name, meta, value, change, onPress }: { 
       </View>
       <View style={styles.instrumentRight}>
         {value ? <Text style={styles.instrumentValue}>{value}</Text> : null}
-        {typeof change === 'number' ? <Text style={change >= 0 ? styles.positiveSmall : styles.negativeSmall}>{change >= 0 ? '+' : ''}{change.toFixed(2)}%</Text> : <Text style={styles.chevron}>›</Text>}
+        {typeof change === 'number' ? <Text style={change >= 0 ? styles.positiveSmall : styles.negativeSmall}>{change >= 0 ? '+' : ''}{change.toFixed(2)}%</Text> : onPress ? <Text style={styles.chevron}>›</Text> : null}
       </View>
     </View>
   );
-  return onPress ? <Pressable onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>{body}</Pressable> : body;
+  const label = [ticker, name, meta, value, typeof change === 'number' ? `${change.toFixed(2)} por ciento` : ''].filter(Boolean).join(', ');
+  return onPress ? <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>{body}</Pressable> : <View accessible accessibilityLabel={label}>{body}</View>;
 }
 
 export function MenuRow({ glyph, title, subtitle, route }: { glyph: string; title: string; subtitle: string; route: string }) {
   return (
-    <Pressable onPress={() => router.push(route as never)} style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${subtitle}`} onPress={() => router.push(route as never)} style={({ pressed }) => [styles.menuRow, pressed && styles.pressed]}>
       <View style={styles.menuGlyph}><Text style={styles.menuGlyphText}>{glyph}</Text></View>
       <View style={styles.menuBody}><Text style={styles.menuTitle}>{title}</Text><Text style={styles.menuSubtitle}>{subtitle}</Text></View>
       <Text style={styles.chevron}>›</Text>
@@ -63,7 +64,7 @@ export function MenuRow({ glyph, title, subtitle, route }: { glyph: string; titl
 }
 
 export function EmptyState({ title, text }: { title: string; text: string }) {
-  return <View style={styles.empty}><Text style={styles.emptyTitle}>{title}</Text><Text style={styles.emptyText}>{text}</Text></View>;
+  return <View style={styles.empty} accessible accessibilityLabel={`${title}. ${text}`}><Text style={styles.emptyTitle}>{title}</Text><Text style={styles.emptyText}>{text}</Text></View>;
 }
 
 const styles = StyleSheet.create({
