@@ -23,6 +23,7 @@ The engine asks:
 6. **CAPEX CONVERGENCE counts independent funding pools, not repeated labels funded by the same buyer pool.**
 7. **A bottleneck is valuable only while it remains difficult to replicate, qualify, permit or substitute.**
 8. No output from this engine can silently overwrite another ATLAS Ω engine.
+9. **T212 ACCESSIBILITY ≠ ECONOMIC QUALITY.** Trading 212 availability is an execution gate, not a fundamental score. A company unavailable in T212 may remain a structural read-through signal, but must not be presented as a directly executable ticker.
 
 ## Economic Dependency Distance Ω — EDD
 
@@ -168,11 +169,37 @@ The engine is global and multi-cycle. At minimum map:
 
 A company can belong to several rivers simultaneously.
 
+## Trading 212 Accessibility Gate Ω
+
+Execution universe must be separated from discovery universe.
+
+For every company surfaced by Global CAPEX Chain Ω:
+
+1. Verify whether the direct security is available in Trading 212.
+2. If unavailable, search for a legitimate ADR, OTC security or alternative primary/secondary listing that is actually available in Trading 212.
+3. Never invent or infer T212 availability from the existence of a public ticker.
+4. If no executable T212 instrument is verified, classify the company as `READ_THROUGH_ONLY`.
+5. `READ_THROUGH_ONLY` companies remain valid evidence for supply-chain mapping and can trigger discovery of economically adjacent T212-accessible beneficiaries.
+6. Sell-side recommendations do not bypass this gate and do not constitute an ATLAS BUY.
+
+Required accessibility field: `T212_DIRECT`, `T212_ALTERNATIVE`, `READ_THROUGH_ONLY`, or `T212_UNVERIFIED`.
+
+### Japan AI Components read-through — 19 Aug 2026
+
+Sell-side source universe: Ibiden, Murata Manufacturing, Taiyo Yuden, Renesas Electronics, Rohm, TDK, Kyocera, MinebeaMitsumi and Nidec.
+
+Research priority from the supplied operating signals: **Ibiden, Taiyo Yuden, Murata, Renesas and TDK**. These names enter the structural research universe because of evidence/signals around AI/data-center demand, book-to-bill, utilization, pricing, capacity and/or margin expansion. They do **not** enter the executable portfolio universe until the Trading 212 Accessibility Gate is passed.
+
+If inaccessible, use them as read-through nodes for:
+
+**AI accelerators / CPUs → substrates + MLCC + power management + UPS/batteries → revenue/margin/FCF capture → accessible listed beneficiaries.**
+
 ## Required company output
 
 For every audited ticker:
 
 - Ticker
+- T212 accessibility state
 - EDD
 - Role
 - Economic mode
@@ -225,4 +252,4 @@ Canonical implementation:
 
 **ATLAS must identify not only who is growing, but which economic toll roads the next unit of world investment must cross.**
 
-**CAPEX origin → EDD → bottleneck → convergence → economic proof → FCF/ROIC → fragility → valuation → falsification.**
+**CAPEX origin → EDD → bottleneck → convergence → economic proof → T212 accessibility → FCF/ROIC → fragility → valuation → falsification.**
