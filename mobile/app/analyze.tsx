@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -10,36 +10,62 @@ import { brokerTheme as t } from '../ui/brokerTheme';
 
 export default function AnalyzeScreen() {
   const params = useLocalSearchParams<{ ticker?: string }>();
-  const [ticker, setTicker] = useState(typeof params.ticker === 'string' ? params.ticker.toUpperCase() : 'MSFT');
+  const initialTicker = typeof params.ticker === 'string' ? params.ticker.trim().toUpperCase() : 'MSFT';
+  const [ticker, setTicker] = useState(initialTicker || 'MSFT');
   const [data, setData] = useState<CompanyPayload | null>(null);
   const [capex, setCapex] = useState<CapexChainPayload | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const analyze = async (value = ticker) => {
+  const analyze = useCallback(async (value: string) => {
     const symbol = value.trim().toUpperCase();
-    if (!symbol) return;
-    setTicker(symbol); setLoading(true); setError('');
-    const [companyResult, capexResult] = await Promise.allSettled([MobileApi.company(symbol), CapexChainApi.profile(symbol)]);
-    if (companyResult.status === 'fulfilled') setData(companyResult.value);
-    else { setData(null); setError(companyResult.reason instanceof Error ? companyResult.reason.message : String(companyResult.reason)); }
-    setCapex(capexResult.status === 'fulfilled' ? capexResult.value : null);
-    setLoading(false);
-  };
+    if (!symbol) {
+      setError('Introduce un ticker válido.');
+      return;
+    }
 
-  useEffect(() => { if (typeof params.ticker === 'string' && params.ticker.trim()) void analyze(params.ticker); }, []);
+    setTicker(symbol);
+    setLoading(true);
+    setError('');
+    try {
+      const [companyResult, capexResult] = await Promise.allSettled([
+        MobileApi.company(symbol),
+        CapexChainApi.profile(symbol),
+      ]);
+
+      if (companyResult.status === 'fulfilled') setData(companyResult.value);
+      else {
+        setData(null);
+        setError(companyResult.reason instanceof Error ? companyResult.reason.message : String(companyResult.reason));
+      }
+      setCapex(capexResult.status === 'fulfilled' ? capexResult.value : null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof params.ticker === 'string' && params.ticker.trim()) void analyze(params.ticker);
+  }, [analyze, params.ticker]);
 
   return (
     <AtlasBrokerShell active="home" title={data?.symbol || 'Analizar'} keyboardShouldPersistTaps="handled">
-      <View style={styles.heading}><View style={{ flex: 1 }}><Text style={styles.kicker}>INSTRUMENT DETAIL</Text><Text style={styles.title}>Análisis ATLAS</Text><Text style={styles.subtitle}>Ficha única para fundamentales, proveedor y posición Global CAPEX Chain Ω.</Text></View>{data ? <Pill label={data.provider} tone="info" /> : null}</View>
-
-      <View style={styles.searchBox}>
-        <TextInput value={ticker} onChangeText={setTicker} autoCapitalize="characters" autoCorrect={false} placeholder="MSFT" placeholderTextColor={t.textFaint} returnKeyType="search" onSubmitEditing={() => { void analyze(); }} style={styles.input} />
-        <Pressable onPress={() => { void analyze(); }} style={({ pressed }) => [styles.button, pressed && styles.pressed]}><Text style={styles.buttonText}>Analizar</Text></Pressable>
+      <View style={styles.heading}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.kicker}>INSTRUMENT DETAIL</Text>
+          <Text style={styles.title}>Análisis ATLAS</Text>
+          <Text style={styles.subtitle}>Ficha única para fundamentales, proveedor y posición Global CAPEX Chain Ω.</Text>
+        </View>
+        {data ? <Pill label={data.provider} tone="info" /> : null}
       </View>
 
-      {loading ? <View style={styles.loading}><ActivityIndicator color={t.accent} /><Text style={styles.muted}>Consultando ATLAS…</Text></View> : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <View style={styles.searchBox}>
+        <TextInput accessibilityLabel="Ticker a analizar" value={ticker} onChangeText={setTicker} autoCapitalize="characters" autoCorrect={false} placeholder="MSFT" placeholderTextColor={t.textFaint} returnKeyType="search" onSubmitEditing={() => { void analyze(ticker); }} style={styles.input} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Analizar ${ticker || 'ticker'}`} disabled={loading} onPress={() => { void analyze(ticker); }} style={({ pressed }) => [styles.button, (pressed || loading) && styles.pressed]}><Text style={styles.buttonText}>Analizar</Text></Pressable>
+      </View>
+
+      {loading ? <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color={t.accent} /><Text style={styles.muted}>Consultando ATLAS…</Text></View> : null}
+      {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
 
       {data ? (
         <>
