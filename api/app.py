@@ -14,6 +14,7 @@ from api.document_ingestion import router as document_ingestion_router
 from api.evidence import router as evidence_router
 from api.execution_safety_gate import classify_execution_error
 from api.execution_safety_gate import router as execution_safety_router
+from api.firecrawl_ingestion import router as firecrawl_ingestion_router
 from api.kronos_market_forecast import router as kronos_market_forecast_router
 from api.main import app
 from api.market import router as market_router
@@ -25,6 +26,7 @@ app.include_router(atlas_router)
 app.include_router(bottom_score_router)
 app.include_router(realizable_alpha_router)
 app.include_router(evidence_router)
+app.include_router(firecrawl_ingestion_router)
 app.include_router(kronos_market_forecast_router)
 app.include_router(agentic_omega_router)
 app.include_router(agentic_omega_v2_router)
