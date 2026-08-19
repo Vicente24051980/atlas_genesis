@@ -1,193 +1,126 @@
-# GREEN CONTINUITY Ω v1.0
+# GREEN CONTINUITY Ω v1.1
 
-Status: CANONICAL PRIMARY ENGINE
-Date: 2026-08-10
-Scope: ATLAS Ω ENTERPRISE — selection and portfolio maintenance
+Status: CANONICAL TRANSVERSAL DIAGNOSTIC ENGINE
+Effective correction: 2026-08-19
+Scope: all listed-equity tickers analyzed by ATLAS Ω
 
-## Canonical change
+## Correction
 
-GREEN CONTINUITY Ω becomes the principal ATLAS Ω engine for discovering, selecting and maintaining listed equities.
+The former v1.0 language that made GREEN CONTINUITY Ω the principal selector and a mandatory portfolio entry/exit gate is superseded.
 
-The former principal Business Quality / Growth / Moat / Financial Quality / Management / Valuation stack remains active, but its role changes to refinement, validation, ranking, conviction, valuation and risk control after the primary trend filter.
+GREEN CONTINUITY Ω remains mandatory to **run**, but its output is one independent evidence stream among the full ATLAS engine set. It does not own the final recommendation.
 
-Good Companies Cheap Ω, Historical Dislocation / Burry Ω, Money Rotation Ω, Energy Rotation Ω and specialized engines remain independent refinement/context engines and must not overwrite one another.
+Final recommendation authority belongs only to **Investment Committee Ω** after the ticker has passed through all registered ATLAS engines. Falsifiers Ω retains its independent veto under the Investment Committee canon.
 
 ## Mission
 
-Find companies whose market trend is positive continuously across short, medium and long horizons, then use the rest of ATLAS Ω to determine which of those trends are supported by durable businesses, acceptable valuation, productive capital allocation and intact theses.
+Measure multi-horizon price continuity for every ticker without confusing price behavior with business quality, valuation, defensiveness, institutional flow or final portfolio action.
 
-The engine is designed to keep winners while their multi-horizon trend remains intact instead of pruning them because of portfolio count, sector overlap or subjective diversification targets.
+For every ticker with sufficient history, calculate:
 
-## Mandatory discovery order
+- 1 week;
+- 1 month;
+- 3 months;
+- 1 year;
+- total / since inception.
 
-1. GLOBAL DISCOVERY — ticker-first, broad and sector-agnostic.
-2. Synchronize all price returns to the same regular-market cut.
-3. Calculate 1 week, 1 month, 3 months, 1 year and total/since-inception returns.
-4. Apply the GREEN CONTINUITY hard gate.
-5. Rank surviving 5/5 GREEN securities by relative strength.
-6. Apply Business Quality, Growth, CAPEX Productivity, Valuation, Risk, Money Rotation and specialized refinement layers.
-7. Apply Decision Safety Gate and confirmed structural falsifiers.
-8. Record the final decision in Decision Log Ω.
+All windows must use one synchronized regular-market cut.
 
-No quality, narrative, portfolio, sector-preference or watchlist filter may be used before ticker discovery and the primary trend calculation.
+## GREEN 5/5 rule
 
-## Hard entry rule — 5/5 GREEN
+`GREEN_5OF5 = (1W > 0) AND (1M > 0) AND (3M > 0) AND (1Y > 0) AND (TOTAL > 0)`
 
-A new listed-equity candidate passes GREEN CONTINUITY Ω only when all five windows are positive on the same synchronized market cut:
+A 5/5 result is **positive continuity evidence**.
 
-- 1 week > 0%
-- 1 month > 0%
-- 3 months > 0%
-- 1 year > 0%
-- total / since inception > 0%
+It is **not**:
 
-Formula:
+- an automatic BUY;
+- a mandatory gate for a committee BUY;
+- proof of business quality;
+- proof of institutional accumulation;
+- proof of attractive valuation;
+- a reason to ignore a confirmed falsifier.
 
-`PASS = (1W > 0) AND (1M > 0) AND (3M > 0) AND (1Y > 0) AND (TOTAL > 0)`
+A ticker can fail GREEN 5/5 and still receive BUY from Investment Committee Ω if the complete evidence packet justifies it. A ticker can be GREEN 5/5 and still receive WATCH or REJECT because of valuation, economics, risk or a confirmed falsifier.
 
-Any candidate with fewer than five positive windows is not a new BUY from this engine.
+## State classification
 
-If a security lacks a complete 1-year listed history, classify `INSUFFICIENT_HISTORY` for GREEN CONTINUITY Ω. It may still be studied by another independent specialized engine.
+### PASS_5OF5
 
-## Ranking among 5/5 GREEN survivors
+All five windows are positive.
 
-The hard gate is binary. Ranking is separate.
+Committee impact: `POSITIVE`.
 
-GREEN CONTINUITY strength score:
+### SHORT_HORIZON_BREAK
 
-- 1 week relative-strength percentile: 10%
-- 1 month relative-strength percentile: 20%
-- 3 months relative-strength percentile: 30%
-- 1 year relative-strength percentile: 35%
-- total/since-inception relative-strength percentile: 5%
+3M, 1Y and TOTAL remain positive, but 1W or 1M is non-positive.
 
-The score compares securities with the current discovery universe. Raw percentage returns are retained as evidence, but percentile ranking avoids allowing one extreme long-term return to dominate every other horizon.
+Committee impact: `CAUTION`.
 
-3M + 1Y receive 65% of ranking weight because they represent the core persistent trend. 1W and 1M measure acceleration and recent continuity.
+This is a continuity warning. It is not a fundamental falsifier and does not trigger an automatic SELL.
 
-## Portfolio maintenance rule
+Example canonical correction, 19-ago-2026:
 
-For an existing position purchased or maintained by GREEN CONTINUITY Ω:
+- **ETN:** 1W = -6.22% from 12-ago close 459.96 to 18-ago close 431.33; therefore GREEN 5/5 → GREEN 4/5. Magnitude makes the price-continuity warning material, but no new corporate falsifier was identified in the evidence packet.
+- **JCI:** 1W = -2.04% from 12-ago close 152.79 to 18-ago close 149.68; therefore GREEN 5/5 → GREEN 4/5. The continuity warning is milder and no new corporate falsifier was identified in the evidence packet.
 
-### HOLD — 5/5 GREEN
+The statement that the deterioration is “technical / regime-driven” must be stored as **INTERPRETATION**, not FACT, unless causal evidence is independently verified.
 
-If all five horizons remain positive:
+### STRUCTURAL_TREND_BREAK
 
-`HOLD`
+Any of 3M, 1Y or TOTAL is non-positive.
 
-A 5/5 GREEN position cannot become SELL because of:
+Committee impact: `NEGATIVE`.
 
-- portfolio-size targets;
-- arbitrary pruning;
-- sector overlap;
-- another company being similar;
-- diversification preferences;
-- a single red daily session;
-- subjective belief that the position has already risen too much.
+This is a structural **price-trend** warning for GREEN Ω only. It is passed to Investment Committee Ω; GREEN Ω does not issue the final SELL/REJECT.
 
-This is a constitutional rule.
+### INSUFFICIENT_HISTORY
 
-### WATCH — short-horizon break only
+A full 1Y price history is unavailable. Other engines continue to run and record their outputs.
 
-If 3M, 1Y and TOTAL remain positive but 1W or 1M turns negative:
+### QUARANTINE
 
-`WATCH`
+The five windows are not aligned to the same market cut or provenance is insufficient.
 
-Short-horizon noise does not automatically liquidate a structurally positive trend.
+### FALSIFIER_ALERT
 
-### SELL — structural trend failure
+A confirmed structural business falsifier is present in the evidence packet. GREEN Ω escalates it to Falsifiers Ω / Red Team. The independent veto belongs to Falsifiers Ω, not GREEN Ω.
 
-GREEN CONTINUITY Ω emits SELL when an existing position fails any structural trend horizon:
+## Ranking
 
-- 3M <= 0%; or
-- 1Y <= 0%; or
-- TOTAL <= 0%;
+The continuity strength score remains:
 
-A confirmed structural business falsifier may also force SELL even if price continuity remains green.
+- 1W percentile: 10%;
+- 1M percentile: 20%;
+- 3M percentile: 30%;
+- 1Y percentile: 35%;
+- TOTAL percentile: 5%.
 
-## Structural falsifier override
+The score ranks price continuity only. It does not rank final investment attractiveness.
 
-GREEN CONTINUITY Ω is the principal selector, not a license to ignore business collapse.
+## Universal ticker rule
 
-A confirmed structural falsifier supported by sufficient evidence overrides price strength. Examples include:
+Every ticker analyzed by ATLAS must receive a recorded result from GREEN CONTINUITY Ω when the required price history exists.
 
-- fraud;
-- permanent moat destruction;
-- persistent ROIC destruction;
-- structural FCF impairment;
-- materially destructive capital allocation;
-- structural regulatory impairment;
-- demonstrated loss of the economic engine supporting the thesis.
+The same ticker must also be passed independently through Quality, Economic Proof, Valuation / Implied Return, CAPEX Productivity, Moat, Institutional Rotation, Money Rotation, Defensive, Macro / Regime, specialized engines, Falsifiers and Evidence Director according to the current engine registry.
 
-Ordinary volatility, valuation discomfort, headlines, isolated guidance misses or sector overlap are not structural falsifiers by themselves.
+An engine with no meaningful signal must return `NO_SIGNAL`, `NOT_APPLICABLE` or the equivalent explicit state; it must not be silently skipped when the registry requires execution.
 
-## Role of the other ATLAS engines
+## Defensive and regime separation
 
-### Business Quality Ω
-Refines whether the 5/5 GREEN company is economically durable and deserves higher conviction.
+GREEN CONTINUITY Ω does not become more permissive or restrictive because the market regime is defensive, risk-on, inflationary or otherwise.
 
-### Growth Ω
-Tests whether market strength is supported by sustainable operating growth.
+Defensive Ω is a separate transversal score applied to every ticker. Macro / Regime Ω is a separate context engine. Neither rewrites GREEN returns.
 
-### CAPEX Productivity Ω
-Tests whether reinvestment is creating economic value rather than merely increasing scale.
+## Final decision hierarchy
 
-### Valuation Ω
-Refines entry priority, sizing and expected return. It does not mechanically turn a 5/5 GREEN holding into SELL without a valid exit condition.
+`TICKER → ALL ATLAS ENGINES → EVIDENCE + CONTRADICTIONS → FALSIFIERS Ω → INVESTMENT COMMITTEE Ω → BUY / HOLD / WATCH / REJECT / NO OPPORTUNITY → EXECUTION`
 
-### Risk Ω
-Measures balance-sheet, regulatory, concentration, geopolitical and thesis-specific risk.
-
-### Money Rotation Ω / Energy Rotation Ω
-Provide regime, flows and capital-rotation context and help explain where leadership is emerging or weakening.
-
-### Good Companies Cheap Ω
-Independent engine for quality companies trading at depressed valuations. It can hold names that fail GREEN CONTINUITY because its mission is different.
-
-### Historical Dislocation / Burry Ω
-Independent contrarian engine for deeply dislocated but structurally intact businesses. It can deliberately study securities that are red in GREEN CONTINUITY.
-
-### Specialized engines
-Refine sector- or thesis-specific evidence. They cannot erase engine provenance.
-
-## Engine independence
-
-Every portfolio position must retain the engine or engines that justify it.
-
-A security can simultaneously be:
-
-- PASS in GREEN CONTINUITY Ω;
-- strong in Business Quality Ω;
-- R5 in Money Rotation Ω;
-- expensive in Valuation Ω.
-
-These are separate observations, not one averaged narrative.
-
-A security can fail GREEN CONTINUITY Ω and remain valid in Historical Dislocation Ω. The failure of one independent engine does not rewrite the output of another.
-
-## Decision hierarchy
-
-For normal listed-equity discovery:
-
-`GLOBAL DISCOVERY -> GREEN CONTINUITY Ω -> REFINEMENT ENGINES -> DECISION SAFETY -> DECISION LOG`
-
-GREEN CONTINUITY Ω owns the primary trend state.
-
-Refinement engines may:
-
-- rank;
-- raise or lower conviction;
-- alter sizing;
-- identify valuation risk;
-- detect business falsifiers;
-- add regime context;
-- route a security to another independent engine.
-
-Refinement engines may not generate an arbitrary SELL solely to reduce position count or eliminate sector overlap.
+No individual engine is allowed to promote its local state into the final portfolio recommendation.
 
 ## Data integrity
 
-Every 1W, 1M, 3M, 1Y and TOTAL value used in a decision must record:
+Every 1W, 1M, 3M, 1Y and TOTAL value must record:
 
 - ticker and canonical identifier;
 - exchange;
@@ -200,30 +133,8 @@ Every 1W, 1M, 3M, 1Y and TOTAL value used in a decision must record:
 - capturedAt / asOf;
 - calculation method.
 
-All five windows must use the same market cut.
-
-Premarket and aftermarket prices do not replace a regular-session close unless the engine explicitly introduces a separate intraday mode in a later version.
-
-## Mobile-first output
-
-The mobile card for each candidate should expose at minimum:
-
-`TICKER | 1W | 1M | 3M | 1Y | TOTAL | GREEN COUNT | SCORE | DECISION | REFINEMENT FLAGS`
-
-Visual priority:
-
-- 5/5 GREEN badge;
-- strength score;
-- BUY/HOLD/WATCH/SELL state;
-- structural falsifier flag;
-- refinement-engine badges.
-
-## Canonical examples
-
-ROST, FAST and RTX are visual examples of the type of multi-horizon positive continuity this engine is designed to detect. They are examples of pattern shape, not permanent automatic BUY declarations; all live decisions require current synchronized data.
+Premarket and aftermarket do not replace the synchronized regular-session cut unless a separate intraday mode explicitly defines that behavior.
 
 ## Supersession
 
-This document supersedes the earlier research-only three-horizon momentum note as the canonical primary listed-equity trend engine.
-
-The earlier `Día > 0 + 3M > 0 + 1A > 0` screener remains historical research context and may still be used as a narrower diagnostic, but it no longer defines the principal ATLAS Ω selection architecture.
+This v1.1 correction supersedes all v1.0 language that described GREEN CONTINUITY Ω as the principal ATLAS portfolio selector or as an automatic BUY/HOLD/SELL authority.
