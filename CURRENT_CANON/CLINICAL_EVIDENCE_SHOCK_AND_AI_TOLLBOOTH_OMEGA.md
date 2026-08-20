@@ -80,8 +80,21 @@ No candidate reaches BUY from T0/T1 alone.
 - Money Rotation Ω separately tests whether capital is entering the ticker now.
 - Implied Return Ω/valuation determines whether expected return remains attractive.
 
-## Stripe/OpenRouter calibration
-Use the announced transaction only as evidence that routing + metering + billing may constitute a strategic AI control point. Stripe/OpenRouter itself is not a public-equity candidate. The engine must search listed analogues/beneficiaries and demand company-specific economic proof; acquisition price or strategic narrative alone is insufficient.
+## Stripe/OpenRouter calibration — reinforced 20-Aug-2026
+Use the reported strategic combination only as evidence that routing + metering + billing + payments may constitute a valuable AI control point. It is not proof of durable economics and neither Stripe nor OpenRouter is a public-equity candidate for ATLAS.
+
+Mandatory inference discipline:
+- Acquisition/strategic interest = INDUSTRY SIGNAL, not Economic Proof.
+- Purchase price/strategic narrative cannot promote a listed analogue through T2/T3/T4 gates.
+- Search listed beneficiaries/analogues independently and require company-specific usage linkage, revenue attribution, margin/FCF conversion and control-point durability.
+- Explicitly test whether routing becomes commoditized, model providers internalize it, hyperscalers bundle it, or take rates compress.
+
+New control-point map for discovery:
+MODEL → ROUTING → OBSERVABILITY/SECURITY → METERING → BILLING → PAYMENTS → WORKFLOW.
+For every listed candidate, identify exactly where it sits, who pays it, the unit of monetization, incremental capital required, gross-margin behavior and bypass risk.
+
+## Agent-enabled marketplace weak signal
+Voice/AI agents can reduce coordination cost in marketplaces where supplier response latency historically prevented liquidity. Treat this as Discovery Ω evidence only until a listed company demonstrates measurable transaction growth, take-rate economics and FCF conversion attributable to agent automation. Do not create BUY candidates from startup examples alone.
 
 # III. Shared Red-Team Gates
 Reject/downgrade when any applies materially: evidence source unverified; endpoint/economic metric is surrogate without demonstrated translation; effect already fully priced; financing/dilution overwhelms economic gain; adverse safety/regulatory signal; revenue attribution to AI is unsupported; gross-margin deterioration offsets usage; customer/model concentration; hyperscaler bundling; open-source commoditization; take-rate compression; accounting proxy mistaken for cash economics.
