@@ -5,65 +5,154 @@ Date: 2026-08-20
 
 ## Objective
 
-Rebuild the ATLAS Ω application surface as a dense professional investment terminal rather than a card-first consumer finance app.
+ATLAS Ω Mobile is a dense professional investment terminal rather than a card-first consumer finance app.
 
-OpenTerminalUI is the primary UX reference for terminal-shell behavior: persistent navigation, GO/command search, workspaces, market/research/portfolio/risk separation, compact information density and responsive desktop/mobile framing.
+OpenTerminalUI remains the primary UX reference for terminal-shell behavior: persistent navigation, GO/command search, workspaces, compact information density and responsive desktop/mobile framing. ATLAS does not vendor or copy upstream source code; the implementation is original React Native code governed by ATLAS evidence and execution rules.
 
-OpenTerminalUI is MIT licensed. ATLAS does not vendor or copy upstream source code in this implementation; the current mobile shell is an original React Native implementation informed by the interaction model and adapted to ATLAS governance.
+## Portfolio-first rule
 
-## Terminal shell
+The first useful surface after opening the application is the portfolio.
 
-Persistent chrome:
+When Trading 212 read access and a locally stored ATLAS broker-control session are available, HOME automatically loads:
 
-- ATLAS Ω brand / Investment OS identity.
-- GO Bar for ticker and function routing.
-- evidence/safety pulse tape.
-- horizontal function strip on mobile.
-- left function rail on wide screens.
-- bottom navigation on mobile.
+- account summary;
+- invested capital;
+- available cash;
+- P/L when supplied upstream;
+- current positions;
+- broker mode and environment.
+
+Portfolio polling is bounded and must respect upstream rate limits. The Trading 212 API key and secret remain server-side. Only the ATLAS broker-control token may be stored on-device, and it must use encrypted SecureStore rather than plain application storage.
+
+If broker credentials/session are unavailable, HOME renders `BROKER GATE` / `LOCAL SESSION GATE`; it must never fabricate a portfolio.
+
+## Global index tape
+
+A world-index tape is persistent terminal chrome and is visible across workspaces.
+
+Canonical curated universe:
+
+- S&P 500
+- Nasdaq 100
+- Dow Jones
+- Russell 2000
+- Euro Stoxx 50
+- DAX
+- FTSE 100
+- CAC 40
+- IBEX 35
+- Nikkei 225
+- Hang Seng
+- Shanghai Composite
+- KOSPI
+- ASX 200
+- Sensex
+- Bovespa
+- TSX Composite
+
+Primary contract: FinancialData.Net `index-quotes`, proxied server-side through `/v1/mobile/indices`. Client refresh hint: 15 seconds unless provider/rate-limit policy requires slower cadence.
+
+Missing symbols remain `MISSING`; ATLAS must not synthesize an index from ETF/future proxies without an explicit separate contract.
+
+## Persistent terminal shell
+
+Chrome:
+
+- ATLAS Ω brand / Investment Terminal identity;
+- GO Bar for ticker and function routing;
+- global index tape;
+- horizontal function strip on mobile;
+- left function rail on wide screens;
+- bottom navigation on mobile;
 - responsive workspace frame.
 
-Core functions:
+Canonical functions:
 
 - HOME / Cockpit
 - MKT / Markets
 - PORT / Portfolio
-- WL / Watchlists
+- AUD / Auditar
+- WL / Watchlist
+- RES / Resultados
+- OPP / Opportunities
 - Ω / ATLAS
 - SCR / Screener
 - RSR / Research
+- CAL / Catalysts
+- NEWS / News
 - ORD / Orders
 - RSK / Risk
 - SEC / Security Hub
 - T212 / Broker Ω
 - SYS / System
 
-## GO Bar
+## AUD / Auditar
 
-The GO Bar is the primary navigation accelerator.
+Dedicated ticker-first audit surface.
 
-It must support:
+Current executable snapshot:
 
-1. function/module discovery;
-2. direct ticker entry;
-3. routing a ticker into Security Hub;
-4. future natural-language ATLAS commands only when those commands are backed by explicit contracts.
+- company/quote quantitative bundle;
+- Global CAPEX Chain Ω profile;
+- provider/provenance;
+- explicit engine gates for engines not yet callable from mobile.
 
-A typed ticker never creates market data locally. It only routes to the existing evidence-backed company analysis path.
+Audit results can be saved to the local Result Journal. A saved snapshot is historical evidence of what was observed at that time; it is not retroactively rewritten because price later changed.
 
-## Workspaces
+## WL / Watchlist
+
+Persistent local candidate memory for:
+
+- candidates;
+- no-chase names;
+- catalysts;
+- re-audit queue;
+- future alert linkage.
+
+Adding to Watchlist never means BUY.
+
+## RES / Result Journal
+
+Persistent local journal of saved audit snapshots.
+
+Each record stores at minimum:
+
+- ticker;
+- timestamp;
+- provider;
+- company/sector identity;
+- observed price/valuation fields when available;
+- CAPEX Ω state when available;
+- explicit note that the snapshot is not the canonical thesis.
+
+Local persistence is operational memory, not the canonical Evidence Store. Server-side durable evidence persistence remains a separate architecture concern.
+
+## OPP / Opportunities
+
+Ranks possible opportunities without collapsing distinct questions:
+
+- Wave Detection Ω;
+- Money Rotation Ω;
+- Return / Valuation Ω;
+- GREEN / no-chase / entry discipline.
+
+A great company, a current capital receiver and an executable entry are separate states.
+
+## CAL / Catalysts
+
+Surface for earnings, guidance, clinical/FDA, macro events, investor days and thesis-changing dates. Calendar items remain `DATA GATE` until a certified event feed exists.
+
+## NEWS / News
+
+Firecrawl Search Ω is the acquisition layer. News passes source hierarchy, materiality and evidence classification before affecting any investment engine.
+
+AI output and news headlines are never evidence by themselves.
+
+## Remaining workspaces
 
 ### Markets
 
-Market Pulse, Money Rotation Ω, movers, sectors and Macro Regime. Live figures remain behind provider certification.
-
-### Portfolio
-
-Positions, exposure, contribution, P&L and portfolio risk. Existing portfolio runtime is preserved.
-
-### Watchlists
-
-Master Universe, candidate lists, heatmaps, alerts and saved views. Algorithm outputs remain separate.
+Global index tape, Money Rotation Ω, movers/breadth and Macro Regime.
 
 ### ATLAS Ω
 
@@ -79,41 +168,44 @@ Firecrawl Search Ω, primary-source evidence, Clinical Evidence Shock Ω, CAPEX 
 
 ### Orders
 
-Trading 212 order monitor/ticket/history with execution-safety gates. Demo/paper remains the default and live execution remains fail-closed.
+Trading 212 monitor/ticket/history with execution-safety gates. Demo/paper remains default and live execution remains fail-closed.
 
 ### Risk
 
-Sector/factor/currency/region exposure, concentration, drawdown, correlation and regime stress when validated feeds are available.
+Sector/factor/currency/region exposure, concentration, drawdown, correlation and regime stress when validated feeds exist.
 
 ### Security Hub
 
-Ticker-first company analysis using the current provider and CAPEX-chain APIs without fabricated scores.
+Ticker-first company analysis using current provider and CAPEX-chain APIs without fabricated scores.
 
 ## Data rendering rule
 
-A complete UI surface may exist before its data source is certified. In that case the surface MUST display an explicit state such as `DATA GATE`, `BROKER GATE`, `INGESTION_INCOMPLETE` or equivalent.
+A complete UI surface may exist before its data source is certified. In that case the surface MUST display `DATA GATE`, `BROKER GATE`, `ENGINE GATE`, `INGESTION_INCOMPLETE` or an equivalent explicit state.
 
-It is forbidden to populate a professional-looking terminal widget with fabricated placeholder market values that could be mistaken for live evidence.
+It is forbidden to populate professional-looking terminal widgets with fabricated values that could be mistaken for live evidence.
 
 ## Separation of concerns
 
 The UI is not a decision engine.
 
-Terminal shell -> data/evidence adapters -> Evidence Director Ω -> specialist engines -> Falsifiers Ω -> decision.
+Terminal shell -> data/evidence adapters -> Evidence Director Ω -> specialist engines -> Falsifiers Ω -> decision -> execution gate.
 
-Changing the visual system must not alter investment-engine contracts, broker safety gates, evidence hierarchy or API credential handling.
+Changing the visual system must not alter investment-engine contracts, broker safety gates, evidence hierarchy or credential handling.
 
 ## Implementation status
 
-Phase 1 implemented on branch `atlas/openterminal-mobile-shell`:
+Implemented on branch `atlas/openterminal-mobile-shell`:
 
 - persistent responsive terminal shell;
 - GO Bar / command palette;
-- mobile bottom navigation;
-- wide-screen function rail;
-- module strip;
-- Cockpit redesign;
-- Markets, Watchlists, ATLAS, Screener, Research, Orders and Risk workspace surfaces;
-- existing Analyze, Portfolio, Broker and Settings routes preserved inside the shell.
+- global live-index API + terminal tape;
+- portfolio-first HOME with Trading 212 auto-read session;
+- encrypted broker-control token storage;
+- AUDIT surface;
+- persistent WATCHLIST;
+- persistent RESULT JOURNAL;
+- Opportunities, Catalysts and News workspaces;
+- Markets, ATLAS, Screener, Research, Orders and Risk workspaces;
+- existing Analyze, Portfolio, Broker and Settings routes preserved.
 
-Future phases should wire each DATA GATE only after its backing API/provider passes the appropriate certification gate.
+Every live-data surface remains subject to provider credential/subscription and runtime certification gates.
