@@ -1,5 +1,5 @@
 export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
-  version: '2026-08-20-v4.5.1',
+  version: '2026-08-20-v4.5.2',
   primaryEngine: 'PRINCIPAL_OMEGA',
   primaryRole: 'structural_selection_quality_growth_asymmetry',
   refinementEngines: [
@@ -15,7 +15,8 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
   conditionalSpecializedEngines: [
     'AI_DEMAND_MONETIZATION_PROOF_OMEGA_V1',
     'NEOCLOUD_CUSTOMER_ACCEPTANCE_GATE_OMEGA_V1',
-    'AI_CAPEX_PAYBACK_OMEGA_V2_1', 'AI_FINANCIAL_FRAGILITY_OMEGA_V1_1', 'AI_CREDIT_TRANSMISSION_OMEGA_V1',
+    'AI_CAPEX_PAYBACK_OMEGA_V2_1', 'AI_ECONOMIC_PROOF_EQUITY_MONETIZATION_OMEGA_V1',
+    'AI_FINANCIAL_FRAGILITY_OMEGA_V1_1', 'AI_CREDIT_TRANSMISSION_OMEGA_V1',
     'GRID_BOTTLENECK_POWER_CAPTURE_OMEGA_V1',
     'MARKET_TOP_RISK_OMEGA', 'MARKET_BOTTOM_DETECTION_OMEGA', 'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2_1',
     'EVENT_PRICING_OPTIONS_EXPECTATIONS_OMEGA_V1', 'SPECIAL_SITUATIONS_OMEGA_V1',
@@ -45,6 +46,9 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'NEOCLOUD CUSTOMER ACCEPTANCE GATE is mandatory between Deployment and Revenue Recognition for material neocloud deployments; contract or deployment alone remains capped at E2.',
     'Customer acceptance strengthens execution proof but E3 still requires attributable recognized revenue plus credible margin.',
     'AI CAPEX PAYBACK must audit price-volume-cost elasticity: unit price declines are not payback failure unless volume, unit-cost and indirect monetization fail to offset them.',
+    'AI ECONOMIC PROOF and AI EQUITY MONETIZATION are orthogonal: the business can capture AI value while the stock market refuses to reward it.',
+    'AI EQUITY MONETIZATION forbids less-damaged or strong-RS stocks from being called CONFIRMED RECEIVER unless verified price continuity, flow, price response and proximity to Tmax also pass.',
+    'PROOF_UP_MONETIZATION_DOWN is WATCH_FOR_REMONETIZATION by default and is never an automatic BUY.',
     'AI FINANCIAL FRAGILITY must separate recognized debt, recognized leases, non-commenced leases, purchase commitments and contingent/backstop exposure.',
     'AI FINANCIAL FRAGILITY and AI CREDIT TRANSMISSION remain independent from AI CAPEX PAYBACK and cannot double-count evidence.',
     'GRID BOTTLENECK POWER CAPTURE must normalize interconnection queues by stage; queued MW is never treated as firm load by itself.',
@@ -90,6 +94,7 @@ export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'AI_DEMAND_MONETIZATION_PROOF_OMEGA_V1_WHEN_APPLICABLE',
   'NEOCLOUD_CUSTOMER_ACCEPTANCE_GATE_OMEGA_V1_WHEN_APPLICABLE',
   'AI_CAPEX_PAYBACK_OMEGA_V2_1_WHEN_APPLICABLE',
+  'AI_ECONOMIC_PROOF_EQUITY_MONETIZATION_OMEGA_V1_WHEN_APPLICABLE',
   'AI_FINANCIAL_FRAGILITY_OMEGA_V1_1_WHEN_APPLICABLE',
   'AI_CREDIT_TRANSMISSION_OMEGA_V1_WHEN_APPLICABLE',
   'GRID_BOTTLENECK_POWER_CAPTURE_OMEGA_V1_WHEN_APPLICABLE',
