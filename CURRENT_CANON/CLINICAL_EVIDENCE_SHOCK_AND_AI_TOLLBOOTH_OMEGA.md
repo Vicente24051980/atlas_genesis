@@ -72,11 +72,68 @@ AI Tollbooth Score = 0.20 Usage Linkage + 0.15 Take-rate Durability + 0.15 Capit
 T0 narrative only; T1 usage evidence; T2 revenue linkage; T3 margin/FCF proof; T4 durable control point with repeatable economics.
 No candidate reaches BUY from T0/T1 alone.
 
+## Developer Activity Leading Indicator Ω
+
+### Objective
+Detect early developer demand before it appears in reported revenue, without allowing developer activity to substitute for financial evidence.
+
+Developer Activity Leading Indicator Ω is a subordinate discovery module inside AI Tollbooth Ω. It identifies probable future AI workloads by observing developer behavior, SDK/API adoption and project formation. It can raise watchlist priority, audit urgency and evidence confidence, but it cannot by itself promote a ticker to BUY, T3, T4 or Economic Proof.
+
+### Causal chain
+package downloads → SDK/API usage → project creation → workloads → consumption → Atlas/Voyage revenue.
+
+### Constitutional rule
+Developer activity is a leading indicator, never Economic Proof. It remains FACT/HYPOTHESIS evidence until it is reconciled with company-specific revenue, gross margin, FCF conversion, customer expansion or disclosed consumption metrics.
+
+### Signal ladder
+D0 NOISE: mentions, demos, tutorials, one-off GitHub stars, social hype or unverified screenshots.
+D1 PACKAGE INTEREST: npm/PyPI/Maven/SDK downloads, GitHub stars/forks, docs traffic or search interest from a verifiable source.
+D2 SDK/API ADOPTION: active API keys, SDK imports, repo templates, integration guides, ecosystem plugins or partner connectors showing repeated developer use.
+D3 PROJECT FORMATION: new apps, production pilots, customer case studies, integrations, marketplace listings or enterprise deployments built on the tool.
+D4 WORKLOAD/CONSUMPTION LINKAGE: usage telemetry, calls, tokens, queries, vector indexes, reranking jobs, seats, agents, storage, throughput or consumption metrics tied to monetizable units.
+D5 REVENUE RECONCILIATION: management disclosures, segment revenue, ARR/NRR, attach rate, cohort expansion, gross-margin behavior or FCF evidence confirming that developer activity became paid economic output.
+
+### Core variables (0–100 unless stated)
+- Source Quality: official registry, company disclosure, cloud marketplace, third-party telemetry, repository analytics or estimated scrape.
+- Signal Freshness: trend acceleration over 7D/30D/90D and whether the signal is current enough to matter.
+- Adoption Velocity: growth in downloads, API usage, SDK imports, repo integrations, docs queries or active projects.
+- Conversion Proximity: distance from raw developer activity to a monetizable workload.
+- Workload Specificity: whether the activity maps to a paid unit such as query, token, rerank, vector index, seat, API call, storage or transaction.
+- Customer Quality: enterprise, regulated, production and repeat users score above hobbyist or trial users.
+- Revenue Reconciliation: alignment with Atlas/Voyage revenue, ARR, NRR, attach rate, consumption, gross margin and FCF.
+- Manipulation Risk: bot downloads, CI noise, version churn, dependency duplication, free-tier abuse, tutorials or campaign-driven spikes.
+- Alternative Explanation Risk: open-source trend, migration tooling, academic experimentation, hackathons or non-production experimentation.
+
+Developer Activity Score = 0.15 Source Quality + 0.15 Signal Freshness + 0.15 Adoption Velocity + 0.15 Conversion Proximity + 0.10 Workload Specificity + 0.10 Customer Quality + 0.15 Revenue Reconciliation - 0.10 Manipulation Risk - 0.05 Alternative Explanation Risk.
+
+### Gate permissions
+- D0-D1 can only create DISCOVERY or WATCHLIST evidence.
+- D2 can raise AI Tollbooth audit priority, but cannot satisfy T2 revenue linkage.
+- D3 can support T1/T2 hypotheses if customer/project evidence is verified.
+- D4 can support T2 revenue linkage only when monetizable units are observable.
+- D5 is required before the signal can contribute to T3 margin/FCF proof or T4 durable control point.
+
+### Mandatory reconciliation
+Every Developer Activity finding must be reconciled against:
+1. reported revenue growth and segment mix;
+2. usage-based or subscription revenue mechanism;
+3. gross margin and FCF behavior;
+4. customer additions, expansion, retention or NRR;
+5. management commentary and risk factors;
+6. valuation and expectations already priced in.
+
+### Output contract extension
+Each AI Tollbooth run may include developer_activity_leading_indicator with: observed_signal, source_quality, time_window, adoption_velocity, signal_ladder_state, conversion_proximity, workload_specificity, revenue_reconciliation, manipulation_risk, alternative_explanation_risk, developer_activity_score, confidence, allowed_gate_contribution, forbidden_inferences, next_evidence_required.
+
+### MongoDB / Voyage calibration — 20-Aug-2026
+For MongoDB, npm/package downloads, SDK/API adoption, Voyage API usage, Vector Search integrations and RAG/agent project formation may raise AI Tollbooth priority. They do not prove Atlas/Voyage economic output until reconciled with Atlas growth, Voyage consumption, attach rate, enterprise workloads, gross margin and FCF conversion.
+
 ## Integration
 - Global CAPEX Chain Ω identifies physical and digital beneficiaries.
 - AI CAPEX PAYBACK Ω tests whether buyers earn adequate returns.
 - AI Demand Monetization Proof Ω verifies end-demand monetization.
 - AI Tollbooth Ω isolates recurring usage-layer capture.
+- Developer Activity Leading Indicator Ω detects early usage-layer demand but cannot replace revenue, margin or FCF proof.
 - Money Rotation Ω separately tests whether capital is entering the ticker now.
 - Implied Return Ω/valuation determines whether expected return remains attractive.
 
@@ -97,10 +154,13 @@ For every listed candidate, identify exactly where it sits, who pays it, the uni
 Voice/AI agents can reduce coordination cost in marketplaces where supplier response latency historically prevented liquidity. Treat this as Discovery Ω evidence only until a listed company demonstrates measurable transaction growth, take-rate economics and FCF conversion attributable to agent automation. Do not create BUY candidates from startup examples alone.
 
 # III. Shared Red-Team Gates
-Reject/downgrade when any applies materially: evidence source unverified; endpoint/economic metric is surrogate without demonstrated translation; effect already fully priced; financing/dilution overwhelms economic gain; adverse safety/regulatory signal; revenue attribution to AI is unsupported; gross-margin deterioration offsets usage; customer/model concentration; hyperscaler bundling; open-source commoditization; take-rate compression; accounting proxy mistaken for cash economics.
+Reject/downgrade when any applies materially: evidence source unverified; endpoint/economic metric is surrogate without demonstrated translation; effect already fully priced; financing/dilution overwhelms economic gain; adverse safety/regulatory signal; revenue attribution to AI is unsupported; gross-margin deterioration offsets usage; customer/model concentration; hyperscaler bundling; open-source commoditization; take-rate compression; accounting proxy mistaken for cash economics; developer activity lacks conversion to paid workloads; package/download spikes are polluted by bots, CI, tutorials, free-tier experimentation or dependency churn.
 
 # IV. Machine-readable output contract
-Each run returns: ticker, timestamp, engine, FACTS[], HYPOTHESES[], INTERPRETATIONS[], NOISE[], evidence_grade, score, confidence, economic_delta, valuation_delta, flow_confirmation, repricing_state, falsifiers[], next_catalysts[], verdict, evidence_sources[].
+Each run returns: ticker, timestamp, engine, FACTS[], HYPOTHESES[], INTERPRETATIONS[], NOISE[], evidence_grade, score, confidence, economic_delta, valuation_delta, flow_confirmation, repricing_state, falsifiers[], next_catalysts[], verdict, evidence_sources[], developer_activity_leading_indicator.
 
 # V. Canonical principle
 NEW EVIDENCE → ECONOMIC DELTA → VALUATION DELTA → OBSERVED REPRICING. Never reverse the causal chain by treating PRICE → THESIS as proof.
+
+# VI. Developer activity principle
+DEVELOPER ACTIVITY → POSSIBLE FUTURE WORKLOADS → POSSIBLE CONSUMPTION → POSSIBLE REVENUE. Never reverse the chain by treating PACKAGE DOWNLOADS or SDK USAGE as revenue, margin, FCF or durable moat proof.
