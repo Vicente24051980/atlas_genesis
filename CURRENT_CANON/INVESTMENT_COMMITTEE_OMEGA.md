@@ -4,6 +4,7 @@
 **Effective:** 2026-08-17
 **Transversal-engine correction:** 2026-08-19
 **GREEN Gate-0 / inference-orchestration correction:** 2026-08-20
+**GREEN Breadth / concentration correction:** 2026-08-20
 
 ## Purpose
 Convert ATLAS from prompt-driven analysis into an evidence-driven decision system. Agents do not vote; evidence and vetoes decide.
@@ -14,7 +15,7 @@ Convert ATLAS from prompt-driven analysis into an evidence-driven decision syste
 
 For listed-security discovery and ranking:
 
-`TICKER → GREEN GATE 0 → GREEN PULSE → RELATIVE GREEN → ALL REGISTERED ATLAS ENGINES → EVIDENCE PACKET → CONTRADICTIONS → EXPECTED RETURN 3–6Y → FALSIFIERS Ω → INVESTMENT COMMITTEE Ω → ACTION`
+`TICKER → GREEN GATE 0 → GREEN PULSE → GREEN BREADTH → RELATIVE GREEN → CROWDING/CONCENTRATION → MONEY ROTATION → ALL REGISTERED ATLAS ENGINES → EVIDENCE PACKET → CONTRADICTIONS → EXPECTED RETURN 3–6Y → FALSIFIERS Ω → INVESTMENT COMMITTEE Ω → ACTION`
 
 Economic chain where relevant:
 
@@ -43,13 +44,51 @@ To prevent a structurally positive long-horizon GREEN score from hiding recent d
 
 A ticker can therefore be `GREEN 5/5` and simultaneously `GREEN_PULSE_BREAK`. Such a state blocks fresh entry/ranking priority until the break repairs; it does not rewrite the long-term GREEN history.
 
+## GREEN BREADTH Ω — participation and concentration gate
+
+GREEN must not be interpreted from the ticker or capitalization-weighted index alone. For every candidate, calculate participation through the hierarchy:
+
+`TICKER → INDUSTRY → SECTOR → BROAD INDEX → EQUAL-WEIGHT / BREADTH`.
+
+Required observations where data are available:
+
+- percentage of relevant constituents above MA20, MA50 and MA200;
+- advancing versus declining constituents and breadth thrust/deterioration;
+- new highs versus new lows;
+- sector/industry participation;
+- capitalization-weighted versus equal-weight divergence;
+- contribution concentration among the largest constituents;
+- persistence across observations rather than a single session.
+
+Canonical states:
+
+- `GREEN_HEALTHY`: GREEN 4/5 or 5/5 + positive Pulse + expanding/healthy breadth + relative confirmation.
+- `GREEN_CONCENTRATED`: headline/ticker GREEN remains positive but index strength is carried by a narrow set of constituents or equal-weight/breadth fails to confirm.
+- `GREEN_DIVERGENT`: ticker GREEN remains 4/5 or 5/5 while industry/sector relative participation deteriorates materially.
+- `GREEN_DETERIORATING`: long-horizon GREEN remains positive but Pulse and breadth are weakening.
+- `GREEN_PULSE_BREAK`: acute recent deterioration; fresh-entry priority blocked until repaired.
+
+A 5/5 score must never be presented as sufficient evidence of current momentum when Pulse/Breadth contradict it. The dashboard/ranker must display the contradiction explicitly.
+
 ## RELATIVE GREEN Ω
 
 Measure relative strength independently versus the appropriate sector/industry benchmark and broad benchmark (S&P 500 / Nasdaq / relevant home-market index). Absolute GREEN and relative GREEN must not be conflated.
 
+## CROWDING / CONCENTRATION Ω
+
+Before Money Rotation can classify a destination as durable, test whether observed performance is concentrated in a small number of securities, event-driven, short-covering, option-driven or otherwise non-broad.
+
+A capitalization-weighted index advance with weak equal-weight participation cannot be classified as broad institutional accumulation without additional evidence.
+
+Low index volatility is not equivalent to low underlying risk. Where available, cross-check VIX/index volatility against single-stock dispersion, breadth, concentration and positioning.
+
 ## Flow persistence rule
 
 One exceptional session is not `FLOW_CONFIRMED`. Money Rotation Ω requires persistence/breadth/relative confirmation across multiple observations. A one-day surge is recorded as impulse, not institutional-flow proof.
+
+Canonical flow validation chain:
+
+`PRICE IMPULSE → GREEN PULSE → BREADTH → RELATIVE STRENGTH → PERSISTENCE → CROWDING CHECK → FLOW_CONFIRMED / NOT_CONFIRMED`.
 
 ## Universal ticker / all-engine sweep
 
@@ -57,7 +96,7 @@ Every ticker that passes the applicable discovery gate, or is explicitly submitt
 
 There is no style/sector preclassification that allows ATLAS to route a ticker only through “defensive”, “growth”, “AI”, “value” or another preferred path. Engines remain independent and may return positive, negative, `NO_SIGNAL`, `NOT_APPLICABLE`, `INSUFFICIENT_DATA` or equivalent explicit states.
 
-The sweep includes Economic Proof Ω; Quality / Financial Quality / Growth Ω; Valuation / Implied Return Ω; CAPEX Productivity Ω; Moat Ω; GREEN CONTINUITY Ω; Money Rotation Ω / Institutional Rotation Ω; Defensive Ω; Macro / Regime Ω; Recovery / Successor / Good Companies Cheap / Historical Dislocation and other specialized engines; GURUS & FUNDS Ω; Falsifiers Ω / Red Team; and Evidence Director Ω.
+The sweep includes Economic Proof Ω; Quality / Financial Quality / Growth Ω; Valuation / Implied Return Ω; CAPEX Productivity Ω; Moat Ω; GREEN CONTINUITY Ω; GREEN Pulse Ω; GREEN Breadth Ω; Relative GREEN Ω; Crowding/Concentration Ω; Money Rotation Ω / Institutional Rotation Ω; Defensive Ω; Macro / Regime Ω; Recovery / Successor / Good Companies Cheap / Historical Dislocation and other specialized engines; GURUS & FUNDS Ω; Falsifiers Ω / Red Team; and Evidence Director Ω.
 
 The purpose is not to average every score. It is to preserve independent evidence and expose contradictions before decision.
 
@@ -139,13 +178,13 @@ ATLAS may conclude NO OPPORTUNITY / NO PORTFOLIO CHANGE.
 
 - **BUY:** GREEN/execution gate permits entry + thesis valid + sufficient Economic Proof + moat acceptable + expected return clears hurdle + no active veto.
 - **HOLD:** thesis valid but incremental purchase does not clear hurdle or sizing constraints.
-- **WATCH:** evidence incomplete, valuation insufficient, catalyst not validated, setup not mature, GREEN/Pulse not ready, or material contradictions remain unresolved.
+- **WATCH:** evidence incomplete, valuation insufficient, catalyst not validated, setup not mature, GREEN/Pulse/Breadth not ready, or material contradictions remain unresolved.
 - **REJECT:** confirmed falsifier, structurally inadequate economics, or expected return decisively inadequate.
 - **NO OPPORTUNITY:** evidence does not justify portfolio action.
 
 ## Engine ledger requirement
 
-Persist ticker/canonical identifier; as-of timestamp/market cut; GREEN 5-window vector; GREEN Pulse vector; relative GREEN; each engine/version; local state/score; provenance/freshness; epistemic tags; contradictions; Falsifiers state; final committee recommendation; and execution state separately.
+Persist ticker/canonical identifier; as-of timestamp/market cut; GREEN 5-window vector; GREEN Pulse vector; GREEN Breadth state and raw breadth inputs; relative GREEN; crowding/concentration state; each engine/version; local state/score; provenance/freshness; epistemic tags; contradictions; Falsifiers state; final committee recommendation; and execution state separately.
 
 A `BUY + NO_CHASE` remains valid: BUY is fundamental; NO_CHASE is execution.
 
@@ -155,4 +194,4 @@ For every deep research run: define falsifiable question; prioritize primary sou
 
 ## Continuous learning loop
 
-Preserve contemporaneous evidence packets and forecasts. At checkpoints compare predicted versus realized Demand, Capture, FCF, ROIC, margins, valuation, price-continuity and catalysts. Update calibration; never rewrite historical evidence retroactively.
+Preserve contemporaneous evidence packets and forecasts. At checkpoints compare predicted versus realized Demand, Capture, FCF, ROIC, margins, valuation, price-continuity, breadth, relative strength and catalysts. Update calibration; never rewrite historical evidence retroactively.
