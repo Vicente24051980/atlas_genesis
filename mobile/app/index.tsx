@@ -1,258 +1,172 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { BrokerApi, BrokerEnvelope, BrokerStatus } from '../core/api/brokerApi';
 import { MobileApi, MobileHealth } from '../core/api/mobileApi';
-
-const MARKET_TAPE = [
-  { symbol: 'SPX', state: 'LIVE', meta: 'US Large Cap' },
-  { symbol: 'NDX', state: 'LIVE', meta: 'AI / Growth' },
-  { symbol: 'STOXX', state: 'WATCH', meta: 'Europe Receiver' },
-  { symbol: 'GOLD', state: 'FLOW', meta: 'Macro Hedge' },
-  { symbol: 'BRENT', state: 'RISK', meta: 'Energy Gate' },
-];
-
-const COMMANDS = ['AUDIT TICKER', 'PORTFOLIO FIRST', 'WATCHLIST', 'RESULTS', 'SYSTEM'];
+import { BrokerSession } from '../core/security/brokerSession';
 
 export default function HomeScreen() {
   const [health, setHealth] = useState<MobileHealth | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [brokerStatus, setBrokerStatus] = useState<BrokerStatus | null>(null);
+  const [account, setAccount] = useState<BrokerEnvelope | null>(null);
+  const [positions, setPositions] = useState<BrokerEnvelope | null>(null);
+  const [portfolioError, setPortfolioError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const load = async () => {
-    setError(null);
-    try {
-      setHealth(await MobileApi.health());
-    } catch (cause) {
-      setHealth(null);
-      setError(cause instanceof Error ? cause.message : String(cause));
+    const [healthResult, brokerStatusResult, token] = await Promise.allSettled([
+      MobileApi.health(),
+      BrokerApi.status(),
+      BrokerSession.getControlToken(),
+    ]);
+    setHealth(healthResult.status === 'fulfilled' ? healthResult.value : null);
+    setBrokerStatus(brokerStatusResult.status === 'fulfilled' ? brokerStatusResult.value : null);
+
+    const controlToken = token.status === 'fulfilled' ? token.value : null;
+    if (!controlToken) {
+      setAccount(null);
+      setPositions(null);
+      setPortfolioError(null);
+      return;
     }
+
+    const [accountResult, positionsResult] = await Promise.allSettled([
+      BrokerApi.account(controlToken),
+      BrokerApi.positions(controlToken),
+    ]);
+    setAccount(accountResult.status === 'fulfilled' ? accountResult.value : null);
+    setPositions(positionsResult.status === 'fulfilled' ? positionsResult.value : null);
+    const failure = accountResult.status === 'rejected' ? accountResult.reason : positionsResult.status === 'rejected' ? positionsResult.reason : null;
+    setPortfolioError(failure instanceof Error ? failure.message : failure ? String(failure) : null);
   };
 
-  useEffect(() => { void load(); }, []);
+  useEffect(() => {
+    let mounted = true;
+    const safeLoad = async () => { if (mounted) await load(); };
+    void safeLoad();
+    const timer = setInterval(() => { void safeLoad(); }, 30000);
+    return () => { mounted = false; clearInterval(timer); };
+  }, []);
 
-  const refresh = async () => {
-    setRefreshing(true);
-    await load();
-    setRefreshing(false);
-  };
-
+  const refresh = async () => { setRefreshing(true); await load(); setRefreshing(false); };
   const online = health?.ok === true;
-  const provider = health?.preferred_provider || 'Conectando';
-  const systemState = useMemo(() => (online ? 'ONLINE' : health ? 'DEGRADED' : 'CONNECTING'), [online, health]);
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { void refresh(); }} tintColor="#38bdf8" />}
-    >
-      <View style={styles.terminalTopBar}>
-        <View>
-          <Text style={styles.product}>ATLAS Ω TERMINAL</Text>
-          <Text style={styles.version}>OPEN TERMINAL UI · MOBILE DESK</Text>
-        </View>
-        <View style={[styles.statusPill, online ? styles.statusPillOnline : styles.statusPillWarn]}>
-          <Text style={styles.statusPillText}>{systemState}</Text>
-        </View>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { void refresh(); }} tintColor="#45e8b4" />}>
+      <View style={styles.pageHeader}>
+        <View><Text style={styles.eyebrow}>ATLAS Ω · TERMINAL COCKPIT</Text><Text style={styles.title}>Portfolio First</Text></View>
+        <View style={[styles.engineBadge, online ? styles.engineOnline : styles.engineOffline]}><View style={[styles.engineDot, online ? styles.dotOnline : styles.dotOffline]} /><Text style={styles.engineText}>{online ? 'ENGINE ONLINE' : 'DEGRADED'}</Text></View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tape}>
-        {MARKET_TAPE.map((item) => (
-          <View key={item.symbol} style={styles.tapeCell}>
-            <Text style={styles.tapeSymbol}>{item.symbol}</Text>
-            <Text style={styles.tapeState}>{item.state}</Text>
-            <Text style={styles.tapeMeta}>{item.meta}</Text>
-          </View>
-        ))}
-      </ScrollView>
+      <LivePortfolio account={account} positions={positions} brokerStatus={brokerStatus} error={portfolioError} />
 
-      <View style={styles.commandBar}>
-        <Text style={styles.commandPrompt}>⌘</Text>
-        <View style={styles.commandTextWrap}>
-          <Text style={styles.commandTitle}>Command Center</Text>
-          <Text style={styles.commandSub}>Portfolio First · Audit · Watchlist · Resultados · Sistema</Text>
-        </View>
+      <View style={styles.statusStrip}>
+        <StatusCell label="DATA" value={health?.preferred_provider || 'CONNECTING'} tone={health?.financialdatanet_configured ? 'good' : 'warn'} />
+        <StatusCell label="T212" value={brokerStatus?.readReady ? `${brokerStatus.mode} READY` : 'BROKER GATE'} tone={brokerStatus?.readReady ? 'good' : 'warn'} />
+        <StatusCell label="REFRESH" value="30s PORT · 15s INDEX" tone="neutral" />
       </View>
 
-      <View style={styles.providerPanel}>
-        <View style={styles.panelHeaderRow}>
-          <Text style={styles.panelTitle}>DATA ENGINE</Text>
-          {!health && !error ? <ActivityIndicator color="#38bdf8" /> : null}
-        </View>
-        <Text style={styles.panelMain}>{online ? 'Motor conectado al backend real' : health ? 'Motor degradado' : 'Conectando con backend'}</Text>
-        <Text style={styles.panelMuted}>Proveedor preferido: {provider}</Text>
-        {health ? (
-          <View style={styles.providerRow}>
-            <Badge label="FinancialData.Net" active={health.financialdatanet_configured} />
-            <Badge label="Finnhub fallback" active={health.finnhub_configured} />
-          </View>
-        ) : null}
-        {error ? <Text style={styles.error}>Backend no disponible: {error}</Text> : null}
+      <SectionHeader code="01" title="Primary Workspaces" />
+      <View style={styles.tiles}>
+        <WorkspaceTile code="AUD" title="Auditar" meta="Run · engines · evidence gates" route="/audit" />
+        <WorkspaceTile code="WL" title="Watchlist" meta="Candidates · no-chase · alerts" route="/watchlist" />
+        <WorkspaceTile code="RES" title="Resultados" meta="Saved snapshots · history" route="/results" />
+        <WorkspaceTile code="OPP" title="Opportunities" meta="Wave · rotation · priority" route="/workspace/opportunities" />
+        <WorkspaceTile code="MKT" title="Markets" meta="Global indices · macro · movers" route="/workspace/markets" />
+        <WorkspaceTile code="Ω" title="ATLAS" meta="Committee · engines · falsifiers" route="/workspace/atlas" />
       </View>
 
-      <View style={styles.sectionRow}>
-        <Text style={styles.sectionTitle}>Portfolio First</Text>
-        <Text style={styles.sectionHint}>Abrir → auditar → decidir</Text>
+      <SectionHeader code="02" title="Decision Stack" />
+      <View style={styles.stack}>
+        <PriorityRow rank="01" title="Audit queue" detail="Ticker → evidence → specialist engines → contradictions → falsifiers." state="ACTIVE" route="/audit" />
+        <PriorityRow rank="02" title="Market rotation" detail="Current-flow questions route through Money Rotation Ω before quality filters." state="ACTIVE" route="/workspace/markets" />
+        <PriorityRow rank="03" title="Catalysts" detail="Earnings, FDA, macro events and thesis-changing evidence." state="ACTIVE" route="/workspace/catalysts" />
+        <PriorityRow rank="04" title="Execution" detail="Trading 212 stays paper-first; live execution remains fail-closed." state="GATED" route="/workspace/orders" />
       </View>
 
-      <Pressable accessibilityRole="button" accessibilityLabel="Portfolio First" onPress={() => router.push('/portfolio')} style={({ pressed }) => [styles.mainDeck, pressed && styles.pressed]}>
-        <View style={styles.deckHeader}>
-          <View>
-            <Text style={styles.deckKicker}>LIVE DESK</Text>
-            <Text style={styles.deckTitle}>Cartera 36</Text>
-          </View>
-          <Text style={styles.deckAction}>OPEN</Text>
-        </View>
-        <View style={styles.metricsGrid}>
-          <Metric label="Evidence" value="REAL" tone="blue" />
-          <Metric label="Trading" value="T212" tone="cyan" />
-          <Metric label="Risk" value="GATED" tone="amber" />
-        </View>
-        <Text style={styles.deckNote}>Snapshot de cartera primero. Sin scores inventados; cada ticker entra después en Evidence Director Ω.</Text>
+      <Pressable onPress={() => router.push('/analyze' as never)} style={({ pressed }) => [styles.securityHub, pressed && styles.pressed]}>
+        <View style={styles.securityCode}><Text style={styles.securityCodeText}>SEC</Text></View>
+        <View style={styles.securityText}><Text style={styles.securityTitle}>Security Hub</Text><Text style={styles.securityMeta}>Abrir ficha profunda de cualquier ticker desde la GO Bar o aquí.</Text></View>
+        <Text style={styles.arrow}>→</Text>
       </Pressable>
 
-      <View style={styles.moduleGrid}>
-        <ModuleCard
-          label="Audit Console"
-          eyebrow="Ticker / Company"
-          body="Análisis con datos reales, EDD y Global CAPEX Chain Ω."
-          action="AUDIT"
-          route="/analyze"
-        />
-        <ModuleCard
-          label="Watchlist"
-          eyebrow="Universe / Candidates"
-          body="Candidatos, vigilancia y disponibilidad operativa sin promover por narrativa."
-          action="WATCH"
-          route="/portfolio"
-        />
-        <ModuleCard
-          label="Resultados"
-          eyebrow="Runs / Outputs"
-          body="Panel de resultados y trazabilidad para comparar auditorías."
-          action="OPEN"
-          route="/settings"
-        />
-        <ModuleCard
-          label="Broker Ω"
-          eyebrow="Trading 212 bridge"
-          body="Bridge, cuenta, posiciones y órdenes. Ejecución live bloqueada por defecto."
-          action="CHECK"
-          route="/broker"
-        />
-      </View>
-
-      <View style={styles.evidencePanel}>
-        <Text style={styles.panelTitle}>EVIDENCE STACK</Text>
-        <EvidenceRow left="FACT" right="Backend real, proveedores y trazas" />
-        <EvidenceRow left="HYPOTHESIS" right="Watchlist y auditorías en revisión" />
-        <EvidenceRow left="INTERPRETATION" right="Lectura ATLAS, nunca prueba primaria" />
-        <EvidenceRow left="NOISE" right="Precio corto plazo y narrativa aislada" />
-      </View>
-
-      <View style={styles.quickStrip}>
-        {COMMANDS.map((command) => <Text key={command} style={styles.quickCommand}>{command}</Text>)}
-      </View>
+      <View style={styles.ruleBar}><Text style={styles.ruleCode}>RULE</Text><Text style={styles.ruleText}>PORTFOLIO FIRST · EVIDENCE &gt; NARRATIVE · MISSING DATA = GATE · PRICE ≠ EVIDENCE</Text></View>
     </ScrollView>
   );
 }
 
-function Badge({ label, active }: { label: string; active: boolean }) {
+function LivePortfolio({ account, positions, brokerStatus, error }: { account: BrokerEnvelope | null; positions: BrokerEnvelope | null; brokerStatus: BrokerStatus | null; error: string | null }) {
+  const accountRow = objectRow(account?.data);
+  const rows = normalizeRows(positions?.data);
+  const total = pickNumber(accountRow, 'total', 'equity', 'accountValue', 'value');
+  const cash = pickNumber(accountRow, 'free', 'cash', 'availableCash', 'freeCash');
+  const invested = pickNumber(accountRow, 'invested', 'investedValue');
+  const ppl = pickNumber(accountRow, 'ppl', 'profitLoss', 'unrealizedPpl', 'result');
+  const currency = pickText(accountRow, 'currency', 'currencyCode', 'currency_code');
+
+  if (!account && !positions) {
+    return (
+      <View style={styles.portfolioGate}>
+        <View style={styles.portfolioGateTop}><Text style={styles.portfolioLabel}>LIVE PORTFOLIO · TRADING 212</Text><Text style={styles.gateBadge}>{brokerStatus?.readReady ? 'LOCAL SESSION GATE' : 'BROKER GATE'}</Text></View>
+        <Text style={styles.portfolioGateText}>{error || (brokerStatus?.readReady ? 'Conecta una vez el token de control en Broker Ω; quedará cifrado en el dispositivo y la cartera se cargará automáticamente al abrir ATLAS.' : 'Trading 212 todavía no está listo en el servidor.')}</Text>
+        <Pressable onPress={() => router.push('/broker' as never)} style={styles.connectButton}><Text style={styles.connectText}>OPEN BROKER Ω →</Text></Pressable>
+      </View>
+    );
+  }
+
   return (
-    <View style={[styles.badge, active ? styles.badgeOn : styles.badgeOff]}>
-      <Text style={styles.badgeText}>{label}: {active ? 'OK' : 'pendiente'}</Text>
+    <View style={styles.portfolioPanel}>
+      <View style={styles.portfolioTop}><View><Text style={styles.portfolioLabel}>LIVE PORTFOLIO · TRADING 212</Text><Text style={styles.portfolioSub}>{brokerStatus?.environment.toUpperCase()} · {brokerStatus?.mode} · {currency || 'ACCOUNT CCY'} · AUTO REFRESH 30s</Text></View><Text style={styles.liveBadge}>LIVE</Text></View>
+      <View style={styles.portfolioMetrics}>
+        <PortfolioMetric label="TOTAL" value={formatMoney(total, currency)} />
+        <PortfolioMetric label="INVESTED" value={formatMoney(invested, currency)} />
+        <PortfolioMetric label="CASH" value={formatMoney(cash, currency)} />
+        <PortfolioMetric label="P/L" value={formatSignedMoney(ppl, currency)} tone={ppl !== null && ppl < 0 ? 'bad' : ppl !== null && ppl > 0 ? 'good' : 'neutral'} />
+      </View>
+      <View style={styles.positionsHeader}><Text style={[styles.positionHead, styles.positionFlex]}>POSITION</Text><Text style={styles.positionHead}>QTY</Text><Text style={styles.positionHead}>P/L</Text></View>
+      {rows.slice(0, 8).map((row, index) => {
+        const symbol = pickText(row, 'ticker', 'instrument', 'symbol') || `POS ${index + 1}`;
+        const qty = pickNumber(row, 'quantity', 'qty');
+        const rowPpl = pickNumber(row, 'ppl', 'profitLoss', 'result', 'unrealizedPpl');
+        return <View key={`${symbol}-${index}`} style={styles.positionRow}><Text style={[styles.positionSymbol, styles.positionFlex]}>{symbol}</Text><Text style={styles.positionValue}>{formatNumber(qty)}</Text><Text style={[styles.positionValue, rowPpl !== null && rowPpl > 0 ? styles.good : rowPpl !== null && rowPpl < 0 ? styles.bad : null]}>{formatSignedMoney(rowPpl, currency)}</Text></View>;
+      })}
+      {rows.length > 8 ? <Pressable onPress={() => router.push('/portfolio' as never)}><Text style={styles.morePositions}>+ {rows.length - 8} MORE POSITIONS →</Text></Pressable> : null}
     </View>
   );
 }
 
-function Metric({ label, value, tone }: { label: string; value: string; tone: 'blue' | 'cyan' | 'amber' }) {
-  return (
-    <View style={styles.metricBox}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={[styles.metricValue, tone === 'blue' ? styles.toneBlue : tone === 'cyan' ? styles.toneCyan : styles.toneAmber]}>{value}</Text>
-    </View>
-  );
-}
+function SectionHeader({ code, title }: { code: string; title: string }) { return <View style={styles.sectionHeader}><Text style={styles.sectionCode}>{code}</Text><Text style={styles.sectionTitle}>{title}</Text><View style={styles.sectionLine} /></View>; }
+function StatusCell({ label, value, tone }: { label: string; value: string; tone: 'good' | 'warn' | 'neutral' }) { return <View style={styles.statusCell}><Text style={styles.statusLabel}>{label}</Text><Text style={[styles.statusValue, tone === 'good' ? styles.good : tone === 'warn' ? styles.warn : styles.neutral]} numberOfLines={1}>{value}</Text></View>; }
+function PortfolioMetric({ label, value, tone = 'neutral' }: { label: string; value: string; tone?: 'good' | 'bad' | 'neutral' }) { return <View style={styles.portfolioMetric}><Text style={styles.portfolioMetricLabel}>{label}</Text><Text style={[styles.portfolioMetricValue, tone === 'good' ? styles.good : tone === 'bad' ? styles.bad : null]}>{value}</Text></View>; }
+function PriorityRow({ rank, title, detail, state, route }: { rank: string; title: string; detail: string; state: 'ACTIVE' | 'GATED'; route: string }) { return <Pressable onPress={() => router.push(route as never)} style={({ pressed }) => [styles.priorityRow, pressed && styles.pressed]}><Text style={styles.rank}>{rank}</Text><View style={styles.priorityText}><Text style={styles.priorityTitle}>{title}</Text><Text style={styles.priorityDetail}>{detail}</Text></View><View style={[styles.stateBadge, state === 'ACTIVE' ? styles.stateActive : styles.stateGated]}><Text style={styles.stateText}>{state}</Text></View></Pressable>; }
+function WorkspaceTile({ code, title, meta, route }: { code: string; title: string; meta: string; route: string }) { return <Pressable onPress={() => router.push(route as never)} style={({ pressed }) => [styles.tile, pressed && styles.pressed]}><Text style={styles.tileCode}>{code}</Text><Text style={styles.tileTitle}>{title}</Text><Text style={styles.tileMeta}>{meta}</Text><Text style={styles.tileArrow}>OPEN →</Text></Pressable>; }
 
-function ModuleCard({ label, eyebrow, body, action, route }: { label: string; eyebrow: string; body: string; action: string; route: '/analyze' | '/portfolio' | '/settings' | '/broker' }) {
-  return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => router.push(route)} style={({ pressed }) => [styles.moduleCard, pressed && styles.pressed]}>
-      <Text style={styles.moduleEyebrow}>{eyebrow}</Text>
-      <Text style={styles.moduleTitle}>{label}</Text>
-      <Text style={styles.moduleBody}>{body}</Text>
-      <Text style={styles.moduleAction}>{action} →</Text>
-    </Pressable>
-  );
+function objectRow(value: unknown): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
+function normalizeRows(value: unknown): Array<Record<string, unknown>> { if (Array.isArray(value)) return value.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object' && !Array.isArray(row)); const row = objectRow(value); for (const key of ['items', 'positions', 'data', 'results']) { const nested = row[key]; if (Array.isArray(nested)) return normalizeRows(nested); } return []; }
+function normalizedKey(value: string): string { return value.toLowerCase().replace(/[^a-z0-9]/g, ''); }
+function pickNumber(row: Record<string, unknown>, ...names: string[]): number | null { const normalized = new Map(Object.entries(row).map(([key, value]) => [normalizedKey(key), value])); for (const name of names) { const value = normalized.get(normalizedKey(name)); if (typeof value === 'number' && Number.isFinite(value)) return value; if (typeof value === 'string') { const parsed = Number(value); if (Number.isFinite(parsed)) return parsed; } } return null; }
+function pickText(row: Record<string, unknown>, ...names: string[]): string | null { const normalized = new Map(Object.entries(row).map(([key, value]) => [normalizedKey(key), value])); for (const name of names) { const value = normalized.get(normalizedKey(name)); if (typeof value === 'string' && value.trim()) return value.trim(); } return null; }
+function formatMoney(value: number | null, currency: string | null): string {
+  if (value === null) return 'N/D';
+  const code = currency?.trim().toUpperCase();
+  if (!code || !/^[A-Z]{3}$/.test(code)) return value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+  try { return new Intl.NumberFormat('es-ES', { style: 'currency', currency: code, maximumFractionDigits: 2 }).format(value); }
+  catch { return `${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })} ${code}`; }
 }
-
-function EvidenceRow({ left, right }: { left: string; right: string }) {
-  return (
-    <View style={styles.evidenceRow}>
-      <Text style={styles.evidenceLeft}>{left}</Text>
-      <Text style={styles.evidenceRight}>{right}</Text>
-    </View>
-  );
-}
+function formatSignedMoney(value: number | null, currency: string | null): string { if (value === null) return 'N/D'; const formatted = formatMoney(Math.abs(value), currency); return `${value > 0 ? '+' : value < 0 ? '−' : ''}${formatted}`; }
+function formatNumber(value: number | null): string { return value === null ? '—' : value.toLocaleString('es-ES', { maximumFractionDigits: 4 }); }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#05070a' },
-  content: { paddingTop: 48, paddingHorizontal: 14, paddingBottom: 36, gap: 12 },
-  terminalTopBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  product: { color: '#e5f4ff', fontSize: 22, fontWeight: '900', letterSpacing: -0.4 },
-  version: { color: '#38bdf8', fontSize: 10, fontWeight: '900', letterSpacing: 1.5, marginTop: 3 },
-  statusPill: { borderWidth: 1, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 10 },
-  statusPillOnline: { borderColor: '#14532d', backgroundColor: '#062b1d' },
-  statusPillWarn: { borderColor: '#713f12', backgroundColor: '#24180a' },
-  statusPillText: { color: '#e2e8f0', fontSize: 10, fontWeight: '900', letterSpacing: 0.8 },
-  tape: { gap: 8, paddingVertical: 2 },
-  tapeCell: { minWidth: 104, borderColor: '#1f2a37', borderWidth: 1, backgroundColor: '#07111b', paddingVertical: 10, paddingHorizontal: 10, borderRadius: 12 },
-  tapeSymbol: { color: '#f8fafc', fontSize: 14, fontWeight: '900' },
-  tapeState: { color: '#22d3ee', fontSize: 11, fontWeight: '900', marginTop: 2 },
-  tapeMeta: { color: '#64748b', fontSize: 10, marginTop: 2 },
-  commandBar: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: '#1d4ed8', backgroundColor: '#08111f', borderRadius: 14, padding: 13, gap: 11 },
-  commandPrompt: { color: '#38bdf8', fontSize: 20, fontWeight: '900' },
-  commandTextWrap: { flex: 1 },
-  commandTitle: { color: '#f8fafc', fontWeight: '900', fontSize: 14 },
-  commandSub: { color: '#94a3b8', marginTop: 2, fontSize: 11 },
-  providerPanel: { backgroundColor: '#0b1119', borderColor: '#1e293b', borderWidth: 1, borderRadius: 16, padding: 14, gap: 8 },
-  panelHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  panelTitle: { color: '#93c5fd', fontSize: 11, fontWeight: '900', letterSpacing: 1.1 },
-  panelMain: { color: '#f8fafc', fontSize: 17, fontWeight: '900' },
-  panelMuted: { color: '#94a3b8', fontSize: 12 },
-  providerRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  badge: { borderRadius: 999, paddingVertical: 7, paddingHorizontal: 10, borderWidth: 1 },
-  badgeOn: { backgroundColor: '#0d2a22', borderColor: '#1e6b53' },
-  badgeOff: { backgroundColor: '#221b14', borderColor: '#5f472c' },
-  badgeText: { color: '#dbeafe', fontSize: 11, fontWeight: '800' },
-  error: { color: '#fca5a5', lineHeight: 19, fontSize: 12 },
-  sectionRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 4 },
-  sectionTitle: { color: '#f8fafc', fontWeight: '900', fontSize: 18, letterSpacing: -0.3 },
-  sectionHint: { color: '#64748b', fontSize: 11, fontWeight: '700' },
-  mainDeck: { backgroundColor: '#0a1220', borderColor: '#1d4ed8', borderWidth: 1, borderRadius: 18, padding: 15, gap: 12 },
-  deckHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  deckKicker: { color: '#38bdf8', fontSize: 10, fontWeight: '900', letterSpacing: 1.2 },
-  deckTitle: { color: '#ffffff', fontSize: 28, fontWeight: '900', letterSpacing: -0.8 },
-  deckAction: { color: '#05070a', backgroundColor: '#38bdf8', borderRadius: 999, overflow: 'hidden', paddingVertical: 7, paddingHorizontal: 11, fontWeight: '900', fontSize: 11 },
-  metricsGrid: { flexDirection: 'row', gap: 8 },
-  metricBox: { flex: 1, borderWidth: 1, borderColor: '#263244', backgroundColor: '#070d15', borderRadius: 12, padding: 10 },
-  metricLabel: { color: '#64748b', fontSize: 10, fontWeight: '800', textTransform: 'uppercase' },
-  metricValue: { fontSize: 17, fontWeight: '900', marginTop: 4 },
-  toneBlue: { color: '#93c5fd' },
-  toneCyan: { color: '#22d3ee' },
-  toneAmber: { color: '#fbbf24' },
-  deckNote: { color: '#cbd5e1', fontSize: 12, lineHeight: 18 },
-  moduleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  moduleCard: { width: '48.5%', minHeight: 164, backgroundColor: '#091018', borderColor: '#1e293b', borderWidth: 1, borderRadius: 16, padding: 13, gap: 7 },
-  moduleEyebrow: { color: '#38bdf8', fontSize: 9, fontWeight: '900', letterSpacing: 0.7, textTransform: 'uppercase' },
-  moduleTitle: { color: '#f8fafc', fontSize: 18, fontWeight: '900', letterSpacing: -0.3 },
-  moduleBody: { color: '#94a3b8', fontSize: 11, lineHeight: 16, flex: 1 },
-  moduleAction: { color: '#e0f2fe', fontWeight: '900', fontSize: 11 },
-  evidencePanel: { backgroundColor: '#0b1119', borderColor: '#1e293b', borderWidth: 1, borderRadius: 16, padding: 14, gap: 9 },
-  evidenceRow: { flexDirection: 'row', gap: 10, borderTopWidth: 1, borderTopColor: '#162032', paddingTop: 8 },
-  evidenceLeft: { width: 104, color: '#f8fafc', fontWeight: '900', fontSize: 11 },
-  evidenceRight: { flex: 1, color: '#94a3b8', fontSize: 11, lineHeight: 16 },
-  quickStrip: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 2 },
-  quickCommand: { color: '#7dd3fc', borderColor: '#1e3a8a', borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 5, fontSize: 9, fontWeight: '900' },
-  pressed: { opacity: 0.72 },
+  screen: { flex: 1, backgroundColor: '#050708' }, content: { paddingHorizontal: 10, paddingTop: 12, paddingBottom: 22, gap: 10 },
+  pageHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#1a262b' }, eyebrow: { color: '#607278', fontFamily: 'monospace', fontSize: 8, fontWeight: '900', letterSpacing: 1.1 }, title: { color: '#eef5f2', fontFamily: 'monospace', fontSize: 24, fontWeight: '900', marginTop: 2 },
+  engineBadge: { marginLeft: 'auto', minHeight: 30, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, paddingHorizontal: 8 }, engineOnline: { borderColor: '#23634f', backgroundColor: '#07150f' }, engineOffline: { borderColor: '#5e3535', backgroundColor: '#170b0b' }, engineDot: { width: 6, height: 6, borderRadius: 99 }, dotOnline: { backgroundColor: '#38e7aa' }, dotOffline: { backgroundColor: '#ef7676' }, engineText: { color: '#b9c9c3', fontFamily: 'monospace', fontSize: 7, fontWeight: '900' },
+  portfolioGate: { borderWidth: 1, borderColor: '#514724', backgroundColor: '#111006', padding: 12, gap: 9 }, portfolioGateTop: { flexDirection: 'row', alignItems: 'center', gap: 8 }, portfolioLabel: { flex: 1, color: '#dce7e3', fontFamily: 'monospace', fontSize: 9, fontWeight: '900' }, gateBadge: { color: '#dfc66b', fontFamily: 'monospace', fontSize: 7, fontWeight: '900' }, portfolioGateText: { color: '#8e896a', fontSize: 10, lineHeight: 15 }, connectButton: { alignSelf: 'flex-start', borderWidth: 1, borderColor: '#645b2d', paddingHorizontal: 10, paddingVertical: 7 }, connectText: { color: '#dfc66b', fontFamily: 'monospace', fontSize: 8, fontWeight: '900' },
+  portfolioPanel: { borderWidth: 1, borderColor: '#285b4a', backgroundColor: '#06100c', padding: 11, gap: 10 }, portfolioTop: { flexDirection: 'row', alignItems: 'center', gap: 8 }, portfolioSub: { color: '#4f6e63', fontFamily: 'monospace', fontSize: 7, marginTop: 3 }, liveBadge: { color: '#4ce8b5', borderWidth: 1, borderColor: '#2b6b55', paddingHorizontal: 6, paddingVertical: 3, fontFamily: 'monospace', fontSize: 7, fontWeight: '900' }, portfolioMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 }, portfolioMetric: { minWidth: 100, flexGrow: 1, borderTopWidth: 1, borderTopColor: '#163126', paddingTop: 7 }, portfolioMetricLabel: { color: '#476359', fontFamily: 'monospace', fontSize: 7, fontWeight: '900' }, portfolioMetricValue: { color: '#e5eeeb', fontFamily: 'monospace', fontSize: 13, fontWeight: '900', marginTop: 3 }, positionsHeader: { flexDirection: 'row', gap: 7, borderTopWidth: 1, borderTopColor: '#163126', paddingTop: 7 }, positionHead: { width: 70, color: '#486158', fontFamily: 'monospace', fontSize: 7, fontWeight: '900', textAlign: 'right' }, positionFlex: { flex: 1, textAlign: 'left' }, positionRow: { minHeight: 28, flexDirection: 'row', alignItems: 'center', gap: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#11251d' }, positionSymbol: { color: '#cbd8d4', fontFamily: 'monospace', fontSize: 9, fontWeight: '900' }, positionValue: { width: 70, color: '#95a49f', fontFamily: 'monospace', fontSize: 8, textAlign: 'right' }, morePositions: { color: '#69caaa', fontFamily: 'monospace', fontSize: 8, fontWeight: '900', marginTop: 3 },
+  statusStrip: { flexDirection: 'row', borderWidth: 1, borderColor: '#1a282d', backgroundColor: '#080d0f' }, statusCell: { flex: 1, minWidth: 0, paddingHorizontal: 8, paddingVertical: 8, borderRightWidth: 1, borderRightColor: '#172328' }, statusLabel: { color: '#506168', fontFamily: 'monospace', fontSize: 6, fontWeight: '900', letterSpacing: 0.7 }, statusValue: { marginTop: 3, fontFamily: 'monospace', fontSize: 8, fontWeight: '900' }, good: { color: '#49e8b7' }, bad: { color: '#e47c83' }, warn: { color: '#e0b761' }, neutral: { color: '#87969b' },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 4 }, sectionCode: { color: '#41e6b2', fontFamily: 'monospace', fontSize: 8, fontWeight: '900' }, sectionTitle: { color: '#bdc9c6', fontFamily: 'monospace', fontSize: 9, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 0.8 }, sectionLine: { flex: 1, height: 1, backgroundColor: '#1a262b' },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 }, tile: { width: '48.8%', minHeight: 108, borderWidth: 1, borderColor: '#1b292e', backgroundColor: '#080d0f', padding: 9 }, tileCode: { color: '#45e7b3', fontFamily: 'monospace', fontSize: 8, fontWeight: '900' }, tileTitle: { color: '#e3ebe8', fontFamily: 'monospace', fontSize: 13, fontWeight: '900', marginTop: 8 }, tileMeta: { color: '#697980', fontSize: 9, lineHeight: 13, marginTop: 4 }, tileArrow: { color: '#739188', fontFamily: 'monospace', fontSize: 7, fontWeight: '900', marginTop: 'auto', paddingTop: 8 },
+  stack: { borderWidth: 1, borderColor: '#1a282d', backgroundColor: '#070b0d' }, priorityRow: { minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 8, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#152126' }, rank: { width: 21, color: '#52636a', fontFamily: 'monospace', fontSize: 8, fontWeight: '900' }, priorityText: { flex: 1, minWidth: 0 }, priorityTitle: { color: '#dce6e2', fontFamily: 'monospace', fontSize: 10, fontWeight: '900' }, priorityDetail: { color: '#6c7c82', fontSize: 9, lineHeight: 13, marginTop: 3 }, stateBadge: { borderWidth: 1, paddingHorizontal: 5, paddingVertical: 3 }, stateActive: { borderColor: '#245f4d', backgroundColor: '#07140f' }, stateGated: { borderColor: '#5d4c2d', backgroundColor: '#171208' }, stateText: { color: '#aab8b4', fontFamily: 'monospace', fontSize: 6, fontWeight: '900' },
+  securityHub: { minHeight: 62, flexDirection: 'row', alignItems: 'center', gap: 9, borderWidth: 1, borderColor: '#2a654f', backgroundColor: '#07140f', padding: 9 }, securityCode: { width: 37, height: 30, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#2d6f57' }, securityCodeText: { color: '#53edbd', fontFamily: 'monospace', fontSize: 8, fontWeight: '900' }, securityText: { flex: 1 }, securityTitle: { color: '#e8f1ed', fontFamily: 'monospace', fontSize: 10, fontWeight: '900' }, securityMeta: { color: '#708078', fontSize: 9, marginTop: 3 }, arrow: { color: '#4ce9b7', fontFamily: 'monospace', fontSize: 14 },
+  ruleBar: { minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: 1, borderTopColor: '#1a262b', marginTop: 3 }, ruleCode: { color: '#4ae8b6', fontFamily: 'monospace', fontSize: 7, fontWeight: '900' }, ruleText: { flex: 1, color: '#65767c', fontFamily: 'monospace', fontSize: 7, lineHeight: 11 }, pressed: { opacity: 0.66 },
 });
