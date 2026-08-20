@@ -24,6 +24,8 @@ When Trading 212 read access and a locally stored ATLAS broker-control session a
 
 Portfolio polling is bounded and must respect upstream rate limits. The Trading 212 API key and secret remain server-side. Only the ATLAS broker-control token may be stored on-device, and it must use encrypted SecureStore rather than plain application storage.
 
+Money values use the account currency supplied upstream. If the provider does not supply a valid ISO currency code, ATLAS renders the numeric value without inventing a currency.
+
 If broker credentials/session are unavailable, HOME renders `BROKER GATE` / `LOCAL SESSION GATE`; it must never fabricate a portfolio.
 
 ## Global index tape
@@ -96,6 +98,8 @@ Current executable snapshot:
 - Global CAPEX Chain Ω profile;
 - provider/provenance;
 - explicit engine gates for engines not yet callable from mobile.
+
+AUD accepts a ticker passed from Watchlist/terminal routes so the audit queue preserves context instead of forcing repeated symbol entry.
 
 Audit results can be saved to the local Result Journal. A saved snapshot is historical evidence of what was observed at that time; it is not retroactively rewritten because price later changed.
 
@@ -200,8 +204,9 @@ Implemented on branch `atlas/openterminal-mobile-shell`:
 - GO Bar / command palette;
 - global live-index API + terminal tape;
 - portfolio-first HOME with Trading 212 auto-read session;
+- account-currency-aware portfolio values;
 - encrypted broker-control token storage;
-- AUDIT surface;
+- AUDIT surface with ticker handoff;
 - persistent WATCHLIST;
 - persistent RESULT JOURNAL;
 - Opportunities, Catalysts and News workspaces;
