@@ -1,3 +1,5 @@
+import { NEOCLOUD_CUSTOMER_ACCEPTANCE_GATE_OMEGA_V1 } from './neocloud-customer-acceptance-gate-omega';
+
 export type AtlasSpecializedEngineAuthority = 'SPECIALIZED';
 
 export interface AtlasSpecializedEngineManifest {
@@ -29,6 +31,7 @@ export const AI_DEMAND_MONETIZATION_PROOF_OMEGA_V1: AtlasSpecializedEngineManife
     'Model usage is not economic demand unless paying or economically valuable workload evidence exists.',
     'Token/API price compression alone is neither demand deterioration nor a falsifier.',
     'Test workload volume, realized pricing, retention/backlog, gross-profit conversion and cash conversion independently.',
+    'For neocloud deployments, Customer Acceptance Gate must sit between Deployment and Revenue Recognition.',
     'A single vendor cannot establish industry-wide demand proof; measure breadth across model, cloud and application layers.',
     'Secondary media can trigger research but cannot promote state without primary or strongly corroborated evidence.',
     'Feed AI CAPEX PAYBACK OMEGA with demand/utilization evidence without double-counting the same observations.',
@@ -64,5 +67,6 @@ export const GRID_BOTTLENECK_POWER_CAPTURE_OMEGA_V1: AtlasSpecializedEngineManif
 
 export const AI_DEMAND_AND_GRID_BOTTLENECK_ENGINES = [
   AI_DEMAND_MONETIZATION_PROOF_OMEGA_V1,
+  NEOCLOUD_CUSTOMER_ACCEPTANCE_GATE_OMEGA_V1,
   GRID_BOTTLENECK_POWER_CAPTURE_OMEGA_V1,
 ] as const;
