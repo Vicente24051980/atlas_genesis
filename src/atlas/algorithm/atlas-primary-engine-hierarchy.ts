@@ -1,5 +1,5 @@
 export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
-  version: '2026-08-20-v4.3',
+  version: '2026-08-20-v4.4',
   primaryEngine: 'PRINCIPAL_OMEGA',
   primaryRole: 'structural_selection_quality_growth_asymmetry',
   refinementEngines: [
@@ -10,7 +10,7 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'INSTITUTIONAL_CAPITAL_ROTATION_OMEGA_V1_1', 'INSTITUTIONAL_CONVERGENCE_OMEGA_V1', 'MONEY_ROTATION_OMEGA',
     'ENERGY_ROTATION_OMEGA', 'EUROPEAN_FRAGMENTATION_ENERGY_SECURITY_OMEGA_V1_1', 'EU_FISCAL_STRESS_OMEGA_V1',
     'CHINA_INDUSTRIAL_DISPLACEMENT_OMEGA_V1', 'GOOD_COMPANIES_CHEAP_OMEGA', 'HISTORICAL_DISLOCATION_OMEGA',
-    'SPECIALIZED_ENGINES_OMEGA',
+    'SPECIALIZED_ENGINES_OMEGA', 'SIZE_NEUTRAL_RETURN_RANKING_OMEGA_V1',
   ] as const,
   conditionalSpecializedEngines: [
     'AI_DEMAND_MONETIZATION_PROOF_OMEGA_V1',
@@ -23,7 +23,8 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
   auxiliaryLayers: ['WINNER_PRESERVATION_OMEGA_V1', 'OPTIONALITY_RESERVE_OMEGA_V1', 'CAPITAL_SAFETY_LEVERAGE_DISCIPLINE_OMEGA_V1'] as const,
   transversalGates: [
     'ANTI_DELUSION_CORE_OMEGA', 'EVIDENCE_INTEGRITY_OMEGA', 'SOURCE_AUTHENTICITY_OMEGA', 'QUANTITATIVE_INTEGRITY_OMEGA',
-    'TEMPORAL_NORMALIZATION_OMEGA', 'SYSTEMIC_CASCADE_OMEGA_V1', 'FALSIFIER_VETO_OMEGA_V1', 'DECISION_SAFETY_GATE_OMEGA',
+    'TEMPORAL_NORMALIZATION_OMEGA', 'SIZE_NEUTRALITY_AUDIT_OMEGA_V1', 'SYSTEMIC_CASCADE_OMEGA_V1',
+    'FALSIFIER_VETO_OMEGA_V1', 'DECISION_SAFETY_GATE_OMEGA',
   ] as const,
   rules: [
     'PRINCIPAL OMEGA remains the structural selection engine.',
@@ -31,6 +32,9 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'FALSIFIER VETO is independent and absolute: a confirmed structural falsifier overrides E-Proof, valuation and Expected Return.',
     'Unverified evidence cannot be promoted to a confirmed falsifier.',
     'Price is not evidence and a trigger is not a falsifier.',
+    'SIZE-NEUTRAL RETURN RANKING starts every ticker at 0/1000; market cap and generic quality provide zero bonus and zero penalty.',
+    'Market-cap bucket is assigned only after score freeze; size distribution is an audit output, never a score input.',
+    'Growth Saturation may reduce expected-return opportunity only from economic evidence, never from size alone.',
     'AI DEMAND MONETIZATION PROOF must normalize run-rate versus realized TTM revenue and distinguish usage from paying/economically valuable demand.',
     'AI DEMAND MONETIZATION PROOF feeds demand/utilization evidence into AI CAPEX PAYBACK without double-counting.',
     'NEOCLOUD CUSTOMER ACCEPTANCE GATE is mandatory between Deployment and Revenue Recognition for material neocloud deployments; contract or deployment alone remains capped at E2.',
@@ -88,6 +92,8 @@ export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'SYSTEMIC_CASCADE_OMEGA_V1',
   'WINNER_PRESERVATION_OMEGA_V1',
   'OPTIONALITY_RESERVE_OMEGA_V1',
+  'SIZE_NEUTRAL_RETURN_RANKING_OMEGA_V1',
+  'SIZE_NEUTRALITY_AUDIT_OMEGA_V1',
   'FALSIFIER_VETO_OMEGA_V1',
   'DECISION_SAFETY_GATE_OMEGA',
   'DECISION_LOG_OMEGA',
