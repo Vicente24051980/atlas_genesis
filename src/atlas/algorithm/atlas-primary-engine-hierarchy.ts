@@ -1,5 +1,5 @@
 export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
-  version: '2026-08-20-v4.5',
+  version: '2026-08-20-v4.5.1',
   primaryEngine: 'PRINCIPAL_OMEGA',
   primaryRole: 'structural_selection_quality_growth_asymmetry',
   refinementEngines: [
@@ -17,7 +17,7 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'NEOCLOUD_CUSTOMER_ACCEPTANCE_GATE_OMEGA_V1',
     'AI_CAPEX_PAYBACK_OMEGA_V2_1', 'AI_FINANCIAL_FRAGILITY_OMEGA_V1_1', 'AI_CREDIT_TRANSMISSION_OMEGA_V1',
     'GRID_BOTTLENECK_POWER_CAPTURE_OMEGA_V1',
-    'MARKET_TOP_RISK_OMEGA', 'MARKET_BOTTOM_DETECTION_OMEGA', 'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2',
+    'MARKET_TOP_RISK_OMEGA', 'MARKET_BOTTOM_DETECTION_OMEGA', 'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2_1',
     'EVENT_PRICING_OPTIONS_EXPECTATIONS_OMEGA_V1', 'SPECIAL_SITUATIONS_OMEGA_V1',
   ] as const,
   auxiliaryLayers: ['WINNER_PRESERVATION_OMEGA_V1', 'OPTIONALITY_RESERVE_OMEGA_V1', 'CAPITAL_SAFETY_LEVERAGE_DISCIPLINE_OMEGA_V1'] as const,
@@ -36,6 +36,7 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'Market-cap bucket is assigned only after score freeze; size distribution is an audit output, never a score input.',
     'Growth Saturation may reduce expected-return opportunity only from economic evidence, never from size alone.',
     'ENTRY TIMING RETURN-AWARE credits the correction already observed before calculating any remaining pullback requirement.',
+    'Current drawdown from ATH or rolling peak is preferred to a negative window return; window return is a fallback only when peak data are unavailable.',
     'No universal extra -3%, -5% or -10% correction may be demanded after ticker-specific dislocation bands are already reached.',
     'GREEN 5/5 remains strongest continuity; GREEN 4/5 and 3/5 are valid committee inputs when Size-Neutral Return Score is >=850. GREEN remains independent and is never rewritten by return score.',
     'GREEN below 3/5 blocks immediate entry but is not by itself a fundamental falsifier.',
@@ -97,7 +98,7 @@ export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'WINNER_PRESERVATION_OMEGA_V1',
   'OPTIONALITY_RESERVE_OMEGA_V1',
   'SIZE_NEUTRAL_RETURN_RANKING_OMEGA_V1',
-  'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2',
+  'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2_1',
   'SIZE_NEUTRALITY_AUDIT_OMEGA_V1',
   'FALSIFIER_VETO_OMEGA_V1',
   'DECISION_SAFETY_GATE_OMEGA',
