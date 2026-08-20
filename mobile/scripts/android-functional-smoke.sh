@@ -112,21 +112,28 @@ PY
   exit 1
 }
 
-wait_text "Investment Intelligence"
-wait_text "Acciones principales"
+wait_text "ATLAS Ω TERMINAL"
+wait_text "Command Center"
+wait_text "Portfolio First"
+wait_text "Audit Console"
+wait_text "Watchlist"
+wait_text "Resultados"
+wait_text "EVIDENCE STACK"
 
-tap_desc "Analizar ticker"
+tap_desc "Audit Console"
 wait_text "Analizar empresa"
 adb shell input keyevent 4
-wait_text "Investment Intelligence"
+wait_text "ATLAS Ω TERMINAL"
 
-tap_desc "Cartera 36"
+tap_desc "Portfolio First"
 wait_text "Cartera 36"
 adb shell input keyevent 4
-wait_text "Investment Intelligence"
+wait_text "ATLAS Ω TERMINAL"
 
-tap_desc "Estado del sistema"
-wait_text "Estado del sistema"
+tap_desc "Broker Ω"
+wait_text "Trading 212"
+adb shell input keyevent 4
+wait_text "ATLAS Ω TERMINAL"
 
 capture_ui
-echo "ATLAS Ω Mobile v1 clean UI gate: PASS"
+echo "ATLAS Ω OpenTerminalUI mobile gate: PASS"
