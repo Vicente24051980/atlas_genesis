@@ -31,8 +31,8 @@ describe('AI Economic Proof x Equity Monetization Omega v1', () => {
   it('keeps Economic Proof strong while Equity Monetization can be weak', () => {
     expect(assessAiEconomicProofEquity({
       ...caseFor('MU', -22.78),
-      flowPositioning: 35,
-      priceResponse: 30,
+      flowPositioning: 20,
+      priceResponse: 20,
     })).toMatchObject({
       economicProofState: 'PROVEN_STRONG',
       cleanWinner: false,
