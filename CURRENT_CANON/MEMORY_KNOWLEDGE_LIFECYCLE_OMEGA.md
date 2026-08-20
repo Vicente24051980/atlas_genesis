@@ -1,4 +1,4 @@
-# ATLAS Ω — Memory & Knowledge Lifecycle Ω v1.0
+# ATLAS Ω — Memory & Knowledge Lifecycle Ω v1.1
 
 Status: ACTIVE CANON
 Effective: 2026-08-20
@@ -14,20 +14,38 @@ ATLAS must not merely remember more. It must know what a memory represents, how 
 4. CALIBRATION — observed successes/failures used to change engine behavior; never rewrite the historical result retrospectively.
 5. GRAPH — explicit relationships among companies, assets, technologies, customers, suppliers, catalysts and risks.
 
-## Agent vs user memory separation
-- USER/CONSTITUTIONAL MEMORY: mandates, constraints, portfolio rules, accepted canon. Highest persistence; changes only by explicit replacement or constitutional conflict resolution.
-- AGENT/ANALYTICAL MEMORY: hypotheses, intermediate conclusions, inferred relationships and temporary research state. Must carry provenance, confidence and expiry/revalidation rules.
-Never promote an agent inference into user/canonical memory merely through repetition.
+## User memory vs Agent memory — explicit design decision
+ATLAS uses BOTH, with hard namespace separation.
 
-## Retrieval architecture
-Use hybrid retrieval where available:
-- vector/semantic retrieval for concept similarity;
-- graph retrieval for explicit causal/supply-chain/entity relationships;
-- exact-key retrieval for ticker, engine, date, experiment ID and canonical rule.
-Retrieval rank must consider relevance × authority × freshness × evidence quality, not semantic similarity alone.
+### USER / CONSTITUTIONAL MEMORY
+Stores explicit mandates, portfolio constraints, accepted canon, durable preferences and user-approved operating rules.
+- authority: highest
+- write policy: explicit user statement or accepted canon only
+- persistence: indefinite until explicit supersession
+- agent inference may never silently enter this namespace
+
+### AGENT / ANALYTICAL MEMORY
+Stores hypotheses, intermediate conclusions, research state, event interpretations, temporary rankings and inferred relationships.
+- authority: subordinate to evidence and USER/CONSTITUTIONAL memory
+- write policy: provenance + confidence + temporal validity mandatory
+- persistence: class-specific TTL/revalidation
+- repeated inference does not become canonical truth
+
+Conflict rule: USER/CONSTITUTIONAL memory governs mandates; external FACT evidence governs factual truth. A user preference cannot convert a false factual claim into FACT.
+
+## Retrieval architecture — explicit design decision
+ATLAS uses HYBRID RETRIEVAL, not Vector OR Graph.
+
+1. EXACT/KEY retrieval — ticker, date, engine, experiment ID, canonical rule, commit/report ID.
+2. VECTOR/SEMANTIC retrieval — fuzzy concept recall, analogous cases, narrative similarity and broad discovery.
+3. GRAPH retrieval — explicit causal, ownership, supply-chain, customer, competitor, CAPEX and monetization relationships.
+
+Retrieval ranking = semantic relevance × authority × freshness × evidence quality × entity/date match, with superseded/expired records filtered before decisive use.
+
+Vector similarity can discover evidence but cannot establish a relationship. Graph edges can encode relationships but cannot establish economic materiality. Both must pass Memory Quality Gate Ω before affecting a verdict.
 
 ## Mandatory metadata contract
-memory_id; class; subject/entity; ticker(s); engine(s); created_at; observed_at; effective_from; expires_at/revalidate_at; source/provenance; evidence_grade; confidence; status; supersedes; superseded_by; experiment_id; regime/context; falsifiers; tags.
+memory_id; namespace(user|agent); class; subject/entity; ticker(s); engine(s); created_at; observed_at; effective_from; expires_at/revalidate_at; source/provenance; evidence_grade; confidence; status; supersedes; superseded_by; experiment_id; regime/context; falsifiers; tags.
 
 ## Lifecycle states
 ACTIVE → REVALIDATE → SUPERSEDED / EXPIRED / RETIRED.
@@ -69,6 +87,9 @@ M4 not superseded;
 M5 evidence grade sufficient;
 M6 contradiction scan completed.
 Failure of M1–M4 blocks decisive use. M5/M6 downgrade confidence or trigger revalidation.
+
+## Mem0 cookbook signal — 20-Aug-2026
+The Mem0 guidance emphasizing User vs Agent memory, Vector vs Graph retrieval, persistence and metadata is treated as architecture validation, not vendor lock-in. ATLAS adopts the design principles independently of storage vendor. Mem0 remains an implementation candidate/adapter, not a constitutional dependency.
 
 ## Canonical principle
 MEMORY ≠ TRUTH.
