@@ -1,0 +1,45 @@
+export {
+  CONVERSATIONAL_INTENT_MONETIZATION_OMEGA_VERSION,
+  assessConversationalIntentMonetizationOmega,
+  calculateConversationalIntentScore,
+  type ConversationalIntentInput,
+  type ConversationalIntentResult,
+  type ConversationalIntentState,
+  type ParentTollboothContribution,
+} from '../ai-tollbooth/conversational-intent-monetization';
+
+export const CONVERSATIONAL_INTENT_MONETIZATION_OMEGA_REGISTRATION = {
+  id: 'CONVERSATIONAL_INTENT_MONETIZATION_OMEGA',
+  version: '1.0.0',
+  family: 'AI_TOLLBOOTH_OMEGA',
+  scope: 'DISCOVERY_AND_ECONOMIC_PROOF_ROUTING',
+  buySignal: false,
+  parentGateAuthority: 'LIMITED_BY_C0_TO_C5_EVIDENCE',
+  economicChain: [
+    'ELIGIBLE_USERS',
+    'COMMERCIAL_INTENT',
+    'AD_INVENTORY',
+    'IMPRESSION_OR_CLICK',
+    'CONVERSION',
+    'AD_REVENUE',
+    'REVENUE_PER_ELIGIBLE_USER',
+    'INFERENCE_COST_PER_USER',
+    'CONTRIBUTION_MARGIN',
+    'RETENTION_AND_TRUST',
+  ],
+  mandatorySeparations: [
+    'AD_PLACEMENT_NE_ASSISTANT_ANSWER',
+    'ADS_LIVE_NE_MATERIAL_REVENUE',
+    'AD_REVENUE_NE_POSITIVE_UNIT_ECONOMICS',
+    'ADVERTISER_PAYMENT_NE_RESPONSE_INFLUENCE',
+    'PRIVATE_COMPANY_SIGNAL_NE_PUBLIC_EQUITY_BUY',
+  ],
+  downstream: [
+    'AI_TOLLBOOTH_OMEGA',
+    'AI_DEMAND_MONETIZATION_PROOF_OMEGA',
+    'ECONOMIC_PROOF_OMEGA',
+    'VALUATION_IMPLIED_RETURN_OMEGA',
+    'FALSIFIERS_OMEGA',
+    'MONEY_ROTATION_OMEGA',
+  ],
+} as const;
