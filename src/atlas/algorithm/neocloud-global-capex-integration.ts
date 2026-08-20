@@ -42,7 +42,8 @@ function clampEconomicProof(
   requested: EconomicProofLevel,
   ceiling: EconomicProofLevel,
 ): EconomicProofLevel {
-  return proofByRank[Math.min(proofRank[requested], proofRank[ceiling])];
+  const rank = Math.min(proofRank[requested], proofRank[ceiling]);
+  return proofByRank[rank] ?? 'E0_NARRATIVE';
 }
 
 export function evaluateNeocloudGlobalCapexChain(
