@@ -1,105 +1,50 @@
 # MEGACAP RETURN CEILING Ω
 
-Status: ACTIVE CANON
-Date: 2026-08-19
+**Status:** SUPERSEDED AS A SCORING RULE  
+**Original date:** 2026-08-19  
+**Superseded:** 2026-08-20  
+**Active replacement:** `CURRENT_CANON/SIZE_NEUTRAL_RETURN_RANKING_OMEGA.md`
 
-## Purpose
-Prevent ATLAS from confusing an excellent company, an improved entry price, or a fundamental BUY with a maximum-forward-return opportunity.
+## Governance change
 
-## Core separation
-ATLAS MUST score these independently:
+The prior rule correctly separated Business Quality, Entry Price and Expected Return, but its mechanical `SIZE / MEGACAP CEILING Ω` could introduce an unwanted size bias into cross-sectional return rankings.
 
-1. BUSINESS QUALITY Ω — quality, moat, FCF, ROIC/economic proof, durability.
-2. ENTRY PRICE Ω — valuation versus history, fundamentals and recent drawdown.
-3. EXPECTED RETURN Ω — plausible 3–6Y annualized and cumulative return from today's enterprise/equity value.
-4. FORWARD ASYMMETRY Ω — upside distribution versus downside/falsification risk.
-5. SIZE / MEGACAP CEILING Ω — mathematical burden imposed by current market capitalization.
+By explicit user instruction, ATLAS now applies **Size-Neutral Return Ranking Ω**:
 
-A BUY in dimensions 1–2 MUST NOT automatically become a MAX RETURN BUY.
+- every ticker starts at **0/1000**;
+- market capitalization gives **0 bonus and 0 penalty**;
+- generic quality/prestige gives **0 baseline points**;
+- megacaps are neither excluded nor mechanically downgraded;
+- smaller companies receive no small-cap bonus;
+- normalized economics, expected return, revisions, money rotation, momentum, specialist engines, risk and falsifiers decide the ranking;
+- market-cap bucket is revealed only **after the score is frozen**.
 
-## Megacap gate
-Trigger MEGACAP_RETURN_CEILING when market capitalization is already extremely large (default diagnostic threshold: >= $500B; HIGH severity >= $1T).
+## What survives from this module
 
-For triggered companies, ATLAS must explicitly calculate scenario market caps:
-- 2x current equity value
-- 3x current equity value
-- 5x current equity value
+The following ideas remain valid as diagnostics and are incorporated into the replacement canon:
 
-These are not price targets. They are feasibility checks.
+- **QUALITY ≠ EXPECTED RETURN.**
+- **PRICE ≠ RETURN EVIDENCE.**
+- **BUY ≠ MAX RETURN BUY.**
+- 2x / 3x / 5x implied equity-value arithmetic may be used as a feasibility check.
+- Revenue/FCF/earnings required by a valuation scenario should be tested explicitly.
 
-The engine then asks:
-- What revenue, FCF and earnings would support each scenario?
-- What terminal multiple is implicitly required?
-- Is that scale plausible within 3–6 years?
-- Would the resulting market capitalization require an implausibly large share of the relevant profit pool / economy / index?
+However, scenario market capitalization **must not itself deduct ranking points**. A negative scoring consequence must be supported by traceable evidence through:
 
-## Classification
-Allowed outputs:
+- Expected Return / Valuation Ω;
+- Growth Saturation Ω;
+- incremental ROIC / FCF economics;
+- TAM/profit-pool constraints;
+- risk or falsifiers.
 
-- BUY — MAX RETURN: quality + price + expected return + asymmetry all pass; size does not materially cap upside.
-- BUY — COMPOUNDER: attractive business and entry, but current scale lowers plausible multiple-expansion / multibagger potential.
-- BUY — DEFENSIVE/QUALITY: attractive preservation/quality characteristics; expected return is secondary.
-- HOLD / WATCH / REJECT.
+## Historical calibration — Broadcom
 
-Never label a security MAX RETURN BUY solely because it has fallen substantially from a previous high.
+The earlier AVGO calibration remains useful only as a valuation-feasibility example. ATLAS may ask whether a 2x/3x/5x equity value is economically plausible, but AVGO cannot be penalized simply because its starting market capitalization is already large.
 
-## Drawdown rule
-A drawdown is PRICE INFORMATION, not RETURN EVIDENCE.
+If its normalized economics and expected return beat smaller companies, it ranks above them. If a smaller company offers stronger evidence-backed forward asymmetry, the smaller company ranks above AVGO.
 
-Example:
-Peak $495 -> price $380 = materially improved entry price.
-It does NOT prove that $380 offers exceptional 3–6Y expected return.
-Expected return must be recomputed from current fundamentals, valuation, growth runway and current market capitalization.
+## Active law
 
-## Canonical calibration case — Broadcom (AVGO), 2026-08-19
-Observed user price snapshot: approximately $380 and approximately $1.81T market capitalization.
-
-Fundamental evidence remains exceptional: Broadcom Q2 FY2026 reported $22.187B revenue (+48% YoY), $10.262B FCF (+60% YoY), $10.8B AI semiconductor revenue (+143% YoY), and guided Q3 revenue to approximately $29.4B (+84% YoY) with AI semiconductor revenue expected at approximately $16B (>200% YoY).
-
-ATLAS interpretation:
-- BUSINESS QUALITY: PASS / elite.
-- ECONOMIC PROOF: PASS.
-- AI CAPEX CAPTURE: PASS.
-- ENTRY PRICE at ~$380 versus prior ~$495 high: materially improved.
-- EXPECTED RETURN: must remain independent.
-- MEGACAP RETURN CEILING: HIGH because equity value is already around $1.8T in the supplied snapshot.
-
-Feasibility arithmetic at $1.81T starting market cap:
-- 2x = ~$3.62T
-- 3x = ~$5.43T
-- 5x = ~$9.05T
-
-Therefore AVGO may legitimately be a BUY while NOT being a MAX RETURN BUY.
-Canonical classification for this case: BUY — COMPOUNDER / MEGACAP, subject to live valuation and falsifier updates.
-
-## Ranking consequence
-When ATLAS is asked for companies with the highest plausible 3–6Y capital multiplication, a megacap can rank below a smaller company even when the megacap has superior Quality Ω.
-
-Quality rank != Expected Return rank.
-Price attractiveness != Expected Return rank.
-Past drawdown != Forward asymmetry.
-
-## Portfolio consequence
-Do not reject megacaps automatically. Their role may be:
-- high-confidence compounder,
-- portfolio anchor,
-- economic-proof benchmark,
-- lower-risk participation in a structural theme.
-
-But ATLAS must not let their quality score crowd out smaller companies with stronger evidence-backed Forward Asymmetry Ω when the objective is maximum 3–6Y return.
-
-## Required output fields
-For any triggered megacap analysis, display:
-- Quality Ω
-- Entry Price Ω
-- Current market cap
-- 2x / 3x / 5x implied market caps
-- Expected Return Ω
-- Forward Asymmetry Ω
-- Megacap Ceiling severity
-- Final class: MAX RETURN BUY / COMPOUNDER BUY / QUALITY BUY / HOLD / WATCH / REJECT
-
-## Constitutional rule
-PRICE ≠ EVIDENCE.
-QUALITY ≠ EXPECTED RETURN.
-BUY ≠ MAX RETURN BUY.
+**SIZE IS METADATA, NOT SCORE.**  
+**GROWTH SATURATION REQUIRES ECONOMIC EVIDENCE.**  
+**FALSIFIERS Ω REMAINS AN ABSOLUTE VETO.**
