@@ -192,6 +192,17 @@ export const NEOCLOUD_CUSTOMER_ACCEPTANCE_GATE_OMEGA_V1 = {
   authority: 'SPECIALIZED',
   role: 'separate contracted and deployed neocloud capacity from customer-accepted, revenue-producing and cash-returning economic proof',
   emitsAutomaticTrade: false,
+  states: [
+    'N0_CONTRACTED',
+    'N1_CAPACITY_SECURED',
+    'N2_HARDWARE_READY',
+    'N3_DEPLOYED',
+    'N4_CUSTOMER_ACCEPTED',
+    'N5_REVENUE_RECOGNIZED',
+    'N6_MARGIN_PROVEN',
+    'N7_CASH_RETURN_PROVEN',
+    'NX_EXECUTION_REVIEW',
+  ] as const,
   canonicalChain: [
     'CONTRACT',
     'CAPACITY_FINANCING',
