@@ -135,3 +135,21 @@ Trigger evidence supplied for research includes rapid reported annualized revenu
 
 ## Decision authority
 This engine can raise/lower AI economic-proof confidence and audit priority. It cannot issue an automatic trade. Falsifiers Ω retains independent absolute veto only on confirmed structural evidence.
+
+## Canon amendment — 2026-08-20 — Neocloud Customer Acceptance Gate Ω
+
+For neoclouds and material AI-infrastructure deployments, the generic demand-to-monetization chain is refined as follows:
+
+`Contract → Capacity / Financing → Hardware Ready → Deployment / Commissioning → Customer Acceptance → Revenue Recognition → Gross Margin → OCF/FCF → ROIC`
+
+Mandatory law: **CONTRACT != DEPLOYMENT != CUSTOMER ACCEPTANCE != REVENUE != OWNER ECONOMICS.**
+
+- Contracted demand, take-or-pay commitments, hardware delivery and physical deployment remain maximum E2 evidence.
+- Formal/equivalent customer acceptance is mandatory execution evidence between deployment and monetization where acceptance/go-live validation is economically material.
+- Customer acceptance alone remains E2; it cannot be treated as revenue or Economic Scale.
+- E3 requires attributable recognized revenue plus credible margin from the accepted deployment.
+- E4 requires multi-period cash conversion / ROIC after E3.
+- Escrow release may corroborate acceptance but is not revenue recognition.
+- Rejection, disputed acceptance, SLA failure or material acceptance delay triggers `NX_EXECUTION_REVIEW`.
+
+Canonical implementation: `CURRENT_CANON/NEOCLOUD_CUSTOMER_ACCEPTANCE_GATE_OMEGA.md` and `src/atlas/algorithm/neocloud-customer-acceptance-gate-omega.ts`.
