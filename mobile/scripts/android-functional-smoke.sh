@@ -32,9 +32,6 @@ PY
 }
 
 dismiss_emulator_noise() {
-  # GitHub's cold Pixel emulator occasionally raises a Pixel Launcher ANR even
-  # while our explicitly launched activity is healthy. Dismiss that system-only
-  # dialog; never suppress a crash/ANR whose title names ATLAS.
   if grep -Fq "Pixel Launcher isn't responding" window.xml 2>/dev/null; then
     local coords
     coords="$(node_center_by_resource_id 'android:id/aerr_wait')"
@@ -112,24 +109,29 @@ PY
   exit 1
 }
 
-wait_text "ATLAS Ω TERMINAL"
-wait_text "Command Center"
+# Terminal home must render the new portfolio-first shell.
+wait_text "Portfolio First"
+wait_text "GLOBAL INDICES"
+wait_text "LIVE PORTFOLIO · TRADING 212"
+wait_text "PRIMARY WORKSPACES"
+
+# Core mobile navigation must be reachable from persistent terminal controls.
+tap_desc "AUD, Auditar"
+wait_text "ATLAS TERMINAL · AUDIT"
+wait_text "Auditar"
+adb shell input keyevent 4
 wait_text "Portfolio First"
 
-tap_desc "Audit Console"
-wait_text "Analizar empresa"
+tap_desc "WL, Watchlist"
+wait_text "ATLAS TERMINAL · WATCHLIST"
+wait_text "Watchlist"
 adb shell input keyevent 4
-wait_text "ATLAS Ω TERMINAL"
+wait_text "Portfolio First"
 
-tap_desc "Portfolio First"
-wait_text "Cartera 36"
+tap_desc "RES, Resultados"
+wait_text "RESULTADOS"
 adb shell input keyevent 4
-wait_text "ATLAS Ω TERMINAL"
-
-tap_desc "Broker Ω"
-wait_text "Trading 212"
-adb shell input keyevent 4
-wait_text "ATLAS Ω TERMINAL"
+wait_text "Portfolio First"
 
 capture_ui
-echo "ATLAS Ω OpenTerminalUI mobile gate: PASS"
+echo "ATLAS Ω terminal Android launch/navigation gate: PASS"

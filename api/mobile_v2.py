@@ -21,6 +21,26 @@ PORTFOLIO_36 = [
     "CRDO", "WISE", "RBRK", "NXT", "WST", "FTAI", "PLMR", "SE", "NVDA",
 ]
 
+GLOBAL_INDEX_UNIVERSE: list[tuple[str, str, str]] = [
+    ("^GSPC", "S&P 500", "USA"),
+    ("^NDX", "Nasdaq 100", "USA"),
+    ("^DJI", "Dow Jones", "USA"),
+    ("^RUT", "Russell 2000", "USA"),
+    ("^STOXX50E", "Euro Stoxx 50", "Europa"),
+    ("^GDAXI", "DAX", "Alemania"),
+    ("^FTSE", "FTSE 100", "Reino Unido"),
+    ("^FCHI", "CAC 40", "Francia"),
+    ("^IBEX", "IBEX 35", "España"),
+    ("^N225", "Nikkei 225", "Japón"),
+    ("^HSI", "Hang Seng", "Hong Kong"),
+    ("000001.SS", "Shanghai Composite", "China"),
+    ("^KS11", "KOSPI", "Corea del Sur"),
+    ("^AXJO", "ASX 200", "Australia"),
+    ("^BSESN", "Sensex", "India"),
+    ("^BVSP", "Bovespa", "Brasil"),
+    ("^GSPTSE", "TSX Composite", "Canadá"),
+]
+
 
 def _symbol(value: str) -> str:
     symbol = value.strip().upper()
@@ -56,6 +76,19 @@ def _pick(record: dict[str, Any], *names: str) -> Any:
         candidate = normalized.get(_key(name))
         if candidate not in (None, ""):
             return candidate
+    return None
+
+
+def _number(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value.replace(",", ""))
+        except ValueError:
+            return None
     return None
 
 
@@ -199,12 +232,57 @@ async def mobile_health() -> dict[str, Any]:
     return {
         "ok": True,
         "service": "atlas-mobile-v2",
-        "version": "1.0.1",
+        "version": "1.1.0",
         "financialdatanet_configured": bool(FDN_API_KEY),
         "finnhub_configured": bool(legacy.FINNHUB_TOKEN),
         "preferred_provider": "FinancialData.Net" if FDN_API_KEY else ("Finnhub" if legacy.FINNHUB_TOKEN else "none"),
         "apiKeyExposed": False,
         "generatedAt": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@router.get("/indices")
+async def mobile_indices() -> dict[str, Any]:
+    identifiers = ",".join(symbol for symbol, _, _ in GLOBAL_INDEX_UNIVERSE)
+    payload = await _fdn_get("index-quotes", {"identifiers": identifiers})
+    rows = _records(payload)
+    by_symbol: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        raw_symbol = _pick(row, "trading_symbol", "tradingSymbol", "symbol", "identifier")
+        if isinstance(raw_symbol, str) and raw_symbol.strip():
+            by_symbol[raw_symbol.strip().upper()] = row
+
+    items: list[dict[str, Any]] = []
+    for symbol, fallback_name, region in GLOBAL_INDEX_UNIVERSE:
+        row = by_symbol.get(symbol.upper(), {})
+        price = _number(_pick(row, "price", "lastPrice", "last_price", "close"))
+        change = _number(_pick(row, "change", "priceChange", "absoluteChange"))
+        percentage_change = _number(_pick(row, "percentage_change", "percentageChange", "percentChange", "changePercent"))
+        items.append({
+            "symbol": symbol,
+            "name": _pick(row, "index_name", "indexName", "name") or fallback_name,
+            "region": region,
+            "price": price,
+            "change": change,
+            "percentageChange": percentage_change,
+            "time": _pick(row, "time", "timestamp", "dateTime", "datetime"),
+            "status": "OK" if price is not None else "MISSING",
+        })
+
+    if not any(item["status"] == "OK" for item in items):
+        raise HTTPException(status_code=502, detail="FinancialData.Net index-quotes returned no usable major-index quotes; verify Premium access")
+
+    return {
+        "provider": "FinancialData.Net",
+        "providerMode": "index-quotes-realtime",
+        "generatedAt": datetime.now(timezone.utc).isoformat(),
+        "refreshHintSeconds": 15,
+        "items": items,
+        "guardrails": [
+            "Index quotes are market data, not evidence of capital flow by themselves.",
+            "Missing index quotes remain MISSING and are not synthesized from ETFs or futures.",
+            "Client refresh cadence is intentionally bounded to protect provider limits.",
+        ],
     }
 
 
