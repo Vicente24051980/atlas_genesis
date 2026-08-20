@@ -1,0 +1,31 @@
+export const brokerTheme = {
+  bg: '#090B0E',
+  surface: '#111419',
+  surfaceRaised: '#171B21',
+  surfaceSoft: '#0D1014',
+  border: '#242A32',
+  borderSoft: '#1A1F26',
+  text: '#F5F7FA',
+  textMuted: '#9AA3AE',
+  textFaint: '#66707C',
+  accent: '#55D6B4',
+  accentSoft: '#102821',
+  info: '#7FB5FF',
+  infoSoft: '#111F33',
+  positive: '#5DDB9D',
+  positiveSoft: '#10281E',
+  negative: '#FF7483',
+  negativeSoft: '#32171D',
+  warning: '#F2C66D',
+  warningSoft: '#2B2414',
+  radius: 16,
+  radiusLg: 22,
+};
+
+export const brokerTypography = {
+  hero: 30,
+  title: 22,
+  section: 14,
+  body: 14,
+  caption: 11,
+};

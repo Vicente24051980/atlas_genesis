@@ -1,220 +1,154 @@
-import { useEffect, useState } from 'react';
-import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 
-import { CapexChainApi, CapexChainPayload } from '../core/api/capexChainApi';
-import { CompanyPayload, MobileApi } from '../core/api/mobileApi';
+import AtlasBrokerShell from '../components/AtlasBrokerShell';
+import { Card, MetricTile, Pill, SectionHeader } from '../components/BrokerUi';
+import { CapexChainApi, type CapexChainPayload } from '../core/api/capexChainApi';
+import { MobileApi, type CompanyPayload } from '../core/api/mobileApi';
+import { brokerTheme as t } from '../ui/brokerTheme';
 
 export default function AnalyzeScreen() {
   const params = useLocalSearchParams<{ ticker?: string }>();
-  const [ticker, setTicker] = useState(typeof params.ticker === 'string' ? params.ticker.toUpperCase() : 'MSFT');
+  const initialTicker = typeof params.ticker === 'string' ? params.ticker.trim().toUpperCase() : 'MSFT';
+  const [ticker, setTicker] = useState(initialTicker || 'MSFT');
   const [data, setData] = useState<CompanyPayload | null>(null);
   const [capex, setCapex] = useState<CapexChainPayload | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
-  const analyze = async (value = ticker) => {
+  const analyze = useCallback(async (value: string) => {
     const symbol = value.trim().toUpperCase();
-    if (!symbol) return;
-    setTicker(symbol);
-    setLoading(true);
-    setError(null);
-
-    const [companyResult, capexResult] = await Promise.allSettled([
-      MobileApi.company(symbol),
-      CapexChainApi.profile(symbol),
-    ]);
-
-    if (companyResult.status === 'fulfilled') {
-      setData(companyResult.value);
-    } else {
-      setData(null);
-      setError(companyResult.reason instanceof Error ? companyResult.reason.message : String(companyResult.reason));
+    if (!symbol) {
+      setError('Introduce un ticker válido.');
+      return;
     }
 
-    setCapex(capexResult.status === 'fulfilled' ? capexResult.value : null);
-    setLoading(false);
-  };
+    setTicker(symbol);
+    setLoading(true);
+    setError('');
+    try {
+      const [companyResult, capexResult] = await Promise.allSettled([
+        MobileApi.company(symbol),
+        CapexChainApi.profile(symbol),
+      ]);
+
+      if (companyResult.status === 'fulfilled') setData(companyResult.value);
+      else {
+        setData(null);
+        setError(companyResult.reason instanceof Error ? companyResult.reason.message : String(companyResult.reason));
+      }
+      setCapex(capexResult.status === 'fulfilled' ? capexResult.value : null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof params.ticker === 'string' && params.ticker.trim()) void analyze(params.ticker);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [analyze, params.ticker]);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>← Inicio</Text></Pressable>
-      <Text style={styles.eyebrow}>ANÁLISIS DE EMPRESA</Text>
-      <Text style={styles.title}>Analizar empresa</Text>
-      <Text style={styles.subtitle}>Ticker-first. FinancialData.Net es la fuente cuantitativa preferida; Global CAPEX Chain Ω añade la posición económica estructural sin mezclarla con valoración o BUY/SELL.</Text>
-
-      <View style={styles.searchCard}>
-        <TextInput
-          accessibilityLabel="Ticker"
-          value={ticker}
-          onChangeText={setTicker}
-          autoCapitalize="characters"
-          autoCorrect={false}
-          placeholder="MSFT"
-          placeholderTextColor="#64748b"
-          style={styles.input}
-          returnKeyType="search"
-          onSubmitEditing={() => { void analyze(); }}
-        />
-        <Pressable accessibilityRole="button" accessibilityLabel="Analizar ahora" onPress={() => { void analyze(); }} style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
-          <Text style={styles.buttonText}>ANALIZAR AHORA</Text>
-        </Pressable>
+    <AtlasBrokerShell active="home" title={data?.symbol || 'Analizar'} keyboardShouldPersistTaps="handled">
+      <View style={styles.heading}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.kicker}>INSTRUMENT DETAIL</Text>
+          <Text style={styles.title}>Análisis ATLAS</Text>
+          <Text style={styles.subtitle}>Ficha única para fundamentales, proveedor y posición Global CAPEX Chain Ω.</Text>
+        </View>
+        {data ? <Pill label={data.provider} tone="info" /> : null}
       </View>
 
-      {loading ? <View style={styles.loading}><ActivityIndicator color="#7dd3fc" /><Text style={styles.muted}>Consultando ATLAS…</Text></View> : null}
-      {error ? <View style={styles.errorCard}><Text style={styles.errorTitle}>No se pudo consultar {ticker}</Text><Text style={styles.errorText}>{error}</Text></View> : null}
+      <View style={styles.searchBox}>
+        <TextInput accessibilityLabel="Ticker a analizar" value={ticker} onChangeText={setTicker} autoCapitalize="characters" autoCorrect={false} placeholder="MSFT" placeholderTextColor={t.textFaint} returnKeyType="search" onSubmitEditing={() => { void analyze(ticker); }} style={styles.input} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Analizar ${ticker || 'ticker'}`} disabled={loading} onPress={() => { void analyze(ticker); }} style={({ pressed }) => [styles.button, (pressed || loading) && styles.pressed]}><Text style={styles.buttonText}>Analizar</Text></Pressable>
+      </View>
+
+      {loading ? <View accessibilityLiveRegion="polite" style={styles.loading}><ActivityIndicator color={t.accent} /><Text style={styles.muted}>Consultando ATLAS…</Text></View> : null}
+      {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
 
       {data ? (
         <>
-          <View style={styles.resultHeader}>
-            <View style={styles.providerBadge}><Text style={styles.providerText}>{data.provider}</Text></View>
+          <Card>
             <Text style={styles.symbol}>{data.symbol}</Text>
+            <Text style={styles.company}>{data.summary.name || data.symbol}</Text>
+            <Text style={styles.meta}>{clean(data.summary.sector) || clean(data.summary.industry) || 'Sector no disponible'}{clean(data.summary.currency) ? ` · ${clean(data.summary.currency)}` : ''}</Text>
             {data.fallbackReason ? <Text style={styles.fallback}>{data.fallbackReason}</Text> : null}
+          </Card>
+
+          <View style={styles.metrics}>
+            <MetricTile label="Precio" value={formatNumber(data.summary.price)} />
+            <MetricTile label="Market cap" value={formatCompact(data.summary.marketCap)} />
+            <MetricTile label="P/E" value={formatNumber(data.summary.pe)} />
+            <MetricTile label="Revenue" value={formatCompact(data.summary.revenue)} />
+            <MetricTile label="Free cash flow" value={formatCompact(data.summary.freeCashFlow)} />
           </View>
 
-          <View style={styles.companyCard}>
-            <Text style={styles.companyName}>{data.summary.name || data.symbol}</Text>
-            <Text style={styles.companyMeta}>{clean(data.summary.sector) || clean(data.summary.industry) || 'Sector no disponible'}{clean(data.summary.currency) ? ` · ${clean(data.summary.currency)}` : ''}</Text>
-          </View>
+          <SectionHeader title="Global CAPEX Chain Ω" />
+          {capex ? <CapexCard payload={capex} /> : <Card><Text style={styles.muted}>Sin perfil CAPEX verificable para este ticker.</Text></Card>}
 
-          <View style={styles.grid}>
-            <Metric label="Precio" value={formatNumber(data.summary.price)} />
-            <Metric label="Market cap" value={formatCompact(data.summary.marketCap)} />
-            <Metric label="P/E" value={formatNumber(data.summary.pe)} />
-            <Metric label="Revenue" value={formatCompact(data.summary.revenue)} />
-            <Metric label="Free cash flow" value={formatCompact(data.summary.freeCashFlow)} />
-          </View>
+          <SectionHeader title="Cobertura de fuentes" />
+          <Card>
+            {Object.entries(data.sourceStatus || {}).length ? Object.entries(data.sourceStatus || {}).map(([name, status], index, rows) => (
+              <View key={name} style={[styles.statusRow, index === rows.length - 1 && styles.lastRow]}><Text style={styles.statusName}>{name}</Text><Pill label={status} tone={status === 'OK' ? 'positive' : 'warning'} /></View>
+            )) : <Text style={styles.muted}>Sin detalle de cobertura.</Text>}
+          </Card>
 
-          {capex ? <CapexCard payload={capex} /> : null}
-
-          <Text style={styles.sectionTitle}>Cobertura del proveedor</Text>
-          <View style={styles.statusCard}>
-            {Object.entries(data.sourceStatus || {}).map(([name, status]) => (
-              <View key={name} style={styles.statusLine}><Text style={styles.statusName}>{name}</Text><Text style={status === 'OK' ? styles.ok : styles.warn}>{status}</Text></View>
-            ))}
-            {!Object.keys(data.sourceStatus || {}).length ? <Text style={styles.muted}>Sin detalle de cobertura.</Text> : null}
-          </View>
-
-          {data.guardrails?.length ? (
-            <View style={styles.guardrailCard}>
-              <Text style={styles.guardrailTitle}>GUARDRAILS Ω</Text>
-              {data.guardrails.map((item) => <Text key={item} style={styles.guardrailText}>• {item}</Text>)}
-            </View>
-          ) : null}
+          {data.guardrails?.length ? <Card><Text style={styles.guardrailTitle}>GUARDRAILS Ω</Text>{data.guardrails.map((item) => <Text key={item} style={styles.guardrail}>• {item}</Text>)}</Card> : null}
         </>
       ) : null}
-    </ScrollView>
+    </AtlasBrokerShell>
   );
 }
 
 function CapexCard({ payload }: { payload: CapexChainPayload }) {
   return (
-    <View style={styles.capexCard}>
-      <View style={styles.capexHeader}>
-        <Text style={styles.capexTitle}>GLOBAL CAPEX CHAIN Ω</Text>
-        <Text style={payload.mapped ? styles.ok : styles.warn}>{payload.mapped ? 'MAPPED' : 'RESEARCH'}</Text>
+    <Card>
+      <View style={styles.capexHead}><View style={{ flex: 1 }}><Text style={styles.capexName}>{payload.role || payload.ticker}</Text><Text style={styles.capexMeta}>{payload.economicMode || payload.engine}</Text></View><Pill label={payload.mapped ? 'MAPPED' : payload.state || 'RESEARCH'} tone={payload.mapped ? 'positive' : 'warning'} /></View>
+      <View style={styles.metrics}>
+        <MetricTile label="EDD" value={payload.edd == null ? 'N/D' : String(payload.edd)} />
+        <MetricTile label="CAPEX position" value={formatNumber(payload.capexPositionScore)} />
+        <MetricTile label="Structural opp." value={formatNumber(payload.structuralOpportunityScore)} />
+        <MetricTile label="Fragility" value={formatNumber(payload.capexFragilityScore)} />
       </View>
-      {payload.mapped ? (
-        <>
-          <View style={styles.capexMetrics}>
-            <Metric label="EDD" value={`EDD-${payload.edd ?? '—'}`} />
-            <Metric label="Modo económico" value={pretty(payload.economicMode)} />
-          </View>
-          <Text style={styles.capexRole}>{pretty(payload.role)}</Text>
-          <Text style={styles.capexRivers}>{(payload.rivers || []).map(pretty).join('  →  ') || 'Río CAPEX pendiente'}</Text>
-        </>
-      ) : <Text style={styles.muted}>Ticker aún no mapeado: ATLAS no inventa una posición económica.</Text>}
-      <Text style={styles.capexEvidence}>Evidence Gate: {pretty(payload.evidenceGate)}</Text>
-      <Text style={styles.capexGuardrail}>{payload.guardrail}</Text>
-    </View>
+      <Text style={styles.evidence}>Evidence gate: {payload.evidenceGate}</Text>
+      {payload.rivers?.length ? <Text style={styles.rivers}>Rivers: {payload.rivers.join(' · ')}</Text> : null}
+      <Text style={styles.guardrail}>{payload.guardrail}</Text>
+    </Card>
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={styles.metricValue}>{value}</Text></View>;
-}
-
-function pretty(value: unknown): string {
-  if (!value) return 'N/D';
-  return String(value).replaceAll('_', ' ');
-}
-
-function clean(value: unknown): string {
-  if (value === null || value === undefined || value === '') return '';
-  return String(value);
-}
-
-function asNumber(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
-  if (typeof value === 'string') {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-}
-
-function formatNumber(value: unknown): string {
-  const n = asNumber(value);
-  if (n === null) return 'N/D';
-  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(n);
-}
-
-function formatCompact(value: unknown): string {
-  const n = asNumber(value);
-  if (n === null) return clean(value) || 'N/D';
-  return new Intl.NumberFormat('es-ES', { notation: 'compact', maximumFractionDigits: 2 }).format(n);
-}
+function clean(value: unknown): string { return typeof value === 'string' ? value : value == null ? '' : String(value); }
+function asNumber(value: unknown): number | null { const n = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN; return Number.isFinite(n) ? n : null; }
+function formatNumber(value: unknown): string { const n = asNumber(value); return n == null ? 'N/D' : n.toLocaleString('es-ES', { maximumFractionDigits: 2 }); }
+function formatCompact(value: unknown): string { const n = asNumber(value); if (n == null) return 'N/D'; const abs = Math.abs(n); if (abs >= 1e12) return `${(n / 1e12).toFixed(2)}T`; if (abs >= 1e9) return `${(n / 1e9).toFixed(2)}B`; if (abs >= 1e6) return `${(n / 1e6).toFixed(2)}M`; return n.toLocaleString('es-ES', { maximumFractionDigits: 2 }); }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#07090d' },
-  content: { paddingTop: 54, paddingHorizontal: 18, paddingBottom: 44, gap: 12 },
-  back: { alignSelf: 'flex-start', paddingVertical: 8, paddingRight: 14 },
-  backText: { color: '#7dd3fc', fontWeight: '800' },
-  eyebrow: { color: '#7dd3fc', fontWeight: '900', letterSpacing: 1.2, fontSize: 12 },
-  title: { color: '#f8fafc', fontSize: 31, fontWeight: '900' },
-  subtitle: { color: '#94a3b8', lineHeight: 21 },
-  searchCard: { backgroundColor: '#0f141c', borderRadius: 18, borderWidth: 1, borderColor: '#223047', padding: 14, gap: 10 },
-  input: { backgroundColor: '#070a0f', borderRadius: 12, borderWidth: 1, borderColor: '#334155', color: '#f8fafc', paddingHorizontal: 15, paddingVertical: 13, fontSize: 19, fontWeight: '800', letterSpacing: 1 },
-  button: { backgroundColor: '#0ea5e9', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  buttonText: { color: '#03111a', fontWeight: '900' },
-  pressed: { opacity: 0.72 },
-  loading: { flexDirection: 'row', gap: 10, alignItems: 'center', padding: 14 },
-  muted: { color: '#94a3b8' },
-  errorCard: { backgroundColor: '#241318', borderColor: '#6b2737', borderWidth: 1, borderRadius: 15, padding: 15, gap: 6 },
-  errorTitle: { color: '#fecdd3', fontWeight: '900' },
-  errorText: { color: '#fda4af', lineHeight: 20 },
-  resultHeader: { marginTop: 4, gap: 7 },
-  providerBadge: { alignSelf: 'flex-start', backgroundColor: '#102b24', borderColor: '#1d6b54', borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
-  providerText: { color: '#a7f3d0', fontWeight: '800', fontSize: 12 },
-  symbol: { color: '#f8fafc', fontWeight: '900', fontSize: 28 },
-  fallback: { color: '#fbbf24', fontSize: 12 },
-  companyCard: { backgroundColor: '#0c1118', borderRadius: 16, padding: 15, borderWidth: 1, borderColor: '#1e293b' },
-  companyName: { color: '#f8fafc', fontSize: 21, fontWeight: '900' },
-  companyMeta: { color: '#94a3b8', marginTop: 5 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  metric: { width: '48%', minHeight: 80, backgroundColor: '#0f141c', borderRadius: 14, padding: 13, borderWidth: 1, borderColor: '#1e293b' },
-  metricLabel: { color: '#64748b', fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
-  metricValue: { color: '#f8fafc', fontSize: 17, fontWeight: '900', marginTop: 8 },
-  sectionTitle: { color: '#cbd5e1', fontWeight: '900', marginTop: 5, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1 },
-  statusCard: { backgroundColor: '#0c1118', borderRadius: 14, borderWidth: 1, borderColor: '#1e293b', padding: 13, gap: 9 },
-  statusLine: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
-  statusName: { color: '#cbd5e1', fontWeight: '700' },
-  ok: { color: '#34d399', fontWeight: '900' },
-  warn: { color: '#fbbf24', fontWeight: '800' },
-  guardrailCard: { backgroundColor: '#111827', borderRadius: 14, padding: 14, gap: 7 },
-  guardrailTitle: { color: '#a5b4fc', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
-  guardrailText: { color: '#cbd5e1', lineHeight: 19 },
-  capexCard: { backgroundColor: '#10151d', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: '#334155', gap: 10 },
-  capexHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 },
-  capexTitle: { color: '#f8fafc', fontWeight: '900', fontSize: 12, letterSpacing: 0.8 },
-  capexMetrics: { flexDirection: 'row', gap: 9 },
-  capexRole: { color: '#7dd3fc', fontWeight: '900', fontSize: 16 },
-  capexRivers: { color: '#cbd5e1', lineHeight: 20 },
-  capexEvidence: { color: '#fbbf24', fontWeight: '800', fontSize: 12 },
-  capexGuardrail: { color: '#94a3b8', lineHeight: 18, fontSize: 12 },
+  heading: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  kicker: { color: t.accent, fontSize: 10, fontWeight: '900', letterSpacing: 1.1 },
+  title: { color: t.text, fontSize: 26, fontWeight: '900', marginTop: 4 },
+  subtitle: { color: t.textMuted, fontSize: 12, lineHeight: 18, marginTop: 4 },
+  searchBox: { flexDirection: 'row', gap: 8 },
+  input: { flex: 1, backgroundColor: t.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: t.border, borderRadius: 13, color: t.text, paddingHorizontal: 13, paddingVertical: 12, fontSize: 15, fontWeight: '800' },
+  button: { backgroundColor: t.accent, borderRadius: 13, paddingHorizontal: 18, justifyContent: 'center' },
+  buttonText: { color: '#07110E', fontWeight: '900', fontSize: 12 },
+  pressed: { opacity: 0.65 },
+  loading: { flexDirection: 'row', gap: 8, alignItems: 'center', padding: 10 },
+  muted: { color: t.textMuted, fontSize: 11, lineHeight: 17 },
+  error: { color: t.negative, backgroundColor: t.negativeSoft, padding: 12, borderRadius: 12 },
+  symbol: { color: t.accent, fontSize: 13, fontWeight: '900', letterSpacing: 1 },
+  company: { color: t.text, fontSize: 22, fontWeight: '900', marginTop: 4 },
+  meta: { color: t.textMuted, fontSize: 11, marginTop: 4 },
+  fallback: { color: t.warning, fontSize: 10, lineHeight: 15, marginTop: 7 },
+  metrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 9, marginTop: 9 },
+  capexHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  capexName: { color: t.text, fontSize: 15, fontWeight: '900' },
+  capexMeta: { color: t.textMuted, fontSize: 11, marginTop: 3 },
+  evidence: { color: t.info, fontSize: 10, fontWeight: '800', marginTop: 10 },
+  rivers: { color: t.textMuted, fontSize: 10, lineHeight: 15, marginTop: 5 },
+  statusRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.borderSoft },
+  lastRow: { borderBottomWidth: 0 },
+  statusName: { color: t.text, fontSize: 11, fontWeight: '700' },
+  guardrailTitle: { color: t.warning, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  guardrail: { color: t.textMuted, fontSize: 10, lineHeight: 16, marginTop: 5 },
 });
