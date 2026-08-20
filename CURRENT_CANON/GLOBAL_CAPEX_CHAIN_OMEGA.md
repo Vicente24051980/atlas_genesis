@@ -24,6 +24,7 @@ The engine asks:
 7. **A bottleneck is valuable only while it remains difficult to replicate, qualify, permit or substitute.**
 8. No output from this engine can silently overwrite another ATLAS Ω engine.
 9. **T212 ACCESSIBILITY ≠ ECONOMIC QUALITY.** Trading 212 availability is an execution gate, not a fundamental score. A company unavailable in T212 may remain a structural read-through signal, but must not be presented as a directly executable ticker.
+10. **For neoclouds, DEPLOYMENT ≠ CUSTOMER ACCEPTANCE ≠ REVENUE.** Material AI infrastructure deployments must pass Customer Acceptance Gate Ω before monetization promotion.
 
 ## Economic Dependency Distance Ω — EDD
 
@@ -76,6 +77,21 @@ This score measures the company's position in the spending chain before valuatio
 - **E4 FCF/ROIC MULTI-PERIOD:** revenue converts into FCF/share or incremental ROIC across multiple periods and preferably multiple customers.
 
 Confirmed Global CAPEX Chain status requires **traceable E2+ evidence and at least two evidence records**. E0/E1 remains `EVIDENCE_PENDING` regardless of narrative attractiveness.
+
+### Neocloud Customer Acceptance Gate Ω — amendment 20 Aug 2026
+
+For neoclouds and analogous AI infrastructure deployments, E2 must be stage-normalized:
+
+`Contract → Capacity / Financing → Hardware Ready → Deployment / Commissioning → Customer Acceptance → Revenue Recognition → Gross Margin → OCF/FCF → ROIC`
+
+- Signed contract, take-or-pay commitment, secured capacity, delivered hardware and physical deployment remain maximum **E2**.
+- Customer acceptance or equivalent production hand-off is stronger execution evidence but remains **E2** until recognized revenue and margin are evidenced.
+- **E3 requires accepted deployment + attributable recognized revenue + credible margin.**
+- **E4 requires multi-period cash conversion / ROIC after E3.**
+- Escrow release may corroborate acceptance but does not equal revenue recognition.
+- Rejection, dispute, SLA failure, material acceptance delay, cancellation or renegotiation triggers `NX_EXECUTION_REVIEW`.
+
+Canonical specification: `CURRENT_CANON/NEOCLOUD_CUSTOMER_ACCEPTANCE_GATE_OMEGA.md`.
 
 ## CAPEX Convergence Ω
 
@@ -207,6 +223,8 @@ For every audited ticker:
 - Independent funding pools
 - CAPEX Position Ω
 - Economic Proof E0–E4
+- Neocloud proof stage N0–N7/NX when applicable
+- Customer Acceptance Gate state when applicable
 - CAPEX Convergence Ω
 - Bottleneck Persistence Ω
 - Structural Opportunity Ω
@@ -228,7 +246,8 @@ At minimum test:
 6. substitution destroys scarcity/pricing power;
 7. permitting/regulation/geopolitics break the transmission chain;
 8. customer CAPEX is cancelled/delayed;
-9. financing dependence makes the supplier unable to fund required capacity.
+9. financing dependence makes the supplier unable to fund required capacity;
+10. neocloud deployment fails customer acceptance or accepted capacity fails to convert to revenue/margin.
 
 ## Integration with existing ATLAS Ω engines
 
@@ -236,6 +255,7 @@ At minimum test:
 - **Successor Detection Ω:** CAPEX Convergence and Bottleneck Persistence can elevate research priority, never conviction without evidence.
 - **Principal Ω:** consumes the structural map but performs its own quality/valuation decision.
 - **AI CAPEX Payback Ω:** owns EDD-0 AI allocator economics.
+- **Neocloud Customer Acceptance Gate Ω:** stage-normalizes contracted/deployed AI cloud capacity before E3/E4 promotion.
 - **AI Financial Fragility / Credit Transmission / Systemic Cascade:** own financing and cascade risk.
 - **Money Rotation / Institutional Capital Rotation:** measure capital movement, not structural CAPEX position.
 - **Valuation Ω:** remains independent and can veto attractive CAPEX exposure at an unacceptable price.
@@ -247,6 +267,8 @@ Canonical implementation:
 
 - `src/atlas/algorithm/global-capex-chain-omega.ts`
 - `src/atlas/algorithm/global-capex-chain-omega.test.ts`
+- `src/atlas/algorithm/neocloud-customer-acceptance-gate-omega.ts`
+- `src/atlas/algorithm/neocloud-customer-acceptance-gate-omega.test.ts`
 
 ## Final law
 
