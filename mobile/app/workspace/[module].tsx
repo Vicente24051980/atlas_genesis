@@ -99,7 +99,7 @@ const MODULES: Record<string, ModuleSpec> = {
 export default function WorkspaceScreen() {
   const params = useLocalSearchParams<{ module?: string }>();
   const key = typeof params.module === 'string' ? params.module.toLowerCase() : 'atlas';
-  const spec = MODULES[key] ?? MODULES.atlas;
+  const spec: ModuleSpec = MODULES[key] ?? MODULES.atlas!;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
