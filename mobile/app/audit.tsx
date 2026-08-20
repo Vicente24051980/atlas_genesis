@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { CapexChainApi, CapexChainPayload } from '../core/api/capexChainApi';
@@ -7,7 +7,9 @@ import { CompanyPayload, MobileApi } from '../core/api/mobileApi';
 import { AuditResultStore, WatchlistStore } from '../core/storage/localStore';
 
 export default function AuditScreen() {
-  const [ticker, setTicker] = useState('');
+  const params = useLocalSearchParams<{ ticker?: string }>();
+  const initialTicker = typeof params.ticker === 'string' ? params.ticker.trim().toUpperCase() : '';
+  const [ticker, setTicker] = useState(initialTicker);
   const [company, setCompany] = useState<CompanyPayload | null>(null);
   const [capex, setCapex] = useState<CapexChainPayload | null>(null);
   const [loading, setLoading] = useState(false);
