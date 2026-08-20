@@ -115,10 +115,6 @@ PY
 wait_text "ATLAS Ω TERMINAL"
 wait_text "Command Center"
 wait_text "Portfolio First"
-wait_text "Audit Console"
-wait_text "Watchlist"
-wait_text "Resultados"
-wait_text "EVIDENCE STACK"
 
 tap_desc "Audit Console"
 wait_text "Analizar empresa"
