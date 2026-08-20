@@ -103,6 +103,7 @@ function LivePortfolio({ account, positions, brokerStatus, error }: { account: B
   const cash = pickNumber(accountRow, 'free', 'cash', 'availableCash', 'freeCash');
   const invested = pickNumber(accountRow, 'invested', 'investedValue');
   const ppl = pickNumber(accountRow, 'ppl', 'profitLoss', 'unrealizedPpl', 'result');
+  const currency = pickText(accountRow, 'currency', 'currencyCode', 'currency_code');
 
   if (!account && !positions) {
     return (
@@ -116,19 +117,19 @@ function LivePortfolio({ account, positions, brokerStatus, error }: { account: B
 
   return (
     <View style={styles.portfolioPanel}>
-      <View style={styles.portfolioTop}><View><Text style={styles.portfolioLabel}>LIVE PORTFOLIO · TRADING 212</Text><Text style={styles.portfolioSub}>{brokerStatus?.environment.toUpperCase()} · {brokerStatus?.mode} · AUTO REFRESH 30s</Text></View><Text style={styles.liveBadge}>LIVE</Text></View>
+      <View style={styles.portfolioTop}><View><Text style={styles.portfolioLabel}>LIVE PORTFOLIO · TRADING 212</Text><Text style={styles.portfolioSub}>{brokerStatus?.environment.toUpperCase()} · {brokerStatus?.mode} · {currency || 'ACCOUNT CCY'} · AUTO REFRESH 30s</Text></View><Text style={styles.liveBadge}>LIVE</Text></View>
       <View style={styles.portfolioMetrics}>
-        <PortfolioMetric label="TOTAL" value={formatMoney(total)} />
-        <PortfolioMetric label="INVESTED" value={formatMoney(invested)} />
-        <PortfolioMetric label="CASH" value={formatMoney(cash)} />
-        <PortfolioMetric label="P/L" value={formatSignedMoney(ppl)} tone={ppl !== null && ppl < 0 ? 'bad' : ppl !== null && ppl > 0 ? 'good' : 'neutral'} />
+        <PortfolioMetric label="TOTAL" value={formatMoney(total, currency)} />
+        <PortfolioMetric label="INVESTED" value={formatMoney(invested, currency)} />
+        <PortfolioMetric label="CASH" value={formatMoney(cash, currency)} />
+        <PortfolioMetric label="P/L" value={formatSignedMoney(ppl, currency)} tone={ppl !== null && ppl < 0 ? 'bad' : ppl !== null && ppl > 0 ? 'good' : 'neutral'} />
       </View>
       <View style={styles.positionsHeader}><Text style={[styles.positionHead, styles.positionFlex]}>POSITION</Text><Text style={styles.positionHead}>QTY</Text><Text style={styles.positionHead}>P/L</Text></View>
       {rows.slice(0, 8).map((row, index) => {
         const symbol = pickText(row, 'ticker', 'instrument', 'symbol') || `POS ${index + 1}`;
         const qty = pickNumber(row, 'quantity', 'qty');
         const rowPpl = pickNumber(row, 'ppl', 'profitLoss', 'result', 'unrealizedPpl');
-        return <View key={`${symbol}-${index}`} style={styles.positionRow}><Text style={[styles.positionSymbol, styles.positionFlex]}>{symbol}</Text><Text style={styles.positionValue}>{formatNumber(qty)}</Text><Text style={[styles.positionValue, rowPpl !== null && rowPpl > 0 ? styles.good : rowPpl !== null && rowPpl < 0 ? styles.bad : null]}>{formatSignedMoney(rowPpl)}</Text></View>;
+        return <View key={`${symbol}-${index}`} style={styles.positionRow}><Text style={[styles.positionSymbol, styles.positionFlex]}>{symbol}</Text><Text style={styles.positionValue}>{formatNumber(qty)}</Text><Text style={[styles.positionValue, rowPpl !== null && rowPpl > 0 ? styles.good : rowPpl !== null && rowPpl < 0 ? styles.bad : null]}>{formatSignedMoney(rowPpl, currency)}</Text></View>;
       })}
       {rows.length > 8 ? <Pressable onPress={() => router.push('/portfolio' as never)}><Text style={styles.morePositions}>+ {rows.length - 8} MORE POSITIONS →</Text></Pressable> : null}
     </View>
@@ -146,8 +147,14 @@ function normalizeRows(value: unknown): Array<Record<string, unknown>> { if (Arr
 function normalizedKey(value: string): string { return value.toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function pickNumber(row: Record<string, unknown>, ...names: string[]): number | null { const normalized = new Map(Object.entries(row).map(([key, value]) => [normalizedKey(key), value])); for (const name of names) { const value = normalized.get(normalizedKey(name)); if (typeof value === 'number' && Number.isFinite(value)) return value; if (typeof value === 'string') { const parsed = Number(value); if (Number.isFinite(parsed)) return parsed; } } return null; }
 function pickText(row: Record<string, unknown>, ...names: string[]): string | null { const normalized = new Map(Object.entries(row).map(([key, value]) => [normalizedKey(key), value])); for (const name of names) { const value = normalized.get(normalizedKey(name)); if (typeof value === 'string' && value.trim()) return value.trim(); } return null; }
-function formatMoney(value: number | null): string { return value === null ? 'N/D' : new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value); }
-function formatSignedMoney(value: number | null): string { if (value === null) return 'N/D'; const formatted = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(Math.abs(value)); return `${value > 0 ? '+' : value < 0 ? '−' : ''}${formatted}`; }
+function formatMoney(value: number | null, currency: string | null): string {
+  if (value === null) return 'N/D';
+  const code = currency?.trim().toUpperCase();
+  if (!code || !/^[A-Z]{3}$/.test(code)) return value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+  try { return new Intl.NumberFormat('es-ES', { style: 'currency', currency: code, maximumFractionDigits: 2 }).format(value); }
+  catch { return `${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })} ${code}`; }
+}
+function formatSignedMoney(value: number | null, currency: string | null): string { if (value === null) return 'N/D'; const formatted = formatMoney(Math.abs(value), currency); return `${value > 0 ? '+' : value < 0 ? '−' : ''}${formatted}`; }
 function formatNumber(value: number | null): string { return value === null ? '—' : value.toLocaleString('es-ES', { maximumFractionDigits: 4 }); }
 
 const styles = StyleSheet.create({
