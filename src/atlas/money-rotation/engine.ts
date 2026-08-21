@@ -3,6 +3,10 @@ import {
   type QuantMetricType,
   type QuantitativeObservation,
 } from '../evidence-ingestion/integrity';
+import {
+  marketTapePasses,
+  type UniversalMarketTapeIntegrityResult,
+} from '../algorithm/universal-market-tape-integrity-omega';
 
 export const ROTATION_SCORE_WEIGHTS = {
   flows: 0.20,
@@ -31,6 +35,11 @@ export const R3_TO_R4_TRIGGER_OMEGA =
 export type RotationScoreInput = Record<keyof typeof ROTATION_SCORE_WEIGHTS, number>;
 export type MarketRegimeFamily = typeof MARKET_REGIME_FAMILIES[number];
 export type FlowWindow = '1W' | '4W' | '13W' | 'MONTH' | 'YTD' | 'OTHER';
+
+export type MarketTapeContext = {
+  marketTapeSubject: string;
+  marketTapeIntegrity?: UniversalMarketTapeIntegrityResult;
+};
 
 export type RotationFlowObservation = QuantitativeObservation & {
   provider: string;
@@ -64,7 +73,7 @@ export type RotationCoreSignal =
   | 'BREADTH_EXPANDING'
   | 'INSTITUTIONAL_VOLUME_CONFIRMING';
 
-export type RotationGateInput = {
+export type RotationGateInput = MarketTapeContext & {
   signals: Record<RotationCoreSignal, boolean>;
   comparableFlowSeries: boolean;
   positiveFlowWindows: number;
@@ -85,6 +94,7 @@ export type RotationGateResult = {
   state: RotationGateState;
   action: 'IGNORE' | 'MONITOR' | 'PROMOTE_TO_ATLAS_MAIN';
   coreSignalCount: number;
+  marketTapeVerified: boolean;
   reasons: string[];
 };
 
@@ -101,7 +111,7 @@ export type RotationLifecycleState =
   | 'REJECT_STRUCTURAL_DAMAGE'
   | 'INSUFFICIENT_EVIDENCE';
 
-export type RotationLifecycleInput = {
+export type RotationLifecycleInput = MarketTapeContext & {
   gateState: RotationGateState;
   structuralBusinessIntact: boolean;
   outflowsDominant: boolean;
@@ -118,7 +128,7 @@ export type RotationLifecycleResult = {
 
 export type SignalStrength = 'WEAK' | 'NEUTRAL' | 'STRONG' | 'INSUFFICIENT_EVIDENCE';
 
-export type GoldRegimeInput = {
+export type GoldRegimeInput = MarketTapeContext & {
   structural: {
     centralBankDemand: number;
     reserveDiversification: number;
@@ -140,9 +150,14 @@ export type GoldRegimeResult = {
   tacticalScore: number | null;
   structural: SignalStrength;
   tactical: SignalStrength;
+  marketTapeVerified: boolean;
 };
 
 export type Direction = 'UP' | 'DOWN' | 'FLAT' | 'UNKNOWN';
+
+export type VerifiedDirectionInput = MarketTapeContext & {
+  trend: Direction;
+};
 
 export type GoldOilRegime =
   | 'GEOPOLITICS_INFLATION'
@@ -156,7 +171,7 @@ export type GoldOilRegimeResult = {
   investigate: readonly string[];
 };
 
-export type OilScenarioInput = {
+export type OilScenarioInput = MarketTapeContext & {
   priceTrend: Direction;
   supplyDemandBalance: 'DEFICIT' | 'BALANCED' | 'SURPLUS' | 'UNKNOWN';
   geopoliticalRisk: 'LOW' | 'MEDIUM' | 'HIGH';
@@ -188,13 +203,27 @@ function strength(score: number): Exclude<SignalStrength, 'INSUFFICIENT_EVIDENCE
   return 'NEUTRAL';
 }
 
-export function calculateRotationScore(input: RotationScoreInput): number {
+function marketContextVerified(input: MarketTapeContext): boolean {
+  return Boolean(
+    input.marketTapeSubject.trim() &&
+    marketTapePasses(input.marketTapeIntegrity) &&
+    input.marketTapeIntegrity?.selectedTicker === input.marketTapeSubject,
+  );
+}
+
+export function calculateRotationScore(input: RotationScoreInput, market: MarketTapeContext): number {
   let score = 0;
+  let includedWeight = 0;
+  const tapeVerified = marketContextVerified(market);
   for (const key of Object.keys(ROTATION_SCORE_WEIGHTS) as Array<keyof RotationScoreInput>) {
     assertFiniteScore(key, input[key]);
+    const marketDependent = key === 'relativeStrength' || key === 'newsReaction';
+    if (marketDependent && !tapeVerified) continue;
     score += input[key] * ROTATION_SCORE_WEIGHTS[key];
+    includedWeight += ROTATION_SCORE_WEIGHTS[key];
   }
-  return Math.round(score * 100) / 100;
+  if (includedWeight <= 0) throw new Error('rotation_score_no_verified_dimensions');
+  return Math.round((score / includedWeight) * 100) / 100;
 }
 
 export function assertTraceableFlowObservation(observation: RotationFlowObservation): void {
@@ -261,19 +290,46 @@ export function assertFlowTotalUsesOnlyAdditiveMetrics(metrics: readonly Rotatio
 }
 
 export function assessRotationGate(input: RotationGateInput): RotationGateResult {
+  const blockingReasons: string[] = [];
   const reasons: string[] = [];
-  const coreSignalCount = Object.values(input.signals).filter(Boolean).length;
+  const tapeVerified = marketContextVerified(input);
+  const effectiveSignals = {
+    ...input.signals,
+    RELATIVE_STRENGTH_IMPROVING: tapeVerified ? input.signals.RELATIVE_STRENGTH_IMPROVING : false,
+  };
+  const positiveReactionToGoodNews = tapeVerified ? input.positiveReactionToGoodNews : false;
+  const coreSignalCount = Object.values(effectiveSignals).filter(Boolean).length;
 
-  if (!input.comparableFlowSeries) reasons.push('rotation_requires_comparable_flow_series');
-  if (input.primaryEvidenceIds.length === 0) reasons.push('rotation_requires_primary_evidence');
-  if (input.unreconciledConflicts > 0) reasons.push('rotation_has_unreconciled_conflicts');
+  if (!input.comparableFlowSeries) blockingReasons.push('rotation_requires_comparable_flow_series');
+  if (input.primaryEvidenceIds.length === 0) blockingReasons.push('rotation_requires_primary_evidence');
+  if (input.unreconciledConflicts > 0) blockingReasons.push('rotation_has_unreconciled_conflicts');
 
-  if (reasons.length > 0) {
-    return { state: 'PENDING_PRIMARY_VALIDATION', action: 'MONITOR', coreSignalCount, reasons };
+  if (!tapeVerified) {
+    reasons.push('universal_market_tape_integrity_required_for_relative_strength_and_price_reaction');
+    if (input.marketTapeIntegrity?.selectedTicker && input.marketTapeIntegrity.selectedTicker !== input.marketTapeSubject) {
+      reasons.push('market_tape_subject_mismatch');
+    }
+    for (const violation of input.marketTapeIntegrity?.violations ?? []) reasons.push(`market_tape:${violation}`);
+  }
+
+  if (blockingReasons.length > 0) {
+    return {
+      state: 'PENDING_PRIMARY_VALIDATION',
+      action: 'MONITOR',
+      coreSignalCount,
+      marketTapeVerified: tapeVerified,
+      reasons: [...blockingReasons, ...reasons],
+    };
   }
 
   if (coreSignalCount === 0) {
-    return { state: 'NO_ROTATION_SIGNAL', action: 'IGNORE', coreSignalCount, reasons: ['no_core_rotation_signal'] };
+    return {
+      state: 'NO_ROTATION_SIGNAL',
+      action: 'IGNORE',
+      coreSignalCount,
+      marketTapeVerified: tapeVerified,
+      reasons: ['no_core_rotation_signal', ...reasons],
+    };
   }
 
   if (coreSignalCount < 3) {
@@ -281,31 +337,36 @@ export function assessRotationGate(input: RotationGateInput): RotationGateResult
       state: 'R3_CANDIDATE',
       action: 'MONITOR',
       coreSignalCount,
-      reasons: ['r3_requires_three_of_five_core_signals'],
+      marketTapeVerified: tapeVerified,
+      reasons: ['r3_requires_three_of_five_core_signals', ...reasons],
     };
   }
 
   const r4Trigger =
     input.positiveFlowWindows >= 2 &&
     input.goodNewsAfterDestruction &&
-    input.positiveReactionToGoodNews;
+    positiveReactionToGoodNews;
 
   if (!r4Trigger) {
     if (input.positiveFlowWindows < 2) reasons.push('r4_requires_persistent_positive_flows');
     if (!input.goodNewsAfterDestruction) reasons.push('r4_requires_good_news_after_destruction');
-    if (!input.positiveReactionToGoodNews) reasons.push('r4_requires_positive_news_reaction');
-    return { state: 'R3_CONFIRMED', action: 'MONITOR', coreSignalCount, reasons };
+    if (!positiveReactionToGoodNews) {
+      reasons.push(tapeVerified ? 'r4_requires_positive_news_reaction' : 'r4_requires_verified_positive_news_reaction');
+    }
+    return { state: 'R3_CONFIRMED', action: 'MONITOR', coreSignalCount, marketTapeVerified: tapeVerified, reasons };
   }
 
   return {
     state: 'R4_CONFIRMED',
     action: 'PROMOTE_TO_ATLAS_MAIN',
     coreSignalCount,
-    reasons: [],
+    marketTapeVerified: tapeVerified,
+    reasons,
   };
 }
 
 export function classifyRotationLifecycle(input: RotationLifecycleInput): RotationLifecycleResult {
+  const tapeVerified = marketContextVerified(input);
   if (!input.structuralBusinessIntact) {
     return {
       phase: 'REJECT_STRUCTURAL_DAMAGE',
@@ -325,16 +386,23 @@ export function classifyRotationLifecycle(input: RotationLifecycleInput): Rotati
   if (input.gateState === 'R3_CANDIDATE' || input.gateState === 'R3_CONFIRMED') {
     return { phase: 'R3_FLOOR', action: 'MONITOR', reason: 'outflows_or_price_damage_are_stabilising_but_accumulation_is_not_confirmed' };
   }
-  if (input.capitulationExtreme) {
+  if (input.capitulationExtreme && tapeVerified) {
     return { phase: 'R2_CAPITULATION', action: 'RESEARCH', reason: 'extreme_destruction_with_business_still_intact' };
   }
   if (input.outflowsDominant) {
     return { phase: 'R1_ABANDONED', action: 'RESEARCH', reason: 'capital_is_still_leaving_but_structural_business_damage_is_not_confirmed' };
   }
-  return { phase: 'INSUFFICIENT_EVIDENCE', action: 'MONITOR', reason: 'no_canonical_rotation_phase_can_be_proven' };
+  return {
+    phase: 'INSUFFICIENT_EVIDENCE',
+    action: 'MONITOR',
+    reason: input.capitulationExtreme && !tapeVerified
+      ? 'price_capitulation_unverified_without_universal_market_tape'
+      : 'no_canonical_rotation_phase_can_be_proven',
+  };
 }
 
 export function assessGoldRegime(input: GoldRegimeInput): GoldRegimeResult {
+  const tapeVerified = marketContextVerified(input);
   const structuralScore = input.structural.evidenceIds.length === 0
     ? null
     : meanScore('gold_structural', [
@@ -343,34 +411,41 @@ export function assessGoldRegime(input: GoldRegimeInput): GoldRegimeResult {
       input.structural.physicalDemand,
       input.structural.monetaryTrustStress,
     ]);
-  const tacticalScore = input.tactical.evidenceIds.length === 0
-    ? null
-    : meanScore('gold_tactical', [
+
+  let tacticalScore: number | null = null;
+  if (input.tactical.evidenceIds.length > 0) {
+    const tacticalValues = [
       input.tactical.etfFlows,
       input.tactical.realYieldsSupport,
       input.tactical.dollarSupport,
-      input.tactical.momentum,
-    ]);
+    ];
+    if (tapeVerified) tacticalValues.push(input.tactical.momentum);
+    tacticalScore = meanScore('gold_tactical', tacticalValues);
+  }
 
   return {
     structuralScore: structuralScore == null ? null : Math.round(structuralScore * 100) / 100,
     tacticalScore: tacticalScore == null ? null : Math.round(tacticalScore * 100) / 100,
     structural: structuralScore == null ? 'INSUFFICIENT_EVIDENCE' : strength(structuralScore),
     tactical: tacticalScore == null ? 'INSUFFICIENT_EVIDENCE' : strength(tacticalScore),
+    marketTapeVerified: tapeVerified,
   };
 }
 
-export function inferGoldOilRegime(goldTrend: Direction, oilTrend: Direction): GoldOilRegimeResult {
-  if (goldTrend === 'UP' && oilTrend === 'UP') {
+export function inferGoldOilRegime(gold: VerifiedDirectionInput, oil: VerifiedDirectionInput): GoldOilRegimeResult {
+  if (!marketContextVerified(gold) || !marketContextVerified(oil)) {
+    return { regime: 'MIXED_UNRESOLVED', investigate: ['MARKET_TAPE_UNVERIFIED', 'NO_MECHANICAL_SECTOR_CALL'] };
+  }
+  if (gold.trend === 'UP' && oil.trend === 'UP') {
     return { regime: 'GEOPOLITICS_INFLATION', investigate: ['ENERGY', 'DEFENSE', 'MATERIALS', 'GROWTH_DURATION_RISK'] };
   }
-  if (goldTrend === 'UP' && oilTrend === 'DOWN') {
+  if (gold.trend === 'UP' && oil.trend === 'DOWN') {
     return { regime: 'RISK_DISINFLATION', investigate: ['QUALITY', 'HEALTHCARE', 'BONDS', 'DEFENSIVES'] };
   }
-  if (goldTrend === 'DOWN' && oilTrend === 'UP') {
+  if (gold.trend === 'DOWN' && oil.trend === 'UP') {
     return { regime: 'REFLATION_GROWTH', investigate: ['INDUSTRIALS', 'BANKS', 'ENERGY'] };
   }
-  if (goldTrend === 'DOWN' && oilTrend === 'DOWN') {
+  if (gold.trend === 'DOWN' && oil.trend === 'DOWN') {
     return { regime: 'DISINFLATION_RISK_ON', investigate: ['CONSUMER', 'QUALITY_GROWTH', 'SMALL_MID_CAPS'] };
   }
   return { regime: 'MIXED_UNRESOLVED', investigate: ['NO_MECHANICAL_SECTOR_CALL'] };
@@ -378,6 +453,7 @@ export function inferGoldOilRegime(goldTrend: Direction, oilTrend: Direction): G
 
 export function assessOilScenario(input: OilScenarioInput): OilScenarioState {
   if (input.primaryEvidenceIds.length === 0) return 'UNVALIDATED';
+  if (!marketContextVerified(input)) return 'UNVALIDATED';
 
   if (input.priceTrend === 'DOWN' && input.supplyDemandBalance === 'SURPLUS') {
     return input.geopoliticalRisk === 'HIGH'
