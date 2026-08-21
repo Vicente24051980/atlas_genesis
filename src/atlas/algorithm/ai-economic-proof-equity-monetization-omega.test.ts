@@ -27,7 +27,7 @@ function caseFor(ticker: string, drawdownFromTmaxPct: number): AiEconomicProofEq
   return { ...base, ticker, drawdownFromTmaxPct };
 }
 
-describe('AI Economic Proof x Equity Monetization Omega v1', () => {
+describe('AI Economic Proof x Equity Monetization Omega v1.1', () => {
   it('keeps Economic Proof strong while Equity Monetization can be weak', () => {
     expect(assessAiEconomicProofEquity({
       ...caseFor('MU', -22.78),
@@ -38,6 +38,7 @@ describe('AI Economic Proof x Equity Monetization Omega v1', () => {
       cleanWinner: false,
       divergence: 'PROOF_UP_MONETIZATION_DOWN',
       decision: 'WATCH_FOR_REMONETIZATION',
+      finalOpportunityVerified: true,
     });
   });
 
@@ -48,12 +49,28 @@ describe('AI Economic Proof x Equity Monetization Omega v1', () => {
     expect(result.reasons).toContain('not_a_clean_bursatile_winner');
   });
 
-  it('requires verified Price Matrix data for a final classification', () => {
+  it('preserves valid Economic Proof when Price Matrix / GREEN market evidence is unverified', () => {
     expect(assessAiEconomicProofEquity({ ...caseFor('NVDA', -7.71), priceMatrixVerified: false })).toMatchObject({
-      economicProofState: 'UNVERIFIED',
+      economicProofState: 'PROVEN_STRONG',
       equityMonetizationState: 'UNVERIFIED',
-      decision: 'REJECT',
-      reasons: expect.arrayContaining(['price_matrix_not_verified']),
+      finalOpportunityScore: 0,
+      finalOpportunityVerified: false,
+      decision: 'MONITOR',
+      reasons: expect.arrayContaining([
+        'equity:price_matrix_not_verified',
+        'economic_proof_preserved_while_equity_unverified',
+      ]),
+    });
+  });
+
+  it('does not let invalid GREEN continuity contaminate Economic Proof', () => {
+    const input = { ...caseFor('GREEN_BAD', -7.71), greenContinuity: 7 as AiEconomicProofEquityInput['greenContinuity'] };
+    expect(assessAiEconomicProofEquity(input)).toMatchObject({
+      economicProofState: 'PROVEN_STRONG',
+      equityMonetizationState: 'UNVERIFIED',
+      finalOpportunityVerified: false,
+      decision: 'MONITOR',
+      reasons: expect.arrayContaining(['equity:invalid_green_continuity']),
     });
   });
 
@@ -97,6 +114,7 @@ describe('AI Economic Proof x Equity Monetization Omega v1', () => {
       equityMonetizationState: 'CONFIRMED_RECEIVER',
       divergence: 'PROOF_UP_MONETIZATION_UP',
       decision: 'BUY_REVIEW',
+      finalOpportunityVerified: true,
     });
   });
 });
