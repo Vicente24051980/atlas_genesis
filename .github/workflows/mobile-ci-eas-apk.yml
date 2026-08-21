@@ -1,4 +1,4 @@
-# Rebuild marker: 2026-08-21 terminal audit v2 CHECK-2
+# Rebuild marker: 2026-08-21 Expo/Worklets native ABI repair
 name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
@@ -73,7 +73,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-      - run: npm install --no-audit --no-fund
+      - run: npm install --include=dev --no-audit --no-fund
+      - name: Verify pinned Expo native ABI set
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const expected = {
+            expo: '57.0.11',
+            'expo-modules-core': '57.0.10',
+            'react-native': '0.86.2',
+            'react-native-reanimated': '4.5.1',
+            'react-native-worklets': '0.10.1',
+          };
+          for (const [pkg, want] of Object.entries(expected)) {
+            const got = require(`./node_modules/${pkg}/package.json`).version;
+            if (got !== want) throw new Error(`${pkg}: expected ${want}, got ${got}`);
+            console.log(`${pkg}=${got}`);
+          }
+          NODE
       - run: npx tsc --noEmit
 
   build:
@@ -95,10 +113,38 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - run: npm install --no-audit --no-fund
+      - run: npm install --include=dev --no-audit --no-fund
+      - name: Verify pinned Expo native ABI set
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const expected = {
+            expo: '57.0.11',
+            'expo-modules-core': '57.0.10',
+            'react-native': '0.86.2',
+            'react-native-reanimated': '4.5.1',
+            'react-native-worklets': '0.10.1',
+          };
+          for (const [pkg, want] of Object.entries(expected)) {
+            const got = require(`./node_modules/${pkg}/package.json`).version;
+            if (got !== want) throw new Error(`${pkg}: expected ${want}, got ${got}`);
+            console.log(`${pkg}=${got}`);
+          }
+          NODE
       - name: Generate Android project
-        run: npx expo prebuild --platform android --non-interactive --clean
+        env:
+          CI: '1'
+          NODE_ENV: production
+        run: npx expo prebuild --platform android --clean
+      - name: Harden Gradle memory for native release build
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '\norg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8\n' >> android/gradle.properties
       - name: Build release APK
+        env:
+          NODE_ENV: production
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
       - name: Certify backend URL and keep provider keys server-side
         shell: bash
