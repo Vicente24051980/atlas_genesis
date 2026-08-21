@@ -1,3 +1,8 @@
+import {
+  marketTapePasses,
+  type UniversalMarketTapeIntegrityResult,
+} from './universal-market-tape-integrity-omega';
+
 export type AiEconomicProofState =
   | 'PROVEN_STRONG'
   | 'IMPROVING'
@@ -46,7 +51,9 @@ export type AiEconomicProofEquityInput = {
   riskFragility: number;
 
   // AI Equity Monetization Ω: market evidence only.
+  // priceMatrixVerified is retained for compatibility, but it can no longer self-certify market data.
   priceMatrixVerified: boolean;
+  marketTapeIntegrity?: UniversalMarketTapeIntegrityResult;
   drawdownFromTmaxPct: number;
   greenContinuity: 0 | 1 | 2 | 3 | 4 | 5;
   relativeStrength: number;
@@ -132,6 +139,15 @@ export function validateAiEquityMonetizationInput(input: AiEconomicProofEquityIn
   ];
 
   if (!input.priceMatrixVerified) violations.push('price_matrix_not_verified');
+  if (!marketTapePasses(input.marketTapeIntegrity)) {
+    violations.push('universal_market_tape_integrity_failed');
+    for (const violation of input.marketTapeIntegrity?.violations ?? []) {
+      violations.push(`market_tape:${violation}`);
+    }
+  } else {
+    if (input.marketTapeIntegrity?.selectedTicker !== input.ticker) violations.push('market_tape_ticker_mismatch');
+    if (input.marketTapeIntegrity?.selectedObservationDate !== input.asOf) violations.push('market_tape_as_of_mismatch');
+  }
   if (!Number.isFinite(input.drawdownFromTmaxPct) || input.drawdownFromTmaxPct > 0 || input.drawdownFromTmaxPct < -100) {
     violations.push('invalid_drawdown_from_tmax_pct');
   }
@@ -296,7 +312,8 @@ export function assessAiEconomicProofEquity(input: AiEconomicProofEquityInput): 
       'Economic Proof up does not imply Equity Monetization up.',
       'Equity Monetization down or unverified does not imply Economic Proof down or unverified.',
       'Price weakness is not a fundamental falsifier by itself.',
-      'A clean winner requires verified price continuity, strong RS and proximity to Tmax.',
+      'priceMatrixVerified=true is insufficient: Universal Market Tape Integrity Ω must independently PASS and bind to the same ticker/as-of date before any Equity Monetization score is valid.',
+      'A clean winner requires verified market tape, price continuity, strong RS and proximity to Tmax.',
       'Final Opportunity is unverified until Economic Proof, Equity Monetization and opportunity inputs independently pass.',
     ],
   };
@@ -318,16 +335,18 @@ export function summarizeAiEquityCohort(inputs: readonly AiEconomicProofEquityIn
 }
 
 export const AI_ECONOMIC_PROOF_EQUITY_MONETIZATION_OMEGA_V1 = {
-  id: 'AI_ECONOMIC_PROOF_EQUITY_MONETIZATION_OMEGA_V1_1',
+  id: 'AI_ECONOMIC_PROOF_EQUITY_MONETIZATION_OMEGA_V1_2',
   status: 'canonical',
   mission:
     'Compose independently verified AI Economic Proof and AI Equity Monetization without allowing market-data failures to contaminate fundamental proof.',
   economicProofQuestion: 'Does the business capture AI value?',
   equityMonetizationQuestion: 'Is the stock market rewarding that value?',
-  cleanWinnerRule: 'Verified Price Matrix + drawdown from Tmax >= -5% + Green Continuity >= 4/5 + RS >= 70 + flow >= 65 + price response >= 65.',
+  cleanWinnerRule: 'Universal Market Tape Integrity PASS + same ticker/as-of + verified Price Matrix + drawdown from Tmax >= -5% + Green Continuity >= 4/5 + RS >= 70 + flow >= 65 + price response >= 65.',
   antiConfusionRules: [
     'Economic Proof has its own validator and never depends on GREEN or Price Matrix.',
     'GREEN is market-behavior evidence only and is consumed only by Equity Monetization.',
+    'priceMatrixVerified is a compatibility flag, never a self-certifying evidence source.',
+    'Universal Market Tape Integrity Ω is mandatory for Equity Monetization and must bind to the same ticker and as-of date.',
     'Economic Proof up does not imply Equity Monetization up.',
     'Equity Monetization down does not imply Economic Proof down.',
     'No UNVERIFIED market axis may be silently promoted to a verified Final Opportunity score.',

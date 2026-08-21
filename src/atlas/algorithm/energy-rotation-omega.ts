@@ -1,3 +1,8 @@
+import {
+  marketTapePasses,
+  type UniversalMarketTapeIntegrityResult,
+} from './universal-market-tape-integrity-omega';
+
 export type EnergyRotationPhase = 'R1' | 'R2' | 'R3' | 'R4' | 'R5' | 'R6';
 
 export type EnergyCandidate = {
@@ -6,8 +11,8 @@ export type EnergyCandidate = {
 };
 
 export const ENERGY_ROTATION_OMEGA = {
-  id: 'ENERGY_ROTATION_OMEGA_V1',
-  name: 'Energy Rotation Omega v1.0',
+  id: 'ENERGY_ROTATION_OMEGA_V1_1',
+  name: 'Energy Rotation Omega v1.1',
   status: 'canonical_candidate',
   mission:
     'Find energy companies that can keep creating FCF per share and ROIC when the commodity normalizes; do not chase sector ETF momentum.',
@@ -18,6 +23,7 @@ export const ENERGY_ROTATION_OMEGA = {
     'PRICE_RETURN != CAPITAL_FLOW',
     'COMMODITY_PRICE_CHANGE != CAPITAL_FLOW',
     'AUM_CHANGE != NET_FLOW unless explicitly decomposed',
+    'PRICE_REACTION_REQUIRES_UNIVERSAL_MARKET_TAPE_PASS',
   ] as const,
   aggregateReferenceSnapshot: {
     asOf: '2026-08-09',
@@ -75,8 +81,9 @@ export const ENERGY_ROTATION_OMEGA = {
   pipeline: [
     'EVIDENCE_INGESTION_OMEGA_V1',
     'EVIDENCE_INTEGRITY_OMEGA_V1_1',
+    'UNIVERSAL_MARKET_TAPE_INTEGRITY_OMEGA_V1_1',
     'MONEY_ROTATION_OMEGA',
-    'ENERGY_ROTATION_OMEGA_V1',
+    'ENERGY_ROTATION_OMEGA_V1_1',
     'CAPEX_PRODUCTIVITY_OMEGA',
     'VALUATION_OMEGA',
     'RISK_OMEGA',
@@ -95,17 +102,25 @@ export function isCapitalFlowMetric(metric: string): boolean {
 }
 
 export function canPromoteEnergyRotation(input: {
+  marketTapeSubject: string;
+  marketTapeIntegrity?: UniversalMarketTapeIntegrityResult;
   positive4wFlows: boolean;
   positive13wFlows: boolean;
   positiveEpsRevisions: boolean;
   positiveBreadth: boolean;
   positivePostEarningsReaction: boolean;
 }): boolean {
+  const tapeVerified = Boolean(
+    input.marketTapeSubject.trim() &&
+    marketTapePasses(input.marketTapeIntegrity) &&
+    input.marketTapeIntegrity?.selectedTicker === input.marketTapeSubject,
+  );
   return (
     input.positive4wFlows &&
     input.positive13wFlows &&
     input.positiveEpsRevisions &&
     input.positiveBreadth &&
+    tapeVerified &&
     input.positivePostEarningsReaction
   );
 }
