@@ -4,10 +4,30 @@ export type GreenContinuityReturns = Record<GreenContinuityWindow, number>;
 
 export type GreenContinuityPercentiles = Partial<Record<GreenContinuityWindow, number>>;
 
+export type GreenWindowEvidence = {
+  ticker: string;
+  canonicalIdentifier: string;
+  exchange: string;
+  currency: string;
+  startDate: string;
+  endDate: string;
+  regularMarketClose: number;
+  corporateActionAdjustmentPolicy: string;
+  dataSource: string;
+  capturedAt: string;
+  asOf: string;
+  calculationMethod: string;
+};
+
+export type GreenContinuityEvidence = Record<GreenContinuityWindow, GreenWindowEvidence>;
+
 export type GreenContinuityInput = {
   ticker: string;
   returns: GreenContinuityReturns;
   percentiles?: GreenContinuityPercentiles;
+  evidence?: GreenContinuityEvidence;
+  /** YYYY-MM-DD regular-market cut that every GREEN window must share. */
+  expectedMarketCut?: string;
   existingPosition: boolean;
   hasOneYearHistory: boolean;
   synchronizedMarketCut: boolean;
@@ -57,8 +77,8 @@ export const GREEN_CONTINUITY_WEIGHTS: Record<GreenContinuityWindow, number> = {
 };
 
 export const GREEN_CONTINUITY_OMEGA = {
-  id: 'GREEN_CONTINUITY_OMEGA_V1_2',
-  name: 'GREEN CONTINUITY Ω v1.2',
+  id: 'GREEN_CONTINUITY_OMEGA_V1_3',
+  name: 'GREEN CONTINUITY Ω v1.3',
   role: 'first_analytical_engine',
   status: 'canonical',
   mobileFirst: true,
@@ -78,6 +98,8 @@ export const GREEN_CONTINUITY_OMEGA = {
     'A structural price-horizon break is recorded explicitly but is not by itself a fundamental falsifier.',
     'A confirmed structural business falsifier is escalated to Falsifiers Ω / Red Team; GREEN CONTINUITY Ω does not own the final veto decision.',
     'All engine outputs are recorded independently before Investment Committee Ω issues BUY, HOLD, WATCH, REJECT or NO OPPORTUNITY.',
+    'GREEN must be QUARANTINED when any required horizon lacks full provenance or does not use the exact same regular-market endDate.',
+    'A stale generic performance table must never be substituted for the requested synchronized market cut.',
   ] as const,
 } as const;
 
@@ -108,6 +130,75 @@ export function calculateGreenContinuityScore(percentiles?: GreenContinuityPerce
 
   if (availableWeight === 0) return null;
   return Math.round((weighted / availableWeight) * 100) / 100;
+}
+
+function validateEvidenceIntegrity(input: GreenContinuityInput): string[] {
+  const errors: string[] = [];
+
+  if (!input.evidence) {
+    errors.push('Missing per-window GREEN provenance packet.');
+    return errors;
+  }
+
+  const expectedCut = input.expectedMarketCut;
+  if (!expectedCut) errors.push('Missing expectedMarketCut; freshness cannot be proven.');
+
+  let commonEndDate: string | null = null;
+  let commonTicker: string | null = null;
+  let commonExchange: string | null = null;
+  let commonCurrency: string | null = null;
+
+  for (const window of WINDOWS) {
+    const evidence = input.evidence[window];
+    if (!evidence) {
+      errors.push(`${window}: missing evidence.`);
+      continue;
+    }
+
+    const requiredText: Array<[string, string]> = [
+      ['ticker', evidence.ticker],
+      ['canonicalIdentifier', evidence.canonicalIdentifier],
+      ['exchange', evidence.exchange],
+      ['currency', evidence.currency],
+      ['startDate', evidence.startDate],
+      ['endDate', evidence.endDate],
+      ['corporateActionAdjustmentPolicy', evidence.corporateActionAdjustmentPolicy],
+      ['dataSource', evidence.dataSource],
+      ['capturedAt', evidence.capturedAt],
+      ['asOf', evidence.asOf],
+      ['calculationMethod', evidence.calculationMethod],
+    ];
+
+    for (const [field, value] of requiredText) {
+      if (!value || !value.trim()) errors.push(`${window}: missing ${field}.`);
+    }
+
+    if (!Number.isFinite(evidence.regularMarketClose) || evidence.regularMarketClose <= 0) {
+      errors.push(`${window}: invalid regularMarketClose.`);
+    }
+
+    if (expectedCut && evidence.endDate !== expectedCut) {
+      errors.push(`${window}: stale/misaligned endDate ${evidence.endDate}; expected ${expectedCut}.`);
+    }
+
+    if (commonEndDate == null) commonEndDate = evidence.endDate;
+    else if (evidence.endDate !== commonEndDate) errors.push(`${window}: endDate is not synchronized with the other GREEN windows.`);
+
+    if (commonTicker == null) commonTicker = evidence.ticker;
+    else if (evidence.ticker !== commonTicker) errors.push(`${window}: ticker identity differs across GREEN windows.`);
+
+    if (commonExchange == null) commonExchange = evidence.exchange;
+    else if (evidence.exchange !== commonExchange) errors.push(`${window}: exchange differs across GREEN windows.`);
+
+    if (commonCurrency == null) commonCurrency = evidence.currency;
+    else if (evidence.currency !== commonCurrency) errors.push(`${window}: currency differs across GREEN windows.`);
+  }
+
+  if (commonTicker && commonTicker !== input.ticker) {
+    errors.push(`Input ticker ${input.ticker} does not match evidence ticker ${commonTicker}.`);
+  }
+
+  return errors;
 }
 
 export function evaluateGreenContinuity(input: GreenContinuityInput): GreenContinuityResult {
@@ -144,8 +235,14 @@ export function evaluateGreenContinuity(input: GreenContinuityInput): GreenConti
     reasons,
   } as const;
 
-  if (!input.synchronizedMarketCut) {
-    reasons.push('Return windows are not aligned to the same regular-market cut; GREEN output is quarantined. Continue other engines where their own evidence integrity is independently sufficient.');
+  const evidenceErrors = validateEvidenceIntegrity(input);
+  if (!input.synchronizedMarketCut || evidenceErrors.length > 0) {
+    reasons.push('GREEN integrity gate failed: output is quarantined and must not be ranked or promoted.');
+    reasons.push(...evidenceErrors);
+    if (!input.synchronizedMarketCut) {
+      reasons.push('Return windows are not aligned to the same regular-market cut.');
+    }
+    reasons.push('Continue other engines only where their own evidence integrity is independently sufficient.');
     return { ...base, decision: 'QUARANTINE', committeeImpact: 'CAUTION' };
   }
 
@@ -160,7 +257,7 @@ export function evaluateGreenContinuity(input: GreenContinuityInput): GreenConti
   }
 
   if (greenCount === 5) {
-    reasons.push('All five horizons are positive on the same market cut: GREEN 5/5. Continue the complete ATLAS audit; GREEN is supportive continuity evidence, not final recommendation authority.');
+    reasons.push('All five horizons are positive on the same verified regular-market cut: GREEN 5/5. Continue the complete ATLAS audit; GREEN is supportive continuity evidence, not final recommendation authority.');
     return { ...base, decision: 'PASS_5OF5', committeeImpact: 'POSITIVE' };
   }
 
@@ -187,11 +284,13 @@ export function evaluateGreenContinuity(input: GreenContinuityInput): GreenConti
 }
 
 export function rankGreenContinuityResults(results: GreenContinuityResult[]): GreenContinuityResult[] {
-  return [...results].sort((a, b) => {
-    if (a.greenCount !== b.greenCount) return b.greenCount - a.greenCount;
-    if (a.strengthScore == null && b.strengthScore == null) return 0;
-    if (a.strengthScore == null) return 1;
-    if (b.strengthScore == null) return -1;
-    return b.strengthScore - a.strengthScore;
-  });
+  return [...results]
+    .filter((result) => result.decision !== 'QUARANTINE' && result.decision !== 'INSUFFICIENT_HISTORY')
+    .sort((a, b) => {
+      if (a.greenCount !== b.greenCount) return b.greenCount - a.greenCount;
+      if (a.strengthScore == null && b.strengthScore == null) return 0;
+      if (a.strengthScore == null) return 1;
+      if (b.strengthScore == null) return -1;
+      return b.strengthScore - a.strengthScore;
+    });
 }
