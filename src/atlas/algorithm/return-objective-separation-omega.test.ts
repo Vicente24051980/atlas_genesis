@@ -138,7 +138,7 @@ describe('Return Objective Separation Omega', () => {
       ...base,
       ticker: 'COMPOSITE',
       objective: 'COMPOSITE_OPPORTUNITY',
-      compositeOpportunityScore: 950,
+      compositeOpportunityScore: 95,
     });
 
     expect(result.rankingMetric).toBe(95);
