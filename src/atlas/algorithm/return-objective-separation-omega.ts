@@ -13,7 +13,7 @@ export type ReturnObjectiveVerdict =
 export interface ExpectedReturnScenario {
   /** Probability weight. Any positive scale is accepted and normalized. */
   probability: number;
-  /** Total equity return over the full horizon, in percentage points. */
+  /** Total equity return over the full horizon, in percentage points. Minimum valid value is -100%. */
   totalReturnPct: number;
   label?: string;
 }
@@ -92,9 +92,10 @@ function expectedReturnFromScenarios(
     (scenario) =>
       Number.isFinite(scenario.probability) &&
       scenario.probability > 0 &&
-      Number.isFinite(scenario.totalReturnPct),
+      Number.isFinite(scenario.totalReturnPct) &&
+      scenario.totalReturnPct >= -100,
   );
-  if (!valid.length) return null;
+  if (!valid.length || valid.length !== scenarios.length) return null;
 
   const probabilitySum = valid.reduce((sum, scenario) => sum + scenario.probability, 0);
   if (!(probabilitySum > 0)) return null;
@@ -123,7 +124,7 @@ function evaluateEconomicProofGate(input: ReturnObjectiveInput): ReturnObjective
 
 /**
  * Intent resolver used before any ranking engine runs.
- * Generic "more/max return" means forward expected return unless the request explicitly
+ * Generic return/rentability language means forward expected return unless the request explicitly
  * anchors the metric to a past period (YTD, 2026 performance, 1Y return, etc.).
  */
 export function resolveReturnRankingObjective(intent: string): ReturnRankingObjective {
@@ -166,6 +167,8 @@ export function resolveReturnRankingObjective(intent: string): ReturnRankingObje
     'retorno futuro',
     'cagr',
     'upside futuro',
+    'retorno',
+    'rentabilidad',
   ];
   if (returnMarkers.some((marker) => normalized.includes(marker))) return 'EXPECTED_RETURN';
 
