@@ -33,7 +33,7 @@ export type AiEconomicProofEquityInput = {
   asOf: string;
   evidenceIds: readonly string[];
 
-  // AI Economic Proof Ω: does the business capture AI value?
+  // AI Economic Proof Ω: business evidence only.
   t2RevenueCapture: number;
   t3FreeCashFlow: number;
   t5AiRoic: number;
@@ -45,7 +45,7 @@ export type AiEconomicProofEquityInput = {
   expectedReturn: number;
   riskFragility: number;
 
-  // AI Equity Monetization Ω: is the stock market paying for that value?
+  // AI Equity Monetization Ω: market evidence only.
   priceMatrixVerified: boolean;
   drawdownFromTmaxPct: number;
   greenContinuity: 0 | 1 | 2 | 3 | 4 | 5;
@@ -64,6 +64,7 @@ export type AiEconomicProofEquityResult = {
   divergence: AiProofMonetizationDivergence;
   cleanWinner: boolean;
   finalOpportunityScore: number;
+  finalOpportunityVerified: boolean;
   decision: AiProofMonetizationDecision;
   reasons: readonly string[];
   guardrails: readonly string[];
@@ -78,19 +79,9 @@ export type AiEquityCohortSummary = {
   mostDamaged: readonly string[];
 };
 
-const SCORE_FIELDS = [
-  't2RevenueCapture',
-  't3FreeCashFlow',
-  't5AiRoic',
-  't6MoatPersistence',
-  'capitalEfficiency',
-  'expectedReturn',
-  'riskFragility',
-  'relativeStrength',
-  'breadthSupport',
-  'flowPositioning',
-  'priceResponse',
-] as const;
+const ECONOMIC_SCORE_FIELDS = ['t2RevenueCapture', 't3FreeCashFlow', 't5AiRoic', 't6MoatPersistence'] as const;
+const OPPORTUNITY_SCORE_FIELDS = ['capitalEfficiency', 'expectedReturn', 'riskFragility'] as const;
+const EQUITY_SCORE_FIELDS = ['relativeStrength', 'breadthSupport', 'flowPositioning', 'priceResponse'] as const;
 
 function round(value: number): number {
   return Math.round(value * 100) / 100;
@@ -108,17 +99,39 @@ function median(values: readonly number[]): number | null {
   return round((sorted[middle - 1] + sorted[middle]) / 2);
 }
 
-export function validateAiEconomicProofEquityInput(input: AiEconomicProofEquityInput): readonly string[] {
+function validateIdentity(input: AiEconomicProofEquityInput): string[] {
   const violations: string[] = [];
   if (!input.ticker.trim()) violations.push('missing_ticker');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.asOf)) violations.push('invalid_as_of');
   if (input.evidenceIds.length < 2) violations.push('requires_at_least_two_traceable_evidence_ids');
+  return violations;
+}
 
-  for (const field of SCORE_FIELDS) {
+function validateScoreRange(input: AiEconomicProofEquityInput, fields: readonly (keyof AiEconomicProofEquityInput)[]): string[] {
+  const violations: string[] = [];
+  for (const field of fields) {
     const value = input[field];
-    if (!Number.isFinite(value) || value < 0 || value > 100) violations.push(`score_out_of_range:${field}`);
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 100) {
+      violations.push(`score_out_of_range:${String(field)}`);
+    }
   }
+  return violations;
+}
 
+export function validateAiEconomicProofInput(input: AiEconomicProofEquityInput): readonly string[] {
+  return [
+    ...validateIdentity(input),
+    ...validateScoreRange(input, ECONOMIC_SCORE_FIELDS),
+  ];
+}
+
+export function validateAiEquityMonetizationInput(input: AiEconomicProofEquityInput): readonly string[] {
+  const violations = [
+    ...validateIdentity(input),
+    ...validateScoreRange(input, EQUITY_SCORE_FIELDS),
+  ];
+
+  if (!input.priceMatrixVerified) violations.push('price_matrix_not_verified');
   if (!Number.isFinite(input.drawdownFromTmaxPct) || input.drawdownFromTmaxPct > 0 || input.drawdownFromTmaxPct < -100) {
     violations.push('invalid_drawdown_from_tmax_pct');
   }
@@ -128,8 +141,21 @@ export function validateAiEconomicProofEquityInput(input: AiEconomicProofEquityI
   return violations;
 }
 
+export function validateAiOpportunityInputs(input: AiEconomicProofEquityInput): readonly string[] {
+  return validateScoreRange(input, OPPORTUNITY_SCORE_FIELDS);
+}
+
+/** Backward-compatible aggregate validation. Never use this to score Economic Proof. */
+export function validateAiEconomicProofEquityInput(input: AiEconomicProofEquityInput): readonly string[] {
+  return [
+    ...validateAiEconomicProofInput(input),
+    ...validateAiEquityMonetizationInput(input),
+    ...validateAiOpportunityInputs(input),
+  ];
+}
+
 export function scoreAiEconomicProof(input: AiEconomicProofEquityInput): number {
-  if (validateAiEconomicProofEquityInput(input).length > 0) return 0;
+  if (validateAiEconomicProofInput(input).length > 0) return 0;
   return round(
     input.t2RevenueCapture * 0.32 +
       input.t3FreeCashFlow * 0.28 +
@@ -139,7 +165,7 @@ export function scoreAiEconomicProof(input: AiEconomicProofEquityInput): number 
 }
 
 export function classifyAiEconomicProof(input: AiEconomicProofEquityInput): AiEconomicProofState {
-  if (validateAiEconomicProofEquityInput(input).length > 0) return 'UNVERIFIED';
+  if (validateAiEconomicProofInput(input).length > 0) return 'UNVERIFIED';
   const score = scoreAiEconomicProof(input);
   if (score >= 82 && input.economicProofTrend !== 'DOWN') return 'PROVEN_STRONG';
   if (score >= 70 && input.economicProofTrend === 'UP') return 'IMPROVING';
@@ -148,9 +174,7 @@ export function classifyAiEconomicProof(input: AiEconomicProofEquityInput): AiEc
 }
 
 export function scoreAiEquityMonetization(input: AiEconomicProofEquityInput): number {
-  if (validateAiEconomicProofEquityInput(input).length > 0 || !input.priceMatrixVerified) return 0;
-
-  // Tmax proximity is deliberately nonlinear: being merely "less down" is not leadership.
+  if (validateAiEquityMonetizationInput(input).length > 0) return 0;
   const tmaxProximity = clamp(100 + input.drawdownFromTmaxPct * 4);
   const continuity = input.greenContinuity * 20;
   return round(
@@ -164,10 +188,7 @@ export function scoreAiEquityMonetization(input: AiEconomicProofEquityInput): nu
 }
 
 export function isAiCleanWinner(input: AiEconomicProofEquityInput): boolean {
-  if (validateAiEconomicProofEquityInput(input).length > 0 || !input.priceMatrixVerified) return false;
-
-  // CONFIRMED RECEIVER is intentionally strict. A stock 8%, 20% or 40% below Tmax
-  // can be economically attractive, but it is not a clean bursatile winner yet.
+  if (validateAiEquityMonetizationInput(input).length > 0) return false;
   return (
     input.drawdownFromTmaxPct >= -5 &&
     input.greenContinuity >= 4 &&
@@ -178,7 +199,7 @@ export function isAiCleanWinner(input: AiEconomicProofEquityInput): boolean {
 }
 
 export function classifyAiEquityMonetization(input: AiEconomicProofEquityInput): AiEquityMonetizationState {
-  if (validateAiEconomicProofEquityInput(input).length > 0 || !input.priceMatrixVerified) return 'UNVERIFIED';
+  if (validateAiEquityMonetizationInput(input).length > 0) return 'UNVERIFIED';
   const score = scoreAiEquityMonetization(input);
   if (isAiCleanWinner(input) && score >= 72) return 'CONFIRMED_RECEIVER';
   if (input.drawdownFromTmaxPct >= -10 && input.relativeStrength >= 65 && input.priceResponse >= 55) return 'EARLY_RECEIVER';
@@ -187,10 +208,10 @@ export function classifyAiEquityMonetization(input: AiEconomicProofEquityInput):
   return 'REPRICING';
 }
 
-export function classifyAiProofMonetizationDivergence(
-  input: AiEconomicProofEquityInput,
-): AiProofMonetizationDivergence {
-  if (validateAiEconomicProofEquityInput(input).length > 0 || !input.priceMatrixVerified) return 'UNVERIFIED';
+export function classifyAiProofMonetizationDivergence(input: AiEconomicProofEquityInput): AiProofMonetizationDivergence {
+  const proofViolations = validateAiEconomicProofInput(input);
+  const equityViolations = validateAiEquityMonetizationInput(input);
+  if (proofViolations.length > 0 || equityViolations.length > 0) return 'UNVERIFIED';
 
   const proof = scoreAiEconomicProof(input);
   const equity = scoreAiEquityMonetization(input);
@@ -207,54 +228,55 @@ export function classifyAiProofMonetizationDivergence(
 }
 
 export function assessAiEconomicProofEquity(input: AiEconomicProofEquityInput): AiEconomicProofEquityResult {
-  const violations = validateAiEconomicProofEquityInput(input);
-  if (violations.length > 0 || !input.priceMatrixVerified) {
-    return {
-      ticker: input.ticker,
-      economicProofScore: 0,
-      economicProofState: 'UNVERIFIED',
-      equityMonetizationScore: 0,
-      equityMonetizationState: 'UNVERIFIED',
-      divergence: 'UNVERIFIED',
-      cleanWinner: false,
-      finalOpportunityScore: 0,
-      decision: 'REJECT',
-      reasons: [...violations, ...(!input.priceMatrixVerified ? ['price_matrix_not_verified'] : [])],
-      guardrails: ['No final classification is allowed until evidence and Price Matrix verification pass.'],
-    };
-  }
+  const proofViolations = validateAiEconomicProofInput(input);
+  const equityViolations = validateAiEquityMonetizationInput(input);
+  const opportunityViolations = validateAiOpportunityInputs(input);
 
-  const economicProofScore = scoreAiEconomicProof(input);
-  const economicProofState = classifyAiEconomicProof(input);
-  const equityMonetizationScore = scoreAiEquityMonetization(input);
-  const equityMonetizationState = classifyAiEquityMonetization(input);
-  const divergence = classifyAiProofMonetizationDivergence(input);
-  const cleanWinner = isAiCleanWinner(input);
+  const economicProofScore = proofViolations.length === 0 ? scoreAiEconomicProof(input) : 0;
+  const economicProofState = proofViolations.length === 0 ? classifyAiEconomicProof(input) : 'UNVERIFIED';
+  const equityMonetizationScore = equityViolations.length === 0 ? scoreAiEquityMonetization(input) : 0;
+  const equityMonetizationState = equityViolations.length === 0 ? classifyAiEquityMonetization(input) : 'UNVERIFIED';
+  const cleanWinner = equityViolations.length === 0 && isAiCleanWinner(input);
+  const divergence = proofViolations.length === 0 && equityViolations.length === 0
+    ? classifyAiProofMonetizationDivergence(input)
+    : 'UNVERIFIED';
 
-  // Orthogonal composition. Weak Equity Monetization lowers present opportunity;
-  // it does not erase Economic Proof and cannot be relabelled as a fundamental failure.
-  const finalOpportunityScore = round(
-    clamp(
-      economicProofScore * 0.34 +
-        input.capitalEfficiency * 0.20 +
-        input.expectedReturn * 0.22 +
-        equityMonetizationScore * 0.14 -
-        input.riskFragility * 0.10,
-    ),
-  );
+  const finalOpportunityVerified = proofViolations.length === 0 && equityViolations.length === 0 && opportunityViolations.length === 0;
+  const finalOpportunityScore = finalOpportunityVerified
+    ? round(
+        clamp(
+          economicProofScore * 0.34 +
+            input.capitalEfficiency * 0.20 +
+            input.expectedReturn * 0.22 +
+            equityMonetizationScore * 0.14 -
+            input.riskFragility * 0.10,
+        ),
+      )
+    : 0;
 
   const reasons: string[] = [];
+  reasons.push(...proofViolations.map((violation) => `economic:${violation}`));
+  reasons.push(...equityViolations.map((violation) => `equity:${violation}`));
+  reasons.push(...opportunityViolations.map((violation) => `opportunity:${violation}`));
+
   if (economicProofState === 'PROVEN_STRONG') reasons.push('economic_proof_strong');
-  if (input.economicProofTrend === 'UP') reasons.push('economic_proof_trend_up');
-  if (!cleanWinner) reasons.push('not_a_clean_bursatile_winner');
+  if (proofViolations.length === 0 && input.economicProofTrend === 'UP') reasons.push('economic_proof_trend_up');
+  if (equityViolations.length === 0 && !cleanWinner) reasons.push('not_a_clean_bursatile_winner');
   if (divergence === 'PROOF_UP_MONETIZATION_DOWN') reasons.push('economic_proof_up_equity_monetization_down');
   if (equityMonetizationState === 'CONFIRMED_RECEIVER') reasons.push('confirmed_receiver');
-  if (input.drawdownFromTmaxPct <= -20) reasons.push('drawdown_from_tmax_exceeds_20pct');
+  if (equityViolations.length === 0 && input.drawdownFromTmaxPct <= -20) reasons.push('drawdown_from_tmax_exceeds_20pct');
+  if (proofViolations.length === 0 && equityViolations.length > 0) reasons.push('economic_proof_preserved_while_equity_unverified');
 
   let decision: AiProofMonetizationDecision = 'MONITOR';
-  if (divergence === 'PROOF_UP_MONETIZATION_DOWN' && finalOpportunityScore >= 60) decision = 'WATCH_FOR_REMONETIZATION';
-  else if (cleanWinner && economicProofScore >= 72 && finalOpportunityScore >= 68) decision = 'BUY_REVIEW';
-  else if (equityMonetizationState === 'CONFIRMED_RECEIVER' && economicProofScore < 55) decision = 'AVOID_CHASING';
+  if (!finalOpportunityVerified) {
+    decision = proofViolations.length > 0 ? 'REJECT' : 'MONITOR';
+  } else if (divergence === 'PROOF_UP_MONETIZATION_DOWN' && finalOpportunityScore >= 60) {
+    decision = 'WATCH_FOR_REMONETIZATION';
+  } else if (cleanWinner && economicProofScore >= 72 && finalOpportunityScore >= 68) {
+    decision = 'BUY_REVIEW';
+  } else if (equityMonetizationState === 'CONFIRMED_RECEIVER' && economicProofScore < 55) {
+    decision = 'AVOID_CHASING';
+  }
 
   return {
     ticker: input.ticker,
@@ -265,22 +287,23 @@ export function assessAiEconomicProofEquity(input: AiEconomicProofEquityInput): 
     divergence,
     cleanWinner,
     finalOpportunityScore,
+    finalOpportunityVerified,
     decision,
     reasons,
     guardrails: [
-      'Economic Proof and Equity Monetization are orthogonal axes.',
+      'Economic Proof validation is independent from GREEN, Price Matrix, drawdown, relative strength, flow and price response.',
+      'GREEN belongs only to Equity Monetization / market behavior and can never make valid Economic Proof UNVERIFIED.',
+      'Economic Proof up does not imply Equity Monetization up.',
+      'Equity Monetization down or unverified does not imply Economic Proof down or unverified.',
       'Price weakness is not a fundamental falsifier by itself.',
-      'Relative strength or smaller drawdown does not equal CONFIRMED_RECEIVER.',
       'A clean winner requires verified price continuity, strong RS and proximity to Tmax.',
-      'PROOF_UP_MONETIZATION_DOWN is a watch-for-remonetization state, not an automatic BUY.',
+      'Final Opportunity is unverified until Economic Proof, Equity Monetization and opportunity inputs independently pass.',
     ],
   };
 }
 
-export function summarizeAiEquityCohort(
-  inputs: readonly AiEconomicProofEquityInput[],
-): AiEquityCohortSummary {
-  const verified = inputs.filter((input) => validateAiEconomicProofEquityInput(input).length === 0 && input.priceMatrixVerified);
+export function summarizeAiEquityCohort(inputs: readonly AiEconomicProofEquityInput[]): AiEquityCohortSummary {
+  const verified = inputs.filter((input) => validateAiEquityMonetizationInput(input).length === 0);
   const rankedByDamage = [...verified].sort((a, b) => b.drawdownFromTmaxPct - a.drawdownFromTmaxPct);
   const assessed = verified.map(assessAiEconomicProofEquity);
 
@@ -295,18 +318,19 @@ export function summarizeAiEquityCohort(
 }
 
 export const AI_ECONOMIC_PROOF_EQUITY_MONETIZATION_OMEGA_V1 = {
-  id: 'AI_ECONOMIC_PROOF_EQUITY_MONETIZATION_OMEGA_V1',
+  id: 'AI_ECONOMIC_PROOF_EQUITY_MONETIZATION_OMEGA_V1_1',
   status: 'canonical',
   mission:
-    'Separate verified AI Economic Proof from AI Equity Monetization, detect Economic Proof up while Equity Monetization is down, and forbid relative outperformance from being mislabeled as a clean winner.',
+    'Compose independently verified AI Economic Proof and AI Equity Monetization without allowing market-data failures to contaminate fundamental proof.',
   economicProofQuestion: 'Does the business capture AI value?',
   equityMonetizationQuestion: 'Is the stock market rewarding that value?',
   cleanWinnerRule: 'Verified Price Matrix + drawdown from Tmax >= -5% + Green Continuity >= 4/5 + RS >= 70 + flow >= 65 + price response >= 65.',
   antiConfusionRules: [
+    'Economic Proof has its own validator and never depends on GREEN or Price Matrix.',
+    'GREEN is market-behavior evidence only and is consumed only by Equity Monetization.',
     'Economic Proof up does not imply Equity Monetization up.',
     'Equity Monetization down does not imply Economic Proof down.',
-    'Less damaged is not the same as winner.',
-    'No UNVERIFIED row may enter the final verified matrix.',
+    'No UNVERIFIED market axis may be silently promoted to a verified Final Opportunity score.',
   ],
   assess: assessAiEconomicProofEquity,
   summarizeCohort: summarizeAiEquityCohort,
