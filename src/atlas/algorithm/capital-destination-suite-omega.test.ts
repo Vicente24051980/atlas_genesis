@@ -1,3 +1,4 @@
+import { evaluateUniversalMarketTapeIntegrity } from './universal-market-tape-integrity-omega';
 import { evaluateDestinationOfMoney, type DestinationInput } from './destination-of-money-omega';
 import { evaluateMemoryScarcity } from './memory-scarcity-omega';
 import { evaluateCapitalMigration, evaluateFalseAiDisruption, evaluateCapitalMigrationFalseAiConvergence } from './capital-migration-false-ai-omega';
@@ -6,9 +7,37 @@ import { evaluateMacroOptionsLiquidity } from './macro-options-liquidity-omega';
 import { evaluateHomebuilderAsymmetry, evaluateBuffettQuality } from './homebuilders-buffett-quality-omega';
 import { evaluateCapexCaptureElasticity } from './capex-capture-elasticity-omega';
 
+function tape(subject: string) {
+  return evaluateUniversalMarketTapeIntegrity({
+    ticker: subject,
+    primaryListing: 'BASKET',
+    currency: 'USD',
+    quotationUnit: 'USD',
+    asOfTimestamp: '2026-08-21T21:20:00+02:00',
+    expectedSessionState: 'OPEN',
+    observations: [{
+      ticker: subject,
+      primaryListing: 'BASKET',
+      currency: 'USD',
+      quotationUnit: 'USD',
+      observationDate: '2026-08-21',
+      observationType: 'INTRADAY_SNAPSHOT',
+      observationTimestamp: '2026-08-21T21:19:00+02:00',
+      sessionState: 'OPEN',
+      price: 100,
+      sourceId: `regulated-${subject}`,
+      sourceClass: 'REGULATED_FEED',
+      capturedAt: '2026-08-21T21:19:10+02:00',
+      corporateActionsReconciled: true,
+    }],
+  });
+}
+
 const destinationCase: DestinationInput = {
   destination: 'COOLING_THERMAL',
   destinationMode: 'REAL_ECONOMY',
+  marketTapeSubject: 'COOLING_THERMAL_BASKET',
+  marketTapeIntegrity: tape('COOLING_THERMAL_BASKET'),
   evidenceTraceable: true,
   evidenceIds: ['flow', 'orders', 'fcf', 'capex'],
   evidenceTypes: ['PUBLIC_FUND_FLOW', 'CORPORATE_CAPEX', 'ORDERS_BACKLOG_CONTRACTS', 'REVENUE_MARGIN_FCF'],
@@ -31,6 +60,7 @@ const destinationCase: DestinationInput = {
 describe('ATLAS capital destination engine suite', () => {
   it('confirms a multi-source real-economy destination only when economic proof is present', () => {
     const result = evaluateDestinationOfMoney(destinationCase);
+    expect(result.marketTapeVerified).toBe(true);
     expect(result.evidenceGate).toBe('CONFIRMED');
     expect(['R3_CONFIRMED_RECEIVER', 'R4_ACCELERATING']).toContain(result.stage);
     expect(result.action).toBe('PRIORITIZE_RESEARCH');
@@ -53,6 +83,8 @@ describe('ATLAS capital destination engine suite', () => {
       ...destinationCase,
       destination: 'BONDS',
       destinationMode: 'ASSET_CLASS',
+      marketTapeSubject: 'BONDS_BASKET',
+      marketTapeIntegrity: tape('BONDS_BASKET'),
       evidenceIds: ['lipper-flow', 'bond-performance'],
       evidenceTypes: ['PUBLIC_FUND_FLOW', 'PRICE_RELATIVE_STRENGTH'],
       publicFlowScore: 95,
@@ -64,8 +96,45 @@ describe('ATLAS capital destination engine suite', () => {
       fundamentalAccelerationScore: 50,
       crowdingRiskScore: 45,
     });
+    expect(result.marketTapeVerified).toBe(true);
     expect(result.evidenceGate).toBe('CONFIRMED');
     expect(result.structuralDestinationScore).toBeGreaterThan(75);
+  });
+
+  it('removes unverified price relative strength from both score and evidence diversity', () => {
+    const result = evaluateDestinationOfMoney({
+      ...destinationCase,
+      destination: 'BONDS',
+      destinationMode: 'ASSET_CLASS',
+      marketTapeSubject: 'BONDS_BASKET',
+      marketTapeIntegrity: undefined,
+      evidenceIds: ['lipper-flow', 'bond-performance'],
+      evidenceTypes: ['PUBLIC_FUND_FLOW', 'PRICE_RELATIVE_STRENGTH'],
+      publicFlowScore: 80,
+      creditFundingScore: 80,
+      sovereignFiscalScore: 80,
+      revisionsScore: 80,
+      relativeStrengthScore: 0,
+      flowAccelerationScore: 60,
+      fundamentalAccelerationScore: 50,
+      crowdingRiskScore: 45,
+    });
+    expect(result.marketTapeVerified).toBe(false);
+    expect(result.structuralDestinationScore).toBe(80);
+    expect(result.capitalSourceDiversity).toBe(1);
+    expect(result.evidenceGate).toBe('PROVISIONAL');
+    expect(result.reasons).toContain('PRICE_RELATIVE_STRENGTH evidence was removed from capital-source diversity because its market tape is unverified.');
+  });
+
+  it('does not allow a PASS tape for another basket to certify destination relative strength', () => {
+    const result = evaluateDestinationOfMoney({
+      ...destinationCase,
+      marketTapeSubject: 'COOLING_THERMAL_BASKET',
+      marketTapeIntegrity: tape('SOFTWARE_BASKET'),
+      evidenceTypes: [...destinationCase.evidenceTypes, 'PRICE_RELATIVE_STRENGTH'],
+    });
+    expect(result.marketTapeVerified).toBe(false);
+    expect(result.reasons).toContain('Market-tape subject mismatch: a PASS for another asset cannot certify this destination.');
   });
 
   it('recognizes real memory scarcity but keeps crowding separate', () => {
