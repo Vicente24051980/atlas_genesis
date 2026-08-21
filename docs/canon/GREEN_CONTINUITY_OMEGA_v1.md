@@ -1,16 +1,32 @@
-# GREEN CONTINUITY Ω v1.1
+# GREEN CONTINUITY Ω v1.2
 
-Status: CANONICAL TRANSVERSAL DIAGNOSTIC ENGINE
-Effective correction: 2026-08-19
+Status: CANONICAL FIRST ANALYTICAL ENGINE
+Effective correction: 2026-08-21
 Scope: all listed-equity tickers analyzed by ATLAS Ω
 
-## Correction
+## Ordering correction
 
-The former v1.0 language that made GREEN CONTINUITY Ω the principal selector and a mandatory portfolio entry/exit gate is superseded.
+GREEN CONTINUITY Ω is the **first analytical motor** for every listed ticker after evidence/source/quantitative/temporal integrity and ticker identity normalization.
 
-GREEN CONTINUITY Ω remains mandatory to **run**, but its output is one independent evidence stream among the full ATLAS engine set. It does not own the final recommendation.
+Canonical order:
 
-Final recommendation authority belongs only to **Investment Committee Ω** after the ticker has passed through all registered ATLAS engines. Falsifiers Ω retains its independent veto under the Investment Committee canon.
+`INPUT → EVIDENCE/SOURCE/QUANT/TEMPORAL INTEGRITY → GLOBAL DISCOVERY/IDENTITY → GREEN CONTINUITY Ω → GREEN PULSE/BREADTH/RELATIVE GREEN → ALL OTHER APPLICABLE ATLAS ENGINES → CONTRADICTIONS → EXPECTED RETURN → FALSIFIERS Ω → INVESTMENT COMMITTEE Ω → ACTION`
+
+GREEN must therefore run before Principal Ω, Successor Detection Ω, Business Quality Ω, Growth Ω, CAPEX Productivity Ω, Economic Proof Ω, Valuation Ω, Money Rotation Ω and specialized engines.
+
+## Critical non-termination rule
+
+Being below GREEN 4/5 **does not stop the audit**.
+
+Every ticker continues through all registered/applicable ATLAS engines. GREEN remains visible as its own independent market-behavior evidence stream and cannot be rewritten by later engines.
+
+- GREEN 5/5 = strongest continuity class.
+- GREEN 4/5 = continuity-qualified class; failed horizon recorded explicitly.
+- GREEN 3/5 = weak/mixed continuity; full audit continues.
+- GREEN 0–2/5 = poor continuity; full audit continues.
+- INSUFFICIENT_HISTORY / QUARANTINE = data-state warning; other engines continue where their own evidence is sufficient.
+
+GREEN 4/5 or 5/5 is the preferred continuity condition for ranking/entry consideration, but it is not permission to skip the rest of ATLAS and it is not an early-termination switch for research.
 
 ## Mission
 
@@ -35,13 +51,12 @@ A 5/5 result is **positive continuity evidence**.
 It is **not**:
 
 - an automatic BUY;
-- a mandatory gate for a committee BUY;
 - proof of business quality;
 - proof of institutional accumulation;
 - proof of attractive valuation;
 - a reason to ignore a confirmed falsifier.
 
-A ticker can fail GREEN 5/5 and still receive BUY from Investment Committee Ω if the complete evidence packet justifies it. A ticker can be GREEN 5/5 and still receive WATCH or REJECT because of valuation, economics, risk or a confirmed falsifier.
+A ticker can fail GREEN 5/5 and still reveal material Economic Proof, valuation, recovery, optionality, capital-rotation or falsifier evidence in later engines. A ticker can be GREEN 5/5 and still receive WATCH or REJECT because of valuation, economics, risk or a confirmed falsifier.
 
 ## State classification
 
@@ -51,6 +66,30 @@ All five windows are positive.
 
 Committee impact: `POSITIVE`.
 
+### PASS_4OF5
+
+Exactly four of five windows are positive.
+
+Committee impact: `POSITIVE_WITH_CAUTION`.
+
+The failed horizon must be recorded. If the failed horizon is 3M, 1Y or TOTAL, additionally preserve the structural-trend warning; the 4/5 count does not erase which horizon failed.
+
+### MIXED_3OF5
+
+Exactly three windows are positive.
+
+Committee impact: `CAUTION`.
+
+Full audit continues. This state is not a fundamental falsifier and does not terminate Economic Proof, valuation, risk, moat, capital-flow or specialized-engine analysis.
+
+### WEAK_0_TO_2OF5
+
+Zero, one or two windows are positive.
+
+Committee impact: `NEGATIVE`.
+
+Full audit continues. The weak continuity state remains explicit in the final evidence packet.
+
 ### SHORT_HORIZON_BREAK
 
 3M, 1Y and TOTAL remain positive, but 1W or 1M is non-positive.
@@ -59,20 +98,13 @@ Committee impact: `CAUTION`.
 
 This is a continuity warning. It is not a fundamental falsifier and does not trigger an automatic SELL.
 
-Example canonical correction, 19-ago-2026:
-
-- **ETN:** 1W = -6.22% from 12-ago close 459.96 to 18-ago close 431.33; therefore GREEN 5/5 → GREEN 4/5. Magnitude makes the price-continuity warning material, but no new corporate falsifier was identified in the evidence packet.
-- **JCI:** 1W = -2.04% from 12-ago close 152.79 to 18-ago close 149.68; therefore GREEN 5/5 → GREEN 4/5. The continuity warning is milder and no new corporate falsifier was identified in the evidence packet.
-
-The statement that the deterioration is “technical / regime-driven” must be stored as **INTERPRETATION**, not FACT, unless causal evidence is independently verified.
-
 ### STRUCTURAL_TREND_BREAK
 
 Any of 3M, 1Y or TOTAL is non-positive.
 
 Committee impact: `NEGATIVE`.
 
-This is a structural **price-trend** warning for GREEN Ω only. It is passed to Investment Committee Ω; GREEN Ω does not issue the final SELL/REJECT.
+This is a structural **price-trend** warning for GREEN Ω only. Other engines still run. GREEN Ω does not issue the final SELL/REJECT.
 
 ### INSUFFICIENT_HISTORY
 
@@ -80,7 +112,7 @@ A full 1Y price history is unavailable. Other engines continue to run and record
 
 ### QUARANTINE
 
-The five windows are not aligned to the same market cut or provenance is insufficient.
+The five windows are not aligned to the same market cut or provenance is insufficient. Other engines may continue if their own source/data requirements are independently satisfied.
 
 ### FALSIFIER_ALERT
 
@@ -98,11 +130,13 @@ The continuity strength score remains:
 
 The score ranks price continuity only. It does not rank final investment attractiveness.
 
+Primary continuity preference is ordered first by GREEN count (5/5, 4/5, 3/5, 2/5, 1/5, 0/5) and then by strength score, while retaining explicit information about which horizon failed.
+
 ## Universal ticker rule
 
 Every ticker analyzed by ATLAS must receive a recorded result from GREEN CONTINUITY Ω when the required price history exists.
 
-The same ticker must also be passed independently through Quality, Economic Proof, Valuation / Implied Return, CAPEX Productivity, Moat, Institutional Rotation, Money Rotation, Defensive, Macro / Regime, specialized engines, Falsifiers and Evidence Director according to the current engine registry.
+After GREEN, the same ticker must continue independently through Quality, Economic Proof, Valuation / Implied Return, CAPEX Productivity, Moat, Institutional Rotation, Money Rotation, Defensive, Macro / Regime, specialized engines, Falsifiers and Evidence Director according to the current engine registry.
 
 An engine with no meaningful signal must return `NO_SIGNAL`, `NOT_APPLICABLE` or the equivalent explicit state; it must not be silently skipped when the registry requires execution.
 
@@ -114,7 +148,7 @@ Defensive Ω is a separate transversal score applied to every ticker. Macro / Re
 
 ## Final decision hierarchy
 
-`TICKER → ALL ATLAS ENGINES → EVIDENCE + CONTRADICTIONS → FALSIFIERS Ω → INVESTMENT COMMITTEE Ω → BUY / HOLD / WATCH / REJECT / NO OPPORTUNITY → EXECUTION`
+`TICKER → GREEN CONTINUITY Ω FIRST → ALL OTHER ATLAS ENGINES → EVIDENCE + CONTRADICTIONS → FALSIFIERS Ω → INVESTMENT COMMITTEE Ω → BUY / HOLD / WATCH / REJECT / NO OPPORTUNITY → EXECUTION`
 
 No individual engine is allowed to promote its local state into the final portfolio recommendation.
 
@@ -137,4 +171,10 @@ Premarket and aftermarket do not replace the synchronized regular-session cut un
 
 ## Supersession
 
-This v1.1 correction supersedes all v1.0 language that described GREEN CONTINUITY Ω as the principal ATLAS portfolio selector or as an automatic BUY/HOLD/SELL authority.
+This v1.2 correction supersedes all earlier language that:
+
+- placed GREEN after another analytical motor;
+- made GREEN below 4/5 terminate the full audit;
+- treated GREEN as fundamental proof, verified institutional flow, or final recommendation authority.
+
+Historical GREEN amendments remain preserved, but where they conflict with v1.2, v1.2 controls current operation.
