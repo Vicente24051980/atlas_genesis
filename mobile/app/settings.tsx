@@ -39,7 +39,7 @@ export default function SettingsScreen() {
         <Row label="Preferred provider" value={health?.preferred_provider || '—'} />
         <Row label="FinancialData.Net" value={health?.financialdatanet_configured ? 'READY' : 'SERVER GATE'} tone={health?.financialdatanet_configured ? 'good' : 'warn'} />
         <Row label="Finnhub fallback" value={health?.finnhub_configured ? 'READY' : 'NOT CONFIGURED'} tone={health?.finnhub_configured ? 'good' : 'neutral'} />
-        <Row label="Firecrawl" value="SERVER SECRET · APK EXCLUDED" tone="good" />
+        <Row label="Firecrawl" value="SECRET SLOT · APK EXCLUDED · RUNTIME NOT VERIFIED HERE" tone="neutral" />
       </TerminalPanel>
 
       <TerminalPanel title="TRADING 212 · READ BRIDGE">
