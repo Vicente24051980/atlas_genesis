@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from api.app import app as production_app
 from api.mobile_audit_omega import ENGINE_ORDER, _build_engine_ledger, _committee_decision
 
 
@@ -19,6 +20,11 @@ def _company() -> dict:
         },
         "sourceStatus": {"quote": "OK", "company": "OK", "keyMetrics": "OK"},
     }
+
+
+def test_production_app_mounts_full_audit_route_once():
+    paths = [route.path for route in production_app.routes]
+    assert paths.count("/v1/mobile/audit/{ticker}") == 1
 
 
 def test_green_is_first_and_every_registered_engine_is_visible():
