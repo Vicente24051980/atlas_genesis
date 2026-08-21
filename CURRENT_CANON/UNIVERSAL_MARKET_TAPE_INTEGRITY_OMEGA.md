@@ -7,7 +7,7 @@
 
 ## Purpose
 
-Create one upstream, fail-closed gate for every ATLAS consumer of market tape. No downstream engine may independently self-certify price, historical return, relative strength, momentum, drawdown, GREEN continuity, price response or Equity Monetization.
+Create one upstream, fail-closed gate for ATLAS market-tape consumers. No downstream engine is allowed to independently self-certify price, historical return, relative strength, momentum, drawdown, GREEN continuity, price response or Equity Monetization.
 
 ## Constitutional invariant
 
@@ -15,9 +15,24 @@ Create one upstream, fail-closed gate for every ATLAS consumer of market tape. N
 
 No bypass is canonical.
 
-## Covered consumers
+## Integration matrix — wired in this implementation
 
-At minimum the gate governs:
+The following canonical decision surfaces consume the universal gate in this implementation:
+
+1. **Return Objective / Motor 13** — verified P0 for Expected Return and verified window/kind for Historical Return.
+2. **AI Equity Monetization Ω** — PASS + same ticker + same as-of date; Economic Proof remains independent.
+3. **Institutional Capital Rotation Ω** — relative strength and price-trend diagnostics are removed when tape is unverified.
+4. **Money Rotation Ω** — relative strength, price reaction, price capitulation, gold momentum and gold/oil price-regime signals require verified tape.
+5. **Destination of Money Ω** — price-relative-strength evidence is removed and the remaining score is renormalized when tape is unverified.
+6. **Energy Rotation Ω** — post-earnings price reaction cannot promote a rotation without verified tape.
+7. **Global Liquidity Transmission Ω / BTC trigger** — BTC relative strength is excluded unless its own market tape passes.
+8. **Entry Timing Return-Aware Ω / GREEN** — 1W, 1M and 3M price-return windows must reconcile to the same ticker before any BUY/STARTER/NO-CHASE state can be emitted.
+
+Any legacy, experimental, Python/runtime or specialist module not listed above **does not inherit a UNIVERSAL MARKET TAPE PASS merely because this canon exists**. It must explicitly consume the gate or be treated as `REFERENCE_ONLY` until migrated. This prevents documentation from claiming protection that code has not yet implemented.
+
+## Covered market-data semantics
+
+The gate is the mandatory contract for:
 
 - current price / P0;
 - Historical Return windows;
@@ -32,7 +47,7 @@ At minimum the gate governs:
 - sector / subsector tape inputs used by rotation engines;
 - market heatmaps and rankings when they use price or return data.
 
-A fundamental engine may remain valid when market tape fails if its inputs are genuinely independent of price. Market-tape failure must not contaminate Economic Proof, but it must block any market-dependent score or conclusion.
+A fundamental engine may remain valid when market tape fails if its inputs are genuinely independent of price. Market-tape failure must not contaminate Economic Proof, but it must block or remove any market-dependent score or conclusion.
 
 ## Identity gate
 
@@ -73,6 +88,16 @@ Canonical source priority after freshness and identity gates:
 `SECONDARY_RESEARCH` and `SEARCH_SNIPPET` may corroborate context but can never be the sole canonical market-tape source.
 
 A user capture is admissible because it is direct observed evidence, but only when ticker/listing, quotation, timestamp and corporate-action status are explicit or reconciled.
+
+### Delayed / reference-only boundary
+
+A provider or endpoint explicitly labelled **delayed**, **reference**, **snapshot-only** or equivalent cannot be used as a canonical intraday observation merely because it returns a price.
+
+The current `api/market.py` Stooq endpoints are explicitly marked `delayed: True` and therefore remain **REFERENCE_ONLY** for canonical intraday decisions until a dedicated adapter supplies the full Universal Market Tape contract.
+
+Likewise, Stooq-derived **5 / 20 / 60 / 252 trading-session returns** are their own measures. They must never be silently relabelled as calendar/UI windows `1W / 1M / 3M / 1Y`, and they cannot certify Trading 212 windows without an explicit period-definition reconciliation.
+
+A delayed/reference sensor may still be used for exploratory charts, research queues or non-canonical diagnostics when it is clearly labelled and cannot emit a canonical market-dependent decision.
 
 ## Conflict gate
 
@@ -123,7 +148,7 @@ A PASS result for ticker A can never certify ticker B.
 
 Any of these means:
 
-`MARKET-DEPENDENT SCORE = UNVERIFIED / BLOCKED`
+`MARKET-DEPENDENT SCORE = UNVERIFIED / BLOCKED OR EXCLUDED AND RENORMALIZED`
 
 No placeholder, inherited number, remembered number, search snippet, prior-session value or convenient alternative source may fill the gap silently.
 
@@ -163,6 +188,8 @@ These are regression fixtures, not permanent market facts. Their purpose is to e
 **FRESHNESS BEFORE PRESTIGE.**  
 **IDENTITY BEFORE SCORE.**  
 **CONFLICT -> FAIL CLOSED.**  
+**DELAYED / REFERENCE DATA != CANONICAL INTRADAY TAPE.**  
+**5/20/60/252 SESSIONS != 1W/1M/3M/1Y WITHOUT RECONCILIATION.**  
 **SEARCH SNIPPET != CANONICAL TAPE.**  
 **1M != 3M.**  
 **PRICE RETURN != TOTAL RETURN.**  
