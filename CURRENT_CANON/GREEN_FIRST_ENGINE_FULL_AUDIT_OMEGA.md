@@ -54,6 +54,34 @@ Calibration case: ETN on 2026-08-21 exposed a stale/misaligned external-performa
 
 Implementation authority: `src/atlas/algorithm/green-continuity-omega.ts` v1.3.
 
+## Provider Quorum Ω — mandatory verification layer
+
+GREEN is now verified from **3 independent providers minimum**, using a preferred four-provider pool:
+
+1. TradingView
+2. Yahoo Finance historical market data
+3. Barchart
+4. Investing.com
+
+ATLAS does **not** trust each provider's displayed `Performance %` label as the canonical return because vendors may use different formulas. Instead, each eligible provider must supply the raw regular-session historical closes needed for the requested horizon and ATLAS recomputes the return under one normalized policy.
+
+Canonical price policy for GREEN: **split-adjusted, dividend-unadjusted regular-market close**. The purpose is to measure price continuity, not total shareholder return.
+
+Per horizon, VERIFIED requires all of the following:
+
+- at least 3 eligible independent providers;
+- identical ticker identity / exchange mapping;
+- exact same `expectedMarketCut`;
+- same corporate-action normalization;
+- all providers agree on the sign (>0 or ≤0);
+- cross-provider numerical dispersion ≤ `0.25 percentage points` after normalization.
+
+If even one eligible provider disagrees on the sign, or the numerical dispersion exceeds tolerance, that horizon is not VERIFIED and the full GREEN vector remains `QUARANTINE` until reconciled. A simple 2-vs-1 majority is not enough when the minority source implies the opposite GREEN state.
+
+`Trading 212` may be used as an **additional broker-side cross-check** when the user supplies visible T212 evidence (for example screenshots showing the relevant horizon and cut). It is not assumed to be programmatically accessible from ATLAS and is not required to reach the 3-provider quorum.
+
+Implementation authority: `src/atlas/algorithm/green-provider-quorum-omega.ts` v1.0.
+
 ## Non-negotiable laws
 
 1. **GREEN RUNS FIRST.**
@@ -66,6 +94,7 @@ Implementation authority: `src/atlas/algorithm/green-continuity-omega.ts` v1.3.
 8. **Falsifiers Ω retains the independent absolute veto for confirmed material structural falsifiers.**
 9. **Final recommendation belongs to Investment Committee Ω after the complete evidence packet.**
 10. **NO VERIFIED SYNCHRONIZED CUT = NO GREEN SCORE; QUARANTINE.**
+11. **NO 3-PROVIDER QUORUM PER HORIZON = NO VERIFIED GREEN.**
 
 ## Supersession
 
@@ -75,6 +104,7 @@ This 2026-08-21 override supersedes any earlier language that:
 - terminated the full ticker audit solely because GREEN was below 4/5;
 - allowed another engine to rewrite the observed GREEN vector;
 - treated GREEN itself as fundamental proof or real institutional flow;
-- allowed stale or temporally unreconciled external performance data to generate a GREEN classification.
+- allowed stale or temporally unreconciled external performance data to generate a GREEN classification;
+- allowed a single data provider to certify GREEN.
 
 Historical documents remain preserved as historical records, but this file controls current sequencing where conflict exists.
