@@ -77,23 +77,24 @@ export const GREEN_CONTINUITY_WEIGHTS: Record<GreenContinuityWindow, number> = {
 };
 
 export const GREEN_CONTINUITY_OMEGA = {
-  id: 'GREEN_CONTINUITY_OMEGA_V1_3',
-  name: 'GREEN CONTINUITY Ω v1.3',
+  id: 'GREEN_CONTINUITY_OMEGA_V1_4',
+  name: 'GREEN CONTINUITY Ω v1.4',
   role: 'first_analytical_engine',
   status: 'canonical',
   mobileFirst: true,
   recommendationAuthority: 'INVESTMENT_COMMITTEE_OMEGA',
   allTickerRule: true,
   fullAuditContinuationRule: true,
-  preferredContinuityMinimum: 4,
+  preferredContinuityMinimum: 3,
   diagnosticPassRule: '1W > 0 AND 1M > 0 AND 3M > 0 AND 1Y > 0 AND TOTAL > 0',
   windows: ['oneWeek', 'oneMonth', 'threeMonths', 'oneYear', 'total'] as const,
   rankingWeights: GREEN_CONTINUITY_WEIGHTS,
   constitutionalRules: [
     'GREEN CONTINUITY Ω is the first analytical motor after evidence/source/quantitative/temporal integrity and ticker identity normalization.',
     'Every listed-equity ticker analyzed by ATLAS must receive a GREEN CONTINUITY Ω result when sufficient market history exists.',
-    'GREEN 5/5 is the strongest continuity class and GREEN 4/5 is continuity-qualified; neither is an automatic BUY.',
-    'GREEN 3/5 or lower never terminates the research audit: all registered/applicable ATLAS engines continue to run and the weak GREEN state remains visible.',
+    'GREEN 5/5 is the strongest continuity class; GREEN 4/5 is strong; GREEN 3/5 is opportunity-eligible with caution when the complete cross-engine evidence is strong.',
+    'GREEN 3/5 is not a rejection state and must not cause ATLAS to miss a fundamentally strong, attractively valued or early-rotation opportunity.',
+    'GREEN 0/5 to 2/5 never terminates the research audit: all registered/applicable ATLAS engines continue and the weak GREEN state remains visible.',
     'GREEN is price-continuity evidence only; it is not fundamental evidence and not verified capital flow.',
     'A structural price-horizon break is recorded explicitly but is not by itself a fundamental falsifier.',
     'A confirmed structural business falsifier is escalated to Falsifiers Ω / Red Team; GREEN CONTINUITY Ω does not own the final veto decision.',
@@ -262,7 +263,7 @@ export function evaluateGreenContinuity(input: GreenContinuityInput): GreenConti
   }
 
   if (greenCount === 4) {
-    reasons.push(`GREEN 4/5 continuity-qualified. Failed window(s): ${failedWindows.join(', ')}. Continue the complete ATLAS audit and preserve the failed horizon explicitly.`);
+    reasons.push(`GREEN 4/5 strong continuity. Failed window(s): ${failedWindows.join(', ')}. Continue the complete ATLAS audit and preserve the failed horizon explicitly.`);
     if (structuralTrendBreak) {
       reasons.push('The failed horizon includes 3M, 1Y or TOTAL; preserve a structural price-trend warning even though the count is 4/5.');
     } else if (shortHorizonBreak) {
@@ -273,7 +274,8 @@ export function evaluateGreenContinuity(input: GreenContinuityInput): GreenConti
 
   if (greenCount === 3) {
     const positionContext = input.existingPosition ? 'existing position' : 'candidate';
-    reasons.push(`${positionContext}: GREEN 3/5 mixed continuity. Full audit continues through every registered/applicable engine; do not terminate research because GREEN is below 4/5.`);
+    reasons.push(`${positionContext}: GREEN 3/5 is opportunity-eligible with caution. Full audit continues and Investment Committee Ω may promote the ticker when Economic Proof, quality, valuation/Expected Return, moat, capital efficiency/rotation and falsifiers collectively support the opportunity.`);
+    reasons.push('Do not discard a 3/5 ticker solely because two price horizons are non-positive; preserve the failed windows and require stronger confirmation from the remaining engines.');
     if (structuralTrendBreak) reasons.push('At least one structural price horizon is non-positive; preserve this warning independently from fundamentals.');
     return { ...base, decision: 'MIXED_3OF5', committeeImpact: 'CAUTION' };
   }
