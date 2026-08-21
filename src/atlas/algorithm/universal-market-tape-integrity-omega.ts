@@ -75,6 +75,10 @@ export interface SelectedMarketReturn {
 export interface UniversalMarketTapeIntegrityResult {
   status: MarketTapeStatus;
   canonicalVerified: boolean;
+  selectedTicker: string | null;
+  selectedPrimaryListing: string | null;
+  selectedCurrency: string | null;
+  selectedQuotationUnit: string | null;
   selectedPrice: number | null;
   selectedSourceId: string | null;
   selectedSourceClass: MarketTapeSourceClass | null;
@@ -142,8 +146,7 @@ function identityMatches(input: UniversalMarketTapeIntegrityInput, observation: 
 
 function observationTimeMs(observation: MarketTapeObservation): number | null {
   if (observation.observationType === 'INTRADAY_SNAPSHOT') return parseTimestamp(observation.observationTimestamp);
-  const captured = parseTimestamp(observation.capturedAt);
-  return captured;
+  return parseTimestamp(observation.capturedAt);
 }
 
 function sourceCanBeCanonical(sourceClass: MarketTapeSourceClass): boolean {
@@ -168,7 +171,6 @@ function isFresh(input: UniversalMarketTapeIntegrityInput, observation: MarketTa
 }
 
 function sortCandidates(
-  input: UniversalMarketTapeIntegrityInput,
   observations: readonly MarketTapeObservation[],
   asOfMs: number,
 ): MarketTapeObservation[] {
@@ -208,6 +210,10 @@ function result(
   return {
     status,
     canonicalVerified: status === 'PASS',
+    selectedTicker: selected?.ticker ?? null,
+    selectedPrimaryListing: selected?.primaryListing ?? null,
+    selectedCurrency: selected?.currency ?? null,
+    selectedQuotationUnit: selected?.quotationUnit ?? null,
     selectedPrice: selected?.price ?? null,
     selectedSourceId: selected?.sourceId ?? null,
     selectedSourceClass: selected?.sourceClass ?? null,
@@ -225,6 +231,7 @@ function result(
       'Price and historical-return windows must be coherent in time, listing, currency and quotation unit.',
       'PRICE_RETURN and TOTAL_RETURN are distinct metrics and may never be silently substituted.',
       'A user capture is admissible market-tape evidence only when identity, timestamp, quotation unit and corporate-action status are explicit.',
+      'Downstream consumers must re-bind the selected ticker/listing/currency/quotation unit to their own input identity before scoring.',
     ],
   };
 }
@@ -277,7 +284,7 @@ export function evaluateUniversalMarketTapeIntegrity(
     return result('FAIL_STALE', ['all_market_tape_observations_stale_for_requested_session'], null, selectedReturns, asOfMs, evidenceIds);
   }
 
-  const sorted = sortCandidates(input, fresh, asOfMs);
+  const sorted = sortCandidates(fresh, asOfMs);
   const selected = sorted[0];
   evidenceIds.push(selected.sourceId);
 
@@ -361,7 +368,7 @@ export function marketTapePasses(result: UniversalMarketTapeIntegrityResult | un
 }
 
 export const UNIVERSAL_MARKET_TAPE_INTEGRITY_OMEGA_V1 = {
-  id: 'UNIVERSAL_MARKET_TAPE_INTEGRITY_OMEGA_V1',
+  id: 'UNIVERSAL_MARKET_TAPE_INTEGRITY_OMEGA_V1_1',
   status: 'canonical',
   mission: 'Make one fail-closed market-tape gate govern price, historical-return and equity-monetization consumers before any ranking or interpretation.',
   sourcePriority: SOURCE_PRIORITY,
