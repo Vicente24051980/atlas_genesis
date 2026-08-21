@@ -1,4 +1,4 @@
-# Rebuild marker: 2026-08-20 current main
+# Rebuild marker: 2026-08-21 terminal audit v2
 name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
@@ -9,6 +9,8 @@ on:
       - 'mobile/**'
       - 'api/main.py'
       - 'api/mobile_v2.py'
+      - 'api/mobile_audit_omega.py'
+      - 'api/test_mobile_audit_omega.py'
       - 'api/test_mobile_v2.py'
       - 'api/test_mobile_entrypoints.py'
       - 'api/trading212_v2.py'
@@ -24,6 +26,8 @@ on:
       - 'mobile/**'
       - 'api/main.py'
       - 'api/mobile_v2.py'
+      - 'api/mobile_audit_omega.py'
+      - 'api/test_mobile_audit_omega.py'
       - 'api/test_mobile_v2.py'
       - 'api/test_mobile_entrypoints.py'
       - 'api/trading212_v2.py'
@@ -47,7 +51,7 @@ env:
 
 jobs:
   api-unit:
-    name: Mobile backend + Trading 212 + CAPEX + entrypoint tests
+    name: Mobile backend + audit + Trading 212 + CAPEX + entrypoint tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -56,7 +60,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r api/requirements.txt
-      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_trading212_v2.py api/test_global_capex_chain_mobile.py api/test_mobile_entrypoints.py
+      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_mobile_audit_omega.py api/test_trading212_v2.py api/test_global_capex_chain_mobile.py api/test_mobile_entrypoints.py
 
   typecheck:
     name: Mobile TypeScript gate
@@ -110,6 +114,10 @@ jobs:
           fi
           if grep -Fq 'live.trading212.com/api/v0' /tmp/index.android.bundle || grep -Fq 'demo.trading212.com/api/v0' /tmp/index.android.bundle; then
             echo '::error::Trading 212 direct API endpoint leaked into APK. Use server proxy only.'
+            exit 1
+          fi
+          if grep -Eq 'fc-[A-Za-z0-9_-]{20,}' /tmp/index.android.bundle; then
+            echo '::error::Firecrawl key-like secret leaked into APK.'
             exit 1
           fi
           sha256sum "$APK" | tee /tmp/atlas-mobile-v1.sha256
