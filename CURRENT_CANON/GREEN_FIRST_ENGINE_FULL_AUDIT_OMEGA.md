@@ -31,14 +31,16 @@ GREEN 5/5 requires:
 ## GREEN interpretation
 
 - `GREEN 5/5` = strongest continuity class.
-- `GREEN 4/5` = continuity-qualified class; failed horizon must be explicit.
-- `GREEN 3/5` = weak/mixed continuity; **full audit continues**.
-- `GREEN 0–2/5` = poor continuity; **full audit continues**.
+- `GREEN 4/5` = strong continuity; failed horizon must be explicit.
+- `GREEN 3/5` = **opportunity-eligible with caution**. It may reach BUY/HOLD/Watch ranking if the remaining ATLAS engines are strong and no material falsifier invalidates the thesis.
+- `GREEN 0–2/5` = poor continuity; **full audit continues** and exceptional opportunities may still surface, but GREEN contributes negative evidence.
 - `QUARANTINE / INSUFFICIENT_HISTORY` = data-quality state; other engines continue where their own evidence is sufficient.
 
-GREEN 4/5 or 5/5 is the preferred continuity condition for ranking/entry consideration, but GREEN is **not an early-termination switch** for research.
+**5/5, 4/5 and 3/5 are all valid GREEN classes for opportunity discovery.** Their difference is confidence in price continuity, not permission or prohibition to invest.
 
-A 3/5, 2/5, 1/5 or 0/5 ticker may still expose exceptional Economic Proof, valuation, recovery, optionality, capital rotation, a falsifier, or another signal that ATLAS must record. The weak GREEN state remains visible and cannot be overwritten by another engine.
+ATLAS must never discard a ticker solely because it is GREEN 3/5 when Economic Proof, Quality, Growth, CAPEX Productivity, Moat, Valuation/Expected Return, Money/Institutional Rotation, Risk and specialized engines collectively produce a strong evidence packet.
+
+GREEN is an independent market-behaviour signal. It cannot overwrite stronger verified fundamental evidence, and stronger fundamentals cannot rewrite the observed GREEN vector.
 
 ## Calibration 2026-08-21 — synchronized provenance gate
 
@@ -52,11 +54,11 @@ A generic performance table whose temporal cut cannot be reconciled with the req
 
 Calibration case: ETN on 2026-08-21 exposed a stale/misaligned external-performance substitution. The observed user evidence established at least `1W < 0`; therefore a 5/5 classification was impossible. The correct system response, absent verified 1M/3M/1Y/TOTAL data on the same cut, is `QUARANTINE`, not an inferred 5/5.
 
-Implementation authority: `src/atlas/algorithm/green-continuity-omega.ts` v1.3.
+Implementation authority: `src/atlas/algorithm/green-continuity-omega.ts` v1.4.
 
 ## Provider Quorum Ω — mandatory verification layer
 
-GREEN is now verified from **3 independent providers minimum**, using a preferred four-provider pool:
+GREEN is verified from **3 independent providers minimum**, using a preferred four-provider pool:
 
 1. TradingView
 2. Yahoo Finance historical market data
@@ -78,7 +80,7 @@ Per horizon, VERIFIED requires all of the following:
 
 If even one eligible provider disagrees on the sign, or the numerical dispersion exceeds tolerance, that horizon is not VERIFIED and the full GREEN vector remains `QUARANTINE` until reconciled. A simple 2-vs-1 majority is not enough when the minority source implies the opposite GREEN state.
 
-`Trading 212` may be used as an **additional broker-side cross-check** when the user supplies visible T212 evidence (for example screenshots showing the relevant horizon and cut). It is not assumed to be programmatically accessible from ATLAS and is not required to reach the 3-provider quorum.
+`Trading 212` may be used as an **additional broker-side cross-check** when the user supplies visible T212 evidence. It is not assumed to be programmatically accessible from ATLAS and is not required to reach the 3-provider quorum.
 
 Implementation authority: `src/atlas/algorithm/green-provider-quorum-omega.ts` v1.0.
 
@@ -86,22 +88,24 @@ Implementation authority: `src/atlas/algorithm/green-provider-quorum-omega.ts` v
 
 1. **GREEN RUNS FIRST.**
 2. **GREEN DOES NOT STOP THE AUDIT.**
-3. **4/5–5/5 = preferred continuity, not permission to skip other engines.**
-4. **≤3/5 = continue all applicable engines with the GREEN weakness preserved.**
-5. **PRICE CONTINUITY ≠ FUNDAMENTAL EVIDENCE.**
-6. **GREEN ≠ VERIFIED CAPITAL FLOW.**
-7. **GREEN ≠ AUTOMATIC BUY/SELL.**
-8. **Falsifiers Ω retains the independent absolute veto for confirmed material structural falsifiers.**
-9. **Final recommendation belongs to Investment Committee Ω after the complete evidence packet.**
-10. **NO VERIFIED SYNCHRONIZED CUT = NO GREEN SCORE; QUARANTINE.**
-11. **NO 3-PROVIDER QUORUM PER HORIZON = NO VERIFIED GREEN.**
+3. **GREEN 5/5, 4/5 AND 3/5 ARE OPPORTUNITY-ELIGIBLE CLASSES.**
+4. **GREEN 3/5 REQUIRES STRONGER CONFIRMATION FROM THE OTHER ENGINES; IT IS NOT A REJECTION.**
+5. **GREEN 0–2/5 STILL CONTINUES THROUGH ALL APPLICABLE ENGINES.**
+6. **PRICE CONTINUITY ≠ FUNDAMENTAL EVIDENCE.**
+7. **GREEN ≠ VERIFIED CAPITAL FLOW.**
+8. **GREEN ≠ AUTOMATIC BUY/SELL.**
+9. **Falsifiers Ω retains the independent absolute veto for confirmed material structural falsifiers.**
+10. **Final recommendation belongs to Investment Committee Ω after the complete evidence packet.**
+11. **NO VERIFIED SYNCHRONIZED CUT = NO GREEN SCORE; QUARANTINE.**
+12. **NO 3-PROVIDER QUORUM PER HORIZON = NO VERIFIED GREEN.**
 
 ## Supersession
 
 This 2026-08-21 override supersedes any earlier language that:
 
 - placed GREEN after Principal Ω, Successor Detection Ω, Quality or another analytical motor;
-- terminated the full ticker audit solely because GREEN was below 4/5;
+- terminated or rejected a ticker solely because GREEN was below 4/5;
+- excluded GREEN 3/5 from the opportunity set despite strong cross-engine evidence;
 - allowed another engine to rewrite the observed GREEN vector;
 - treated GREEN itself as fundamental proof or real institutional flow;
 - allowed stale or temporally unreconciled external performance data to generate a GREEN classification;
