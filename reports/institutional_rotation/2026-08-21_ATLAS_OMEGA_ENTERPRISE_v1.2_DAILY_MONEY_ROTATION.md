@@ -1,46 +1,46 @@
 # ATLAS Ω Enterprise v1.2 — Institutional Capital Rotation Ω — 2026-08-21
 
-**Evidence cutoff:** 2026-08-21 08:33 CEST.  
+**Evidence cutoff:** 2026-08-21 14:28 CEST.  
 **Decision:** NO PORTFOLIO CHANGE.  
 **Regime:** `FISCAL / RATE / OIL STRESS → REAL ASSETS + EX-US + DEFENSIVE BROADENING; US DURATION UNDER DISTRIBUTION`.
 
 ## Executive conclusion
 
-The overnight evidence strengthens, rather than reverses, yesterday's rotation map. U.S. long-duration relief failed: the 10Y Treasury is around 4.71% and the 30Y around 5.25–5.26%, while Brent reached $94.71 before easing near $93.1–93.6. The dollar is weakening and gold is up about 3.1% on the week. Asian equities are mixed/soft for the week under the combined oil-and-yield shock.
+Fresh pre-open evidence does not invalidate the morning rotation map. U.S. futures are rebounding after the Aug-20 selloff, but this is price action, not confirmed institutional flow. S&P futures were about +0.35–0.4% and Dow +0.4–0.6%, while the 10Y Treasury remained near 4.69–4.70% and long-end fiscal stress persisted. Brent remained around $93–95 after touching $94.71; gold strengthened roughly 1.8% intraday and the dollar weakened toward a three-month low. Europe was modestly positive, with basic resources +2.2%; Reuters/LSEG still reports +$2.44B into European equities in the week to Aug-12.
 
-**Energy remains the strongest equity receiver, 82/100 / Confirmed Receiver. Europe rises to 81/100 / Confirmed Receiver. Gold/hard assets rise to 79/100 / Confirmed Receiver. Technology broad falls to 39/100 / No Flow + Distribution Warning.**
+**Energy remains 82/100 / Confirmed Receiver. Europe remains 81/100 / Confirmed Receiver. Gold/hard assets rises to 80/100 / Confirmed Receiver. Technology broad remains 39/100 / No Flow + Distribution Warning.**
 
-Strict evidence rule remains active: price leadership, volume and relative strength do not equal institutional fund flow. The latest verified broad flow datasets are lagged and differ by fund universe/classification; Reuters/LSEG today reports European equity funds +$2.44B in the week to Aug-12, while the broader LSEG/Lipper regional dataset used in the prior ATLAS report showed a larger Europe allocation figure. Both agree on direction (positive); ATLAS does not merge the dollar amounts.
+Strict evidence rule remains active: price leadership, futures, volume and relative strength do not equal institutional fund flow. The latest verified broad flow datasets remain lagged and differ by fund universe/classification; ATLAS keeps those universes separate.
 
 ## Macro → asset → sector transmission
 
-1. **Fiscal duration stress:** Treasury buyback relief did not persist; long yields returned near recent extremes. This raises the hurdle rate for long-duration growth and debt-intensive AI CAPEX.
-2. **Oil/inflation:** Brent touched $94.71 on Iran/Hormuz risk. Energy producers/services gain cash-flow support while transport, discretionary and lower-income consumption face a tax.
-3. **Dollar:** USD weakness supports Europe, gold and selected EM FX/assets, but high U.S. yields and oil cap the EM equity signal.
-4. **Gold:** weekly gain around 3.1% plus previously verified precious-metals fund inflows keeps hard assets confirmed despite daily volatility.
-5. **Europe:** Reuters/LSEG reports +$2.44B into European equities in the week to Aug-12; STOXX earnings are expected around +24.1% YoY in Q2. Flow + earnings + lower AI-duration exposure form a coherent receiver chain.
-6. **U.S. breadth:** Aug-20 closed with Dow -1.32%, S&P 500 -0.87%, Nasdaq -1.00%; decliners led advancers about 1.94:1 NYSE and 1.92:1 Nasdaq. Total volume (~9.61B shares) was below the ~16.64B 20-day average: deterioration is broad, but not high-volume capitulation.
+1. **Fiscal duration stress:** Treasury buyback relief has not removed long-end pressure; this keeps the hurdle rate elevated for long-duration growth and debt-intensive AI CAPEX.
+2. **Oil/inflation:** Brent touched $94.71 on Iran/Hormuz risk. Energy producers/services retain cash-flow support while transport, discretionary and lower-income consumption face a tax.
+3. **Dollar:** DXY weakened toward a three-month low, supporting Europe, gold and selected ex-US assets.
+4. **Gold:** fresh price strength plus previously verified precious-metals fund inflows keeps hard assets confirmed.
+5. **Europe:** Reuters/LSEG reports +$2.44B into European equities in the week to Aug-12; basic resources led Europe today. Flow + earnings + lower AI-duration exposure form a coherent receiver chain.
+6. **U.S. breadth:** Aug-20 closed with Dow -1.32%, S&P 500 -0.87%, Nasdaq -1.00%; the Friday futures rebound is not breadth confirmation and does not cancel the distribution signal.
 
 ## Institutional Flow Score Ω
 
 | Rotation | Score | State | Δ vs 20-Aug | Evidence reading |
 |---|---:|---|---:|---|
-| **Energy / oil & gas** | **82** | **Confirmed Receiver** | **+2** | Verified positive fund flow in latest sector dataset + persistent RS + oil macro + broad leader confirmation |
-| **Europe equities** | **81** | **Confirmed Receiver** | **+2** | Fresh Reuters/LSEG confirmation of positive weekly flow + strong Q2 earnings; price/flow divergence remains constructive |
-| **Gold / hard assets** | **79** | **Confirmed Receiver** | **+3** | Verified precious-metals flows + weak USD + fiscal hedge demand + weekly price confirmation |
-| Global equities | 68 | Institutional Accumulation Probable | -5 | Prior broad inflow remains, but global breadth/rate stress weakens confirmation |
-| European defence/aerospace | 71 | Institutional Accumulation Probable | +1 | Europe receiver + structural order/backlog; no direct subsector flow proof, therefore capped below 75 |
+| **Energy / oil & gas** | **82** | **Confirmed Receiver** | **+2** | Verified positive fund flow + persistent RS + oil macro + leader confirmation |
+| **Europe equities** | **81** | **Confirmed Receiver** | **+2** | Fresh Reuters/LSEG positive weekly flow + earnings + constructive flow/price divergence |
+| **Gold / hard assets** | **80** | **Confirmed Receiver** | **+4** | Verified precious-metals flows + weak USD + fiscal hedge demand + fresh price confirmation |
+| Global equities | 68 | Institutional Accumulation Probable | -5 | Prior broad inflow remains, but global rate stress weakens confirmation |
+| European defence/aerospace | 71 | Institutional Accumulation Probable | +1 | Europe receiver + structural order/backlog; no direct subsector flow proof |
 | Industrials / grid / power | 69 | Institutional Accumulation Probable | +1 | CAPEX/order economics and lower duration sensitivity; direct fund-flow proof incomplete |
 | Financials / insurance / exchanges | 64 | Early Rotation | +1 | Higher nominal-rate regime and Europe broadening supportive; no direct current sector-flow confirmation |
-| Healthcare / biotech | 63 | Early Rotation | +2 | Defensive rotation and improving sponsorship; event-driven biotech moves cannot substitute for broad flows |
-| Consumer staples | 58 | Early Rotation | -4 | Latest verified +$609M flow supportive, but Walmart/consumer stress reduces breadth quality |
-| EM / Asia | 57 | Early Rotation | -5 | Prior inflows and weak USD positive; high oil/yields and weekly Asian weakness are counter-signals |
-| Resources/miners ex-gold | 62 | Early Rotation | -2 | Hard-asset support but uneven breadth and insufficient direct flow evidence |
+| Healthcare / biotech | 63 | Early Rotation | +2 | Defensive rotation and improving sponsorship; event moves cannot substitute for broad flows |
+| Consumer staples | 58 | Early Rotation | -4 | Latest verified positive flow supportive, but Walmart/consumer stress reduces breadth quality |
+| EM / Asia | 57 | Early Rotation | -5 | Prior inflows and weak USD positive; high oil/yields and weekly Asian weakness counter-signal |
+| Resources/miners ex-gold | 63 | Early Rotation | -1 | Basic-resources leadership improves signal but direct flow evidence remains insufficient |
 | Semis / AI infrastructure | 47 | Neutral | -4 | Company-specific winners remain, but rates + broad tech outflow + weak breadth prevent upgrade |
 | Software / long duration | 38 | No Flow / Distribution | -2 | Yield shock + weak sponsorship + no verified renewed fund inflow |
-| **Technology broad** | **39** | **No Flow / Distribution** | **-5** | Latest verified tech-fund outflow + multi-session breadth weakness + duration stress |
+| **Technology broad** | **39** | **No Flow / Distribution** | **-5** | Latest verified tech-fund outflow + breadth weakness + duration stress |
 
-**Scoring discipline:** weights remain fund flows 25%, breadth 15%, RS 15%, persistent volume 15%, leader accumulation 10%, options/positioning 5%, revisions/fundamentals 10%, macro regime 5%. No sector is promoted to Confirmed Receiver solely from price/volume.
+**Scoring discipline:** fund flows 25%, breadth 15%, RS 15%, persistent volume 15%, leader accumulation 10%, options/positioning 5%, revisions/fundamentals 10%, macro regime 5%. No sector is promoted to Confirmed Receiver solely from price/volume.
 
 ## Verified flow layer
 
@@ -48,20 +48,22 @@ Latest broad ATLAS LSEG/Lipper dataset (week ended Aug-12): global equities +$18
 
 ## Capital Flow Divergence Ω
 
-**Europe — POSITIVE / ACTIVE.** Fund allocation remains positive while the STOXX 600 has endured a seven-session price decline. This is the cleanest flow-positive/price-soft divergence. It is evidence of resilience/accumulation probability, not proof that every European ticker is being accumulated.
+**Europe — POSITIVE / ACTIVE.** Fund allocation remains positive despite weak recent index action. This remains the cleanest flow-positive/price-soft divergence and the strongest anticipation setup.
 
-**Technology — NEGATIVE / Distribution Warning ACTIVE.** Broad tech fund flow is negative while high long-end yields compress duration; the Nasdaq has repeatedly underperformed during the current stress. Isolated MRVL/NVDA/AI winners do not cancel the broad signal.
+**Technology — NEGATIVE / Distribution Warning ACTIVE.** Broad tech fund flow is negative while high long-end yields compress duration. Friday's premarket rebound does not cancel the warning because futures are not fund flow and cash breadth has not yet repaired.
 
-**Energy — CONFIRMED but chase risk rising.** Flow, macro and relative strength align. Because Brent has already approached $95, new research should prioritize cash-flow capture and infrastructure rather than blindly adding oil beta.
+**Energy — CONFIRMED, chase risk elevated.** Flow, macro and relative strength align. With Brent already near the mid-$90s, research should prioritize cash-flow capture and infrastructure rather than blindly adding oil beta.
+
+**Gold — CONFIRMED.** Weak USD, fiscal-duration anxiety, verified precious-metals flows and fresh price strength align; asymmetry is lower than at initial divergence.
 
 ## Leaders / research candidates
 
 **Energy:** EOG, XOM, COP, BKR, LNG; secondary infrastructure WMB/EQT.  
-**Europe / defence / electrification:** SU.PA, RHM.DE, HAG.DE, AIR.PA, ASML; second-line defence bottlenecks remain a research priority.  
+**Europe / defence / electrification:** SU.PA, RHM.DE, HAG.DE, AIR.PA, ASML.  
 **Gold:** AEM, FNV, NEM.  
 **Industrials / grid:** GEV, PWR, ETN, HUBB, NVT.  
 **Financial plumbing:** CB, ICE, SPGI, CBOE, NDAQ.  
-**Healthcare:** LLY, AMGN, MRK; MRNA is event-driven and must not be treated as sector-flow proof.  
+**Healthcare:** LLY, AMGN, MRK.  
 **Selective AI/semis watch only:** NVDA, AVGO, MRVL, ASML, VRT — Economic Proof can remain strong while Equity Monetization/flow is weak.
 
 ## Donors → receivers
@@ -73,9 +75,9 @@ This is an inference from the joint flow/breadth/macro map, not a claim that eve
 ## ATLAS anticipation vs pursuit
 
 - **Energy:** ATLAS detected Early Rotation before Confirmed Receiver; now it is confirmation, so chase discipline applies.
-- **Europe:** still the best anticipation setup because fund flow is stronger than recent index price action. Research should focus on where earnings/backlog can convert the regional flow into per-share FCF.
-- **Gold:** now confirmed and increasingly consensus; useful hedge, lower asymmetry than at initial divergence.
-- **Technology broad:** ATLAS Distribution Warning is being confirmed by breadth and duration stress. Do not confuse strong AI Economic Proof with current institutional sponsorship.
+- **Europe:** remains the best anticipation setup because fund flow is stronger than recent index price action.
+- **Gold:** confirmed and increasingly consensus; useful hedge, lower asymmetry than at initial divergence.
+- **Technology broad:** Distribution Warning continues to be confirmed by flow, breadth and duration stress.
 - **Healthcare/financial plumbing/grid:** remain early-stage research buckets rather than confirmed rotations.
 
 ## Falsifiers / next gates
@@ -89,12 +91,13 @@ Gold downgrade: verified precious-metals outflow plus USD/real-yield reversal.
 
 **NO PORTFOLIO CHANGE.** No company-level falsifier is confirmed. Current evidence favors the existing barbell logic: real assets/energy + cash-generative defensives/old economy against selective AI exposure. Any new candidate must still pass Economic Proof, valuation/Expected Return and Falsifiers independently of rotation.
 
-## Sources
+## Fresh sources checked — 2026-08-21
 
-- Reuters, 2026-08-21 — Asia shares downbeat for week as bond yields, oil stay high.
-- Reuters, 2026-08-21 — War-hit European markets are far from down and out; LSEG European fund flows and Q2 earnings.
-- Reuters, 2026-08-20 — Wall Street sinks as bond yields rise, Walmart results disappoint.
-- Reuters, 2026-08-20 — Global markets: Treasury relief fades / yields re-rise.
-- Reuters/LSEG Lipper, 2026-08-14 — weekly global/sector fund flows, week ended Aug-12.
+- Reuters — European shares climb on gold boost; European equity fund inflow +$2.44B week to Aug-12; basic resources +2.2%.
+- AP — U.S. futures rebound after Aug-20 selloff; major U.S. indexes remain down for the week.
+- WSJ — U.S. dollar near three-month low; 10Y near 4.69%; long-end fiscal concerns persist.
+- WSJ/AP — Aug-20 U.S. selloff driven by oil/yields and consumer earnings stress.
+- Barron's — premarket S&P futures +0.35%; gold +1.8%; 10Y near 4.69%.
+- Reuters/LSEG Lipper — latest verified broad/sector fund-flow dataset, week ended Aug-12.
 
-**Canonical status:** COMPLETE only when mirrored in GitHub + Notion.
+**Canonical persistence:** GitHub updated; Notion mirrored under ATLAS Ω Enterprise v1.2 — Diario + Money Rotation — 2026-08-21.
