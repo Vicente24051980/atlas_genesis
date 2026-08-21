@@ -5,6 +5,7 @@
 **Transversal-engine correction:** 2026-08-19
 **GREEN Gate-0 / inference-orchestration correction:** 2026-08-20
 **GREEN Breadth / concentration correction:** 2026-08-20
+**GREEN first-engine / full-audit correction:** 2026-08-21
 
 ## Purpose
 Convert ATLAS from prompt-driven analysis into an evidence-driven decision system. Agents do not vote; evidence and vetoes decide.
@@ -15,26 +16,29 @@ Convert ATLAS from prompt-driven analysis into an evidence-driven decision syste
 
 For listed-security discovery and ranking:
 
-`TICKER → GREEN GATE 0 → GREEN PULSE → GREEN BREADTH → RELATIVE GREEN → CROWDING/CONCENTRATION → MONEY ROTATION → ALL REGISTERED ATLAS ENGINES → EVIDENCE PACKET → CONTRADICTIONS → EXPECTED RETURN 3–6Y → FALSIFIERS Ω → INVESTMENT COMMITTEE Ω → ACTION`
+`TICKER → INTEGRITY / IDENTITY → GREEN CONTINUITY FIRST → GREEN PULSE → GREEN BREADTH → RELATIVE GREEN → CROWDING/CONCENTRATION → MONEY ROTATION → ALL REGISTERED/APPLICABLE ATLAS ENGINES → EVIDENCE PACKET → CONTRADICTIONS → EXPECTED RETURN 3–6Y → FALSIFIERS Ω → INVESTMENT COMMITTEE Ω → ACTION`
 
 Economic chain where relevant:
 
 `REAL-WORLD SIGNAL → VALUE CHAIN → LISTED BENEFICIARIES → DEMAND → CAPTURE → CONVERSION → FCF → ROIC → MOAT → VALUATION → EXPECTED RETURN 3–6Y → FALSIFIERS Ω → ACTION`
 
-## GREEN GATE 0 Ω — first discovery gate
+## GREEN CONTINUITY Ω — first analytical motor
 
-GREEN is the first gate for ticker discovery/ranking. It is calculated mechanically from market-price history before Quality or thematic attractiveness can influence ranking.
+GREEN is the first analytical motor for ticker discovery/ranking after evidence/source/quantitative/temporal integrity and ticker identity normalization. It is calculated mechanically from market-price history before Quality or thematic attractiveness can influence ranking.
 
 Canonical GREEN windows: `1W · 1M · 3M · 1Y · TOTAL`.
 
-- `GREEN 5/5`: five positive windows; PASS priority.
-- `GREEN 4/5`: four positive windows; PASS, with the failed horizon explicitly recorded.
-- `GREEN <=3/5`: does not enter the primary discovery ranking.
-- Emerging/Inflection exception: may continue only as `GREEN_EXCEPTION`; it must never be relabeled as 4/5 or 5/5.
+- `GREEN 5/5`: five positive windows; strongest continuity priority.
+- `GREEN 4/5`: four positive windows; continuity-qualified, with the failed horizon explicitly recorded.
+- `GREEN 3/5`: mixed/weak continuity; GREEN priority fails, **but the full audit continues**.
+- `GREEN 0–2/5`: poor continuity; GREEN priority fails, **but the full audit continues**.
+- `INSUFFICIENT_HISTORY / QUARANTINE`: data-state warning; other engines continue where their own evidence requirements are independently satisfied.
 
-Quality, Money Rotation, CAPEX attractiveness, narrative strength, analyst conviction or thematic fit cannot rescue a failed GREEN Gate 0.
+GREEN 4/5 or 5/5 is the preferred continuity condition for the primary GREEN-ranked shortlist and fresh-entry consideration. A lower GREEN count is not permission to terminate research. It must instead remain visible while every registered/applicable engine runs.
 
-GREEN is a discovery/execution gate, not fundamental evidence and not a final BUY authority. Falsifiers Ω retains the absolute veto.
+Quality, Money Rotation, CAPEX attractiveness, narrative strength, analyst conviction or thematic fit cannot rewrite a failed GREEN state. They can, however, produce independent evidence that must still be audited and recorded. Any specialized/contrarian exception must preserve explicit engine provenance and the original GREEN count.
+
+GREEN is price-continuity evidence, not fundamental evidence, not verified institutional flow and not a final BUY/SELL authority. Falsifiers Ω retains the absolute veto.
 
 ## GREEN PULSE Ω — recent deterioration detector
 
@@ -42,7 +46,7 @@ To prevent a structurally positive long-horizon GREEN score from hiding recent d
 
 `1D · 3D · 5D · 7 sessions · 20D`.
 
-A ticker can therefore be `GREEN 5/5` and simultaneously `GREEN_PULSE_BREAK`. Such a state blocks fresh entry/ranking priority until the break repairs; it does not rewrite the long-term GREEN history.
+A ticker can therefore be `GREEN 5/5` and simultaneously `GREEN_PULSE_BREAK`. Such a state blocks fresh-entry/ranking priority until the break repairs; it does not rewrite the long-term GREEN history and does not stop the remaining audit engines.
 
 ## GREEN BREADTH Ω — participation and concentration gate
 
@@ -92,7 +96,9 @@ Canonical flow validation chain:
 
 ## Universal ticker / all-engine sweep
 
-Every ticker that passes the applicable discovery gate, or is explicitly submitted for deep analysis, must be processed by all registered engines before the final recommendation is issued. Explicitly submitted tickers may be audited despite GREEN failure, but the failed gate remains visible and cannot be overwritten.
+**Every ticker entering ATLAS analysis is processed by the full registered/applicable engine sweep regardless of whether GREEN is 5/5, 4/5, 3/5, 2/5, 1/5 or 0/5.** GREEN runs first, but it never terminates the research audit.
+
+A GREEN 3/5-or-lower ticker may lose primary GREEN-ranked shortlist priority or require explicit exception provenance for fresh entry, but Economic Proof, Quality, Growth, Valuation, CAPEX Productivity, Moat, Rotation, Defensive, Macro, specialized engines, Falsifiers and Evidence Director still run and retain their independent outputs.
 
 There is no style/sector preclassification that allows ATLAS to route a ticker only through “defensive”, “growth”, “AI”, “value” or another preferred path. Engines remain independent and may return positive, negative, `NO_SIGNAL`, `NOT_APPLICABLE`, `INSUFFICIENT_DATA` or equivalent explicit states.
 
@@ -146,7 +152,7 @@ For neocloud/inference infrastructure retain the acceptance chain:
 
 Callosum integration is treated as a new distribution/orchestration node for heterogeneous agentic inference, pending primary-source confirmation of commercial economics. It increases audit priority but does not itself create BUY.
 
-CBRS must be tested through GREEN Gate 0 and GREEN Pulse before ranking. Fundamental audit then requires: contracted versus accepted MW; RPO/backlog conversion; cloud utilization; customer concentration; core gross-margin progression; operating loss/FCF path; manufacturing scale; supply commitments; and evidence that ultra-low-latency inference produces durable pricing/cost advantage.
+CBRS must be tested through GREEN first and GREEN Pulse before ranking. Regardless of GREEN count, the fundamental audit then continues with: contracted versus accepted MW; RPO/backlog conversion; cloud utilization; customer concentration; core gross-margin progression; operating loss/FCF path; manufacturing scale; supply commitments; and evidence that ultra-low-latency inference produces durable pricing/cost advantage.
 
 Cross-check ecosystem beneficiaries/counterparties where material: AMD, AWS/AMZN, TSMC, Flex/FLEX, Sanmina/SANM and application/security customers. These links are evidence inputs, not automatic recommendations.
 
@@ -160,7 +166,7 @@ Defensive Ω must run on every audited ticker and return degree of defensiveness
 A 7–1 bullish committee does not produce BUY. Evidence gates determine state.
 
 ### No single-engine recommendation authority
-GREEN controls discovery/ranking eligibility but cannot by itself issue BUY/HOLD/SELL. No individual engine may convert its local output directly into final portfolio recommendation. Falsifiers Ω retains its confirmed material absolute veto.
+GREEN controls the first continuity classification and primary continuity-ranking priority, but it does not control audit eligibility and cannot by itself issue BUY/HOLD/SELL. No individual engine may convert its local output directly into final portfolio recommendation. Falsifiers Ω retains its confirmed material absolute veto.
 
 ### E-Proof and valuation are orthogonal
 Operational excellence does not imply an attractive security price.
@@ -176,7 +182,7 @@ ATLAS may conclude NO OPPORTUNITY / NO PORTFOLIO CHANGE.
 
 ## Decision gates
 
-- **BUY:** GREEN/execution gate permits entry + thesis valid + sufficient Economic Proof + moat acceptable + expected return clears hurdle + no active veto.
+- **BUY:** continuity/execution state explicitly recorded + thesis valid + sufficient Economic Proof + moat acceptable + expected return clears hurdle + no active veto. GREEN 4/5–5/5 is the preferred primary-continuity condition; any lower-GREEN exception must preserve provenance and cannot hide the failed GREEN state.
 - **HOLD:** thesis valid but incremental purchase does not clear hurdle or sizing constraints.
 - **WATCH:** evidence incomplete, valuation insufficient, catalyst not validated, setup not mature, GREEN/Pulse/Breadth not ready, or material contradictions remain unresolved.
 - **REJECT:** confirmed falsifier, structurally inadequate economics, or expected return decisively inadequate.
