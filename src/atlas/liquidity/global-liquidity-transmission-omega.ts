@@ -1,3 +1,8 @@
+import {
+  marketTapePasses,
+  type UniversalMarketTapeIntegrityResult,
+} from '../algorithm/universal-market-tape-integrity-omega';
+
 export type LiquidityDirection = 'EXPANDING' | 'CONTRACTING' | 'MIXED' | 'UNKNOWN';
 export type TransmissionState = 'WEAK' | 'NEUTRAL' | 'STRONG' | 'INSUFFICIENT_EVIDENCE';
 
@@ -18,6 +23,8 @@ export type GlobalLiquidityInput = {
 };
 
 export type BtcLiquidityTriggerInput = {
+  marketTapeSubject: string;
+  marketTapeIntegrity?: UniversalMarketTapeIntegrityResult;
   fedReservesUp: boolean;
   tgaDown: boolean;
   realYieldsDown: boolean;
@@ -31,12 +38,13 @@ export type BtcLiquidityTriggerInput = {
 export type BtcLiquidityTriggerResult = {
   score: number;
   state: 'NO_TRIGGER' | 'EARLY_WATCH' | 'PROBABLE_TRIGGER' | 'CONFIRMED_TRIGGER';
+  marketTapeVerified: boolean;
   reasons: string[];
 };
 
 export const GLOBAL_LIQUIDITY_TRANSMISSION_OMEGA = {
-  id: 'GLOBAL_LIQUIDITY_TRANSMISSION_OMEGA_V1',
-  version: '1.0.0',
+  id: 'GLOBAL_LIQUIDITY_TRANSMISSION_OMEGA_V1_1',
+  version: '1.1.0',
   status: 'canonical',
   laws: [
     'MONETARY_LIQUIDITY != MARKET_LIQUIDITY',
@@ -44,6 +52,7 @@ export const GLOBAL_LIQUIDITY_TRANSMISSION_OMEGA = {
     'GLOBAL_LIQUIDITY_GROWTH != UNIVERSAL_RISK_ASSET_INFLOW',
     'LIQUIDITY_SOURCE != LIQUIDITY_DESTINATION',
     'PRICE_MOVE != LIQUIDITY_FLOW',
+    'BTC_RELATIVE_STRENGTH_REQUIRES_UNIVERSAL_MARKET_TAPE_PASS',
   ] as const,
   weights: {
     centralBankLiquidity: 0.25,
@@ -56,6 +65,14 @@ export const GLOBAL_LIQUIDITY_TRANSMISSION_OMEGA = {
 
 function assertScore(name: string, value: number): void {
   if (!Number.isFinite(value) || value < 0 || value > 100) throw new Error(`liquidity_score_out_of_range:${name}`);
+}
+
+function btcMarketTapeVerified(input: BtcLiquidityTriggerInput): boolean {
+  return Boolean(
+    input.marketTapeSubject.trim() &&
+    marketTapePasses(input.marketTapeIntegrity) &&
+    input.marketTapeIntegrity?.selectedTicker === input.marketTapeSubject,
+  );
 }
 
 export function calculateGlobalLiquidityScore(input: GlobalLiquidityInput): number | null {
@@ -100,7 +117,11 @@ export function assessDestination(score: number, evidenceIds: string[]): Transmi
 }
 
 export function assessBtcLiquidityTrigger(input: BtcLiquidityTriggerInput): BtcLiquidityTriggerResult {
-  if (input.evidenceIds.length === 0) return { score: 0, state: 'NO_TRIGGER', reasons: ['missing_evidence'] };
+  const tapeVerified = btcMarketTapeVerified(input);
+  if (input.evidenceIds.length === 0) {
+    return { score: 0, state: 'NO_TRIGGER', marketTapeVerified: tapeVerified, reasons: ['missing_evidence'] };
+  }
+
   const signals = [
     input.fedReservesUp,
     input.tgaDown,
@@ -108,14 +129,23 @@ export function assessBtcLiquidityTrigger(input: BtcLiquidityTriggerInput): BtcL
     input.dxyDown,
     input.stablecoinLiquidityUp,
     input.btcEtfFlowsUp,
-    input.btcRelativeStrengthUp,
   ];
+  if (tapeVerified) signals.push(input.btcRelativeStrengthUp);
+
   const count = signals.filter(Boolean).length;
   const score = Math.round((count / signals.length) * 10000) / 100;
   const macroCore = input.fedReservesUp && input.tgaDown && input.realYieldsDown;
-  const marketCore = input.btcEtfFlowsUp || input.btcRelativeStrengthUp || input.stablecoinLiquidityUp;
-  if (count >= 5 && macroCore && marketCore) return { score, state: 'CONFIRMED_TRIGGER', reasons: [] };
-  if (count >= 4 && marketCore) return { score, state: 'PROBABLE_TRIGGER', reasons: ['needs_full_macro_confirmation'] };
-  if (count >= 2) return { score, state: 'EARLY_WATCH', reasons: ['partial_liquidity_convergence'] };
-  return { score, state: 'NO_TRIGGER', reasons: ['insufficient_signal_convergence'] };
+  const marketCore = input.btcEtfFlowsUp || input.stablecoinLiquidityUp || (tapeVerified && input.btcRelativeStrengthUp);
+  const reasons: string[] = [];
+  if (!tapeVerified) {
+    reasons.push('btc_relative_strength_excluded_without_universal_market_tape');
+    if (input.marketTapeIntegrity?.selectedTicker && input.marketTapeIntegrity.selectedTicker !== input.marketTapeSubject) {
+      reasons.push('market_tape_subject_mismatch');
+    }
+  }
+
+  if (count >= 5 && macroCore && marketCore) return { score, state: 'CONFIRMED_TRIGGER', marketTapeVerified: tapeVerified, reasons };
+  if (count >= 4 && marketCore) return { score, state: 'PROBABLE_TRIGGER', marketTapeVerified: tapeVerified, reasons: ['needs_full_macro_confirmation', ...reasons] };
+  if (count >= 2) return { score, state: 'EARLY_WATCH', marketTapeVerified: tapeVerified, reasons: ['partial_liquidity_convergence', ...reasons] };
+  return { score, state: 'NO_TRIGGER', marketTapeVerified: tapeVerified, reasons: ['insufficient_signal_convergence', ...reasons] };
 }
