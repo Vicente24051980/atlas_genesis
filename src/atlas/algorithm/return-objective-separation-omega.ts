@@ -1,3 +1,10 @@
+import {
+  marketTapePasses,
+  type MarketReturnKind,
+  type MarketReturnWindow,
+  type UniversalMarketTapeIntegrityResult,
+} from './universal-market-tape-integrity-omega';
+
 export type ReturnRankingObjective =
   | 'HISTORICAL_RETURN'
   | 'EXPECTED_RETURN'
@@ -23,6 +30,7 @@ export interface ExpectedReturnIntegrity {
   currentPrice: number;
   currency: string;
   primaryListing: string;
+  quotationUnit?: string;
   observationDate: string;
   observationType: PriceObservationType;
   observationTimestamp?: string;
@@ -37,7 +45,10 @@ export interface ReturnObjectiveInput {
   objective: ReturnRankingObjective;
   evidenceTraceable: boolean;
   evidenceIds: string[];
+  marketTapeIntegrity?: UniversalMarketTapeIntegrityResult;
   historicalTotalReturnPct?: number;
+  historicalReturnWindow?: MarketReturnWindow;
+  historicalReturnKind?: MarketReturnKind;
   expectedHorizonYears?: number;
   expectedScenarios?: ExpectedReturnScenario[];
   expectedReturnIntegrity?: ExpectedReturnIntegrity;
@@ -95,6 +106,35 @@ function expectedReturnFromScenarios(scenarios: ExpectedReturnScenario[] | undef
   return cagrPct == null ? null : { weightedTotalReturnPct, cagrPct };
 }
 
+function expectedPriceMatchesTape(input: ReturnObjectiveInput): boolean {
+  const i = input.expectedReturnIntegrity;
+  const tape = input.marketTapeIntegrity;
+  if (!i || !marketTapePasses(tape) || tape?.selectedPrice == null) return false;
+  if (!i.quotationUnit?.trim()) return false;
+  if (tape.selectedSourceId !== i.priceEvidenceId) return false;
+  if (tape.selectedObservationDate !== i.observationDate) return false;
+  if (tape.selectedObservationType !== i.observationType) return false;
+  const deltaPct = Math.abs(tape.selectedPrice - i.currentPrice) / Math.max(Math.abs(tape.selectedPrice), Math.abs(i.currentPrice), 1e-9) * 100;
+  if (deltaPct > 0.10) return false;
+  if (i.observationType === 'INTRADAY_SNAPSHOT') {
+    if (!i.observationTimestamp?.trim() || !tape.selectedObservationTimestamp) return false;
+    const a = Date.parse(i.observationTimestamp);
+    const b = Date.parse(tape.selectedObservationTimestamp);
+    if (!Number.isFinite(a) || !Number.isFinite(b) || Math.abs(a - b) > 5 * 60_000) return false;
+  }
+  return true;
+}
+
+function historicalReturnMatchesTape(input: ReturnObjectiveInput): boolean {
+  const tape = input.marketTapeIntegrity;
+  if (!marketTapePasses(tape)) return false;
+  if (!input.historicalReturnWindow || !input.historicalReturnKind) return false;
+  if (!Number.isFinite(input.historicalTotalReturnPct)) return false;
+  const selected = tape?.selectedReturns[input.historicalReturnWindow];
+  if (!selected || selected.kind !== input.historicalReturnKind) return false;
+  return Math.abs(selected.valuePct - (input.historicalTotalReturnPct as number)) <= 0.05;
+}
+
 function evaluateEconomicProofGate(input: ReturnObjectiveInput): ReturnObjectiveResult['economicProofGate'] {
   if (input.objective !== 'EXPECTED_RETURN') return 'NOT_APPLICABLE';
   if (input.economicProofPassCount === 5) return 'PASS_5_OF_5';
@@ -103,15 +143,19 @@ function evaluateEconomicProofGate(input: ReturnObjectiveInput): ReturnObjective
 }
 
 function evaluateDataIntegrityGate(input: ReturnObjectiveInput): ReturnObjectiveResult['dataIntegrityGate'] {
+  if (input.objective === 'HISTORICAL_RETURN') {
+    return historicalReturnMatchesTape(input) ? 'PASS' : 'FAIL';
+  }
   if (input.objective !== 'EXPECTED_RETURN') return 'NOT_APPLICABLE';
   const i = input.expectedReturnIntegrity;
   if (!i) return 'FAIL';
   if (!(Number.isFinite(i.currentPrice) && i.currentPrice > 0)) return 'FAIL';
-  if (!i.currency.trim() || !i.primaryListing.trim() || !i.observationDate.trim() || !i.priceEvidenceId.trim()) return 'FAIL';
+  if (!i.currency.trim() || !i.primaryListing.trim() || !i.quotationUnit?.trim() || !i.observationDate.trim() || !i.priceEvidenceId.trim()) return 'FAIL';
   if (i.observationType === 'INTRADAY_SNAPSHOT' && !i.observationTimestamp?.trim()) return 'FAIL';
   if (!i.corporateActionsReconciled) return 'FAIL';
   if (!i.terminalTargetsRebuiltFromCurrentFundamentals) return 'FAIL';
   if (!i.terminalTargetsSameCurrencyAndShareScale) return 'FAIL';
+  if (!expectedPriceMatchesTape(input)) return 'FAIL';
   return 'PASS';
 }
 
@@ -141,8 +185,9 @@ export function evaluateReturnObjective(input: ReturnObjectiveInput): ReturnObje
   const compositeOpportunityScore = clamp100(input.compositeOpportunityScore);
 
   if (input.objective === 'HISTORICAL_RETURN') {
-    rankingMetric = historicalTotalReturnPct;
-    rankingMetricLabel = 'verified historical total return %';
+    if (dataIntegrityGate === 'PASS') rankingMetric = historicalTotalReturnPct;
+    rankingMetricLabel = `${input.historicalReturnKind ?? 'unverified'} ${input.historicalReturnWindow ?? 'window'} %`;
+    reasons.push('Historical-return ranking requires the same Universal Market Tape Integrity Ω gate used by every other market-data consumer.');
   } else if (input.objective === 'EXPECTED_RETURN') {
     const expected = expectedReturnFromScenarios(input.expectedScenarios, input.expectedHorizonYears);
     if (expected && dataIntegrityGate === 'PASS') {
@@ -151,7 +196,7 @@ export function evaluateReturnObjective(input: ReturnObjectiveInput): ReturnObje
       rankingMetric = expected.cagrPct;
     }
     rankingMetricLabel = 'probability-weighted expected CAGR %';
-    reasons.push('Expected-return ranking requires verified P0 plus contemporaneously rebuilt terminal targets.');
+    reasons.push('Expected-return ranking requires Universal Market Tape Integrity Ω for P0 plus contemporaneously rebuilt terminal targets.');
     reasons.push('Business Quality and Economic Proof contribute zero ranking bonus; Economic Proof is a survival gate only.');
   } else if (input.objective === 'BUSINESS_QUALITY') {
     rankingMetric = businessQualityScore ?? null;
@@ -163,12 +208,15 @@ export function evaluateReturnObjective(input: ReturnObjectiveInput): ReturnObje
 
   let verdict: ReturnObjectiveVerdict = 'RANK_ELIGIBLE';
   if (falsifierVeto) verdict = 'FALSIFIER_VETO';
-  else if (input.objective === 'EXPECTED_RETURN' && dataIntegrityGate === 'FAIL') verdict = 'DATA_INTEGRITY_REJECT';
+  else if (['HISTORICAL_RETURN', 'EXPECTED_RETURN'].includes(input.objective) && dataIntegrityGate === 'FAIL') verdict = 'DATA_INTEGRITY_REJECT';
   else if (!evidenceOk || rankingMetric == null) verdict = 'EVIDENCE_PENDING';
   else if (input.objective === 'EXPECTED_RETURN' && economicProofGate === 'FAIL') verdict = 'ECONOMIC_PROOF_REJECT';
 
   if (!evidenceOk) reasons.push('Traceable evidence gate is incomplete.');
-  if (input.objective === 'EXPECTED_RETURN' && dataIntegrityGate === 'FAIL') reasons.push('P0/P3 integrity gate failed: stale, missing, scale-incompatible or unreconciled inputs cannot receive a canonical rank.');
+  if (['HISTORICAL_RETURN', 'EXPECTED_RETURN'].includes(input.objective) && dataIntegrityGate === 'FAIL') {
+    reasons.push('Universal Market Tape Integrity Ω failed: stale, missing, conflicting, identity-mismatched or unreconciled market data cannot receive a canonical rank.');
+    for (const violation of input.marketTapeIntegrity?.violations ?? []) reasons.push(`MARKET_TAPE: ${violation}`);
+  }
   if (input.objective === 'EXPECTED_RETURN' && economicProofGate === 'FAIL') reasons.push('Expected-return candidate fails the Economic Proof survival gate.');
   if (falsifierVeto) {
     reasons.push('Falsifiers Ω veto is absolute.');
