@@ -1,3 +1,4 @@
+import { evaluateUniversalMarketTapeIntegrity } from '../algorithm/universal-market-tape-integrity-omega';
 import {
   assessBtcLiquidityTrigger,
   assessDestination,
@@ -5,7 +6,35 @@ import {
   classifyDirection,
 } from './global-liquidity-transmission-omega';
 
-describe('Global Liquidity Transmission Omega', () => {
+function tape(subject: string) {
+  return evaluateUniversalMarketTapeIntegrity({
+    ticker: subject,
+    primaryListing: 'CRYPTO_PROXY',
+    currency: 'USD',
+    quotationUnit: 'USD',
+    asOfTimestamp: '2026-08-21T21:20:00+02:00',
+    expectedSessionState: 'OPEN',
+    observations: [{
+      ticker: subject,
+      primaryListing: 'CRYPTO_PROXY',
+      currency: 'USD',
+      quotationUnit: 'USD',
+      observationDate: '2026-08-21',
+      observationType: 'INTRADAY_SNAPSHOT',
+      observationTimestamp: '2026-08-21T21:19:00+02:00',
+      sessionState: 'OPEN',
+      price: 100,
+      sourceId: `regulated-${subject}`,
+      sourceClass: 'REGULATED_FEED',
+      capturedAt: '2026-08-21T21:19:10+02:00',
+      corporateActionsReconciled: true,
+    }],
+  });
+}
+
+const btcMarket = { marketTapeSubject: 'BTCUSD', marketTapeIntegrity: tape('BTCUSD') };
+
+describe('Global Liquidity Transmission Omega v1.1', () => {
   it('keeps global liquidity separate from destination-specific transmission', () => {
     const score = calculateGlobalLiquidityScore({
       centralBankLiquidity: 70,
@@ -23,6 +52,7 @@ describe('Global Liquidity Transmission Omega', () => {
 
   it('requires macro and market convergence for confirmed BTC trigger', () => {
     expect(assessBtcLiquidityTrigger({
+      ...btcMarket,
       fedReservesUp: true,
       tgaDown: true,
       realYieldsDown: true,
@@ -36,6 +66,7 @@ describe('Global Liquidity Transmission Omega', () => {
 
   it('does not confirm BTC from price alone', () => {
     expect(assessBtcLiquidityTrigger({
+      ...btcMarket,
       fedReservesUp: false,
       tgaDown: false,
       realYieldsDown: false,
@@ -45,5 +76,40 @@ describe('Global Liquidity Transmission Omega', () => {
       btcRelativeStrengthUp: true,
       evidenceIds: ['btc-price'],
     }).state).toBe('NO_TRIGGER');
+  });
+
+  it('excludes BTC relative strength when market tape is missing instead of treating it as valid confirmation', () => {
+    const result = assessBtcLiquidityTrigger({
+      marketTapeSubject: 'BTCUSD',
+      marketTapeIntegrity: undefined,
+      fedReservesUp: true,
+      tgaDown: true,
+      realYieldsDown: true,
+      dxyDown: false,
+      stablecoinLiquidityUp: false,
+      btcEtfFlowsUp: false,
+      btcRelativeStrengthUp: true,
+      evidenceIds: ['fed', 'treasury', 'real-yields', 'btc-price'],
+    });
+    expect(result.marketTapeVerified).toBe(false);
+    expect(result.reasons).toContain('btc_relative_strength_excluded_without_universal_market_tape');
+    expect(result.state).toBe('EARLY_WATCH');
+  });
+
+  it('rejects cross-asset tape reuse for BTC relative strength', () => {
+    const result = assessBtcLiquidityTrigger({
+      marketTapeSubject: 'BTCUSD',
+      marketTapeIntegrity: tape('ETHUSD'),
+      fedReservesUp: false,
+      tgaDown: false,
+      realYieldsDown: false,
+      dxyDown: false,
+      stablecoinLiquidityUp: false,
+      btcEtfFlowsUp: false,
+      btcRelativeStrengthUp: true,
+      evidenceIds: ['btc-price'],
+    });
+    expect(result.marketTapeVerified).toBe(false);
+    expect(result.reasons).toContain('market_tape_subject_mismatch');
   });
 });
