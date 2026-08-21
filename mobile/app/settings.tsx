@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BrokerApi, BrokerStatus } from '../core/api/brokerApi';
@@ -70,7 +70,7 @@ export default function SettingsScreen() {
   );
 }
 
-function TerminalPanel({ title, children }: { title: string; children: React.ReactNode }) {
+function TerminalPanel({ title, children }: { title: string; children: ReactNode }) {
   return <View style={styles.panel}><View style={styles.panelHeader}><Text style={styles.panelTitle}>{title}</Text></View>{children}</View>;
 }
 function Row({ label, value, tone = 'neutral' }: { label: string; value: string; tone?: 'good' | 'warn' | 'neutral' }) {
