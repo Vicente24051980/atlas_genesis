@@ -111,6 +111,10 @@ function expectedPriceMatchesTape(input: ReturnObjectiveInput): boolean {
   const tape = input.marketTapeIntegrity;
   if (!i || !marketTapePasses(tape) || tape?.selectedPrice == null) return false;
   if (!i.quotationUnit?.trim()) return false;
+  if (tape.selectedTicker !== input.ticker) return false;
+  if (tape.selectedPrimaryListing !== i.primaryListing) return false;
+  if (tape.selectedCurrency !== i.currency) return false;
+  if (tape.selectedQuotationUnit !== i.quotationUnit) return false;
   if (tape.selectedSourceId !== i.priceEvidenceId) return false;
   if (tape.selectedObservationDate !== i.observationDate) return false;
   if (tape.selectedObservationType !== i.observationType) return false;
@@ -128,6 +132,7 @@ function expectedPriceMatchesTape(input: ReturnObjectiveInput): boolean {
 function historicalReturnMatchesTape(input: ReturnObjectiveInput): boolean {
   const tape = input.marketTapeIntegrity;
   if (!marketTapePasses(tape)) return false;
+  if (tape?.selectedTicker !== input.ticker) return false;
   if (!input.historicalReturnWindow || !input.historicalReturnKind) return false;
   if (!Number.isFinite(input.historicalTotalReturnPct)) return false;
   const selected = tape?.selectedReturns[input.historicalReturnWindow];
