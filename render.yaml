@@ -5,8 +5,8 @@ services:
     plan: free
     branch: main
     autoDeployTrigger: commit
-    buildCommand: pip install -r api/requirements.txt
-    preDeployCommand: >-
+    buildCommand: >-
+      pip install -r api/requirements.txt &&
       python -c "from api.app import app; paths={r.path for r in app.routes}; required={'/health','/v1/mobile/health','/v1/agentic-omega/health','/v1/agentic-omega/v2/capabilities','/v1/agentic-omega/v2/evidence-capabilities','/v1/agentic-omega/v2/governance/capabilities'}; missing=sorted(required-paths); assert not missing, f'Missing production routes: {missing}'"
     startCommand: uvicorn api.app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /v1/mobile/health
