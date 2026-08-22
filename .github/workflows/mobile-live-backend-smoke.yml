@@ -24,15 +24,33 @@ permissions:
   contents: read
 
 jobs:
-  kick-render-deploy:
+  repo-contract:
+    name: Repository deployment contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r api/requirements.txt
+      - run: PYTHONPATH=. pytest -q api/test_deployment_contract.py api/test_mobile_entrypoints.py
+
+  render-deploy-control:
+    name: Render deploy control
+    needs: repo-contract
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    outputs:
+      configured: ${{ steps.control.outputs.configured }}
+      mode: ${{ steps.control.outputs.mode }}
     env:
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
     steps:
-      - name: Trigger Render deploy through available credential
+      - id: control
+        name: Trigger Render only when GitHub has deployment control
         shell: bash
         run: |
           set -euo pipefail
@@ -44,23 +62,20 @@ jobs:
               echo "Render deploy hook failed: HTTP $code"
               exit 1
             fi
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "mode=hook" >> "$GITHUB_OUTPUT"
             echo "RENDER_DEPLOY_TRIGGER=hook"
             exit 0
           fi
 
-          if [ -z "${RENDER_API_KEY:-}" ]; then
-            echo "RENDER_DEPLOY_TRIGGER=none"
-            echo "Neither RENDER_DEPLOY_HOOK_URL nor RENDER_API_KEY is configured; relying on Render auto-deploy/Blueprint sync."
-            exit 0
-          fi
-
-          SERVICE_ID="${RENDER_SERVICE_ID:-}"
-          if [ -z "$SERVICE_ID" ]; then
-            curl -fsS --max-time 30 \
-              -H "Accept: application/json" \
-              -H "Authorization: Bearer $RENDER_API_KEY" \
-              "https://api.render.com/v1/services?limit=100" > /tmp/render-services.json
-            SERVICE_ID=$(python3 - <<'PY'
+          if [ -n "${RENDER_API_KEY:-}" ]; then
+            SERVICE_ID="${RENDER_SERVICE_ID:-}"
+            if [ -z "$SERVICE_ID" ]; then
+              curl -fsS --max-time 30 \
+                -H "Accept: application/json" \
+                -H "Authorization: Bearer $RENDER_API_KEY" \
+                "https://api.render.com/v1/services?limit=100" > /tmp/render-services.json
+              SERVICE_ID=$(python3 - <<'PY'
           import json
           data=json.load(open('/tmp/render-services.json'))
           preferred=('atlas-genesis','atlas-genesis-api')
@@ -75,30 +90,39 @@ jobs:
               matches.sort()
               print(matches[0][1])
           PY
-            )
+              )
+            fi
+
+            if [ -z "$SERVICE_ID" ]; then
+              echo "Render API credential is configured but no atlas-genesis service could be resolved."
+              exit 1
+            fi
+
+            code=$(curl -sS --max-time 30 -o /tmp/render-api-deploy.json -w "%{http_code}" \
+              -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+              -H "Accept: application/json" \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              --data "{\"commitId\":\"$GITHUB_SHA\",\"clearCache\":\"do_not_clear\"}" || true)
+            if [ "$code" != "201" ] && [ "$code" != "202" ]; then
+              echo "Render API deploy failed: HTTP $code"
+              cat /tmp/render-api-deploy.json 2>/dev/null || true
+              exit 1
+            fi
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+            echo "mode=api" >> "$GITHUB_OUTPUT"
+            echo "RENDER_DEPLOY_TRIGGER=api"
+            exit 0
           fi
 
-          if [ -z "$SERVICE_ID" ]; then
-            echo "Render API credential is configured but no atlas-genesis service could be resolved."
-            exit 1
-          fi
-
-          code=$(curl -sS --max-time 30 -o /tmp/render-api-deploy.json -w "%{http_code}" \
-            -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
-            -H "Accept: application/json" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer $RENDER_API_KEY" \
-            --data "{\"commitId\":\"$GITHUB_SHA\",\"clearCache\":\"do_not_clear\"}" || true)
-          if [ "$code" != "201" ] && [ "$code" != "202" ]; then
-            echo "Render API deploy failed: HTTP $code"
-            cat /tmp/render-api-deploy.json 2>/dev/null || true
-            exit 1
-          fi
-          echo "RENDER_DEPLOY_TRIGGER=api"
-          echo "Render API accepted deploy for resolved service."
+          echo "configured=false" >> "$GITHUB_OUTPUT"
+          echo "mode=none" >> "$GITHUB_OUTPUT"
+          echo "::notice::Render deployment control is not configured in GitHub Actions. Live Render certification is skipped; repository deployment-contract tests remain mandatory. Configure RENDER_DEPLOY_HOOK_URL or RENDER_API_KEY to enable controlled live certification."
 
   resolve-render-host:
-    needs: kick-render-deploy
+    name: Resolve deployed Render host
+    needs: [repo-contract, render-deploy-control]
+    if: needs.render-deploy-control.outputs.configured == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     outputs:
@@ -136,11 +160,13 @@ jobs:
             done
             sleep 10
           done
-          echo "No Render candidate exposed both Mobile v2 and Agentic v2.3."
+          echo "A controlled Render deployment was requested but no candidate exposed Mobile v2 + Agentic v2.3."
           exit 1
 
   live-atlas-api:
-    needs: resolve-render-host
+    name: Certify live ATLAS API
+    needs: [render-deploy-control, resolve-render-host]
+    if: needs.render-deploy-control.outputs.configured == 'true' && needs.resolve-render-host.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
