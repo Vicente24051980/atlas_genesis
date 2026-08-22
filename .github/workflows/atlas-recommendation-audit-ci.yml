@@ -5,6 +5,7 @@ on:
     paths:
       - "src/atlas/algorithm/recommendation-performance-audit-omega.ts"
       - "src/atlas/algorithm/recommendation-performance-audit-omega.test.ts"
+      - "src/atlas/algorithm/recommendation-performance-live-validation-omega.regression.test.ts"
       - "src/atlas/algorithm/atlas-primary-engine-hierarchy.ts"
       - "CURRENT_CANON/RECOMMENDATION_PERFORMANCE_LIVE_VALIDATION_MODEL_LEARNING_OMEGA.md"
       - "CURRENT_CANON/RETURN_OBJECTIVE_SEPARATION_OMEGA.md"
@@ -26,6 +27,7 @@ jobs:
         run: >-
           npx --yes vitest@3.2.4 run
           src/atlas/algorithm/recommendation-performance-audit-omega.test.ts
+          src/atlas/algorithm/recommendation-performance-live-validation-omega.regression.test.ts
 
       - name: Verify canonical self-audit sequence
         run: |
