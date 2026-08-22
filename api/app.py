@@ -20,9 +20,11 @@ from api.main import app
 from api.market import router as market_router
 from api.mobile_audit_omega import router as mobile_audit_router
 from api.realizable_alpha import router as realizable_alpha_router
+from api.screener import router as screener_router
 
 app.include_router(execution_safety_router)
 app.include_router(market_router)
+app.include_router(screener_router)
 app.include_router(atlas_router)
 app.include_router(bottom_score_router)
 app.include_router(realizable_alpha_router)
