@@ -95,9 +95,7 @@ async def _finnhub_metrics(symbol: str) -> dict[str, Any]:
                 response = await client.get(f"{FINNHUB_BASE_URL}/stock/metric", params=params, headers=headers)
         except httpx.RequestError:
             return {}
-    if response.status_code == 429:
-        return {}
-    if response.status_code >= 400:
+    if response.status_code == 429 or response.status_code >= 400:
         return {}
     try:
         payload = response.json()
@@ -121,6 +119,7 @@ async def _build_row(symbol: str) -> dict[str, Any] | None:
     closes = [value for value in closes if value is not None]
     if not closes:
         return None
+
     current = closes[-1]
     previous = closes[-2] if len(closes) >= 2 else None
     day = None if previous in (None, 0) else (current / previous - 1.0) * 100.0
@@ -128,15 +127,16 @@ async def _build_row(symbol: str) -> dict[str, Any] | None:
     ret1y = _ret(closes, 252)
     ret2y = _ret(closes, 504)
 
-    market_cap = _first_number(metrics, "marketCapitalization", "marketCap", "marketCapitalizationTTM")
+    market_cap_m = _first_number(metrics, "marketCapitalization", "marketCap", "marketCapitalizationTTM")
+    market_cap_b = None if market_cap_m is None else market_cap_m / 1000.0
     pe = _first_number(metrics, "peTTM", "peNormalizedAnnual", "peBasicExclExtraTTM", "peExclExtraTTM")
     beta = _first_number(metrics, "beta")
-    roic = _first_number(metrics, "roicTTM", "roic", "roiTTM", "returnOnInvestmentTTM")
+    roic = _first_number(metrics, "roicTTM", "roic")
     if roic is not None and abs(roic) <= 1.5:
         roic *= 100.0
 
     meta = next((item for item in CATALOGUE if str(item.get("symbol", "")).upper() == symbol), None) or {}
-    fundamental_values = [market_cap, pe, beta, roic]
+    fundamental_values = [market_cap_b, pe, beta, roic]
     fundamental_coverage = sum(value is not None for value in fundamental_values) / len(fundamental_values)
     technical_values = [current, day, sma200, ret1y, ret2y]
     technical_coverage = sum(value is not None for value in technical_values) / len(technical_values)
@@ -151,7 +151,7 @@ async def _build_row(symbol: str) -> dict[str, Any] | None:
         "above200dma": None if sma200 is None else current > sma200,
         "ret1y": ret1y,
         "ret2y": ret2y,
-        "marketCap": market_cap,
+        "marketCap": market_cap_b,
         "pe": pe,
         "beta": beta,
         "roic": roic,
@@ -197,10 +197,10 @@ def _sort_value(row: dict[str, Any], key: SortKey) -> Any:
 @router.get("")
 async def screen(
     symbols: str | None = Query(default=None, max_length=800),
-    min_market_cap: float | None = Query(default=None, ge=0),
+    min_market_cap: float | None = Query(default=None, ge=0, description="USD billions"),
     max_pe: float | None = Query(default=None, ge=0),
     max_beta: float | None = Query(default=None, ge=-10, le=20),
-    min_roic: float | None = Query(default=None, ge=-1000, le=1000),
+    min_roic: float | None = Query(default=None, ge=-1000, le=1000, description="Percent; exact ROIC only"),
     positive_day: bool = Query(default=False),
     above_200dma: bool = Query(default=False),
     positive_1y: bool = Query(default=False),
@@ -232,11 +232,12 @@ async def screen(
     fundamental_gate_count = sum(1 for row in rows if row.get("fundamentalCoverage", 0) < 1)
     return {
         "engine": "ATLAS Screener Ω",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "universe": "CUSTOM" if symbols else "ATLAS_CORE_US",
         "scanned": len(universe),
         "returned": min(len(passed), limit),
         "fundamentalDataGates": fundamental_gate_count,
+        "units": {"marketCap": "USD billions", "roic": "percent", "returns": "percent"},
         "filters": {
             "minMarketCap": min_market_cap,
             "maxPE": max_pe,
@@ -251,6 +252,7 @@ async def screen(
         "items": passed[:limit],
         "guardrail": (
             "Screener results are discovery candidates only. Missing data never passes an active filter. "
+            "ROIC is never silently substituted with ROI. Market cap is normalized to USD billions. "
             "A screener result cannot emit BUY/SELL; every candidate must continue through Evidence Director, GREEN first, "
             "all applicable ATLAS engines, Falsifiers Ω and Investment Committee Ω."
         ),
