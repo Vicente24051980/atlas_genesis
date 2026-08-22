@@ -3,7 +3,8 @@
 **Status:** ACTIVE CANON  
 **Effective date:** 2026-08-21  
 **Updated:** 2026-08-22  
-**Implementation:** `src/atlas/algorithm/return-objective-separation-omega.ts`
+**Implementation:** `src/atlas/algorithm/return-objective-separation-omega.ts`  
+**Governance extension:** `CURRENT_CANON/RECOMMENDATION_PERFORMANCE_LIVE_VALIDATION_MODEL_LEARNING_OMEGA.md`
 
 ## Purpose
 Prevent ATLAS Ω from confusing historical return, expected return, business quality or composite opportunity.
@@ -24,7 +25,7 @@ GREEN CONTINUITY Ω is the first analytical engine after source/evidence integri
 
 Canonical sequence:
 
-`EVIDENCE/IDENTITY INTEGRITY → GREEN CONTINUITY Ω → ALL APPLICABLE ATLAS ENGINES → EXPECTED RETURN BEAR/BASE/BULL → DURABILITY → VALUATION → RISK/FALSIFIERS → FINAL RANK`
+`EVIDENCE/IDENTITY INTEGRITY → GREEN CONTINUITY Ω → ALL APPLICABLE ATLAS ENGINES → EXPECTED RETURN BEAR/BASE/BULL → DURABILITY → VALUATION → RISK/FALSIFIERS → COMPETITION FOR CAPITAL Ω → RECOMMENDATION PERFORMANCE AUDIT Ω → LIVE MARKET VALIDATION Ω → FINAL RANK`
 
 Rules:
 - GREEN 5/5 and 4/5 are strong continuity states, not final recommendations.
@@ -68,8 +69,22 @@ No placeholder target, guessed scale or inherited target may fill the gap.
 ## Economic Proof survival gate
 Economic Proof is a survival gate, not a return bonus. Falsifiers Ω remains an absolute veto. Quality, GREEN, momentum and Money Rotation may be displayed as independent diagnostics but may not silently add points to a pure EXPECTED RETURN ranking.
 
+## Competition for Capital → Performance Audit → Live Validation
+Competition for Capital Ω compares every surviving candidate against benchmarks, peers and relevant alternatives available at the same T0.
+
+Immediately after that comparison and before Final Ranking Ω, ATLAS must run:
+
+1. **Recommendation Performance Audit Ω** — locate comparable prior recommendations, preserve immutable T0 snapshots, compute Recommendation Alpha and Selection Alpha where valid, and audit Expected Return calibration without hindsight.
+2. **Live Market Validation Ω** — compare LAST AUDIT → NOW across price, Expected Return, fundamentals, revisions, valuation, relative strength, verified flows and thesis state.
+3. **Model Learning & Governance Ω** — permit recalibration only when repeated systematic evidence survives anti-overfitting controls.
+
+`OUTCOME ≠ DECISION QUALITY` and `MARKET VALIDATION ≠ FUNDAMENTAL VALIDATION` are mandatory.
+
 ## Required ranking labels
 Every ranked output must explicitly identify its objective: HISTORICAL RETURN, EXPECTED RETURN, BUSINESS QUALITY or COMPOSITE OPPORTUNITY. Expected Return must expose P0 date/type and verification state.
+
+Final Expected Return ranking must expose where available:
+`Rank | Ticker | Price | Economic Proof | Bear | Base | Bull | Expected CAGR | Selection Alpha Potential | Live Validation | Risk | Entry | Verdict`.
 
 ## Energy/Power 14-name competition calibration — 2026-08-22
 Canonical audit universe for the current calibration:
@@ -84,6 +99,11 @@ HISTORICAL ≠ FORWARD.
 COMPOSITE ≠ PURE RETURN.  
 GREEN FIRST ≠ GREEN ONLY.  
 DISLOCATION ≠ UNDERVALUATION ≠ ENTRY.  
+POSITIVE RETURN ≠ GOOD CAPITAL ALLOCATION.  
+RECOMMENDATION QUALITY ≠ BUSINESS QUALITY.  
+OUTCOME ≠ DECISION QUALITY.  
+MARKET VALIDATION ≠ FUNDAMENTAL VALIDATION.  
+RECALIBRATION ≠ OVERFITTING.  
 FALSIFIERS Ω REMAINS ABSOLUTE.  
 MATH PASS ≠ DATA PASS.  
 STALE P0 OR P3 → NO CANONICAL RANK.
