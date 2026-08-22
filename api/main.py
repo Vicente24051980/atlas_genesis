@@ -147,6 +147,7 @@ async def broker_cancel_order(order_id:int,x_atlas_broker_token:str|None=Header(
 # the live certification on this legacy entrypoint as well.
 from api.global_capex_chain_mobile import router as _global_capex_chain_mobile_router  # noqa: E402
 from api.mobile_v2 import router as _mobile_v2_router  # noqa: E402
+from api.mobile_audit_omega import router as _mobile_audit_omega_router  # noqa: E402
 from api.trading212_v2 import router as _trading212_v2_router  # noqa: E402
 from api.agentic_omega import router as _agentic_omega_router  # noqa: E402
 from api.agentic_omega_v2 import router as _agentic_omega_v2_router  # noqa: E402
@@ -154,6 +155,7 @@ from api.agentic_evidence_bridge import router as _agentic_evidence_bridge_route
 from api.agentic_governance import router as _agentic_governance_router  # noqa: E402
 
 app.include_router(_mobile_v2_router)
+app.include_router(_mobile_audit_omega_router)
 app.include_router(_trading212_v2_router)
 app.include_router(_global_capex_chain_mobile_router)
 app.include_router(_agentic_omega_router)
