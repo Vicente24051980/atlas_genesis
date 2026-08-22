@@ -18,7 +18,6 @@ from api.firecrawl_ingestion import router as firecrawl_ingestion_router
 from api.kronos_market_forecast import router as kronos_market_forecast_router
 from api.main import app
 from api.market import router as market_router
-from api.mobile_audit_omega import router as mobile_audit_router
 from api.realizable_alpha import router as realizable_alpha_router
 from api.screener import router as screener_router
 
@@ -37,7 +36,6 @@ app.include_router(agentic_evidence_bridge_router)
 app.include_router(agentic_governance_router)
 app.include_router(agent_infrastructure_router)
 app.include_router(document_ingestion_router)
-app.include_router(mobile_audit_router)
 
 
 @app.exception_handler(HTTPException)
