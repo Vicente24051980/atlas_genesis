@@ -256,7 +256,9 @@ export function atlasApiBaseUrl(): string {
   return requestedBase;
 }
 
-const PORTFOLIO: TrackedTicker[] = [
+type TrackedTickerTuple = readonly [ticker: string, name: string, sector: string];
+
+const PORTFOLIO_ROWS: readonly TrackedTickerTuple[] = [
   ['MSFT','Microsoft','Cloud / Software'],['AMZN','Amazon','Cloud / Consumer'],['GOOG','Alphabet','Cloud / Internet'],
   ['ORCL','Oracle','Cloud / Software'],['NOW','ServiceNow','Software'],['NVDA','NVIDIA','AI / Semiconductors'],
   ['AVGO','Broadcom','AI / Semiconductors'],['PLTR','Palantir','AI / Software'],['TSM','Taiwan Semiconductor','Semiconductors'],
@@ -267,11 +269,12 @@ const PORTFOLIO: TrackedTicker[] = [
   ['CSL','Carlisle Companies','Industrials'],['CAT','Caterpillar','Industrials'],['ZBRA','Zebra Technologies','Industrials / Automation'],
   ['LLY','Eli Lilly','Health'],['ABBV','AbbVie','Health'],['TMO','Thermo Fisher Scientific','Health'],['DHR','Danaher','Health'],
   ['V','Visa','Payments'],['MA','Mastercard','Payments'],['BAE','BAE Systems','Defense'],['QLYS','Qualys','Cybersecurity'],
-].map(([ticker,name,sector]) => ({ ticker, name, sector }));
+];
+const PORTFOLIO: TrackedTicker[] = PORTFOLIO_ROWS.map(([ticker, name, sector]) => ({ ticker, name, sector }));
 
 const PORTFOLIO_PENDING: TrackedTicker[] = [{ ticker: 'MCK', name: 'McKesson', sector: 'Health', state: 'PENDING' }];
 
-const WATCHLIST: TrackedTicker[] = [
+const WATCHLIST_ROWS: readonly TrackedTickerTuple[] = [
   ['MU','Micron Technology','Semiconductors'],['TER','Teradyne','Semiconductor Equipment'],['VRT','Vertiv','Data Centers'],
   ['IRM','Iron Mountain','Data Centers'],['DLR','Digital Realty','Data Centers'],['EQIX','Equinix','Data Centers'],
   ['PWR','Quanta Services','Electrical Infrastructure'],['CEG','Constellation Energy','Power'],['BE','Bloom Energy','Power'],
@@ -285,7 +288,8 @@ const WATCHLIST: TrackedTicker[] = [
   ['HUBS','HubSpot','Software'],['DDOG','Datadog','Observability'],['NET','Cloudflare','Cloud / Security'],['MDB','MongoDB','Database'],
   ['NFLX','Netflix','Media'],['META','Meta Platforms','Internet'],['LMT','Lockheed Martin','Defense'],['IBM','IBM','Technology'],
   ['IONQ','IonQ','Quantum'],['QBTS','D-Wave Quantum','Quantum'],['RGTI','Rigetti Computing','Quantum'],['QUBT','Quantum Computing Inc.','Quantum'],
-].map(([ticker,name,sector]) => ({ ticker, name, sector }));
+];
+const WATCHLIST: TrackedTicker[] = WATCHLIST_ROWS.map(([ticker, name, sector]) => ({ ticker, name, sector }));
 
 const MARKET_META: Record<string, { name: string; sector: string }> = {
   SPY: { name: 'S&P 500', sector: 'US Market' }, QQQ: { name: 'Nasdaq 100', sector: 'US Tech' },
