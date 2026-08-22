@@ -7,12 +7,12 @@ services:
     autoDeployTrigger: commit
     buildCommand: >-
       pip install -r api/requirements.txt &&
-      python -c "from api.app import app; paths={r.path for r in app.routes}; required={'/health','/v1/mobile/health','/v1/agentic-omega/health','/v1/agentic-omega/v2/capabilities','/v1/agentic-omega/v2/evidence-capabilities','/v1/agentic-omega/v2/governance/capabilities'}; missing=sorted(required-paths); assert not missing, f'Missing production routes: {missing}'"
+      python -c "from api.app import app; paths={r.path for r in app.routes}; required={'/health','/v1/mobile/health','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status','/v1/mobile/broker/metadata/instruments/search','/v1/agentic-omega/health','/v1/agentic-omega/v2/capabilities','/v1/agentic-omega/v2/evidence-capabilities','/v1/agentic-omega/v2/governance/capabilities'}; missing=sorted(required-paths); assert not missing, f'Missing production routes: {missing}'"
     startCommand: uvicorn api.app:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /v1/mobile/health
     envVars:
       - key: ATLAS_DEPLOY_REVISION
-        value: "2026-08-22-mobile-v102"
+        value: "2026-08-23-mobile-v103-audit-broker"
       - key: FINANCIALDATANET_API_KEY
         sync: false
       - key: FINNHUB_TOKEN
