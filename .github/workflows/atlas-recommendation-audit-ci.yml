@@ -1,0 +1,84 @@
+name: ATLAS Recommendation Audit Omega CI
+
+on:
+  pull_request:
+    paths:
+      - "src/atlas/algorithm/recommendation-performance-audit-omega.ts"
+      - "src/atlas/algorithm/recommendation-performance-audit-omega.test.ts"
+      - "src/atlas/algorithm/atlas-primary-engine-hierarchy.ts"
+      - "CURRENT_CANON/RECOMMENDATION_PERFORMANCE_LIVE_VALIDATION_MODEL_LEARNING_OMEGA.md"
+      - "CURRENT_CANON/RETURN_OBJECTIVE_SEPARATION_OMEGA.md"
+      - ".github/workflows/atlas-recommendation-audit-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  recommendation-audit-canon:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run Recommendation Performance Audit Omega tests
+        run: >-
+          npx --yes vitest@3.2.4 run
+          src/atlas/algorithm/recommendation-performance-audit-omega.test.ts
+
+      - name: Verify canonical self-audit sequence
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts';
+          const source = fs.readFileSync(path, 'utf8');
+          const sequenceStart = source.indexOf('export const ATLAS_CANONICAL_DECISION_SEQUENCE');
+          if (sequenceStart < 0) {
+            console.error('Canonical decision sequence not found');
+            process.exit(1);
+          }
+          const sequence = source.slice(sequenceStart);
+          const requiredOrder = [
+            'COMPETITION_FOR_CAPITAL_OMEGA',
+            'RECOMMENDATION_PERFORMANCE_AUDIT_OMEGA_V1',
+            'LIVE_MARKET_VALIDATION_OMEGA_V1',
+            'MODEL_LEARNING_GOVERNANCE_OMEGA_V1',
+            'SIZE_NEUTRAL_RETURN_RANKING_OMEGA_V1',
+          ];
+          let previous = -1;
+          for (const token of requiredOrder) {
+            const current = sequence.indexOf(`'${token}'`);
+            if (current < 0 || current <= previous) {
+              console.error(`Canonical sequence invariant failed at ${token}`);
+              process.exit(1);
+            }
+            previous = current;
+          }
+          console.log('Canonical self-audit sequence: PASS');
+          NODE
+
+      - name: Verify canonical laws and fail-closed wording
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const canon = fs.readFileSync('CURRENT_CANON/RECOMMENDATION_PERFORMANCE_LIVE_VALIDATION_MODEL_LEARNING_OMEGA.md', 'utf8');
+          const laws = [
+            'RECOMMENDATION QUALITY ≠ BUSINESS QUALITY',
+            'OUTCOME ≠ DECISION QUALITY',
+            'MARKET VALIDATION ≠ FUNDAMENTAL VALIDATION',
+            'POSITIVE RETURN ≠ GOOD CAPITAL ALLOCATION',
+            'HISTORICAL ALPHA ≠ FUTURE ALPHA',
+            'RECALIBRATION ≠ OVERFITTING',
+            'A MODEL THAT IS NOT AUDITED CANNOT LEARN',
+            'Missing traceable attribution evidence',
+            '20 comparable observations',
+          ];
+          for (const law of laws) {
+            if (!canon.includes(law)) {
+              console.error(`Missing canonical invariant: ${law}`);
+              process.exit(1);
+            }
+          }
+          console.log('Canonical laws/fail-closed invariants: PASS');
+          NODE
