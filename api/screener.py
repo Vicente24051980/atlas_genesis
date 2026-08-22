@@ -175,17 +175,31 @@ def _passes(
     positive_1y: bool,
     positive_2y: bool,
 ) -> bool:
-    gates = [
-        (min_market_cap is None, row.get("marketCap") is not None and row["marketCap"] >= min_market_cap),
-        (max_pe is None, row.get("pe") is not None and row["pe"] <= max_pe),
-        (max_beta is None, row.get("beta") is not None and row["beta"] <= max_beta),
-        (min_roic is None, row.get("roic") is not None and row["roic"] >= min_roic),
-        (not positive_day, row.get("day") is not None and row["day"] > 0),
-        (not above_200dma, row.get("above200dma") is True),
-        (not positive_1y, row.get("ret1y") is not None and row["ret1y"] > 0),
-        (not positive_2y, row.get("ret2y") is not None and row["ret2y"] > 0),
-    ]
-    return all(optional or passed for optional, passed in gates)
+    if min_market_cap is not None:
+        value = row.get("marketCap")
+        if value is None or value < min_market_cap:
+            return False
+    if max_pe is not None:
+        value = row.get("pe")
+        if value is None or value > max_pe:
+            return False
+    if max_beta is not None:
+        value = row.get("beta")
+        if value is None or value > max_beta:
+            return False
+    if min_roic is not None:
+        value = row.get("roic")
+        if value is None or value < min_roic:
+            return False
+    if positive_day and not (row.get("day") is not None and row["day"] > 0):
+        return False
+    if above_200dma and row.get("above200dma") is not True:
+        return False
+    if positive_1y and not (row.get("ret1y") is not None and row["ret1y"] > 0):
+        return False
+    if positive_2y and not (row.get("ret2y") is not None and row["ret2y"] > 0):
+        return False
+    return True
 
 
 def _sort_value(row: dict[str, Any], key: SortKey) -> Any:
@@ -232,7 +246,7 @@ async def screen(
     fundamental_gate_count = sum(1 for row in rows if row.get("fundamentalCoverage", 0) < 1)
     return {
         "engine": "ATLAS Screener Ω",
-        "version": "1.1.0",
+        "version": "1.1.1",
         "universe": "CUSTOM" if symbols else "ATLAS_CORE_US",
         "scanned": len(universe),
         "returned": min(len(passed), limit),

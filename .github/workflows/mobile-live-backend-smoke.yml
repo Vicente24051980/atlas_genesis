@@ -27,12 +27,15 @@ jobs:
   kick-render-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    outputs:
+      deployment_mode: ${{ steps.trigger.outputs.deployment_mode }}
     env:
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
     steps:
-      - name: Trigger Render deploy through available credential
+      - id: trigger
+        name: Trigger Render deploy when credentials exist
         shell: bash
         run: |
           set -euo pipefail
@@ -44,13 +47,15 @@ jobs:
               echo "Render deploy hook failed: HTTP $code"
               exit 1
             fi
+            echo "deployment_mode=hook" >> "$GITHUB_OUTPUT"
             echo "RENDER_DEPLOY_TRIGGER=hook"
             exit 0
           fi
 
           if [ -z "${RENDER_API_KEY:-}" ]; then
+            echo "deployment_mode=none" >> "$GITHUB_OUTPUT"
             echo "RENDER_DEPLOY_TRIGGER=none"
-            echo "Neither RENDER_DEPLOY_HOOK_URL nor RENDER_API_KEY is configured; relying on Render auto-deploy/Blueprint sync."
+            echo "Render deploy credentials are not configured in GitHub Actions. Live certification will be skipped without marking repository CI as failed."
             exit 0
           fi
 
@@ -79,7 +84,7 @@ jobs:
           fi
 
           if [ -z "$SERVICE_ID" ]; then
-            echo "Render API credential is configured but no atlas-genesis service could be resolved."
+            echo "Render API credential exists but no atlas-genesis service could be resolved."
             exit 1
           fi
 
@@ -94,11 +99,22 @@ jobs:
             cat /tmp/render-api-deploy.json 2>/dev/null || true
             exit 1
           fi
+          echo "deployment_mode=api" >> "$GITHUB_OUTPUT"
           echo "RENDER_DEPLOY_TRIGGER=api"
-          echo "Render API accepted deploy for resolved service."
+
+  no-render-credentials:
+    needs: kick-render-deploy
+    if: needs.kick-render-deploy.outputs.deployment_mode == 'none'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record external deployment gate without false CI failure
+        run: |
+          echo "LIVE_BACKEND_CERTIFICATION=SKIPPED_NO_RENDER_CREDENTIALS"
+          echo "APK build/release is independent from this external deployment gate."
 
   resolve-render-host:
     needs: kick-render-deploy
+    if: needs.kick-render-deploy.outputs.deployment_mode != 'none'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     outputs:
@@ -136,11 +152,12 @@ jobs:
             done
             sleep 10
           done
-          echo "No Render candidate exposed both Mobile v2 and Agentic v2.3."
+          echo "No Render candidate exposed both Mobile v2 and Agentic v2.3 after an explicit deploy attempt."
           exit 1
 
   live-atlas-api:
     needs: resolve-render-host
+    if: needs.resolve-render-host.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:

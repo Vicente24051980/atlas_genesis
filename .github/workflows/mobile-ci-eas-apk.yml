@@ -1,4 +1,4 @@
-# Rebuild marker: 2026-08-22 screener + terminal v3 + Render contract rebuild
+# Rebuild marker: 2026-08-22 mobile CI green repair
 name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
@@ -79,7 +79,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-      - run: npm install --include=dev --no-audit --no-fund
+      - run: npm install --include=dev --legacy-peer-deps --no-audit --no-fund
       - name: Verify deterministic Expo native ABI set
         shell: bash
         run: |
@@ -98,7 +98,7 @@ jobs:
           for (const pkg of ['react-native-reanimated', 'react-native-worklets']) {
             try {
               require.resolve(`${pkg}/package.json`);
-              throw new Error(`${pkg}: must not be installed; ATLAS does not use it and it re-enables the incompatible WorkletJSCallInvoker native path`);
+              throw new Error(`${pkg}: unexpected native peer installation; ATLAS does not declare it and this can reactivate the incompatible WorkletJSCallInvoker path`);
             } catch (error) {
               if (error && error.code === 'MODULE_NOT_FOUND') console.log(`${pkg}=ABSENT`);
               else throw error;
@@ -126,7 +126,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - run: npm install --include=dev --no-audit --no-fund
+      - run: npm install --include=dev --legacy-peer-deps --no-audit --no-fund
       - name: Verify deterministic Expo native ABI set
         shell: bash
         run: |
@@ -145,7 +145,7 @@ jobs:
           for (const pkg of ['react-native-reanimated', 'react-native-worklets']) {
             try {
               require.resolve(`${pkg}/package.json`);
-              throw new Error(`${pkg}: must not be installed`);
+              throw new Error(`${pkg}: unexpected native peer installation`);
             } catch (error) {
               if (error && error.code === 'MODULE_NOT_FOUND') console.log(`${pkg}=ABSENT`);
               else throw error;
