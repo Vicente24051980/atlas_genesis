@@ -27,7 +27,8 @@ def test_render_blueprint_targets_live_service_and_production_entrypoint() -> No
     assert "autoDeployTrigger: commit" in blueprint
     assert "startCommand: uvicorn api.app:app --host 0.0.0.0 --port $PORT" in blueprint
     assert "healthCheckPath: /v1/mobile/health" in blueprint
-    assert "preDeployCommand:" in blueprint
+    assert "python -c" in blueprint
+    assert "Missing production routes" in blueprint
     assert "ATLAS_DEPLOY_REVISION" in blueprint
     assert "TRADING212_LIVE_TRADING_ENABLED" in blueprint
     assert 'value: "false"' in blueprint
