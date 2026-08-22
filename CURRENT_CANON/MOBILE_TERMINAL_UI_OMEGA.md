@@ -1,8 +1,8 @@
 # ATLAS Ω MOBILE TERMINAL UI
 
 Status: ACTIVE CANON
-Version: v2.0
-Date: 2026-08-21
+Version: v2.1
+Date: 2026-08-22
 
 ## Objective
 
@@ -30,6 +30,12 @@ The first useful surface is the Trading 212 portfolio when read access is availa
 Trading 212 credentials remain server-side. Only the encrypted ATLAS broker-control session may reside on device. The portfolio and dedicated PORT workspace are read surfaces. Missing broker/session data renders `BROKER GATE` or `LOCAL SESSION GATE`; it is never fabricated.
 
 The user's Trading 212 API credential is intended to be read-only at source. Mobile code must not treat broker availability as execution authority.
+
+## Session Continuity Ω
+
+`CURRENT_CANON/SESSION_CONTINUITY_OMEGA.md` is mandatory terminal behavior. On startup the Cockpit must expose `RESUME LAST SESSION` and restore the latest certified workspace manifest: portfolio/watchlist references, incomplete audits, complete engine ledgers, evidence/provenance references, contradictions, falsifiers, Decision Log, catalysts/tasks and workspace state.
+
+Resume never means silently refreshing or fabricating evidence. `MEMORY != EVIDENCE`, `SESSION STATE != CURRENT MARKET DATA`, and `RESUME != RECOMPUTE`. Stale/missing/corrupt components render explicit gates and any current investment decision must revalidate required evidence.
 
 ## Global index tape
 
@@ -73,20 +79,9 @@ GREEN provider verification follows the canonical multi-provider quorum. A missi
 
 ## Final recommendation
 
-The decision banner supports:
+The decision banner supports `BUY`, `HOLD`, `WATCH`, `REJECT`, `NO_OPPORTUNITY`, `PENDING`.
 
-- `BUY`
-- `HOLD`
-- `WATCH`
-- `REJECT`
-- `NO_OPPORTUNITY`
-- `PENDING`
-
-The action/execution line is separate from the recommendation. Examples: `NO BUY · DATA GATE`, `NO BUY · FALSIFIER VETO`, `BLOCKED`, or a future executable state.
-
-No specialist engine, screener, provider rating or price move can directly emit the final recommendation. Only Investment Committee Ω can.
-
-When critical evidence is unresolved, the canonical mobile behavior is `PENDING` + `NO BUY · DATA GATE`, not a fabricated BUY/SELL conclusion.
+The action/execution line is separate from the recommendation. No specialist engine, screener, provider rating or price move can directly emit the final recommendation. Only Investment Committee Ω can. When critical evidence is unresolved, canonical behavior is `PENDING` + `NO BUY · DATA GATE`.
 
 ## Falsifiers Ω
 
@@ -94,17 +89,7 @@ Falsifiers Ω preserves independent veto. Absence of detected negative evidence 
 
 ## Result Journal
 
-Saved audit snapshots preserve at minimum:
-
-- ticker and timestamp;
-- provider/provenance;
-- company identity and observed metrics;
-- Investment Committee recommendation/action/execution state/confidence;
-- complete engine snapshot;
-- contradictions;
-- note/reason.
-
-Historical snapshots are immutable observations; later prices or audits do not rewrite them.
+Saved audit snapshots preserve ticker/timestamp, provider/provenance, company identity/observed metrics, Investment Committee recommendation/action/execution/confidence, complete engine snapshot, contradictions and note/reason. Historical snapshots are immutable observations; later prices or audits do not rewrite them.
 
 ## Data rendering rule
 
@@ -114,23 +99,10 @@ Firecrawl is an acquisition/interaction layer, never an independent evidence sou
 
 ## Security rule
 
-Provider secrets remain server-side and must not be embedded in the APK. CI scans the built Android bundle for direct Trading 212 endpoints, FinancialData.Net direct endpoints and Firecrawl key-like strings.
+Provider secrets remain server-side and must not be embedded in the APK. CI scans the built Android bundle for direct Trading 212 endpoints, FinancialData.Net direct endpoints and Firecrawl key-like strings. Trading 212 execution is fail-closed. Read access and investment recommendation are separate from broker execution authority.
 
-Trading 212 execution is fail-closed. Read access and investment recommendation are separate from broker execution authority.
+## Implementation v2.1
 
-## Implementation v2
-
-`atlas/mobile-terminal-audit-v2` introduces:
-
-- shared `TickerAuditTerminal` for AUD and Security Hub;
-- full registered-engine ledger with GREEN first;
-- explicit contradictions and provenance;
-- Investment Committee decision banner;
-- result journal persistence of verdict + engine states;
-- terminal-style PORT and SYS screens replacing legacy blue/rounded views;
-- backend `/v1/mobile/audit/{ticker}` contract;
-- fail-safe mobile fallback that shows gates instead of inventing results;
-- Android smoke checks for the unified terminal audit surface;
-- CI secret-leak checks including Firecrawl key-like material.
+The terminal contract includes shared `TickerAuditTerminal`, full registered-engine ledger with GREEN first, contradictions/provenance, Investment Committee decision banner, result journal, terminal-style PORT/SYS, backend audit contract, fail-safe gates, Android smoke/security checks, plus Session Continuity Ω with a versioned workspace manifest and `RESUME LAST SESSION` Cockpit state.
 
 Release rule: implementation is not considered certified until it passes CI on the feature PR and independently passes the full mobile CI again after merge to `main`.
