@@ -1,4 +1,4 @@
-# Rebuild marker: 2026-08-21 Expo/Worklets native ABI repair
+# Rebuild marker: 2026-08-22 certified APK rebuild trigger
 name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
@@ -154,18 +154,9 @@ jobs:
           test -s "$APK"
           unzip -p "$APK" assets/index.android.bundle > /tmp/index.android.bundle
           grep -Fq "$PRODUCTION_API" /tmp/index.android.bundle
-          if grep -Fq 'financialdata.net/api/v1' /tmp/index.android.bundle; then
-            echo '::error::FinancialData.Net direct API endpoint leaked into APK. Use server proxy only.'
-            exit 1
-          fi
-          if grep -Fq 'live.trading212.com/api/v0' /tmp/index.android.bundle || grep -Fq 'demo.trading212.com/api/v0' /tmp/index.android.bundle; then
-            echo '::error::Trading 212 direct API endpoint leaked into APK. Use server proxy only.'
-            exit 1
-          fi
-          if grep -Eq 'fc-[A-Za-z0-9_-]{20,}' /tmp/index.android.bundle; then
-            echo '::error::Firecrawl key-like secret leaked into APK.'
-            exit 1
-          fi
+          if grep -Fq 'financialdata.net/api/v1' /tmp/index.android.bundle; then exit 1; fi
+          if grep -Fq 'live.trading212.com/api/v0' /tmp/index.android.bundle || grep -Fq 'demo.trading212.com/api/v0' /tmp/index.android.bundle; then exit 1; fi
+          if grep -Eq 'fc-[A-Za-z0-9_-]{20,}' /tmp/index.android.bundle; then exit 1; fi
           sha256sum "$APK" | tee /tmp/atlas-mobile-v1.sha256
           ls -lh "$APK"
       - uses: actions/upload-artifact@v4
