@@ -175,17 +175,31 @@ def _passes(
     positive_1y: bool,
     positive_2y: bool,
 ) -> bool:
-    gates = [
-        (min_market_cap is None, row.get("marketCap") is not None and row["marketCap"] >= min_market_cap),
-        (max_pe is None, row.get("pe") is not None and row["pe"] <= max_pe),
-        (max_beta is None, row.get("beta") is not None and row["beta"] <= max_beta),
-        (min_roic is None, row.get("roic") is not None and row["roic"] >= min_roic),
-        (not positive_day, row.get("day") is not None and row["day"] > 0),
-        (not above_200dma, row.get("above200dma") is True),
-        (not positive_1y, row.get("ret1y") is not None and row["ret1y"] > 0),
-        (not positive_2y, row.get("ret2y") is not None and row["ret2y"] > 0),
-    ]
-    return all(optional or passed for optional, passed in gates)
+    market_cap = row.get("marketCap")
+    pe = row.get("pe")
+    beta = row.get("beta")
+    roic = row.get("roic")
+    day = row.get("day")
+    ret1y = row.get("ret1y")
+    ret2y = row.get("ret2y")
+
+    if min_market_cap is not None and (market_cap is None or market_cap < min_market_cap):
+        return False
+    if max_pe is not None and (pe is None or pe > max_pe):
+        return False
+    if max_beta is not None and (beta is None or beta > max_beta):
+        return False
+    if min_roic is not None and (roic is None or roic < min_roic):
+        return False
+    if positive_day and (day is None or day <= 0):
+        return False
+    if above_200dma and row.get("above200dma") is not True:
+        return False
+    if positive_1y and (ret1y is None or ret1y <= 0):
+        return False
+    if positive_2y and (ret2y is None or ret2y <= 0):
+        return False
+    return True
 
 
 def _sort_value(row: dict[str, Any], key: SortKey) -> Any:
