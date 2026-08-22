@@ -267,7 +267,7 @@ const PORTFOLIO: TrackedTicker[] = [
   ['CSL','Carlisle Companies','Industrials'],['CAT','Caterpillar','Industrials'],['ZBRA','Zebra Technologies','Industrials / Automation'],
   ['LLY','Eli Lilly','Health'],['ABBV','AbbVie','Health'],['TMO','Thermo Fisher Scientific','Health'],['DHR','Danaher','Health'],
   ['V','Visa','Payments'],['MA','Mastercard','Payments'],['BAE','BAE Systems','Defense'],['QLYS','Qualys','Cybersecurity'],
-].map(([ticker,name,sector]) => ({ ticker, name, sector }));
+].map((row) => ({ ticker: row[0]!, name: row[1]!, sector: row[2]! }));
 
 const PORTFOLIO_PENDING: TrackedTicker[] = [{ ticker: 'MCK', name: 'McKesson', sector: 'Health', state: 'PENDING' }];
 
@@ -285,7 +285,7 @@ const WATCHLIST: TrackedTicker[] = [
   ['HUBS','HubSpot','Software'],['DDOG','Datadog','Observability'],['NET','Cloudflare','Cloud / Security'],['MDB','MongoDB','Database'],
   ['NFLX','Netflix','Media'],['META','Meta Platforms','Internet'],['LMT','Lockheed Martin','Defense'],['IBM','IBM','Technology'],
   ['IONQ','IonQ','Quantum'],['QBTS','D-Wave Quantum','Quantum'],['RGTI','Rigetti Computing','Quantum'],['QUBT','Quantum Computing Inc.','Quantum'],
-].map(([ticker,name,sector]) => ({ ticker, name, sector }));
+].map((row) => ({ ticker: row[0]!, name: row[1]!, sector: row[2]! }));
 
 const MARKET_META: Record<string, { name: string; sector: string }> = {
   SPY: { name: 'S&P 500', sector: 'US Market' }, QQQ: { name: 'Nasdaq 100', sector: 'US Tech' },
