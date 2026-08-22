@@ -3,7 +3,7 @@
     "name": "ATLAS Ω",
     "slug": "atlas",
     "owner": "vbf1980s-team",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "scheme": "atlasomega",
     "userInterfaceStyle": "dark",
@@ -11,7 +11,7 @@
     "platforms": ["android"],
     "android": {
       "package": "com.vicentebellver.atlasomega",
-      "versionCode": 7,
+      "versionCode": 8,
       "permissions": []
     },
     "plugins": ["expo-router"],
