@@ -1,4 +1,4 @@
-# Rebuild marker: 2026-08-22 screener + terminal v3 + Render contract rebuild
+# Root release pipeline: deterministic Android build + emulator certification
 name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -75,19 +75,21 @@ jobs:
       run:
         working-directory: mobile
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: '22.13.0'
-      - run: npm install --include=dev --no-audit --no-fund
-      - name: Verify deterministic Expo native ABI set
+      - run: npm install --include=dev --legacy-peer-deps --no-audit --no-fund
+      - name: Verify deterministic Expo runtime set
         shell: bash
         run: |
           set -euo pipefail
           node <<'NODE'
           const expected = {
             expo: '57.0.11',
+            'expo-linking': '57.0.1',
             'expo-modules-core': '57.0.12',
+            'expo-router': '57.0.9',
             'react-native': '0.86.2',
           };
           for (const [pkg, want] of Object.entries(expected)) {
@@ -118,23 +120,25 @@ jobs:
     env:
       EXPO_PUBLIC_ATLAS_API_BASE_URL: https://atlas-genesis.onrender.com
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: '22.13.0'
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-      - run: npm install --include=dev --no-audit --no-fund
-      - name: Verify deterministic Expo native ABI set
+      - run: npm install --include=dev --legacy-peer-deps --no-audit --no-fund
+      - name: Verify deterministic Expo runtime set
         shell: bash
         run: |
           set -euo pipefail
           node <<'NODE'
           const expected = {
             expo: '57.0.11',
+            'expo-linking': '57.0.1',
             'expo-modules-core': '57.0.12',
+            'expo-router': '57.0.9',
             'react-native': '0.86.2',
           };
           for (const [pkg, want] of Object.entries(expected)) {
@@ -192,7 +196,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/download-artifact@v4
         with:
           name: atlas-omega-mobile-v1-apk
