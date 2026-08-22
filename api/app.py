@@ -4,10 +4,6 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from api.agent_infrastructure import router as agent_infrastructure_router
-from api.agentic_evidence_bridge import router as agentic_evidence_bridge_router
-from api.agentic_governance import router as agentic_governance_router
-from api.agentic_omega import router as agentic_omega_router
-from api.agentic_omega_v2 import router as agentic_omega_v2_router
 from api.atlas_core import router as atlas_router
 from api.bottom_score import router as bottom_score_router
 from api.document_ingestion import router as document_ingestion_router
@@ -22,6 +18,9 @@ from api.mobile_audit_omega import router as mobile_audit_router
 from api.realizable_alpha import router as realizable_alpha_router
 from api.screener import router as screener_router
 
+# api.main owns the compatibility-critical Mobile v2 and Agentic v1/v2/v2.2/v2.3
+# routers so either Render entrypoint (api.main:app or api.app:app) exposes the
+# same certified contract exactly once. api.app only adds the extended surfaces.
 app.include_router(execution_safety_router)
 app.include_router(market_router)
 app.include_router(screener_router)
@@ -31,10 +30,6 @@ app.include_router(realizable_alpha_router)
 app.include_router(evidence_router)
 app.include_router(firecrawl_ingestion_router)
 app.include_router(kronos_market_forecast_router)
-app.include_router(agentic_omega_router)
-app.include_router(agentic_omega_v2_router)
-app.include_router(agentic_evidence_bridge_router)
-app.include_router(agentic_governance_router)
 app.include_router(agent_infrastructure_router)
 app.include_router(document_ingestion_router)
 app.include_router(mobile_audit_router)
