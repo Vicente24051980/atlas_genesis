@@ -384,6 +384,10 @@ export function evaluateLiveMarketValidation(input: LiveMarketValidationEvidence
   let state = classifyLiveMarketValidation(delta);
   if (input.thesisState === 'BROKEN' && state !== 'FALSIFIED') state = 'WEAKENING';
   if (input.thesisState === 'DELAYED' && state === 'UNCHANGED') state = 'WEAKENING';
+  if (expectedReturnDeltaPct < -0.5 && input.valuationDelta === 'RICHER' && state !== 'FALSIFIED') {
+    state = 'WEAKENING';
+    reasons.push('Forward Expected Return deteriorated while valuation became richer.');
+  }
   if (input.thesisState === 'ON_TRACK' && state === 'UNCHANGED' && fundamentalValidation !== 'NEGATIVE') state = 'VALIDATED';
 
   if (priceReturnPct > 0 && (input.flowDelta == null || input.flowDelta === 'UNVERIFIED')) reasons.push('PRICE UP != VERIFIED FLOW: rising price alone cannot establish institutional flow.');
