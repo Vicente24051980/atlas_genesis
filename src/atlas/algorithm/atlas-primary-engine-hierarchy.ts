@@ -1,5 +1,5 @@
 export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
-  version: '2026-08-21-v4.7.0',
+  version: '2026-08-22-v4.8.0',
   firstAnalyticalEngine: 'GREEN_VERIFIED_CONTINUITY_OMEGA_V1_0',
   greenVerificationStack: ['GREEN_PROVIDER_QUORUM_OMEGA_V1_1', 'GREEN_CONTINUITY_OMEGA_V1_4'] as const,
   primaryEngine: 'PRINCIPAL_OMEGA',
@@ -25,6 +25,12 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'EVENT_PRICING_OPTIONS_EXPECTATIONS_OMEGA_V1', 'SPECIAL_SITUATIONS_OMEGA_V1',
   ] as const,
   auxiliaryLayers: ['WINNER_PRESERVATION_OMEGA_V1', 'OPTIONALITY_RESERVE_OMEGA_V1', 'CAPITAL_SAFETY_LEVERAGE_DISCIPLINE_OMEGA_V1'] as const,
+  learningAndValidationEngines: [
+    'COMPETITION_FOR_CAPITAL_OMEGA',
+    'RECOMMENDATION_PERFORMANCE_AUDIT_OMEGA_V1',
+    'LIVE_MARKET_VALIDATION_OMEGA_V1',
+    'MODEL_LEARNING_GOVERNANCE_OMEGA_V1',
+  ] as const,
   transversalGates: [
     'ANTI_DELUSION_CORE_OMEGA', 'EVIDENCE_INTEGRITY_OMEGA', 'SOURCE_AUTHENTICITY_OMEGA', 'QUANTITATIVE_INTEGRITY_OMEGA',
     'TEMPORAL_NORMALIZATION_OMEGA', 'SIZE_NEUTRALITY_AUDIT_OMEGA_V1', 'SYSTEMIC_CASCADE_OMEGA_V1',
@@ -65,6 +71,12 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'W2_YELLOW_HIGH is a surveillance overlay, not a structural F3/F4 state and not a confirmed falsifier.',
     'SYSTEMIC CASCADE escalates only on temporally aligned multi-channel evidence and never emits a structural SELL by itself.',
     'WINNER PRESERVATION prevents automatic profit-taking solely because a validated leader has multiplied.',
+    'RECOMMENDATION PERFORMANCE AUDIT preserves an immutable ex-ante T0 snapshot and never judges process quality from outcome alone.',
+    'Recommendation Alpha and Selection Alpha are distinct: positive absolute return does not prove good capital allocation.',
+    'LIVE MARKET VALIDATION compares LAST AUDIT -> NOW and keeps market validation orthogonal to fundamental validation.',
+    'Rising price never creates verified institutional flow; absent flow evidence remains NOT_VERIFIED.',
+    'MODEL LEARNING GOVERNANCE forbids recalibration from one stock or three isolated observations and requires broad, repeated, economically material, out-of-sample-supported evidence.',
+    'HISTORICAL ALPHA does not imply FUTURE ALPHA; every accepted model change is versioned and auditable.',
   ] as const,
 } as const;
 
@@ -114,6 +126,10 @@ export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'SYSTEMIC_CASCADE_OMEGA_V1',
   'WINNER_PRESERVATION_OMEGA_V1',
   'OPTIONALITY_RESERVE_OMEGA_V1',
+  'COMPETITION_FOR_CAPITAL_OMEGA',
+  'RECOMMENDATION_PERFORMANCE_AUDIT_OMEGA_V1',
+  'LIVE_MARKET_VALIDATION_OMEGA_V1',
+  'MODEL_LEARNING_GOVERNANCE_OMEGA_V1',
   'SIZE_NEUTRAL_RETURN_RANKING_OMEGA_V1',
   'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2_1',
   'SIZE_NEUTRALITY_AUDIT_OMEGA_V1',
