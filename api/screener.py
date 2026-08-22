@@ -1,154 +1,147 @@
 from __future__ import annotations
 
 import asyncio
+import math
 import os
-import time
 from typing import Any, Literal
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query
-
-from api.market import CATALOGUE, get_market_history
+from fastapi import APIRouter, Query
 
 router = APIRouter(prefix="/v1/screener", tags=["screener"])
 
-FINNHUB_BASE_URL = "https://finnhub.io/api/v1"
 FINNHUB_TOKEN = os.getenv("FINNHUB_TOKEN", "").strip()
-METRIC_CACHE_TTL_SECONDS = 900
-_METRIC_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
-_METRIC_SEMAPHORE = asyncio.Semaphore(5)
 
-SortKey = Literal["symbol", "day", "ret1y", "ret2y", "marketCap", "roic", "beta", "pe"]
+SortKey = Literal[
+    "symbol",
+    "price",
+    "day",
+    "ret1y",
+    "ret2y",
+    "marketCap",
+    "pe",
+    "beta",
+    "roic",
+]
 SortDirection = Literal["asc", "desc"]
 
+DEFAULT_SYMBOLS = [
+    "AAPL",
+    "ABBV",
+    "ABT",
+    "AMGN",
+    "AMZN",
+    "AVGO",
+    "CAT",
+    "CB",
+    "CME",
+    "COP",
+    "COR",
+    "DE",
+    "DHR",
+    "EOG",
+    "GOOG",
+    "JPM",
+    "KO",
+    "LLY",
+    "MA",
+    "MEDP",
+    "MSFT",
+    "NVDA",
+    "PBR",
+    "PEP",
+    "PGR",
+    "SPGI",
+    "V",
+    "WMT",
+    "XOM",
+]
 
-def _number(value: Any) -> float | None:
-    if isinstance(value, bool):
-        return None
-    if isinstance(value, (int, float)):
+
+def _finite(value: Any) -> float | None:
+    try:
         number = float(value)
-        return number if number == number else None
-    if isinstance(value, str):
-        try:
-            number = float(value.replace(",", ""))
-        except ValueError:
-            return None
-        return number if number == number else None
-    return None
-
-
-def _first_number(source: dict[str, Any], *keys: str) -> float | None:
-    normalized = {str(key).lower().replace("_", ""): value for key, value in source.items()}
-    for key in keys:
-        value = normalized.get(key.lower().replace("_", ""))
-        number = _number(value)
-        if number is not None:
-            return number
-    return None
-
-
-def _ret(closes: list[float], sessions: int) -> float | None:
-    if len(closes) <= sessions:
+    except (TypeError, ValueError):
         return None
-    start = closes[-1 - sessions]
-    end = closes[-1]
-    if start == 0:
+    return number if math.isfinite(number) else None
+
+
+def _percent_change(latest: float, prior: float) -> float | None:
+    if prior == 0:
         return None
-    return (end / start - 1.0) * 100.0
+    return (latest / prior - 1.0) * 100.0
 
 
-def _sma(closes: list[float], sessions: int) -> float | None:
-    if len(closes) < sessions:
-        return None
-    window = closes[-sessions:]
-    return sum(window) / len(window)
-
-
-def _normalize_symbols(value: str | None) -> list[str]:
-    if not value:
-        return [str(item["symbol"]).upper() for item in CATALOGUE]
-    result: list[str] = []
-    for raw in value.split(","):
-        symbol = raw.strip().upper()
-        if not symbol or len(symbol) > 20 or not all(ch.isalnum() or ch in ".-" for ch in symbol):
+async def _stooq_history(client: httpx.AsyncClient, symbol: str) -> list[tuple[str, float]]:
+    url = "https://stooq.com/q/d/l/"
+    params = {"s": f"{symbol.lower()}.us", "i": "d"}
+    response = await client.get(url, params=params, timeout=20)
+    response.raise_for_status()
+    rows: list[tuple[str, float]] = []
+    for line in response.text.strip().splitlines()[1:]:
+        parts = line.split(",")
+        if len(parts) < 5:
             continue
-        if symbol not in result:
-            result.append(symbol)
-    if not result:
-        raise HTTPException(status_code=400, detail="No valid symbols were supplied")
-    return result[:60]
+        close = _finite(parts[4])
+        if close is not None:
+            rows.append((parts[0], close))
+    return rows
 
 
-async def _finnhub_metrics(symbol: str) -> dict[str, Any]:
+async def _finnhub_metric(client: httpx.AsyncClient, symbol: str) -> dict[str, Any]:
     if not FINNHUB_TOKEN:
         return {}
-    cached = _METRIC_CACHE.get(symbol)
-    now = time.time()
-    if cached and now - cached[0] < METRIC_CACHE_TTL_SECONDS:
-        return cached[1]
-    params = {"symbol": symbol, "metric": "all"}
-    headers = {"X-Finnhub-Token": FINNHUB_TOKEN}
-    timeout = httpx.Timeout(14.0, connect=7.0)
-    async with _METRIC_SEMAPHORE:
-        try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
-                response = await client.get(f"{FINNHUB_BASE_URL}/stock/metric", params=params, headers=headers)
-        except httpx.RequestError:
-            return {}
-    if response.status_code == 429 or response.status_code >= 400:
-        return {}
-    try:
-        payload = response.json()
-    except ValueError:
-        return {}
-    metric = payload.get("metric") if isinstance(payload, dict) else None
-    result = metric if isinstance(metric, dict) else {}
-    _METRIC_CACHE[symbol] = (now, result)
-    return result
+    response = await client.get(
+        "https://finnhub.io/api/v1/stock/metric",
+        params={"symbol": symbol, "metric": "all", "token": FINNHUB_TOKEN},
+        timeout=20,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    metric = payload.get("metric")
+    return metric if isinstance(metric, dict) else {}
 
 
-async def _build_row(symbol: str) -> dict[str, Any] | None:
-    history_task = asyncio.create_task(get_market_history(symbol, days=900))
-    metrics_task = asyncio.create_task(_finnhub_metrics(symbol))
-    try:
-        history = await history_task
-    except HTTPException:
-        history = []
-    metrics = await metrics_task
-    closes = [_number(row.get("close")) for row in history]
-    closes = [value for value in closes if value is not None]
-    if not closes:
-        return None
+def _metric_number(metric: dict[str, Any], *keys: str) -> float | None:
+    for key in keys:
+        value = _finite(metric.get(key))
+        if value is not None:
+            return value
+    return None
 
-    current = closes[-1]
-    previous = closes[-2] if len(closes) >= 2 else None
-    day = None if previous in (None, 0) else (current / previous - 1.0) * 100.0
-    sma200 = _sma(closes, 200)
-    ret1y = _ret(closes, 252)
-    ret2y = _ret(closes, 504)
 
-    market_cap_m = _first_number(metrics, "marketCapitalization", "marketCap", "marketCapitalizationTTM")
-    market_cap_b = None if market_cap_m is None else market_cap_m / 1000.0
-    pe = _first_number(metrics, "peTTM", "peNormalizedAnnual", "peBasicExclExtraTTM", "peExclExtraTTM")
-    beta = _first_number(metrics, "beta")
-    roic = _first_number(metrics, "roicTTM", "roic")
-    if roic is not None and abs(roic) <= 1.5:
-        roic *= 100.0
+async def _screen_row(client: httpx.AsyncClient, symbol: str) -> dict[str, Any]:
+    history_task = asyncio.create_task(_stooq_history(client, symbol))
+    metric_task = asyncio.create_task(_finnhub_metric(client, symbol))
+    history, metric = await asyncio.gather(history_task, metric_task)
 
-    meta = next((item for item in CATALOGUE if str(item.get("symbol", "")).upper() == symbol), None) or {}
+    current = history[-1][1] if history else None
+    previous = history[-2][1] if len(history) > 1 else None
+    one_year = history[-253][1] if len(history) > 252 else None
+    two_year = history[-505][1] if len(history) > 504 else None
+    sma200 = sum(close for _, close in history[-200:]) / 200 if len(history) >= 200 else None
+
+    day = _percent_change(current, previous) if current is not None and previous is not None else None
+    ret1y = _percent_change(current, one_year) if current is not None and one_year is not None else None
+    ret2y = _percent_change(current, two_year) if current is not None and two_year is not None else None
+
+    market_cap_m = _metric_number(metric, "marketCapitalization")
+    market_cap_b = market_cap_m / 1000.0 if market_cap_m is not None else None
+    pe = _metric_number(metric, "peTTM", "peBasicExclExtraTTM")
+    beta = _metric_number(metric, "beta")
+    roic = _metric_number(metric, "roicTTM")
+
     fundamental_values = [market_cap_b, pe, beta, roic]
-    fundamental_coverage = sum(value is not None for value in fundamental_values) / len(fundamental_values)
     technical_values = [current, day, sma200, ret1y, ret2y]
+    fundamental_coverage = sum(value is not None for value in fundamental_values) / len(fundamental_values)
     technical_coverage = sum(value is not None for value in technical_values) / len(technical_values)
 
     return {
         "symbol": symbol,
-        "name": meta.get("name", symbol),
-        "sector": meta.get("sector", "Market"),
         "price": current,
         "day": day,
         "sma200": sma200,
-        "above200dma": None if sma200 is None else current > sma200,
+        "above200dma": None if sma200 is None or current is None else current > sma200,
         "ret1y": ret1y,
         "ret2y": ret2y,
         "marketCap": market_cap_b,
@@ -175,17 +168,39 @@ def _passes(
     positive_1y: bool,
     positive_2y: bool,
 ) -> bool:
-    gates = [
-        (min_market_cap is None, row.get("marketCap") is not None and row["marketCap"] >= min_market_cap),
-        (max_pe is None, row.get("pe") is not None and row["pe"] <= max_pe),
-        (max_beta is None, row.get("beta") is not None and row["beta"] <= max_beta),
-        (min_roic is None, row.get("roic") is not None and row["roic"] >= min_roic),
-        (not positive_day, row.get("day") is not None and row["day"] > 0),
-        (not above_200dma, row.get("above200dma") is True),
-        (not positive_1y, row.get("ret1y") is not None and row["ret1y"] > 0),
-        (not positive_2y, row.get("ret2y") is not None and row["ret2y"] > 0),
-    ]
-    return all(optional or passed for optional, passed in gates)
+    # Evaluate only active filters. This is intentionally fail-closed for missing
+    # values under an active filter and permissive when the filter is inactive.
+    if min_market_cap is not None:
+        value = row.get("marketCap")
+        if value is None or value < min_market_cap:
+            return False
+    if max_pe is not None:
+        value = row.get("pe")
+        if value is None or value > max_pe:
+            return False
+    if max_beta is not None:
+        value = row.get("beta")
+        if value is None or value > max_beta:
+            return False
+    if min_roic is not None:
+        value = row.get("roic")
+        if value is None or value < min_roic:
+            return False
+    if positive_day:
+        value = row.get("day")
+        if value is None or value <= 0:
+            return False
+    if above_200dma and row.get("above200dma") is not True:
+        return False
+    if positive_1y:
+        value = row.get("ret1y")
+        if value is None or value <= 0:
+            return False
+    if positive_2y:
+        value = row.get("ret2y")
+        if value is None or value <= 0:
+            return False
+    return True
 
 
 def _sort_value(row: dict[str, Any], key: SortKey) -> Any:
@@ -209,51 +224,58 @@ async def screen(
     direction: SortDirection = Query(default="desc"),
     limit: int = Query(default=50, ge=1, le=60),
 ) -> dict[str, Any]:
-    universe = _normalize_symbols(symbols)
-    results = await asyncio.gather(*(_build_row(symbol) for symbol in universe))
-    rows = [row for row in results if row is not None]
-    passed = [
-        row for row in rows
-        if _passes(row, min_market_cap, max_pe, max_beta, min_roic, positive_day, above_200dma, positive_1y, positive_2y)
-    ]
+    universe = [token.strip().upper() for token in symbols.split(",")] if symbols else DEFAULT_SYMBOLS
+    universe = [symbol for symbol in universe if symbol][:60]
 
-    reverse = direction == "desc"
-    if sort == "symbol":
-        passed.sort(key=lambda row: _sort_value(row, sort), reverse=reverse)
-    else:
-        passed.sort(
-            key=lambda row: (
-                _sort_value(row, sort) is not None,
-                _sort_value(row, sort) if _sort_value(row, sort) is not None else float("-inf"),
-            ),
-            reverse=reverse,
+    async with httpx.AsyncClient(headers={"User-Agent": "ATLAS-Omega/1.0"}) as client:
+        raw_rows = await asyncio.gather(
+            *(_screen_row(client, symbol) for symbol in universe),
+            return_exceptions=True,
         )
 
-    fundamental_gate_count = sum(1 for row in rows if row.get("fundamentalCoverage", 0) < 1)
+    rows: list[dict[str, Any]] = []
+    errors: list[dict[str, str]] = []
+    for symbol, raw in zip(universe, raw_rows, strict=True):
+        if isinstance(raw, Exception):
+            errors.append({"symbol": symbol, "error": type(raw).__name__})
+            continue
+        if _passes(
+            raw,
+            min_market_cap,
+            max_pe,
+            max_beta,
+            min_roic,
+            positive_day,
+            above_200dma,
+            positive_1y,
+            positive_2y,
+        ):
+            rows.append(raw)
+
+    reverse = direction == "desc"
+    rows.sort(
+        key=lambda row: (
+            _sort_value(row, sort) is not None,
+            _sort_value(row, sort),
+        ),
+        reverse=reverse,
+    )
+
     return {
-        "engine": "ATLAS Screener Ω",
-        "version": "1.1.0",
-        "universe": "CUSTOM" if symbols else "ATLAS_CORE_US",
-        "scanned": len(universe),
-        "returned": min(len(passed), limit),
-        "fundamentalDataGates": fundamental_gate_count,
-        "units": {"marketCap": "USD billions", "roic": "percent", "returns": "percent"},
+        "ok": True,
+        "rows": rows[:limit],
+        "count": min(len(rows), limit),
+        "universeCount": len(universe),
+        "errors": errors,
         "filters": {
             "minMarketCap": min_market_cap,
-            "maxPE": max_pe,
+            "maxPe": max_pe,
             "maxBeta": max_beta,
-            "minROIC": min_roic,
+            "minRoic": min_roic,
             "positiveDay": positive_day,
             "above200dma": above_200dma,
-            "positive1Y": positive_1y,
-            "positive2Y": positive_2y,
+            "positive1y": positive_1y,
+            "positive2y": positive_2y,
         },
         "sort": {"key": sort, "direction": direction},
-        "items": passed[:limit],
-        "guardrail": (
-            "Screener results are discovery candidates only. Missing data never passes an active filter. "
-            "ROIC is never silently substituted with ROI. Market cap is normalized to USD billions. "
-            "A screener result cannot emit BUY/SELL; every candidate must continue through Evidence Director, GREEN first, "
-            "all applicable ATLAS engines, Falsifiers Ω and Investment Committee Ω."
-        ),
     }
