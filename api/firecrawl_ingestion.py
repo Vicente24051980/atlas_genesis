@@ -42,6 +42,8 @@ class ScrapeRequest(BaseModel):
             raise ValueError("change_tracking_schema is required for json change tracking")
         if self.change_tracking_schema is not None and self.change_tracking_mode != "json":
             raise ValueError("change_tracking_schema is only valid with json change tracking")
+        if self.tag and self.change_tracking_mode is None:
+            raise ValueError("tag is only valid when change tracking is enabled")
         return self
 
 
@@ -118,6 +120,8 @@ class CrawlRequest(BaseModel):
             raise ValueError("change_tracking_schema is required for json change tracking")
         if self.change_tracking_schema is not None and self.change_tracking_mode != "json":
             raise ValueError("change_tracking_schema is only valid with json change tracking")
+        if self.tag and self.change_tracking_mode is None:
+            raise ValueError("tag is only valid when change tracking is enabled")
         return self
 
 
@@ -206,14 +210,22 @@ def _guardrail() -> str:
     )
 
 
-def _change_tracking_format(mode: ChangeTrackingMode | None, schema: dict[str, Any] | None) -> Any | None:
+def _change_tracking_format(
+    mode: ChangeTrackingMode | None,
+    schema: dict[str, Any] | None,
+    tag: str | None = None,
+) -> Any | None:
     if mode is None:
         return None
-    if mode == "basic":
+    if mode == "basic" and not tag:
         return "changeTracking"
-    payload: dict[str, Any] = {"type": "changeTracking", "modes": [mode]}
+    payload: dict[str, Any] = {"type": "changeTracking"}
+    if mode != "basic":
+        payload["modes"] = [mode]
     if mode == "json" and schema is not None:
         payload["schema"] = schema
+    if tag:
+        payload["tag"] = tag
     return payload
 
 
@@ -360,12 +372,14 @@ async def _scrape(request: ScrapeRequest) -> dict[str, Any]:
     formats: list[Any] = ["markdown"]
     if request.include_screenshot:
         formats.append("screenshot")
-    change_format = _change_tracking_format(request.change_tracking_mode, request.change_tracking_schema)
+    change_format = _change_tracking_format(
+        request.change_tracking_mode,
+        request.change_tracking_schema,
+        request.tag,
+    )
     if change_format is not None:
         formats.append(change_format)
     body: dict[str, Any] = {"url": url, "formats": formats, "maxAge": _max_age(request.freshness, request.max_age_ms)}
-    if request.tag:
-        body["tags"] = [request.tag]
     return _normalize(await _post_firecrawl("scrape", body), request)
 
 
@@ -476,7 +490,11 @@ async def _map(request: MapRequest) -> dict[str, Any]:
 
 def _crawl_body(request: CrawlRequest) -> dict[str, Any]:
     formats: list[Any] = ["markdown"]
-    change_format = _change_tracking_format(request.change_tracking_mode, request.change_tracking_schema)
+    change_format = _change_tracking_format(
+        request.change_tracking_mode,
+        request.change_tracking_schema,
+        request.tag,
+    )
     if change_format is not None:
         formats.append(change_format)
     body: dict[str, Any] = {
@@ -500,8 +518,6 @@ def _crawl_body(request: CrawlRequest) -> dict[str, Any]:
         body["excludePaths"] = request.exclude_paths
     if request.max_concurrency is not None:
         body["maxConcurrency"] = request.max_concurrency
-    if request.tag:
-        body["scrapeOptions"]["tags"] = [request.tag]
     return body
 
 
