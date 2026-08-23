@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+import asyncio
 import base64
 import hashlib
 import hmac
 import os
 import time
 from typing import Any, Literal
-from urllib.parse import parse_qsl, urlsplit
+from urllib.parse import urlsplit
 
 import httpx
 from fastapi import APIRouter, Header, HTTPException, Query
@@ -30,9 +31,12 @@ _INSTRUMENT_CACHE: tuple[float, list[dict[str, Any]]] = (0.0, [])
 _INSTRUMENT_CACHE_TTL_SECONDS = 900
 _ORDER_REQUEST_IDS: dict[str, float] = {}
 _ORDER_REQUEST_ID_TTL_SECONDS = 300
+_RATE_LIMIT_READY_AT: dict[str, float] = {}
+_RATE_LIMIT_MAX_AUTO_WAIT_SECONDS = 3.0
 
 TimeValidity = Literal["DAY", "GOOD_TILL_CANCEL"]
 OrderConfirmation = Literal["EXECUTE_DEMO", "EXECUTE_LIVE"]
+OrderType = Literal["market", "limit", "stop", "stop_limit"]
 
 
 class MarketOrderRequest(BaseModel):
@@ -71,6 +75,20 @@ class StopLimitOrderRequest(BaseModel):
     clientRequestId: str = Field(min_length=8, max_length=128)
 
 
+class OrderPreviewRequest(BaseModel):
+    orderType: OrderType = "market"
+    ticker: str = Field(min_length=1, max_length=64)
+    quantity: float
+    extendedHours: bool = False
+    limitPrice: float | None = Field(default=None, gt=0)
+    stopPrice: float | None = Field(default=None, gt=0)
+    timeValidity: TimeValidity = "DAY"
+
+
+class ReconcileRequest(BaseModel):
+    expectedTickers: list[str] = Field(default_factory=list, max_length=250)
+
+
 def _credentials_configured() -> bool:
     return bool(TRADING212_API_KEY and TRADING212_API_SECRET)
 
@@ -91,7 +109,7 @@ def _require_control_token(token: str | None) -> None:
         raise HTTPException(status_code=401, detail="Invalid ATLAS broker control token")
 
 
-def _require_order_permission(confirmation: OrderConfirmation) -> None:
+def _require_order_permission(confirmation: OrderConfirmation, order_type: OrderType = "market") -> None:
     expected: OrderConfirmation = "EXECUTE_LIVE" if TRADING212_ENV == "live" else "EXECUTE_DEMO"
     if confirmation != expected:
         raise HTTPException(status_code=400, detail=f"confirmation must be {expected} for this environment")
@@ -99,6 +117,11 @@ def _require_order_permission(confirmation: OrderConfirmation) -> None:
         raise HTTPException(
             status_code=403,
             detail="Live Trading 212 execution is locked server-side. Paper validation must be completed before enabling live trading.",
+        )
+    if TRADING212_ENV == "live" and order_type != "market":
+        raise HTTPException(
+            status_code=403,
+            detail="ATLAS blocks non-market live orders until the current Trading 212 live OpenAPI contract is explicitly re-certified.",
         )
 
 
@@ -125,15 +148,14 @@ def _normalize_upstream_path(path: str) -> str:
     return value
 
 
-def _next_page_request(next_page_path: str) -> tuple[str, dict[str, str]]:
-    parsed = urlsplit(next_page_path.strip())
+def _next_page_request(next_page_path: str) -> str:
+    value = next_page_path.strip()
+    parsed = urlsplit(value)
     if parsed.scheme or parsed.netloc or parsed.fragment:
         raise HTTPException(status_code=400, detail="nextPagePath must be a relative Trading 212 API path")
     if not parsed.path.startswith("/api/v0/equity/history/"):
         raise HTTPException(status_code=400, detail="nextPagePath is outside the Trading 212 history API")
-    path = _normalize_upstream_path(parsed.path)
-    params = {key: value for key, value in parse_qsl(parsed.query, keep_blank_values=False)}
-    return path, params
+    return _normalize_upstream_path(value)
 
 
 def _rate_limit_headers(headers: httpx.Headers) -> dict[str, str | None]:
@@ -144,6 +166,47 @@ def _rate_limit_headers(headers: httpx.Headers) -> dict[str, str | None]:
         "reset": headers.get("x-ratelimit-reset"),
         "used": headers.get("x-ratelimit-used"),
     }
+
+
+def _parse_reset_epoch(value: str | None) -> float | None:
+    if not value:
+        return None
+    try:
+        stamp = float(value)
+    except (TypeError, ValueError):
+        return None
+    if stamp > 10_000_000_000:
+        stamp /= 1000.0
+    return stamp
+
+
+def _update_rate_limit_state(key: str, rate: dict[str, str | None]) -> None:
+    if rate.get("remaining") != "0":
+        return
+    reset = _parse_reset_epoch(rate.get("reset"))
+    if reset:
+        _RATE_LIMIT_READY_AT[key] = reset
+
+
+async def _respect_rate_limit(key: str) -> None:
+    ready_at = _RATE_LIMIT_READY_AT.get(key)
+    if not ready_at:
+        return
+    wait_seconds = ready_at - time.time()
+    if wait_seconds <= 0:
+        _RATE_LIMIT_READY_AT.pop(key, None)
+        return
+    if wait_seconds <= _RATE_LIMIT_MAX_AUTO_WAIT_SECONDS:
+        await asyncio.sleep(wait_seconds)
+        _RATE_LIMIT_READY_AT.pop(key, None)
+        return
+    raise HTTPException(
+        status_code=429,
+        detail={
+            "message": "Trading 212 account rate limit is cooling down",
+            "retryAfterSeconds": round(wait_seconds, 3),
+        },
+    )
 
 
 async def _request(
@@ -157,6 +220,8 @@ async def _request(
         raise HTTPException(status_code=503, detail="Trading 212 API key pair is not configured on the server")
 
     normalized_path = _normalize_upstream_path(path)
+    route_key = f"{method.upper()}:{urlsplit(normalized_path).path}"
+    await _respect_rate_limit(route_key)
     headers = {
         "Authorization": _auth_header(),
         "Accept": "application/json",
@@ -177,8 +242,18 @@ async def _request(
         raise HTTPException(status_code=502, detail=f"Trading 212 connection failed: {exc.__class__.__name__}") from exc
 
     rate = _rate_limit_headers(response.headers)
+    _update_rate_limit_state(route_key, rate)
     if response.status_code == 429:
-        raise HTTPException(status_code=429, detail={"message": "Trading 212 rate limit reached", "rateLimit": rate})
+        reset = _parse_reset_epoch(rate.get("reset"))
+        retry_after = max(0.0, reset - time.time()) if reset else None
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "message": "Trading 212 rate limit reached",
+                "retryAfterSeconds": round(retry_after, 3) if retry_after is not None else None,
+                "rateLimit": rate,
+            },
+        )
     if response.status_code >= 400:
         try:
             upstream = response.json()
@@ -218,6 +293,146 @@ def _envelope(data: Any, rate: dict[str, str | None]) -> dict[str, Any]:
     }
 
 
+def _canonical_symbol(instrument: dict[str, Any]) -> str:
+    ticker = str(instrument.get("ticker") or "").strip().upper()
+    if not ticker:
+        return ""
+    return ticker.split("_", 1)[0]
+
+
+def _position_account_value(position: dict[str, Any]) -> float | None:
+    wallet = position.get("walletImpact")
+    if isinstance(wallet, dict):
+        for key in ("currentValue", "value", "marketValue"):
+            value = wallet.get(key)
+            if isinstance(value, (int, float)):
+                return float(value)
+        total_cost = wallet.get("totalCost")
+        upl = wallet.get("unrealizedProfitLoss")
+        if isinstance(total_cost, (int, float)) and isinstance(upl, (int, float)):
+            return float(total_cost) + float(upl)
+    return None
+
+
+def _reconcile_positions(
+    positions_data: Any,
+    account_data: Any,
+    expected_tickers: list[str],
+) -> dict[str, Any]:
+    rows = positions_data if isinstance(positions_data, list) else []
+    account = account_data if isinstance(account_data, dict) else {}
+    account_currency = account.get("currency")
+    holdings: list[dict[str, Any]] = []
+    observed_symbols: set[str] = set()
+    known_account_values: list[float] = []
+
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        instrument = row.get("instrument") if isinstance(row.get("instrument"), dict) else {}
+        t212_ticker = str(instrument.get("ticker") or row.get("ticker") or "").strip()
+        symbol = _canonical_symbol(instrument) or (t212_ticker.split("_", 1)[0].upper() if t212_ticker else "")
+        if symbol:
+            observed_symbols.add(symbol)
+        account_value = _position_account_value(row)
+        if account_value is not None:
+            known_account_values.append(account_value)
+        quantity = row.get("quantity")
+        current_price = row.get("currentPrice")
+        instrument_value = None
+        if isinstance(quantity, (int, float)) and isinstance(current_price, (int, float)):
+            instrument_value = float(quantity) * float(current_price)
+        wallet = row.get("walletImpact") if isinstance(row.get("walletImpact"), dict) else {}
+        holdings.append(
+            {
+                "symbol": symbol,
+                "trading212Ticker": t212_ticker,
+                "name": instrument.get("name") or instrument.get("shortName"),
+                "isin": instrument.get("isin"),
+                "instrumentCurrency": instrument.get("currencyCode"),
+                "accountCurrency": account_currency,
+                "quantity": quantity,
+                "quantityAvailableForTrading": row.get("quantityAvailableForTrading"),
+                "quantityInPies": row.get("quantityInPies"),
+                "averagePricePaid": row.get("averagePricePaid"),
+                "currentPrice": current_price,
+                "instrumentMarketValue": instrument_value,
+                "accountMarketValue": account_value,
+                "unrealizedProfitLoss": wallet.get("unrealizedProfitLoss"),
+                "weight": None,
+            }
+        )
+
+    total_known_value = sum(known_account_values)
+    if total_known_value:
+        for holding in holdings:
+            value = holding.get("accountMarketValue")
+            if isinstance(value, (int, float)):
+                holding["weight"] = float(value) / total_known_value
+
+    expected = [ticker.strip().upper() for ticker in expected_tickers if ticker and ticker.strip()]
+    expected_set = set(expected)
+    missing = [ticker for ticker in expected if ticker not in observed_symbols]
+    unexpected = sorted(symbol for symbol in observed_symbols if expected and symbol not in expected_set)
+    holdings.sort(key=lambda item: (item.get("weight") is None, -(item.get("weight") or 0), item.get("symbol") or ""))
+
+    investments = account.get("investments") if isinstance(account.get("investments"), dict) else {}
+    return {
+        "accountCurrency": account_currency,
+        "accountTotalValue": account.get("totalValue"),
+        "investmentsCurrentValue": investments.get("currentValue"),
+        "holdings": holdings,
+        "holdingCount": len(holdings),
+        "expectedTickers": expected,
+        "missingExpected": missing,
+        "unexpectedHeld": unexpected,
+        "weightBasis": "walletImpact-account-currency" if total_known_value else "unavailable",
+        "weightsComplete": bool(holdings) and all(item.get("weight") is not None for item in holdings),
+    }
+
+
+def _build_preview(order: OrderPreviewRequest, instrument: dict[str, Any]) -> dict[str, Any]:
+    if order.quantity == 0:
+        raise HTTPException(status_code=400, detail="quantity must be non-zero")
+    if order.orderType in ("limit", "stop_limit") and order.limitPrice is None:
+        raise HTTPException(status_code=400, detail="limitPrice is required for limit and stop_limit previews")
+    if order.orderType in ("stop", "stop_limit") and order.stopPrice is None:
+        raise HTTPException(status_code=400, detail="stopPrice is required for stop and stop_limit previews")
+    if TRADING212_ENV == "live" and order.orderType != "market":
+        live_compatibility = "BLOCKED_PENDING_LIVE_OPENAPI_RECERTIFICATION"
+    else:
+        live_compatibility = "ALLOWED_BY_ATLAS_GATE"
+    payload: dict[str, Any] = {
+        "ticker": str(instrument.get("ticker") or order.ticker).strip(),
+        "quantity": order.quantity,
+    }
+    if order.orderType == "market":
+        payload["extendedHours"] = order.extendedHours
+    if order.limitPrice is not None and order.orderType in ("limit", "stop_limit"):
+        payload["limitPrice"] = order.limitPrice
+    if order.stopPrice is not None and order.orderType in ("stop", "stop_limit"):
+        payload["stopPrice"] = order.stopPrice
+    if order.orderType != "market":
+        payload["timeValidity"] = order.timeValidity
+    return {
+        "previewOnly": True,
+        "willExecute": False,
+        "environment": TRADING212_ENV,
+        "orderType": order.orderType,
+        "side": "SELL" if order.quantity < 0 else "BUY",
+        "instrument": {
+            "ticker": instrument.get("ticker"),
+            "name": instrument.get("name") or instrument.get("shortName"),
+            "isin": instrument.get("isin"),
+            "currencyCode": instrument.get("currencyCode"),
+            "type": instrument.get("type"),
+        },
+        "upstreamPayload": payload,
+        "liveCompatibility": live_compatibility,
+        "nextStep": "EXECUTE_DEMO" if TRADING212_ENV == "demo" else "EXECUTE_LIVE",
+    }
+
+
 @router.get("/status")
 async def status() -> dict[str, Any]:
     return {
@@ -234,6 +449,8 @@ async def status() -> dict[str, Any]:
         "guardrails": [
             "Trading 212 credentials remain server-side and are never embedded in the APK.",
             "Demo is the default environment.",
+            "Portfolio reconciliation is read-only and cannot execute orders.",
+            "Preview never sends an order to Trading 212.",
             "Live orders require server-side live enablement plus EXECUTE_LIVE on every request.",
             "Every order requires a unique clientRequestId because Trading 212 beta order endpoints are not idempotent.",
             "Positive quantity buys; negative quantity sells.",
@@ -257,6 +474,21 @@ async def positions(
     params = {"ticker": ticker.strip()} if ticker and ticker.strip() else None
     data, rate = await _request("GET", "/equity/positions", params=params)
     return _envelope(data, rate)
+
+
+@router.post("/portfolio/reconcile")
+async def reconcile_portfolio(
+    request: ReconcileRequest,
+    x_atlas_broker_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    _require_control_token(x_atlas_broker_token)
+    positions_data, positions_rate = await _request("GET", "/equity/positions")
+    account_data, account_rate = await _request("GET", "/equity/account/summary")
+    data = _reconcile_positions(positions_data, account_data, request.expectedTickers)
+    result = _envelope(data, positions_rate)
+    result["rateLimits"] = {"positions": positions_rate, "account": account_rate}
+    result["readOnly"] = True
+    return result
 
 
 @router.get("/orders")
@@ -311,6 +543,32 @@ async def instrument_search(
             break
     payload = {"query": q.strip(), "count": len(matches), "items": matches}
     return _envelope(payload, rate)
+
+
+@router.post("/orders/preview")
+async def preview_order(
+    order: OrderPreviewRequest,
+    x_atlas_broker_token: str | None = Header(default=None),
+) -> dict[str, Any]:
+    _require_control_token(x_atlas_broker_token)
+    instruments_data, rate = await _get_instruments_cached()
+    requested = order.ticker.strip().upper()
+    exact = [item for item in instruments_data if str(item.get("ticker") or "").upper() == requested]
+    if not exact:
+        candidates = [item for item in instruments_data if _canonical_symbol(item) == requested]
+        if len(candidates) == 1:
+            exact = candidates
+        elif len(candidates) > 1:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "message": "Ticker is ambiguous in Trading 212 metadata; use the exact Trading 212 ticker",
+                    "candidates": [item.get("ticker") for item in candidates[:20]],
+                },
+            )
+    if not exact:
+        raise HTTPException(status_code=404, detail="Ticker not found in Trading 212 instrument metadata")
+    return _envelope(_build_preview(order, exact[0]), rate)
 
 
 @router.get("/history/orders")
@@ -370,8 +628,8 @@ async def history_next(
     x_atlas_broker_token: str | None = Header(default=None),
 ) -> dict[str, Any]:
     _require_control_token(x_atlas_broker_token)
-    path, params = _next_page_request(nextPagePath)
-    data, rate = await _request("GET", path, params=params)
+    path = _next_page_request(nextPagePath)
+    data, rate = await _request("GET", path)
     return _envelope(data, rate)
 
 
@@ -383,7 +641,10 @@ async def _place_order(
     control_token: str | None,
 ) -> dict[str, Any]:
     _require_control_token(control_token)
-    _require_order_permission(confirmation)
+    order_type = endpoint.rsplit("/", 1)[-1]
+    if order_type not in {"market", "limit", "stop", "stop_limit"}:
+        raise HTTPException(status_code=400, detail="Unsupported order type")
+    _require_order_permission(confirmation, order_type)  # type: ignore[arg-type]
     if not body.get("ticker") or body.get("quantity") == 0:
         raise HTTPException(status_code=400, detail="ticker and non-zero quantity are required")
     _register_order_request_id(client_request_id)
@@ -391,7 +652,7 @@ async def _place_order(
     result = _envelope(data, rate)
     result["audit"] = {
         "clientRequestIdHash": hashlib.sha256(client_request_id.encode("utf-8")).hexdigest()[:16],
-        "orderType": endpoint.rsplit("/", 1)[-1].upper(),
+        "orderType": order_type.upper(),
         "ticker": body.get("ticker"),
         "quantity": body.get("quantity"),
     }
