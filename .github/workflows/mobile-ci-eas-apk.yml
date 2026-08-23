@@ -1,4 +1,4 @@
-# Rebuild marker: 2026-08-23 strict tuple fix validation on current main
+# Rebuild marker: 2026-08-23 certification PR after strict tuple fix
 name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
