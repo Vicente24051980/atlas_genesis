@@ -14,28 +14,53 @@ permissions:
   contents: read
 
 jobs:
+  local-production-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify local production route contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          pip install -r api/requirements.txt
+          PYTHONPATH=. pytest -q api/test_deployment_contract.py api/test_mobile_entrypoints.py
+
   kick-render-deploy:
+    needs: local-production-contract
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    outputs:
+      live_smoke_enabled: ${{ steps.deploy.outputs.live_smoke_enabled }}
+      deploy_trigger: ${{ steps.deploy.outputs.deploy_trigger }}
     env:
       RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
       RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
       RENDER_SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+      ATLAS_PRODUCTION_API: ${{ vars.ATLAS_PRODUCTION_API }}
     steps:
-      - name: Trigger Render deploy when authenticated; otherwise rely on auto-deploy
+      - id: deploy
+        name: Trigger Render deploy when authenticated
         shell: bash
         run: |
           set -euo pipefail
           if [ -n "${RENDER_DEPLOY_HOOK_URL:-}" ]; then
             code=$(curl -sS --max-time 30 -o /tmp/render-deploy.json -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK_URL" || true)
             test "$code" = 200 -o "$code" = 201 -o "$code" = 202 || { cat /tmp/render-deploy.json 2>/dev/null || true; echo "Render deploy hook failed: HTTP $code"; exit 1; }
+            echo "deploy_trigger=hook" >> "$GITHUB_OUTPUT"
+            echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
             echo "RENDER_DEPLOY_TRIGGER=hook"
             exit 0
           fi
           if [ -z "${RENDER_API_KEY:-}" ]; then
-            echo "RENDER_DEPLOY_TRIGGER=auto"
-            echo "No Render credential configured; relying on Render main-branch auto-deploy."
-            echo "The downstream live-surface probe remains fail-closed, so this cannot create a false green."
+            echo "deploy_trigger=not_configured" >> "$GITHUB_OUTPUT"
+            echo "live_smoke_enabled=false" >> "$GITHUB_OUTPUT"
+            echo "RENDER_DEPLOY_TRIGGER=not_configured"
+            echo "No Render deploy credential is configured. Live smoke is skipped instead of producing a false 404 failure."
+            echo "Configure RENDER_DEPLOY_HOOK_URL or RENDER_API_KEY/RENDER_SERVICE_ID to certify the deployed service."
             exit 0
           fi
           SERVICE_ID="${RENDER_SERVICE_ID:-}"
@@ -57,26 +82,44 @@ jobs:
           test -n "$SERVICE_ID" || { echo "ERROR: Render service could not be resolved."; exit 1; }
           code=$(curl -sS --max-time 30 -o /tmp/render-api-deploy.json -w "%{http_code}" -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $RENDER_API_KEY" --data "{\"commitId\":\"$GITHUB_SHA\",\"clearCache\":\"do_not_clear\"}" || true)
           test "$code" = 201 -o "$code" = 202 || { cat /tmp/render-api-deploy.json 2>/dev/null || true; echo "Render API deploy failed: HTTP $code"; exit 1; }
+          echo "deploy_trigger=api" >> "$GITHUB_OUTPUT"
+          echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
           echo "RENDER_DEPLOY_TRIGGER=api"
 
   resolve-render-host:
     needs: kick-render-deploy
+    if: needs.kick-render-deploy.outputs.live_smoke_enabled == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 25
     outputs:
       production_api: ${{ steps.resolve.outputs.production_api }}
+    env:
+      ATLAS_PRODUCTION_API: ${{ vars.ATLAS_PRODUCTION_API }}
     steps:
       - id: resolve
         name: Resolve deployed ATLAS production surface
         shell: bash
         run: |
           set -euo pipefail
-          CANDIDATES=("https://atlas-genesis.onrender.com" "https://atlas-genesis-api.onrender.com")
-          for attempt in $(seq 1 36); do
-            for BASE in "${CANDIDATES[@]}"; do
+          CANDIDATES=()
+          if [ -n "${ATLAS_PRODUCTION_API:-}" ]; then
+            CANDIDATES+=("${ATLAS_PRODUCTION_API%/}")
+          fi
+          CANDIDATES+=("https://atlas-genesis.onrender.com" "https://atlas-genesis-api.onrender.com")
+          UNIQUE=()
+          for BASE in "${CANDIDATES[@]}"; do
+            seen=false
+            for existing in "${UNIQUE[@]}"; do
+              if [ "$existing" = "$BASE" ]; then seen=true; fi
+            done
+            if [ "$seen" = false ]; then UNIQUE+=("$BASE"); fi
+          done
+          for attempt in $(seq 1 80); do
+            for BASE in "${UNIQUE[@]}"; do
+              root=$(curl -sS --max-time 25 -o /tmp/root.json -w "%{http_code}" "$BASE/health" || true)
               mobile=$(curl -sS --max-time 25 -o /tmp/mobile.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
               gov=$(curl -sS --max-time 25 -o /tmp/gov.json -w "%{http_code}" "$BASE/v1/agentic-omega/v2/governance/capabilities" || true)
-              echo "probe=$attempt base=$BASE mobile=$mobile governance=$gov"
+              echo "probe=$attempt base=$BASE root=$root mobile=$mobile governance=$gov"
               if [ "$mobile" = 200 ] && [ "$gov" = 200 ] && python3 - <<'PY'
           import json
           m=json.load(open('/tmp/mobile.json')); g=json.load(open('/tmp/gov.json'))
@@ -90,13 +133,15 @@ jobs:
                 exit 0
               fi
             done
-            sleep 10
+            sleep 15
           done
-          echo "ERROR: deployed Render service never exposed required ATLAS surfaces."
+          echo "ERROR: deployed Render service never exposed required ATLAS surfaces after authenticated deploy."
+          echo "Check Render deploy logs, service startCommand, healthCheckPath, and ATLAS_PRODUCTION_API if using a non-default host."
           exit 1
 
   live-atlas-api:
     needs: resolve-render-host
+    if: needs.resolve-render-host.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
