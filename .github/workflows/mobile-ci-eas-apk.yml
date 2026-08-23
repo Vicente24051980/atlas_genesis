@@ -1,4 +1,4 @@
-# Rebuild marker: 2026-08-22 screener + terminal v3 + Render contract rebuild
+# Rebuild marker: 2026-08-23 strict tuple fix validation on current main
 name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
