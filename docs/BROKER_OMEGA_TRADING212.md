@@ -2,55 +2,78 @@
 
 ATLAS Ω keeps broker credentials server-side. The Android APK never contains the Trading 212 API key or secret.
 
-## Current implementation — 16 Aug 2026
+## Canonical architecture — 16 Aug 2026
 
-The clean mobile runtime now exposes an isolated Trading 212 bridge under:
+The isolated mobile runtime is:
 
-- `/v1/mobile/broker/*`
+`Trading212Adapter -> Account + Instruments + Positions + Orders + History`
 
-The legacy `/v1/broker/*` routes remain available for compatibility, but new APK work should use the isolated mobile contract.
+`Portfolio Reconciler -> canonical tickers <-> Trading 212 ticker IDs -> holdings -> P/L -> weights`
 
-The implementation follows the Trading 212 Public API v0 beta contract:
+`Execution Service -> Preview -> Demo -> Live`
+
+Analysis and execution are deliberately separated. No ATLAS signal, score, recommendation, rotation engine or portfolio optimizer is allowed to call an order endpoint directly.
+
+The mobile broker bridge lives under `/v1/mobile/broker/*`. Legacy `/v1/broker/*` routes remain only for compatibility; new APK work must use the isolated mobile contract.
+
+## Upstream contract
+
+Current Trading 212 Public API v0 beta integration uses:
 
 - Demo: `https://demo.trading212.com/api/v0`
 - Live: `https://live.trading212.com/api/v0`
 - HTTP Basic authentication from `API_KEY:API_SECRET`.
-- Invest / Stocks ISA only.
-- Orders are quantity-based and execute only in the primary account currency.
+- `GET /equity/account/summary` for account state.
+- `GET /equity/positions` for current positions.
+- `GET /equity/metadata/instruments` and exchanges for instrument resolution.
+- Orders under `/equity/orders/*`.
+- History under `/equity/history/*`.
 - Positive quantity = buy; negative quantity = sell.
-- Historical list endpoints use cursor pagination and the upstream `nextPagePath` contract.
-- Pies are intentionally not integrated because the current Pies API is deprecated.
+- Orders execute only in the primary account currency; API multi-currency execution is not assumed.
 
-## Default mode
+### Portfolio endpoint compatibility
 
-The repository defaults to Trading 212 **demo/paper**:
+An older official Trading 212 reference exposed a `Personal Portfolio` block under `/equity/portfolio`. The newer reference exposes `/equity/positions` as the current positions surface. ATLAS therefore does **not** make the core reconciler depend on the older Personal Portfolio contract.
+
+If Trading 212 later re-certifies `/equity/portfolio` in the current OpenAPI schema, it can be added behind a compatibility adapter without changing the app-level reconciler contract.
+
+### Pies
+
+Pies are not part of the canonical integration. Trading 212 marks the Pies API deprecated. Any future compatibility support must live behind an isolated `LegacyPiesAdapter` and must never become a dependency of portfolio reconciliation or execution.
+
+## Default mode and live fail-closed policy
+
+Repository defaults:
 
 - `TRADING212_ENV=demo`
 - `TRADING212_LIVE_TRADING_ENABLED=false`
 
-Live execution is therefore fail-closed.
+Live execution therefore fails closed.
+
+Trading 212 beta documentation has shown inconsistent wording across revisions regarding non-market live orders. ATLAS consequently blocks limit, stop and stop-limit orders in live until the current live OpenAPI contract is explicitly re-certified. Demo can exercise all exposed order shapes.
 
 ## Required Render secrets
 
-Configure these as server-side secrets in Render:
+Configure server-side only:
 
-- `FINANCIALDATANET_API_KEY` — market/fundamental data provider used by the mobile app.
-- `TRADING212_API_KEY` — Trading 212 API key.
-- `TRADING212_API_SECRET` — Trading 212 API secret.
-- `ATLAS_BROKER_CONTROL_TOKEN` — a long random token used to authorize private broker calls.
+- `FINANCIALDATANET_API_KEY`
+- `TRADING212_API_KEY`
+- `TRADING212_API_SECRET`
+- `ATLAS_BROKER_CONTROL_TOKEN`
 
-`render.yaml` declares all of these as `sync: false`; their values must never be committed to Git or embedded in Expo public variables.
+`render.yaml` declares secrets as `sync: false`. Never commit their values or expose them through Expo public variables.
 
 ## Read-only broker contract
 
-Public status only:
+Public status:
 
 - `GET /v1/mobile/broker/status`
 
-Control-token protected (`X-Atlas-Broker-Token`):
+Control-token protected:
 
 - `GET /v1/mobile/broker/account`
 - `GET /v1/mobile/broker/positions?ticker=...`
+- `POST /v1/mobile/broker/portfolio/reconcile`
 - `GET /v1/mobile/broker/orders`
 - `GET /v1/mobile/broker/orders/{id}`
 - `GET /v1/mobile/broker/metadata/exchanges`
@@ -61,13 +84,35 @@ Control-token protected (`X-Atlas-Broker-Token`):
 - `GET /v1/mobile/broker/history/transactions?limit=...&cursor=...&time=...`
 - `GET /v1/mobile/broker/history/next?nextPagePath=...`
 
-`history/next` only accepts relative paths under `/api/v0/equity/history/`; arbitrary hosts and non-history paths are rejected.
+`portfolio/reconcile` is read-only. It combines current positions and account summary, preserves Trading 212 internal tickers, derives canonical symbols, surfaces quantity/current price/P&L fields where available, computes account-currency weights only when the upstream wallet-impact data makes them safe, and reports `missingExpected` / `unexpectedHeld` against a supplied canonical ticker list.
 
-The upstream Trading 212 rate-limit headers are returned to the client as `rateLimit.limit`, `period`, `remaining`, `reset`, and `used`.
+## Pagination rule
 
-## Order contract — prepared, not live-enabled
+For historical collections ATLAS follows Trading 212's `nextPagePath` literally. The bridge validates that it is a relative `/api/v0/equity/history/...` path and then forwards the complete returned query string without reconstructing the cursor.
 
-All order routes are protected by the broker control token and require an explicit environment confirmation.
+## Rate-limit discipline
+
+Trading 212 applies rate limits per account. ATLAS reads and returns:
+
+- `x-ratelimit-limit`
+- `x-ratelimit-period`
+- `x-ratelimit-remaining`
+- `x-ratelimit-reset`
+- `x-ratelimit-used`
+
+The backend also records endpoint cooldowns. If a reset is only a few seconds away it waits automatically; longer cooldowns fail fast with HTTP 429 and a retry-after value instead of consuming the mobile request timeout. Order POSTs are never blindly retried.
+
+## Execution contract
+
+### Preview
+
+`POST /v1/mobile/broker/orders/preview`
+
+Preview resolves the instrument against Trading 212 metadata and returns the exact proposed upstream payload, BUY/SELL direction, environment and compatibility state. It **never calls a Trading 212 order POST**.
+
+### Demo and Live execution
+
+Execution routes:
 
 - `POST /v1/mobile/broker/orders/market`
 - `POST /v1/mobile/broker/orders/limit`
@@ -75,68 +120,54 @@ All order routes are protected by the broker control token and require an explic
 - `POST /v1/mobile/broker/orders/stop_limit`
 - `DELETE /v1/mobile/broker/orders/{id}`
 
-Order requests require:
+Every order requires:
 
-- exact Trading 212 instrument ticker, e.g. `AAPL_US_EQ`;
+- exact Trading 212 instrument ticker;
 - non-zero quantity;
+- negative quantity for sells;
 - `EXECUTE_DEMO` in demo or `EXECUTE_LIVE` in live;
-- a unique `clientRequestId`.
+- a fresh `clientRequestId`;
+- valid ATLAS broker control token.
 
-Trading 212 states that its beta order endpoints are not idempotent. ATLAS hashes and holds recent `clientRequestId` values for five minutes and returns HTTP 409 for a duplicate request, reducing accidental double submission caused by repeated taps/retries.
+Live additionally requires `TRADING212_LIVE_TRADING_ENABLED=true`. The server kill-switch and per-request confirmation are independent gates.
 
-This local guard is an additional safety layer, not a substitute for server-side order reconciliation.
+ATLAS hashes recent `clientRequestId` values and rejects duplicates for five minutes to reduce accidental repeated submission.
 
-## Paper activation
+## Tomorrow connection procedure — 17 Aug 2026
 
-1. Create Trading 212 demo API credentials with the minimum permissions needed.
-2. Set `TRADING212_API_KEY`, `TRADING212_API_SECRET`, and `ATLAS_BROKER_CONTROL_TOKEN` in Render.
-3. Keep `TRADING212_ENV=demo` and `TRADING212_LIVE_TRADING_ENABLED=false`.
-4. Deploy the API.
-5. Confirm `/v1/mobile/broker/status` reports `readReady=true` and `mode=PAPER`.
-6. Sync account / positions / orders.
-7. Resolve every security through Trading 212 instrument metadata rather than assuming ticker formatting.
-8. Validate paper orders and cancellation before any consideration of live enablement.
+When the real portfolio is ready:
 
-## Live activation
+1. Keep Render in `TRADING212_ENV=demo` and `TRADING212_LIVE_TRADING_ENABLED=false`.
+2. Add the Trading 212 **demo** `API Key` and `API Secret` plus an `ATLAS_BROKER_CONTROL_TOKEN` in Render.
+3. Deploy and verify `/v1/mobile/broker/status` returns `readReady=true`, `mode=PAPER`, and `liveTradingEnabled=false`.
+4. Fetch account and positions.
+5. Send the final canonical ticker list to `/portfolio/reconcile` and inspect ticker mapping, missing holdings, P/L and weights.
+6. Resolve every ambiguous security through metadata; never guess Trading 212 ticker IDs.
+7. Run order **preview** only.
+8. Place a deliberately small demo order with `EXECUTE_DEMO`, then reconcile orders/history/positions.
+9. Validate cancellation and duplicate-request protection.
+10. Leave live disabled until the full demo path is clean.
 
-Only after paper validation:
+Only after that validation should live credentials be installed. First validate live in read-only mode with the kill-switch still `false`; real execution is enabled deliberately and separately.
 
-1. Replace server credentials with live Trading 212 credentials.
-2. Set `TRADING212_ENV=live`.
-3. Keep `TRADING212_LIVE_TRADING_ENABLED=false` and validate read-only account/positions first.
-4. Deliberately set `TRADING212_LIVE_TRADING_ENABLED=true` only when real execution is intended.
-5. Every order still requires `EXECUTE_LIVE` and a fresh `clientRequestId`.
+## 24/5 and extended-hours discipline
 
-## 24/5 prices and extended-hours discipline
-
-Canonical portfolio execution policy:
-
-- Trading 212 `Precios 24/5`: OFF by default.
-- 24/5 prices are radar information, not a decision engine.
-- Structural portfolio construction should be executed primarily during regular market hours.
-- Extended-hours movement is not sufficient evidence for BUY or SELL.
-- Market orders during thin liquidity should be avoided; if an exceptional off-hours action is ever required, use explicit limit-price discipline and verify the catalyst/spread.
-
-## APK integration
-
-The mobile Settings screen calls only the public broker status route. It displays:
-
-- demo/live environment;
-- credential readiness;
-- control-token readiness;
-- read readiness;
-- live-order lock state.
-
-The APK contains neither FinancialData.Net nor Trading 212 upstream URLs or provider credentials. CI unpacks the release bundle and fails the build if direct FinancialData.Net or Trading 212 API endpoints leak into the APK.
+- Trading 212 24/5 prices are radar information, not an ATLAS decision engine.
+- Structural portfolio construction should normally execute during regular market hours.
+- Extended-hours movement alone is never sufficient evidence for BUY or SELL.
+- Thin-liquidity market orders should be avoided.
 
 ## Guardrails
 
-- Provider credentials remain server-side.
-- Demo is the default environment.
-- Live execution has an independent server-side kill switch.
-- Read endpoints carrying private portfolio/account information require the ATLAS control token.
-- Trading 212 rate-limit state is surfaced to the caller.
-- Upstream errors are surfaced rather than silently retried.
-- Order POSTs are never blindly retried.
-- Duplicate `clientRequestId` values are blocked locally for five minutes.
-- Pies are not built into new ATLAS code because Trading 212 marks that API deprecated.
+- Provider credentials stay server-side.
+- Demo is default.
+- Live has an independent server kill-switch.
+- Private broker data requires the ATLAS control token.
+- Portfolio reconciliation cannot execute orders.
+- Preview cannot execute orders.
+- Analysis engines cannot execute orders.
+- History pagination follows upstream `nextPagePath` literally.
+- Rate-limit state is surfaced and respected.
+- Order POSTs are never automatically retried.
+- Duplicate `clientRequestId` values are blocked locally.
+- Pies remain outside the canonical path.
