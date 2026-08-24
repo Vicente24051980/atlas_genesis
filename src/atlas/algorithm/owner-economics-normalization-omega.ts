@@ -1,4 +1,4 @@
-export const OWNER_ECONOMICS_NORMALIZATION_OMEGA_VERSION = '2026-08-24-v1.0.0' as const;
+export const OWNER_ECONOMICS_NORMALIZATION_OMEGA_VERSION = '2026-08-24-v1.1.0' as const;
 
 const clamp = (value: number, min = 0, max = 100): number => Math.max(min, Math.min(max, value));
 const finite = (...values: number[]): boolean => values.every(Number.isFinite);
@@ -160,4 +160,32 @@ export function calculateMarginalPortfolioContribution(input: MarginalPortfolioC
   const required = [input.expectedReturnPct, input.proofScore, input.riskPenaltyPct, input.factorDuplicationPenaltyPct, input.diversificationBenefitPct];
   if (!required.every(Number.isFinite)) return null;
   return input.expectedReturnPct * clamp(input.proofScore) / 100 - input.riskPenaltyPct - input.factorDuplicationPenaltyPct + input.diversificationBenefitPct - (input.taxAndTurnoverFrictionPct ?? 0);
+}
+
+export interface TimeInPortfolioInput {
+  earningsDurabilityScore: number;
+  forwardMoatScore: number;
+  reinvestmentRunwayScore: number;
+  perShareEconomicsScore: number;
+  balanceSheetResilienceScore: number;
+  valuationSurvivabilityScore: number;
+  eventDependencyScore: number;
+  cyclicalDependencyScore: number;
+}
+
+export function calculateTimeInPortfolioScore(input: TimeInPortfolioInput) {
+  const values = Object.values(input);
+  if (!values.every(Number.isFinite)) return { score: null, state: 'EVIDENCE_PENDING' as const };
+  const score = clamp(
+    0.20 * clamp(input.earningsDurabilityScore) +
+    0.15 * clamp(input.forwardMoatScore) +
+    0.15 * clamp(input.reinvestmentRunwayScore) +
+    0.15 * clamp(input.perShareEconomicsScore) +
+    0.15 * clamp(input.balanceSheetResilienceScore) +
+    0.10 * clamp(input.valuationSurvivabilityScore) +
+    0.05 * (100 - clamp(input.eventDependencyScore)) +
+    0.05 * (100 - clamp(input.cyclicalDependencyScore))
+  );
+  const state = score >= 85 ? 'GREEN_LONG_DURATION' : score >= 75 ? 'GREEN' : score >= 65 ? 'GREEN_WITH_GATES' : score >= 50 ? 'WATCH' : 'SHORT_DURATION_OR_REJECT';
+  return { score, state };
 }
