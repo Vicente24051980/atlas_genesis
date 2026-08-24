@@ -12,7 +12,7 @@ GitHub remains the canonical source of truth. External memory, automation, extra
 ## Approved stack
 
 ### Tier 1 — integrate
-1. **Mem0** — operational agent memory and retrieval. Never canonical authority.
+1. **Mem0** — operational agent memory and retrieval. Never canonical authority. Its memory semantics are governed by `SEMANTIC_TEMPORAL_MEMORY_OMEGA.md`.
 2. **n8n** — workflow/event orchestration and scheduled automation.
 3. **Firecrawl** — web ingestion/extraction into structured evidence candidates.
 4. **MarkItDown** — document normalization (PDF/Office/HTML/etc.) into Markdown/text for evidence processing.
@@ -58,8 +58,17 @@ Cross-cutting infrastructure:
 
 ```text
 n8n  -> schedules/events/workflows
-Mem0 -> operational retrieval memory
+Mem0 -> operational retrieval memory governed by Semantic Temporal Memory Ω
 GitHub -> CANON / immutable audit trail
+```
+
+Memory lane:
+
+```text
+Input -> candidate fact extraction -> atomic normalization -> provenance
+      -> conflict/temporal resolution -> Mem0 adapter -> semantic/temporal retrieval
+      -> ATLAS/Gemelo Digital Ω
+      -> canonical promotion only through GitHub governance
 ```
 
 Engineering lane:
@@ -72,6 +81,8 @@ Issue -> OpenHands -> branch -> implementation -> tests -> PR -> review gate -> 
 - No external tool can directly create a BUY/HOLD/WATCH/REJECT decision without passing ATLAS evidence gates.
 - Falsifiers Ω retains absolute independent veto.
 - Mem0 output is context, never FACT merely because it was remembered.
+- Mem0 must not treat transcript history as canonical memory; durable memory is fact-centric, typed, temporal, provenance-aware and contradiction-aware.
+- Current-state retrieval must respect effective dates, ACTIVE/SUPERSEDED status and authority before semantic similarity.
 - Firecrawl/MarkItDown output is raw evidence candidate until provenance and evidence class are established.
 - n8n automates execution flow, not investment judgment.
 - OpenHands must not push autonomous production changes directly to protected canon; use branch + tests + review/PR.
@@ -79,12 +90,13 @@ Issue -> OpenHands -> branch -> implementation -> tests -> PR -> review gate -> 
 
 ## Initial implementation sequence
 1. Define adapters/interfaces for memory, web ingestion, document ingestion and workflow events.
-2. Add provenance envelope for every ingested evidence object.
-3. Connect ingestion to Evidence Director Ω classification.
-4. Add n8n-compatible webhook/job boundaries without embedding investment logic in n8n.
-5. Add Mem0 behind an adapter so it can be replaced without changing ATLAS core.
-6. Establish OpenHands engineering sandbox and PR gate.
-7. Add OfficeCLI/Ollama only after Tier-1 integration is stable.
+2. Implement `SEMANTIC_TEMPORAL_MEMORY_OMEGA.md`: typed atomic facts, temporal state, provenance, confidence, conflict resolution and supersession chains.
+3. Add provenance envelope for every ingested evidence object.
+4. Connect ingestion to Evidence Director Ω classification.
+5. Add n8n-compatible webhook/job boundaries without embedding investment logic in n8n.
+6. Add Mem0 behind an adapter so it can be replaced without changing ATLAS core.
+7. Establish OpenHands engineering sandbox and PR gate.
+8. Add OfficeCLI/Ollama only after Tier-1 integration is stable.
 
 ## Evidence envelope
 Every external observation should preserve at minimum:
@@ -102,6 +114,9 @@ Every external observation should preserve at minimum:
 ```
 
 Only ATLAS evidence processing may promote an observation beyond UNCLASSIFIED. `canonical` remains false unless explicitly persisted through the canonical governance process.
+
+## Memory governance reference
+`CURRENT_CANON/SEMANTIC_TEMPORAL_MEMORY_OMEGA.md` is the canonical contract for operational memory. In case of ambiguity, its memory-specific gates apply subject to the higher authority boundary above.
 
 ## Success condition
 The stack is successful only if it increases evidence throughput, reproducibility and software delivery while preserving ATLAS Ω separation of concerns, provenance, falsification and auditability.
