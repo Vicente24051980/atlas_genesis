@@ -5,6 +5,7 @@ import {
   calculateNormalizedOwnerEarnings,
   calculatePeakEarningsProbability,
   calculateRealExpectedReturn,
+  calculateTimeInPortfolioScore,
 } from './owner-economics-normalization-omega';
 import {
   calculateEventPremiumRatio,
@@ -90,5 +91,20 @@ describe('Thread synthesis Ω', () => {
     expect(result.incrementalAiRoicPct).toBe(20);
     expect(result.aiEconomicSpreadPct).toBe(11);
     expect(calculateAiTimeToMonetization(100, 25)).toBe(4);
+  });
+
+  it('classifies durable compounders as long-duration portfolio greens', () => {
+    const result = calculateTimeInPortfolioScore({
+      earningsDurabilityScore: 92,
+      forwardMoatScore: 90,
+      reinvestmentRunwayScore: 88,
+      perShareEconomicsScore: 90,
+      balanceSheetResilienceScore: 95,
+      valuationSurvivabilityScore: 82,
+      eventDependencyScore: 15,
+      cyclicalDependencyScore: 15,
+    });
+    expect(result.state).toBe('GREEN_LONG_DURATION');
+    expect(result.score).toBeGreaterThanOrEqual(85);
   });
 });
