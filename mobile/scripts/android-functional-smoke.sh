@@ -109,19 +109,21 @@ PY
   exit 1
 }
 
-# Terminal home must render the new portfolio-first shell.
+# Terminal home must render the portfolio-first shell.
 wait_text "Portfolio First"
 wait_text "GLOBAL INDICES"
 wait_text "LIVE PORTFOLIO · TRADING 212"
 wait_text "PRIMARY WORKSPACES"
 
-# Core mobile navigation must be reachable from persistent terminal controls.
+# AUD must use the same terminal language and expose GREEN-FIRST/full sweep contract.
 tap_desc "AUD, Auditar"
-wait_text "ATLAS TERMINAL · AUDIT"
-wait_text "Auditar"
+wait_text "FULL AUDIT"
+wait_text "Auditar ticker"
+wait_text "GREEN FIRST"
 adb shell input keyevent 4
 wait_text "Portfolio First"
 
+# Other persistent workspaces remain reachable.
 tap_desc "WL, Watchlist"
 wait_text "ATLAS TERMINAL · WATCHLIST"
 wait_text "Watchlist"
@@ -129,7 +131,7 @@ adb shell input keyevent 4
 wait_text "Portfolio First"
 
 tap_desc "RES, Resultados"
-wait_text "RESULTADOS"
+wait_text "RESULT JOURNAL"
 adb shell input keyevent 4
 wait_text "Portfolio First"
 

@@ -1,3 +1,8 @@
+import {
+  marketTapePasses,
+  type UniversalMarketTapeIntegrityResult,
+} from '../algorithm/universal-market-tape-integrity-omega';
+
 export const INSTITUTIONAL_FLOW_SCORE_WEIGHTS = {
   realFlows: 0.25,
   breadth: 0.15,
@@ -34,6 +39,8 @@ export type InstitutionalEvidenceGate = {
 export type InstitutionalRotationInput = {
   score: InstitutionalFlowScoreInput;
   evidence: InstitutionalEvidenceGate;
+  marketTapeSubject: string;
+  marketTapeIntegrity?: UniversalMarketTapeIntegrityResult;
   priorScore?: number | null;
   priorState?: InstitutionalFlowState | null;
   priceTrend?: 'UP' | 'DOWN' | 'FLAT' | 'UNKNOWN';
@@ -46,6 +53,7 @@ export type InstitutionalRotationResult = {
   rawState: InstitutionalFlowState;
   state: InstitutionalFlowState;
   confidence: 'LOW' | 'MEDIUM' | 'HIGH';
+  marketTapeVerified: boolean;
   capitalFlowDivergence: boolean;
   distributionWarning: boolean;
   deltaScore: number | null;
@@ -55,8 +63,8 @@ export type InstitutionalRotationResult = {
 };
 
 export const INSTITUTIONAL_CAPITAL_ROTATION_MANIFEST = {
-  id: 'INSTITUTIONAL_CAPITAL_ROTATION_OMEGA_V1_0',
-  version: '1.0.0',
+  id: 'INSTITUTIONAL_CAPITAL_ROTATION_OMEGA_V1_1',
+  version: '1.1.0',
   status: 'canonical',
   deterministic: true,
   pure: true,
@@ -68,6 +76,7 @@ export const INSTITUTIONAL_CAPITAL_ROTATION_MANIFEST = {
     'MARKET_CAP_CHANGE_IS_NOT_CAPITAL_FLOW',
     'PRICE_ONLY_CANNOT_CONFIRM_RECEIVER',
     'CONFIRMED_RECEIVER_REQUIRES_REAL_FLOW_OR_INDEPENDENT_POSITIONING_EVIDENCE',
+    'UNVERIFIED_MARKET_TAPE_CANNOT_CONTRIBUTE_RELATIVE_STRENGTH_OR_PRICE_TREND',
     'SCORE_AND_EVIDENCE_GATE_ARE_SEPARATE',
     'NO_PORTFOLIO_ORDER_EMITTED_BY_ENGINE',
     'MONEY_ROTATION_OMEGA_REMAINS_LOGICALLY_INDEPENDENT',
@@ -89,6 +98,18 @@ export function calculateInstitutionalFlowScore(input: InstitutionalFlowScoreInp
   return Math.round(score * 100) / 100;
 }
 
+function calculateInstitutionalFlowScoreWithoutRelativeStrength(input: InstitutionalFlowScoreInput): number {
+  let weighted = 0;
+  let weight = 0;
+  for (const key of Object.keys(INSTITUTIONAL_FLOW_SCORE_WEIGHTS) as Array<keyof InstitutionalFlowScoreInput>) {
+    assertScore(key, input[key]);
+    if (key === 'relativeStrength') continue;
+    weighted += input[key] * INSTITUTIONAL_FLOW_SCORE_WEIGHTS[key];
+    weight += INSTITUTIONAL_FLOW_SCORE_WEIGHTS[key];
+  }
+  return Math.round((weighted / weight) * 100) / 100;
+}
+
 export function classifyInstitutionalFlowState(score: number): InstitutionalFlowState {
   assertScore('composite', score);
   if (score >= 85) return 'STRONG_CAPITAL_ROTATION';
@@ -108,6 +129,14 @@ function stateRank(state: InstitutionalFlowState): number {
     CONFIRMED_RECEIVER: 4,
     STRONG_CAPITAL_ROTATION: 5,
   }[state];
+}
+
+function marketTapeVerified(input: InstitutionalRotationInput): boolean {
+  return Boolean(
+    input.marketTapeSubject.trim() &&
+    marketTapePasses(input.marketTapeIntegrity) &&
+    input.marketTapeIntegrity?.selectedTicker === input.marketTapeSubject,
+  );
 }
 
 function capStateByEvidence(rawState: InstitutionalFlowState, evidence: InstitutionalEvidenceGate, reasons: string[]): InstitutionalFlowState {
@@ -144,6 +173,7 @@ function capStateByEvidence(rawState: InstitutionalFlowState, evidence: Institut
 }
 
 export function detectCapitalFlowDivergence(input: InstitutionalRotationInput): boolean {
+  if (!marketTapeVerified(input)) return false;
   const priceNotYetConfirming = input.priceTrend === 'FLAT' || input.priceTrend === 'DOWN';
   const internalsImproving = input.breadthTrend === 'UP';
   const flowsImproving = input.flowTrend === 'UP';
@@ -151,6 +181,7 @@ export function detectCapitalFlowDivergence(input: InstitutionalRotationInput): 
 }
 
 export function detectDistributionWarning(input: InstitutionalRotationInput): boolean {
+  if (!marketTapeVerified(input)) return false;
   const priceStillRising = input.priceTrend === 'UP';
   const breadthDeteriorating = input.breadthTrend === 'DOWN';
   const flowsWeakening = input.flowTrend === 'DOWN';
@@ -158,10 +189,28 @@ export function detectDistributionWarning(input: InstitutionalRotationInput): bo
 }
 
 export function assessInstitutionalRotation(input: InstitutionalRotationInput): InstitutionalRotationResult {
-  const score = calculateInstitutionalFlowScore(input.score);
+  const tapeVerified = marketTapeVerified(input);
+  const score = tapeVerified
+    ? calculateInstitutionalFlowScore(input.score)
+    : calculateInstitutionalFlowScoreWithoutRelativeStrength(input.score);
   const rawState = classifyInstitutionalFlowState(score);
   const reasons: string[] = [];
-  const state = capStateByEvidence(rawState, input.evidence, reasons);
+
+  const effectiveEvidence: InstitutionalEvidenceGate = tapeVerified
+    ? input.evidence
+    : { ...input.evidence, relativeStrengthEvidence: false };
+
+  if (!tapeVerified) {
+    reasons.push('universal_market_tape_integrity_required_for_relative_strength_and_price_trend');
+    for (const violation of input.marketTapeIntegrity?.violations ?? []) {
+      reasons.push(`market_tape:${violation}`);
+    }
+    if (input.marketTapeIntegrity?.selectedTicker && input.marketTapeIntegrity.selectedTicker !== input.marketTapeSubject) {
+      reasons.push('market_tape_subject_mismatch');
+    }
+  }
+
+  const state = capStateByEvidence(rawState, effectiveEvidence, reasons);
   const capitalFlowDivergence = detectCapitalFlowDivergence(input);
   const distributionWarning = detectDistributionWarning(input);
 
@@ -171,18 +220,18 @@ export function assessInstitutionalRotation(input: InstitutionalRotationInput): 
   const deltaScore = input.priorScore == null ? null : Math.round((score - input.priorScore) * 100) / 100;
   const stateChanged = input.priorState != null ? input.priorState !== state : false;
 
-  const independentCapitalEvidence = input.evidence.realFlowEvidence || input.evidence.independentPositioningEvidence;
+  const independentCapitalEvidence = effectiveEvidence.realFlowEvidence || effectiveEvidence.independentPositioningEvidence;
   const dimensions = [
     independentCapitalEvidence,
-    input.evidence.breadthEvidence,
-    input.evidence.persistentVolumeEvidence,
-    input.evidence.relativeStrengthEvidence,
-    input.evidence.revisionsOrFundamentalEvidence,
-    input.evidence.macroCompatible,
+    effectiveEvidence.breadthEvidence,
+    effectiveEvidence.persistentVolumeEvidence,
+    effectiveEvidence.relativeStrengthEvidence,
+    effectiveEvidence.revisionsOrFundamentalEvidence,
+    effectiveEvidence.macroCompatible,
   ].filter(Boolean).length;
 
   const confidence: InstitutionalRotationResult['confidence'] =
-    input.evidence.evidenceIds.length === 0 || input.evidence.unreconciledConflicts > 0
+    effectiveEvidence.evidenceIds.length === 0 || effectiveEvidence.unreconciledConflicts > 0
       ? 'LOW'
       : dimensions >= 4
         ? 'HIGH'
@@ -201,6 +250,7 @@ export function assessInstitutionalRotation(input: InstitutionalRotationInput): 
     rawState,
     state,
     confidence,
+    marketTapeVerified: tapeVerified,
     capitalFlowDivergence,
     distributionWarning,
     deltaScore,

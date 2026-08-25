@@ -1,8 +1,8 @@
-# LIQUIDITY / SPREAD GATE Ω v1.0
+# LIQUIDITY / SPREAD GATE Ω v1.1
 
-**Status:** CANONICAL / EXECUTION GUARDRAIL  
-**Effective date:** 2026-08-21  
-**Scope:** all public-equity executions where quote/execution friction can materially distort entry price.
+**Status:** CANONICAL / EXECUTION GUARDRAIL
+**Effective date:** 2026-08-25
+**Scope:** public-equity MARKET and LIMIT orders where quote/execution friction can materially distort entry price. STOP trigger-time liquidity requires a separate future contract.
 
 ## Purpose
 
@@ -23,9 +23,13 @@ Canonical chain:
 - Illiquid LSE/AIM/small-cap/OTC names require explicit price protection when the spread budget is breached.
 - A market order is never rescued by conviction.
 - A correctly protected limit order may restore execution eligibility without changing the parent thesis.
+- Timing/order ticker and quote ticker must match after normalization.
+- Pre-trade quote evidence must include a source, timezone-aware timestamp and valid bid/ask snapshot no more than 30 seconds old.
+- Invalid, non-finite or incoherent budget overrides fail closed.
+- Protected limit placement does not assert an immediate fill when the limit is not marketable at the current bid/ask.
 - Post-trade slippage beyond budget is logged as an execution breach and becomes calibration evidence.
 
-## Default execution budget v1.0
+## Default execution budget v1.1
 
 Initial conservative calibration, overridable by ticker/venue-specific evidence:
 
@@ -33,13 +37,14 @@ Initial conservative calibration, overridable by ticker/venue-specific evidence:
 - `maxReferencePremiumPct = 0.75%`
 - `maxExecutionSlippagePct = 0.75%`
 - `severeQuotedSpreadPct = 2.00%`
+- `maxQuoteAgeSeconds = 30`
 
 These are execution guardrails, not valuation thresholds. They may be tightened after empirical calibration.
 
 ## States
 
 - `PASS` — market execution allowed.
-- `PASS_LIMIT_PROTECTED` — spread can be wide, but a limit order caps execution inside budget.
+- `PASS_LIMIT_PROTECTED` — spread can be wide, but limit placement caps execution inside budget; immediate execution is reported separately.
 - `LIMIT_ONLY` — market order blocked; only price-protected limit may proceed.
 - `WAIT_SPREAD` — current quote/limit structure is not acceptable.
 - `EVIDENCE_REQUIRED` — executable quote evidence is insufficient.
@@ -56,6 +61,10 @@ If timing passes but liquidity fails:
 `Entry Timing PASS + Liquidity FAIL -> WAIT_SPREAD`
 
 The ticker stays in the same fundamental/watchlist state; only current execution is blocked.
+
+If timing and liquidity evidence identify different tickers:
+
+`Ticker mismatch -> EVIDENCE_PENDING / NO EXECUTION`
 
 ## ATYM calibration — 21-ago-2026
 
@@ -77,6 +86,14 @@ Interpretation:
 - `src/atlas/algorithm/liquidity-spread-gate-omega.ts`
 - `src/atlas/algorithm/execution-safe-entry-timing-omega.ts`
 - `src/atlas/algorithm/liquidity-spread-gate-omega.test.ts`
+- `src/atlas/algorithm/atlas-primary-engine-hierarchy.ts`
+- `api/execution_safety_gate.py`
+- `api/trading212_v2.py`
+- `api/main.py`
+- `api/test_liquidity_spread_gate.py`
+- `.github/workflows/liquidity-spread-gate-ci.yml`
+
+The legacy and v2 Trading 212 MARKET endpoints now require liquidity evidence. The v2 LIMIT endpoint applies the same protected-limit contract. Order audit receipts retain the gate result.
 
 ## Final law
 

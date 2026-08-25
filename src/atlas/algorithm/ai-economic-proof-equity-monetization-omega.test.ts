@@ -1,10 +1,11 @@
+import { evaluateUniversalMarketTapeIntegrity } from './universal-market-tape-integrity-omega';
 import {
   assessAiEconomicProofEquity,
   summarizeAiEquityCohort,
   type AiEconomicProofEquityInput,
 } from './ai-economic-proof-equity-monetization-omega';
 
-const base: Omit<AiEconomicProofEquityInput, 'ticker' | 'drawdownFromTmaxPct'> = {
+const base: Omit<AiEconomicProofEquityInput, 'ticker' | 'drawdownFromTmaxPct' | 'marketTapeIntegrity'> = {
   asOf: '2026-08-20',
   evidenceIds: ['verified-economic-evidence', 'verified-price-matrix'],
   t2RevenueCapture: 88,
@@ -23,11 +24,37 @@ const base: Omit<AiEconomicProofEquityInput, 'ticker' | 'drawdownFromTmaxPct'> =
   priceResponse: 80,
 };
 
-function caseFor(ticker: string, drawdownFromTmaxPct: number): AiEconomicProofEquityInput {
-  return { ...base, ticker, drawdownFromTmaxPct };
+function tapeForTicker(ticker: string) {
+  return evaluateUniversalMarketTapeIntegrity({
+    ticker,
+    primaryListing: 'NASDAQ',
+    currency: 'USD',
+    quotationUnit: 'USD',
+    asOfTimestamp: '2026-08-20T21:00:00+02:00',
+    expectedSessionState: 'OPEN',
+    observations: [{
+      ticker,
+      primaryListing: 'NASDAQ',
+      currency: 'USD',
+      quotationUnit: 'USD',
+      observationDate: '2026-08-20',
+      observationType: 'INTRADAY_SNAPSHOT',
+      observationTimestamp: '2026-08-20T20:59:00+02:00',
+      sessionState: 'OPEN',
+      price: 100,
+      sourceId: `verified-price-${ticker}`,
+      sourceClass: 'REGULATED_FEED',
+      capturedAt: '2026-08-20T20:59:10+02:00',
+      corporateActionsReconciled: true,
+    }],
+  });
 }
 
-describe('AI Economic Proof x Equity Monetization Omega v1', () => {
+function caseFor(ticker: string, drawdownFromTmaxPct: number): AiEconomicProofEquityInput {
+  return { ...base, ticker, drawdownFromTmaxPct, marketTapeIntegrity: tapeForTicker(ticker) };
+}
+
+describe('AI Economic Proof x Equity Monetization Omega v1.2', () => {
   it('keeps Economic Proof strong while Equity Monetization can be weak', () => {
     expect(assessAiEconomicProofEquity({
       ...caseFor('MU', -22.78),
@@ -38,6 +65,7 @@ describe('AI Economic Proof x Equity Monetization Omega v1', () => {
       cleanWinner: false,
       divergence: 'PROOF_UP_MONETIZATION_DOWN',
       decision: 'WATCH_FOR_REMONETIZATION',
+      finalOpportunityVerified: true,
     });
   });
 
@@ -48,12 +76,42 @@ describe('AI Economic Proof x Equity Monetization Omega v1', () => {
     expect(result.reasons).toContain('not_a_clean_bursatile_winner');
   });
 
-  it('requires verified Price Matrix data for a final classification', () => {
+  it('preserves valid Economic Proof when Price Matrix / GREEN market evidence is unverified', () => {
     expect(assessAiEconomicProofEquity({ ...caseFor('NVDA', -7.71), priceMatrixVerified: false })).toMatchObject({
-      economicProofState: 'UNVERIFIED',
+      economicProofState: 'PROVEN_STRONG',
       equityMonetizationState: 'UNVERIFIED',
-      decision: 'REJECT',
-      reasons: expect.arrayContaining(['price_matrix_not_verified']),
+      finalOpportunityScore: 0,
+      finalOpportunityVerified: false,
+      decision: 'MONITOR',
+      reasons: expect.arrayContaining([
+        'equity:price_matrix_not_verified',
+        'economic_proof_preserved_while_equity_unverified',
+      ]),
+    });
+  });
+
+  it('does not let priceMatrixVerified=true bypass a failed universal market-tape gate', () => {
+    const input = { ...caseFor('STALE', -7.71), marketTapeIntegrity: undefined };
+    expect(assessAiEconomicProofEquity(input)).toMatchObject({
+      economicProofState: 'PROVEN_STRONG',
+      equityMonetizationState: 'UNVERIFIED',
+      finalOpportunityVerified: false,
+      decision: 'MONITOR',
+      reasons: expect.arrayContaining([
+        'equity:universal_market_tape_integrity_failed',
+        'economic_proof_preserved_while_equity_unverified',
+      ]),
+    });
+  });
+
+  it('does not let invalid GREEN continuity contaminate Economic Proof', () => {
+    const input = { ...caseFor('GREEN_BAD', -7.71), greenContinuity: 7 as AiEconomicProofEquityInput['greenContinuity'] };
+    expect(assessAiEconomicProofEquity(input)).toMatchObject({
+      economicProofState: 'PROVEN_STRONG',
+      equityMonetizationState: 'UNVERIFIED',
+      finalOpportunityVerified: false,
+      decision: 'MONITOR',
+      reasons: expect.arrayContaining(['equity:invalid_green_continuity']),
     });
   });
 
@@ -91,12 +149,13 @@ describe('AI Economic Proof x Equity Monetization Omega v1', () => {
     });
   });
 
-  it('allows a true clean winner only when proximity, continuity, RS, flow and price response all pass', () => {
+  it('allows a true clean winner only when market tape, proximity, continuity, RS, flow and price response all pass', () => {
     expect(assessAiEconomicProofEquity(caseFor('CLEAN', -2.5))).toMatchObject({
       cleanWinner: true,
       equityMonetizationState: 'CONFIRMED_RECEIVER',
       divergence: 'PROOF_UP_MONETIZATION_UP',
       decision: 'BUY_REVIEW',
+      finalOpportunityVerified: true,
     });
   });
 });

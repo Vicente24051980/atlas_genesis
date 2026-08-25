@@ -3,6 +3,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const WATCHLIST_KEY = 'atlas.watchlist.v1';
 const AUDIT_RESULTS_KEY = 'atlas.audit-results.v1';
 
+export type StoredEngineSnapshot = {
+  engineId: string;
+  label: string;
+  state: string;
+  score?: number | null;
+  detail?: string;
+};
+
 export type AuditResultRecord = {
   id: string;
   ticker: string;
@@ -15,6 +23,12 @@ export type AuditResultRecord = {
   pe: number | null;
   capexPosition: string | null;
   note: string;
+  recommendation?: string | null;
+  action?: string | null;
+  executionState?: string | null;
+  confidence?: string | null;
+  engineSnapshot?: StoredEngineSnapshot[];
+  contradictions?: string[];
 };
 
 function normalizeTicker(value: string): string {

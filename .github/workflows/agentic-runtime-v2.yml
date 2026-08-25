@@ -1,6 +1,23 @@
 name: Agentic Runtime Omega v2 CI
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - "runtime/agentic_omega/**"
+      - "api/agentic_omega.py"
+      - "api/agentic_omega_v2.py"
+      - "api/agentic_evidence_bridge.py"
+      - "api/agentic_governance.py"
+      - "api/test_agentic_omega_v2.py"
+      - "api/test_agentic_evidence_bridge.py"
+      - "api/test_agentic_governance.py"
+      - "api/test_deployment_contract.py"
+      - "api/app.py"
+      - "render.yaml"
+      - ".github/workflows/mobile-live-backend-smoke.yml"
+      - ".github/workflows/agentic-runtime-v2.yml"
   pull_request:
     paths:
       - "runtime/agentic_omega/**"
@@ -39,6 +56,9 @@ jobs:
           runtime/agentic_omega/test_evidence_adapter.py
           runtime/agentic_omega/test_capability_evidence.py
           runtime/agentic_omega/test_sync_receipts.py
+          runtime/agentic_omega/test_ai_demand_engines.py
+          runtime/agentic_omega/test_market_structure_engines.py
+          runtime/agentic_omega/test_investment_discipline.py
           api/test_agentic_omega_v2.py
           api/test_agentic_evidence_bridge.py
           api/test_agentic_governance.py

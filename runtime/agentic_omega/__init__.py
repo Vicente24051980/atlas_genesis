@@ -1,82 +1,30 @@
-"""ATLAS Ω Agentic Runtime.
-
-This package is deliberately separate from frozen CORE-00. It orchestrates
-specialists and persists execution evidence while remaining subordinate to
-ATLAS constitutional and epistemic gates.
-"""
-
-from .orchestrator import (
-    AgenticOmegaOrchestrator,
-    AgenticRun,
-    AppendOnlyEventLedger,
-    EpistemicLabel,
-    EvidenceAssertion,
-    EvolutionProposal,
-    GateState,
-    OutcomeReceipt,
-    RunStatus,
-    Specialist,
-    SpecialistResult,
-)
-from .workers import (
-    Contradiction,
-    ContradictionGraph,
-    EvidenceDirectorWorker,
-    MetricObservation,
-    WorkerCoordinator,
-    WorkerPacket,
-)
+"""ATLAS Ω Agentic Runtime."""
+from .orchestrator import AgenticOmegaOrchestrator, AgenticRun, AppendOnlyEventLedger, EpistemicLabel, EvidenceAssertion, EvolutionProposal, GateState, OutcomeReceipt, RunStatus, Specialist, SpecialistResult
+from .workers import Contradiction, ContradictionGraph, EvidenceDirectorWorker, MetricObservation, WorkerCoordinator, WorkerPacket
 from .calibration import CalibrationEngine, CalibrationResult, PredictionRecord
 from .recovery import RecoveredRunView, RunRecovery
 from .durable_ledger import DurableAgenticLedger
 from .hardening import GovernedWorkerCoordinator
 from .evidence_adapter import EvidenceAdapterResult, EvidenceEnvelopeAdapter
-from .capability_evidence import (
-    CapabilityEvidenceRecord,
-    CapabilityEvidenceRegistry,
-    CapabilitySource,
-    CapabilityStatus,
-    RouteDescriptor,
-)
-from .sync_receipts import (
-    DualPersistenceReceipt,
-    DualPersistenceRegistry,
-    DualPersistenceStatus,
-)
+from .capability_evidence import CapabilityEvidenceRecord, CapabilityEvidenceRegistry, CapabilitySource, CapabilityStatus, RouteDescriptor
+from .sync_receipts import DualPersistenceReceipt, DualPersistenceRegistry, DualPersistenceStatus
+from .ai_demand_engines import AgenticEconomicsInput, AgenticEconomicsResult, AgenticEngineeringCompressionInput, AgenticEngineeringCompressionResult, CANONICAL_LAWS, CircularFinancingInput, CircularFinancingResult, ComputeElasticityInput, ComputeElasticityResult, ElasticityRegime, MachineOriginatedDemandInput, MachineOriginatedDemandResult, QuantumReadinessResult, SignalState, evaluate_agentic_economics, evaluate_agentic_engineering_compression, evaluate_circular_financing, evaluate_compute_elasticity, evaluate_machine_originated_demand, quantum_readiness_watch
+from .infrastructure_control import InfrastructureControlInput, InfrastructureControlMode, InfrastructureControlResult, CANONICAL_LAWS as INFRASTRUCTURE_CONTROL_CANONICAL_LAWS, evaluate_infrastructure_control
+from .agentic_structural_engines import AgenticPermissionRiskInput, AgenticPermissionRiskResult, FrontierModelCommoditizationInput, FrontierModelCommoditizationResult, PersistentAgentSurfaceInput, PersistentAgentSurfaceResult, PhysicalAIDeploymentInput, PhysicalAIDeploymentResult, STRUCTURAL_CANONICAL_LAWS, TeleoperationAutonomyInput, TeleoperationAutonomyResult, evaluate_agentic_permission_risk, evaluate_frontier_model_commoditization, evaluate_persistent_agent_surface, evaluate_physical_ai_deployment, evaluate_teleoperation_to_autonomy
+from .market_structure_engines import AIInfrastructureCreditFragilityInput, AIInfrastructureCreditFragilityResult, CrossBorderSupplyChainInput, CrossBorderSupplyChainResult, ForcedSellerDislocationInput, ForcedSellerDislocationResult, MARKET_STRUCTURE_CANONICAL_LAWS, PolicyInterventionPersistenceInput, PolicyInterventionPersistenceResult, SupplierCompetitorRiskInput, SupplierCompetitorRiskResult, evaluate_ai_infrastructure_credit_fragility, evaluate_cross_border_supply_chain, evaluate_forced_seller_dislocation, evaluate_policy_intervention_persistence, evaluate_supplier_competitor_risk
+from .investment_discipline import DISCIPLINE_CANONICAL_LAWS, PreMortemInversionInput, PreMortemInversionResult, ResearchIntensityInput, ResearchIntensityResult, evaluate_pre_mortem_inversion, evaluate_research_intensity
+from .frontier_risk_engines import FrontierCyberInput, FrontierCyberResult, EdgeCloudInput, EdgeCloudResult, PostQuantumInput, PostQuantumResult, evaluate_frontier_cyber, evaluate_edge_cloud, evaluate_post_quantum
+from .treasury_flow_integrity import BitcoinTreasuryInput, BitcoinTreasuryResult, CANONICAL_INTEGRITY_LAWS, ClaimIntegrityResult, EvidenceStatus, FlowSeriesMetadata, ReportedGrowthInput, evidence_claim_gate, evaluate_bitcoin_treasury, flow_series_comparable, normalized_growth
+from .earnings_flow_confirmation import EFCInput, FlowCausalityInput, earnings_flow_confirmation, residual_return, accumulation_state, portfolio_green, portfolio_state
+from .cyclical_normalization import RefiningInput, FreightInput, refining_normalization, freight_cycle
+from .resource_rotation import BranchMarketInput, BranchMarketResult, GoldMinerInput, GoldMinerResult, Layer1ResourceResult, RESOURCE_CANONICAL_LAWS, ResourceBranch, RotationState, aggregate_layer1_resources, evaluate_gold_miner, evaluate_resource_branch
+from .capital_competition import Candidate, rank_candidate, competition_for_capital
+from .universe_competition import UniverseCandidate, audit_candidate, full_universe_competition, green_time_in_portfolio
+from .portfolio_finalizer import FinalCandidate, FinalDecision, GreenTier, CANONICAL_FINALIZER_LAWS, classify, finalize, replacement_allowed
+from .market_technical_gates import CryptoConvergenceInput, CryptoConvergenceResult, DurationStressInput, DurationStressRegime, DurationStressResult, SOXTransmissionInput, SOXTransmissionResult, TECHNICAL_GATE_CANONICAL_LAWS, TechnicalGateState, evaluate_crypto_convergence, evaluate_duration_stress, evaluate_sox_transmission
+from .scarcity_absorption import OrganizationalAbsorptionInput, ScarcityMigrationInput, organizational_absorption_omega, scarcity_migration_omega
+from .aime_signal_engines import AIME_CANONICAL_LAWS, ExternalSignalInput, ExternalSignalResult, IntradayBreadthPulseInput, IntradayBreadthPulseResult, OptionsFlowInput, OptionsFlowResult, TechnicalConfirmationInput, TechnicalConfirmationResult, ThemeCrowdingInput, ThemeCrowdingResult, evaluate_external_signal, evaluate_intraday_breadth_pulse, evaluate_options_flow, evaluate_technical_confirmation, evaluate_theme_crowding
+from .thread_signal_engines import AgenticProductionProofInput, AgenticProductionProofResult, LeverageFlowDistortionInput, LeverageFlowDistortionResult, LongTermLeverageGateInput, LongTermLeverageGateResult, MemoryScarcityTransmissionInput, MemoryScarcityTransmissionResult, ScarcityPaidInput, ScarcityPaidResult, THREAD_SIGNAL_CANONICAL_LAWS, evaluate_agentic_production_proof, evaluate_leverage_flow_distortion, evaluate_long_term_leverage_gate, evaluate_memory_scarcity_transmission, evaluate_scarcity_paid
+from .market_fragility import ExpectationsGapInput, ExpectationsGapResult, ExpectationsGapState, FragilityState, MarketFragilityInput, MarketFragilityResult, ReturnDecompositionInput, evaluate_market_fragility, evaluate_negative_expectations_gap, layer_jump_state, unexplained_return
 
-__all__ = [
-    "AgenticOmegaOrchestrator",
-    "AgenticRun",
-    "AppendOnlyEventLedger",
-    "DurableAgenticLedger",
-    "EpistemicLabel",
-    "EvidenceAssertion",
-    "EvolutionProposal",
-    "GateState",
-    "OutcomeReceipt",
-    "RunStatus",
-    "Specialist",
-    "SpecialistResult",
-    "MetricObservation",
-    "Contradiction",
-    "ContradictionGraph",
-    "EvidenceDirectorWorker",
-    "WorkerPacket",
-    "WorkerCoordinator",
-    "GovernedWorkerCoordinator",
-    "EvidenceAdapterResult",
-    "EvidenceEnvelopeAdapter",
-    "CapabilityEvidenceRecord",
-    "CapabilityEvidenceRegistry",
-    "CapabilitySource",
-    "CapabilityStatus",
-    "RouteDescriptor",
-    "DualPersistenceReceipt",
-    "DualPersistenceRegistry",
-    "DualPersistenceStatus",
-    "PredictionRecord",
-    "CalibrationResult",
-    "CalibrationEngine",
-    "RecoveredRunView",
-    "RunRecovery",
-]
+__all__ = [name for name in globals() if not name.startswith("_")]

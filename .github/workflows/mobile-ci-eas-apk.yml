@@ -1,4 +1,4 @@
-# Rebuild marker: 2026-08-20 current main
+# Rebuild marker: 2026-08-23 forced certified APK release launch v2 on main
 name: ATLAS Ω Mobile v1 Clean Rebuild
 
 on:
@@ -9,12 +9,17 @@ on:
       - 'mobile/**'
       - 'api/main.py'
       - 'api/mobile_v2.py'
+      - 'api/mobile_audit_omega.py'
+      - 'api/test_mobile_audit_omega.py'
       - 'api/test_mobile_v2.py'
       - 'api/test_mobile_entrypoints.py'
+      - 'api/test_deployment_contract.py'
       - 'api/trading212_v2.py'
       - 'api/test_trading212_v2.py'
       - 'api/global_capex_chain_mobile.py'
       - 'api/test_global_capex_chain_mobile.py'
+      - 'api/screener.py'
+      - 'tests/test_screener.py'
       - 'api/app.py'
       - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
@@ -24,12 +29,17 @@ on:
       - 'mobile/**'
       - 'api/main.py'
       - 'api/mobile_v2.py'
+      - 'api/mobile_audit_omega.py'
+      - 'api/test_mobile_audit_omega.py'
       - 'api/test_mobile_v2.py'
       - 'api/test_mobile_entrypoints.py'
+      - 'api/test_deployment_contract.py'
       - 'api/trading212_v2.py'
       - 'api/test_trading212_v2.py'
       - 'api/global_capex_chain_mobile.py'
       - 'api/test_global_capex_chain_mobile.py'
+      - 'api/screener.py'
+      - 'tests/test_screener.py'
       - 'api/app.py'
       - 'render.yaml'
       - '.github/workflows/mobile-ci-eas-apk.yml'
@@ -47,7 +57,7 @@ env:
 
 jobs:
   api-unit:
-    name: Mobile backend + Trading 212 + CAPEX + entrypoint tests
+    name: Mobile backend + audit + Trading 212 + CAPEX + screener + deployment + entrypoint tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -56,7 +66,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r api/requirements.txt
-      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_trading212_v2.py api/test_global_capex_chain_mobile.py api/test_mobile_entrypoints.py
+      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_mobile_audit_omega.py api/test_trading212_v2.py api/test_global_capex_chain_mobile.py api/test_mobile_entrypoints.py api/test_deployment_contract.py tests/test_screener.py
 
   typecheck:
     name: Mobile TypeScript gate
@@ -69,7 +79,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22.13.0'
-      - run: npm install --no-audit --no-fund
+      - run: npm install --include=dev --no-audit --no-fund
+      - name: Verify deterministic Expo native ABI set
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const expected = {
+            expo: '57.0.11',
+            'expo-modules-core': '57.0.12',
+            'react-native': '0.86.2',
+          };
+          for (const [pkg, want] of Object.entries(expected)) {
+            const got = require(`./node_modules/${pkg}/package.json`).version;
+            if (got !== want) throw new Error(`${pkg}: expected ${want}, got ${got}`);
+            console.log(`${pkg}=${got}`);
+          }
+          for (const pkg of ['react-native-reanimated', 'react-native-worklets']) {
+            try {
+              require.resolve(`${pkg}/package.json`);
+              throw new Error(`${pkg}: must not be installed; ATLAS does not use it and it re-enables the incompatible WorkletJSCallInvoker native path`);
+            } catch (error) {
+              if (error && error.code === 'MODULE_NOT_FOUND') console.log(`${pkg}=ABSENT`);
+              else throw error;
+            }
+          }
+          NODE
       - run: npx tsc --noEmit
 
   build:
@@ -91,10 +126,45 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - run: npm install --no-audit --no-fund
+      - run: npm install --include=dev --no-audit --no-fund
+      - name: Verify deterministic Expo native ABI set
+        shell: bash
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const expected = {
+            expo: '57.0.11',
+            'expo-modules-core': '57.0.12',
+            'react-native': '0.86.2',
+          };
+          for (const [pkg, want] of Object.entries(expected)) {
+            const got = require(`./node_modules/${pkg}/package.json`).version;
+            if (got !== want) throw new Error(`${pkg}: expected ${want}, got ${got}`);
+            console.log(`${pkg}=${got}`);
+          }
+          for (const pkg of ['react-native-reanimated', 'react-native-worklets']) {
+            try {
+              require.resolve(`${pkg}/package.json`);
+              throw new Error(`${pkg}: must not be installed`);
+            } catch (error) {
+              if (error && error.code === 'MODULE_NOT_FOUND') console.log(`${pkg}=ABSENT`);
+              else throw error;
+            }
+          }
+          NODE
       - name: Generate Android project
-        run: npx expo prebuild --platform android --non-interactive --clean
+        env:
+          CI: '1'
+          NODE_ENV: production
+        run: npx expo prebuild --platform android --clean
+      - name: Harden Gradle memory for native release build
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '\norg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8\n' >> android/gradle.properties
       - name: Build release APK
+        env:
+          NODE_ENV: production
         run: cd android && chmod +x gradlew && ./gradlew assembleRelease --no-daemon
       - name: Certify backend URL and keep provider keys server-side
         shell: bash
@@ -104,14 +174,9 @@ jobs:
           test -s "$APK"
           unzip -p "$APK" assets/index.android.bundle > /tmp/index.android.bundle
           grep -Fq "$PRODUCTION_API" /tmp/index.android.bundle
-          if grep -Fq 'financialdata.net/api/v1' /tmp/index.android.bundle; then
-            echo '::error::FinancialData.Net direct API endpoint leaked into APK. Use server proxy only.'
-            exit 1
-          fi
-          if grep -Fq 'live.trading212.com/api/v0' /tmp/index.android.bundle || grep -Fq 'demo.trading212.com/api/v0' /tmp/index.android.bundle; then
-            echo '::error::Trading 212 direct API endpoint leaked into APK. Use server proxy only.'
-            exit 1
-          fi
+          if grep -Fq 'financialdata.net/api/v1' /tmp/index.android.bundle; then exit 1; fi
+          if grep -Fq 'live.trading212.com/api/v0' /tmp/index.android.bundle || grep -Fq 'demo.trading212.com/api/v0' /tmp/index.android.bundle; then exit 1; fi
+          if grep -Eq 'fc-[A-Za-z0-9_-]{20,}' /tmp/index.android.bundle; then exit 1; fi
           sha256sum "$APK" | tee /tmp/atlas-mobile-v1.sha256
           ls -lh "$APK"
       - uses: actions/upload-artifact@v4

@@ -12,6 +12,9 @@ def test_production_app_exposes_mobile_and_agentic_surfaces() -> None:
     required = {
         "/health",
         "/v1/mobile/health",
+        "/v1/mobile/audit/{ticker}",
+        "/v1/mobile/broker/status",
+        "/v1/mobile/broker/metadata/instruments/search",
         "/v1/agentic-omega/health",
         "/v1/agentic-omega/v2/capabilities",
         "/v1/agentic-omega/v2/evidence-capabilities",
@@ -23,8 +26,16 @@ def test_production_app_exposes_mobile_and_agentic_surfaces() -> None:
 def test_render_blueprint_targets_live_service_and_production_entrypoint() -> None:
     blueprint = Path("render.yaml").read_text(encoding="utf-8")
     assert "name: atlas-genesis\n" in blueprint
+    assert "branch: main" in blueprint
+    assert "autoDeployTrigger: commit" in blueprint
     assert "startCommand: uvicorn api.app:app --host 0.0.0.0 --port $PORT" in blueprint
-    assert "healthCheckPath: /health" in blueprint
+    assert "healthCheckPath: /v1/mobile/health" in blueprint
+    assert "python -c" in blueprint
+    assert "Missing production routes" in blueprint
+    assert "/v1/mobile/audit/{ticker}" in blueprint
+    assert "/v1/mobile/broker/status" in blueprint
+    assert "/v1/mobile/broker/metadata/instruments/search" in blueprint
+    assert "ATLAS_DEPLOY_REVISION" in blueprint
     assert "TRADING212_LIVE_TRADING_ENABLED" in blueprint
     assert 'value: "false"' in blueprint
     assert "ATLAS_AGENT_CONTROL_TOKEN" in blueprint

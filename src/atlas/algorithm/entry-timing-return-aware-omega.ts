@@ -1,3 +1,8 @@
+import {
+  marketTapePasses,
+  type UniversalMarketTapeIntegrityResult,
+} from './universal-market-tape-integrity-omega';
+
 export type EntryTimingState =
   | 'BUY_NOW'
   | 'BUY_THE_DIP'
@@ -15,6 +20,8 @@ export type CorrectionEvidenceMode = 'PEAK_DRAWDOWN' | 'WINDOW_RETURN_FALLBACK';
 
 export interface ReturnAwareEntryTimingInput {
   ticker: string;
+  marketTapeIntegrity?: UniversalMarketTapeIntegrityResult;
+  peakMetricEvidenceIds?: readonly string[];
   returnScore: number; // Size-Neutral Return Ranking Ω, 0..1000
   greenCount: number; // GREEN Continuity Ω, 0..5
   oneWeekReturnPct: number;
@@ -47,6 +54,7 @@ export interface ReturnAwareEntryTimingResult {
   returnEligible: boolean;
   greenCount: number;
   greenAcceptedForReturn: boolean;
+  marketTapeVerified: boolean;
   observedCorrectionPct: number;
   correctionEvidenceMode: CorrectionEvidenceMode;
   dislocationState: DislocationState;
@@ -56,15 +64,18 @@ export interface ReturnAwareEntryTimingResult {
 }
 
 export const ENTRY_TIMING_RETURN_AWARE_OMEGA = {
-  id: 'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2_1',
-  name: 'Entry Timing Return-Aware Ω v2.1',
+  id: 'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2_2',
+  name: 'Entry Timing Return-Aware Ω v2.2',
   status: 'canonical',
   minimumReturnScore: 850,
   minimumGreenCountWhenReturnPasses: 3,
   constitutionalRules: [
     'SELECTION != ENTRY.',
+    'ENTRY_TIMING_REQUIRES_UNIVERSAL_MARKET_TAPE_PASS_FOR_THE_SAME_TICKER.',
+    '1W != 1M != 3M; the three windows must reconcile exactly to verified PRICE_RETURN observations before GREEN or dislocation can drive an entry state.',
     'A correction that already occurred must be credited before asking for any additional pullback.',
     'Current drawdown from ATH or a rolling peak is preferred to a negative window return; return is only a fallback when peak data are unavailable.',
+    'Peak/ATH metrics require traceable evidence IDs in addition to verified current market tape.',
     'Never prescribe a universal extra -3%, -5% or -10% after a ticker-specific dislocation has already reached its historical pullback band.',
     'GREEN 5/5 is strongest continuity, but GREEN 4/5 or 3/5 remains eligible when evidence-backed Return Score is >=850.',
     'GREEN is diagnostic and independent; return quality permits committee eligibility but does not rewrite GREEN history.',
@@ -86,6 +97,34 @@ function positiveMagnitudeOfNegative(value?: number | null): number {
 
 function normalizeBand(value: number): number {
   return Math.max(0, Number.isFinite(value) ? value : 0);
+}
+
+function hasPeakMetric(input: ReturnAwareEntryTimingInput): boolean {
+  return [
+    input.athDistancePct,
+    input.oneMonthPeakDrawdownPct,
+    input.threeMonthPeakDrawdownPct,
+    input.oneYearPeakDrawdownPct,
+  ].some((value) => value != null && Number.isFinite(value));
+}
+
+function marketWindowsVerified(input: ReturnAwareEntryTimingInput): boolean {
+  const tape = input.marketTapeIntegrity;
+  if (!marketTapePasses(tape) || tape?.selectedTicker !== input.ticker) return false;
+  const expected: Array<['1W' | '1M' | '3M', number]> = [
+    ['1W', input.oneWeekReturnPct],
+    ['1M', input.oneMonthReturnPct],
+    ['3M', input.threeMonthReturnPct],
+  ];
+  return expected.every(([window, value]) => {
+    const selected = tape.selectedReturns[window];
+    return Boolean(
+      selected &&
+      selected.kind === 'PRICE_RETURN' &&
+      Number.isFinite(value) &&
+      Math.abs(selected.valuePct - value) <= 0.05,
+    );
+  });
 }
 
 export function calculateObservedCorrection(input: ReturnAwareEntryTimingInput): {
@@ -141,6 +180,7 @@ export function evaluateReturnAwareEntryTiming(
   const greenCount = Math.round(clamp(input.greenCount, 0, 5));
   const returnEligible = returnScore >= ENTRY_TIMING_RETURN_AWARE_OMEGA.minimumReturnScore;
   const greenAcceptedForReturn = returnEligible && greenCount >= ENTRY_TIMING_RETURN_AWARE_OMEGA.minimumGreenCountWhenReturnPasses;
+  const marketTapeVerified = marketWindowsVerified(input);
   const correction = calculateObservedCorrection(input);
   const observedCorrectionPct = Math.round(correction.observedCorrectionPct * 100) / 100;
   const correctionEvidenceMode = correction.correctionEvidenceMode;
@@ -162,6 +202,7 @@ export function evaluateReturnAwareEntryTiming(
     returnEligible,
     greenCount,
     greenAcceptedForReturn,
+    marketTapeVerified,
     observedCorrectionPct,
     correctionEvidenceMode,
     dislocationState,
@@ -183,6 +224,20 @@ export function evaluateReturnAwareEntryTiming(
   if (!input.thesisIntact) {
     reasons.push('The parent investment thesis is not intact; a falling price cannot be classified as a buyable dislocation.');
     return build('REJECT_ENTRY', false, 0);
+  }
+
+  if (!marketTapeVerified) {
+    reasons.push('Universal Market Tape Integrity Ω failed to reconcile 1W/1M/3M PRICE_RETURN for the same ticker; entry timing is blocked.');
+    for (const violation of input.marketTapeIntegrity?.violations ?? []) reasons.push(`MARKET_TAPE: ${violation}`);
+    if (input.marketTapeIntegrity?.selectedTicker && input.marketTapeIntegrity.selectedTicker !== input.ticker) {
+      reasons.push('MARKET_TAPE: ticker_mismatch');
+    }
+    return build('EVIDENCE_PENDING', false, 0);
+  }
+
+  if (hasPeakMetric(input) && (input.peakMetricEvidenceIds?.length ?? 0) === 0) {
+    reasons.push('Peak/ATH drawdown metrics are present without traceable peak-metric evidence; dislocation-based entry is blocked.');
+    return build('EVIDENCE_PENDING', false, 0);
   }
 
   if (!returnEligible) {

@@ -1,0 +1,95 @@
+name: Liquidity Spread Gate Omega CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "src/atlas/algorithm/liquidity-spread-gate-omega.ts"
+      - "src/atlas/algorithm/execution-safe-entry-timing-omega.ts"
+      - "src/atlas/algorithm/liquidity-spread-gate-omega.test.ts"
+      - "src/atlas/algorithm/entry-timing-return-aware-omega.ts"
+      - "src/atlas/algorithm/universal-market-tape-integrity-omega.ts"
+      - "src/atlas/algorithm/atlas-primary-engine-hierarchy.ts"
+      - "api/execution_safety_gate.py"
+      - "api/trading212_v2.py"
+      - "api/main.py"
+      - "api/test_liquidity_spread_gate.py"
+      - "api/test_trading212_v2.py"
+      - "mobile/core/api/brokerApi.ts"
+      - "mobile/core/api/atlasOnlineApi.ts"
+      - "CURRENT_CANON/LIQUIDITY_SPREAD_GATE_OMEGA.md"
+      - ".github/workflows/liquidity-spread-gate-ci.yml"
+  pull_request:
+    paths:
+      - "src/atlas/algorithm/liquidity-spread-gate-omega.ts"
+      - "src/atlas/algorithm/execution-safe-entry-timing-omega.ts"
+      - "src/atlas/algorithm/liquidity-spread-gate-omega.test.ts"
+      - "src/atlas/algorithm/entry-timing-return-aware-omega.ts"
+      - "src/atlas/algorithm/universal-market-tape-integrity-omega.ts"
+      - "src/atlas/algorithm/atlas-primary-engine-hierarchy.ts"
+      - "api/execution_safety_gate.py"
+      - "api/trading212_v2.py"
+      - "api/main.py"
+      - "api/test_liquidity_spread_gate.py"
+      - "api/test_trading212_v2.py"
+      - "mobile/core/api/brokerApi.ts"
+      - "mobile/core/api/atlasOnlineApi.ts"
+      - "CURRENT_CANON/LIQUIDITY_SPREAD_GATE_OMEGA.md"
+      - ".github/workflows/liquidity-spread-gate-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  execution-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Run TypeScript gate tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/liquidity-spread-gate-omega.test.ts
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install focused Python dependencies
+        run: python -m pip install pytest==8.3.4 pytest-asyncio==0.24.0 fastapi==0.116.1 pydantic==2.10.4 httpx==0.28.1
+
+      - name: Run broker enforcement tests
+        env:
+          PYTHONPATH: .
+        run: >-
+          python -m pytest -q
+          api/test_liquidity_spread_gate.py
+          api/test_trading212_v2.py
+
+      - name: Verify execution-safe canonical sequence
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const source = fs.readFileSync('src/atlas/algorithm/atlas-primary-engine-hierarchy.ts', 'utf8');
+          const sequence = source.slice(source.indexOf('export const ATLAS_CANONICAL_DECISION_SEQUENCE'));
+          const requiredOrder = [
+            'ENTRY_TIMING_RETURN_AWARE_OMEGA_V2_2',
+            'LIQUIDITY_SPREAD_GATE_OMEGA_V1_1',
+            'EXECUTION_SAFE_ENTRY_TIMING_OMEGA_V1_1',
+            'SIZE_NEUTRALITY_AUDIT_OMEGA_V1',
+          ];
+          let previous = -1;
+          for (const token of requiredOrder) {
+            const current = sequence.indexOf(`'${token}'`);
+            if (current < 0 || current <= previous) {
+              console.error(`Execution-safe sequence invariant failed at ${token}`);
+              process.exit(1);
+            }
+            previous = current;
+          }
+          console.log('Execution-safe canonical sequence: PASS');
+          NODE
