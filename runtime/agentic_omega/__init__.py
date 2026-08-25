@@ -1,118 +1,16 @@
-"""ATLAS Ω Agentic Runtime.
-
-This package is deliberately separate from frozen CORE-00. It orchestrates
-specialists and persists execution evidence while remaining subordinate to
-ATLAS constitutional and epistemic gates.
-"""
-
-from .orchestrator import (
-    AgenticOmegaOrchestrator,
-    AgenticRun,
-    AppendOnlyEventLedger,
-    EpistemicLabel,
-    EvidenceAssertion,
-    EvolutionProposal,
-    GateState,
-    OutcomeReceipt,
-    RunStatus,
-    Specialist,
-    SpecialistResult,
-)
-from .workers import (
-    Contradiction,
-    ContradictionGraph,
-    EvidenceDirectorWorker,
-    MetricObservation,
-    WorkerCoordinator,
-    WorkerPacket,
-)
+"""ATLAS Ω Agentic Runtime."""
+from .orchestrator import AgenticOmegaOrchestrator, AgenticRun, AppendOnlyEventLedger, EpistemicLabel, EvidenceAssertion, EvolutionProposal, GateState, OutcomeReceipt, RunStatus, Specialist, SpecialistResult
+from .workers import Contradiction, ContradictionGraph, EvidenceDirectorWorker, MetricObservation, WorkerCoordinator, WorkerPacket
 from .calibration import CalibrationEngine, CalibrationResult, PredictionRecord
 from .recovery import RecoveredRunView, RunRecovery
 from .durable_ledger import DurableAgenticLedger
 from .hardening import GovernedWorkerCoordinator
 from .evidence_adapter import EvidenceAdapterResult, EvidenceEnvelopeAdapter
-from .capability_evidence import (
-    CapabilityEvidenceRecord,
-    CapabilityEvidenceRegistry,
-    CapabilitySource,
-    CapabilityStatus,
-    RouteDescriptor,
-)
-from .sync_receipts import (
-    DualPersistenceReceipt,
-    DualPersistenceRegistry,
-    DualPersistenceStatus,
-)
-from .ai_demand_engines import (
-    AgenticEconomicsInput,
-    AgenticEconomicsResult,
-    CANONICAL_LAWS,
-    CircularFinancingInput,
-    CircularFinancingResult,
-    ComputeElasticityInput,
-    ComputeElasticityResult,
-    ElasticityRegime,
-    MachineOriginatedDemandInput,
-    MachineOriginatedDemandResult,
-    QuantumReadinessResult,
-    SignalState,
-    evaluate_agentic_economics,
-    evaluate_circular_financing,
-    evaluate_compute_elasticity,
-    evaluate_machine_originated_demand,
-    quantum_readiness_watch,
-)
+from .capability_evidence import CapabilityEvidenceRecord, CapabilityEvidenceRegistry, CapabilitySource, CapabilityStatus, RouteDescriptor
+from .sync_receipts import DualPersistenceReceipt, DualPersistenceRegistry, DualPersistenceStatus
+from .ai_demand_engines import AgenticEconomicsInput, AgenticEconomicsResult, CANONICAL_LAWS, CircularFinancingInput, CircularFinancingResult, ComputeElasticityInput, ComputeElasticityResult, ElasticityRegime, MachineOriginatedDemandInput, MachineOriginatedDemandResult, QuantumReadinessResult, SignalState, evaluate_agentic_economics, evaluate_circular_financing, evaluate_compute_elasticity, evaluate_machine_originated_demand, quantum_readiness_watch
+from .earnings_flow_confirmation import EFCInput, FlowCausalityInput, earnings_flow_confirmation, residual_return, accumulation_state, portfolio_green, portfolio_state
+from .cyclical_normalization import RefiningInput, FreightInput, refining_normalization, freight_cycle
+from .capital_competition import Candidate, rank_candidate, competition_for_capital
 
-__all__ = [
-    "AgenticOmegaOrchestrator",
-    "AgenticRun",
-    "AppendOnlyEventLedger",
-    "DurableAgenticLedger",
-    "EpistemicLabel",
-    "EvidenceAssertion",
-    "EvolutionProposal",
-    "GateState",
-    "OutcomeReceipt",
-    "RunStatus",
-    "Specialist",
-    "SpecialistResult",
-    "MetricObservation",
-    "Contradiction",
-    "ContradictionGraph",
-    "EvidenceDirectorWorker",
-    "WorkerPacket",
-    "WorkerCoordinator",
-    "GovernedWorkerCoordinator",
-    "EvidenceAdapterResult",
-    "EvidenceEnvelopeAdapter",
-    "CapabilityEvidenceRecord",
-    "CapabilityEvidenceRegistry",
-    "CapabilitySource",
-    "CapabilityStatus",
-    "RouteDescriptor",
-    "DualPersistenceReceipt",
-    "DualPersistenceRegistry",
-    "DualPersistenceStatus",
-    "PredictionRecord",
-    "CalibrationResult",
-    "CalibrationEngine",
-    "RecoveredRunView",
-    "RunRecovery",
-    "AgenticEconomicsInput",
-    "AgenticEconomicsResult",
-    "CANONICAL_LAWS",
-    "CircularFinancingInput",
-    "CircularFinancingResult",
-    "ComputeElasticityInput",
-    "ComputeElasticityResult",
-    "ElasticityRegime",
-    "MachineOriginatedDemandInput",
-    "MachineOriginatedDemandResult",
-    "QuantumReadinessResult",
-    "SignalState",
-    "evaluate_agentic_economics",
-    "evaluate_circular_financing",
-    "evaluate_compute_elasticity",
-    "evaluate_machine_originated_demand",
-    "quantum_readiness_watch",
-]
+__all__ = [name for name in globals() if not name.startswith("_")]
