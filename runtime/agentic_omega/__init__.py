@@ -22,5 +22,6 @@ from .universe_competition import UniverseCandidate, audit_candidate, full_unive
 from .portfolio_finalizer import FinalCandidate, FinalDecision, GreenTier, CANONICAL_FINALIZER_LAWS, classify, finalize, replacement_allowed
 from .market_technical_gates import CryptoConvergenceInput, CryptoConvergenceResult, DurationStressInput, DurationStressRegime, DurationStressResult, SOXTransmissionInput, SOXTransmissionResult, TECHNICAL_GATE_CANONICAL_LAWS, TechnicalGateState, evaluate_crypto_convergence, evaluate_duration_stress, evaluate_sox_transmission
 from .scarcity_absorption import OrganizationalAbsorptionInput, ScarcityMigrationInput, organizational_absorption_omega, scarcity_migration_omega
+from .aime_signal_engines import AIME_CANONICAL_LAWS, ExternalSignalInput, ExternalSignalResult, IntradayBreadthPulseInput, IntradayBreadthPulseResult, OptionsFlowInput, OptionsFlowResult, TechnicalConfirmationInput, TechnicalConfirmationResult, ThemeCrowdingInput, ThemeCrowdingResult, evaluate_external_signal, evaluate_intraday_breadth_pulse, evaluate_options_flow, evaluate_technical_confirmation, evaluate_theme_crowding
 
 __all__ = [name for name in globals() if not name.startswith("_")]
