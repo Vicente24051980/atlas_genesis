@@ -15,5 +15,6 @@ from .earnings_flow_confirmation import EFCInput, FlowCausalityInput, earnings_f
 from .cyclical_normalization import RefiningInput, FreightInput, refining_normalization, freight_cycle
 from .capital_competition import Candidate, rank_candidate, competition_for_capital
 from .universe_competition import UniverseCandidate, audit_candidate, full_universe_competition, green_time_in_portfolio
+from .portfolio_finalizer import FinalCandidate, FinalDecision, GreenTier, CANONICAL_FINALIZER_LAWS, classify, finalize, replacement_allowed
 
 __all__ = [name for name in globals() if not name.startswith("_")]
