@@ -53,40 +53,13 @@ def evaluate_compute_elasticity(data: ComputeElasticityInput) -> ComputeElastici
     demand_multiplier = (1.0 + data.cost_per_inference_change) * (1.0 + data.inference_volume_change)
 
     if data.total_compute_change < -0.05:
-        return ComputeElasticityResult(
-            ElasticityRegime.DESTRUCTIVE_EFFICIENCY,
-            SignalState.RED,
-            demand_multiplier,
-            False,
-            "efficiency is coinciding with falling aggregate compute demand",
-        )
-
+        return ComputeElasticityResult(ElasticityRegime.DESTRUCTIVE_EFFICIENCY, SignalState.RED, demand_multiplier, False, "efficiency is coinciding with falling aggregate compute demand")
     if abs(data.total_compute_change) <= 0.05:
-        return ComputeElasticityResult(
-            ElasticityRegime.JEVONS_EQUILIBRIUM,
-            SignalState.AMBER,
-            demand_multiplier,
-            False,
-            "efficiency gains are approximately offset by usage growth",
-        )
-
+        return ComputeElasticityResult(ElasticityRegime.JEVONS_EQUILIBRIUM, SignalState.AMBER, demand_multiplier, False, "efficiency gains are approximately offset by usage growth")
     if data.total_compute_change > 0.05:
         strong = data.new_workload_evidence and data.total_compute_change >= 0.20
-        return ComputeElasticityResult(
-            ElasticityRegime.JEVONS_ACCELERATION,
-            SignalState.GREEN_STRONG if strong else SignalState.GREEN,
-            demand_multiplier,
-            False,
-            "aggregate compute demand is expanding despite efficiency gains",
-        )
-
-    return ComputeElasticityResult(
-        ElasticityRegime.INSUFFICIENT_EVIDENCE,
-        SignalState.AMBER,
-        demand_multiplier,
-        False,
-        "insufficient evidence to classify compute elasticity",
-    )
+        return ComputeElasticityResult(ElasticityRegime.JEVONS_ACCELERATION, SignalState.GREEN_STRONG if strong else SignalState.GREEN, demand_multiplier, False, "aggregate compute demand is expanding despite efficiency gains")
+    return ComputeElasticityResult(ElasticityRegime.INSUFFICIENT_EVIDENCE, SignalState.AMBER, demand_multiplier, False, "insufficient evidence to classify compute elasticity")
 
 
 @dataclass(frozen=True)
@@ -109,21 +82,12 @@ class AgenticEconomicsResult:
 
 
 def evaluate_agentic_economics(data: AgenticEconomicsInput) -> AgenticEconomicsResult:
-    stages = (
-        ("CAPABILITY", data.capability_proven),
-        ("TASK_COMPLETION", data.task_completion_proven),
-        ("DEPLOYMENT", data.deployed),
-        ("PAID_USAGE", data.paid_usage_proven),
-        ("PRODUCTIVITY_OR_REVENUE", data.productivity_or_revenue_proven),
-        ("FCF", data.fcf_proven),
-        ("ROIC", data.roic_proven),
-    )
+    stages = (("CAPABILITY", data.capability_proven), ("TASK_COMPLETION", data.task_completion_proven), ("DEPLOYMENT", data.deployed), ("PAID_USAGE", data.paid_usage_proven), ("PRODUCTIVITY_OR_REVENUE", data.productivity_or_revenue_proven), ("FCF", data.fcf_proven), ("ROIC", data.roic_proven))
     reached = "NONE"
     for stage, passed in stages:
         if not passed:
             break
         reached = stage
-
     if reached in {"NONE", "CAPABILITY"}:
         return AgenticEconomicsResult(SignalState.AMBER, reached, False, "capability is not economic proof")
     if reached in {"TASK_COMPLETION", "DEPLOYMENT", "PAID_USAGE"}:
@@ -131,6 +95,66 @@ def evaluate_agentic_economics(data: AgenticEconomicsInput) -> AgenticEconomicsR
     if reached in {"PRODUCTIVITY_OR_REVENUE", "FCF"}:
         return AgenticEconomicsResult(SignalState.GREEN_STRONG, reached, False, "economic monetization is visible but ROIC proof is incomplete")
     return AgenticEconomicsResult(SignalState.GREEN_STRONG, reached, True, "agentic economics reached ROIC proof; normal valuation and falsifier gates still apply")
+
+
+@dataclass(frozen=True)
+class AgenticEngineeringCompressionInput:
+    task_difficulty: float
+    autonomous_completion_probability: float
+    human_hours_displaced: float
+    deployment_frequency: float
+    artifact_functional: bool
+    independently_verifiable: bool
+    production_deployed: bool
+    paid_usage_proven: bool = False
+    productivity_or_revenue_proven: bool = False
+    fcf_proven: bool = False
+    roic_proven: bool = False
+
+
+@dataclass(frozen=True)
+class AgenticEngineeringCompressionResult:
+    compression_value: float
+    signal: SignalState
+    evidence_stage: str
+    economic_proof: bool
+    portfolio_action_allowed: bool
+    reason: str
+
+
+def evaluate_agentic_engineering_compression(data: AgenticEngineeringCompressionInput) -> AgenticEngineeringCompressionResult:
+    """Score end-to-end engineering compression without confusing it with owner economics.
+
+    Difficulty and autonomous completion probability are normalized to [0, 1].
+    Human-hours displaced and deployment frequency are non-negative. The raw compression
+    value is deliberately dimensional: difficulty * P(completion) * hours * deployments.
+    Portfolio actions remain blocked here; owner-economics execution belongs to the normal
+    Agentic Economic Value + valuation/falsifier gates.
+    """
+    if not 0.0 <= data.task_difficulty <= 1.0:
+        raise ValueError("task_difficulty must be between 0 and 1")
+    if not 0.0 <= data.autonomous_completion_probability <= 1.0:
+        raise ValueError("autonomous_completion_probability must be between 0 and 1")
+    if data.human_hours_displaced < 0 or data.deployment_frequency < 0:
+        raise ValueError("hours displaced and deployment frequency cannot be negative")
+
+    value = data.task_difficulty * data.autonomous_completion_probability * data.human_hours_displaced * data.deployment_frequency
+
+    if not data.artifact_functional:
+        return AgenticEngineeringCompressionResult(value, SignalState.AMBER, "CAPABILITY", False, False, "generated code without a functional artifact is not task completion")
+    if not data.independently_verifiable:
+        return AgenticEngineeringCompressionResult(value, SignalState.GREEN, "TASK_COMPLETION_UNVERIFIED", False, False, "functional claim exists but independent verification is missing")
+    if not data.production_deployed:
+        return AgenticEngineeringCompressionResult(value, SignalState.GREEN, "TASK_COMPLETION", False, False, "verified task completion is strong capability evidence but deployment is unproven")
+
+    economic_proof = data.paid_usage_proven and data.productivity_or_revenue_proven and data.fcf_proven and data.roic_proven
+    if economic_proof:
+        return AgenticEngineeringCompressionResult(value, SignalState.GREEN_STRONG, "ROIC", True, False, "engineering compression and owner economics are both evidenced; normal valuation, competition-for-capital, and falsifier gates still apply")
+    if data.productivity_or_revenue_proven:
+        return AgenticEngineeringCompressionResult(value, SignalState.GREEN_STRONG, "PRODUCTIVITY_OR_REVENUE", False, False, "production deployment has measurable economic output, but complete owner-economics proof is absent")
+    if data.paid_usage_proven:
+        return AgenticEngineeringCompressionResult(value, SignalState.GREEN_STRONG, "PAID_USAGE", False, False, "production deployment and paid usage are proven, but productivity/revenue-to-FCF-to-ROIC transmission is incomplete")
+    return AgenticEngineeringCompressionResult(value, SignalState.GREEN_STRONG, "DEPLOYMENT", False, False, "verified production deployment proves end-to-end task completion, not monetization or owner economics")
 
 
 @dataclass(frozen=True)
@@ -156,20 +180,14 @@ def evaluate_circular_financing(data: CircularFinancingInput) -> CircularFinanci
         raise ValueError("monetary inputs cannot be negative")
     if not 0.0 <= data.external_customer_share <= 1.0:
         raise ValueError("external_customer_share must be between 0 and 1")
-
     recirculation = data.spend_returning_to_investor / data.investor_capital if data.investor_capital else 0.0
     organic = data.external_revenue / data.recipient_compute_spend if data.recipient_compute_spend else 0.0
-
     if recirculation >= 0.50 and data.external_customer_share < 0.50:
-        signal = SignalState.RED
-        reason = "high capital recirculation with weak external demand; vendor-financing risk is material"
+        signal, reason = SignalState.RED, "high capital recirculation with weak external demand; vendor-financing risk is material"
     elif recirculation >= 0.25 or data.external_customer_share < 0.65:
-        signal = SignalState.AMBER
-        reason = "circular-financing risk requires monitoring before demand is classified as organic"
+        signal, reason = SignalState.AMBER, "circular-financing risk requires monitoring before demand is classified as organic"
     else:
-        signal = SignalState.GREEN
-        reason = "external demand dominates and capital recirculation is limited"
-
+        signal, reason = SignalState.GREEN, "external demand dominates and capital recirculation is limited"
     return CircularFinancingResult(signal, recirculation, organic, False, reason)
 
 
@@ -218,6 +236,8 @@ def quantum_readiness_watch() -> QuantumReadinessResult:
 CANONICAL_LAWS = (
     "COMPUTE EFFICIENCY UP != COMPUTE DEMAND DOWN",
     "CAPABILITY != DEPLOYMENT != PRODUCTIVITY != MONETIZATION != OWNER ECONOMICS",
+    "CODE GENERATED != TASK COMPLETED != PRODUCTION DEPLOYED != ECONOMIC VALUE",
+    "ENGINEERING COMPRESSION != OWNER ECONOMICS",
     "FINANCED DEMAND != ORGANIC DEMAND",
     "TOKEN GROWTH != FCF GROWTH",
     "QUANTUM READINESS != ECONOMIC PROOF",
