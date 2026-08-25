@@ -13,6 +13,12 @@ import httpx
 from fastapi import APIRouter, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from api.execution_safety_gate import (
+    LiquidityQuoteEvidence,
+    evaluate_liquidity_spread_gate,
+    require_liquidity_execution,
+)
+
 router = APIRouter(prefix="/v1/mobile/broker", tags=["mobile-broker-trading212"])
 
 TRADING212_ENV = os.getenv("TRADING212_ENV", "demo").strip().lower()
@@ -45,6 +51,7 @@ class MarketOrderRequest(BaseModel):
     extendedHours: bool = False
     confirmation: OrderConfirmation
     clientRequestId: str = Field(min_length=8, max_length=128)
+    liquidity: LiquidityQuoteEvidence
 
 
 class LimitOrderRequest(BaseModel):
@@ -54,6 +61,7 @@ class LimitOrderRequest(BaseModel):
     timeValidity: TimeValidity = "DAY"
     confirmation: OrderConfirmation
     clientRequestId: str = Field(min_length=8, max_length=128)
+    liquidity: LiquidityQuoteEvidence
 
 
 class StopOrderRequest(BaseModel):
@@ -83,6 +91,7 @@ class OrderPreviewRequest(BaseModel):
     limitPrice: float | None = Field(default=None, gt=0)
     stopPrice: float | None = Field(default=None, gt=0)
     timeValidity: TimeValidity = "DAY"
+    liquidity: LiquidityQuoteEvidence | None = None
 
 
 class ReconcileRequest(BaseModel):
@@ -414,6 +423,14 @@ def _build_preview(order: OrderPreviewRequest, instrument: dict[str, Any]) -> di
         payload["stopPrice"] = order.stopPrice
     if order.orderType != "market":
         payload["timeValidity"] = order.timeValidity
+    liquidity_gate = None
+    if order.liquidity is not None and order.orderType in ("market", "limit"):
+        liquidity_gate = evaluate_liquidity_spread_gate(
+            evidence=order.liquidity,
+            side="SELL" if order.quantity < 0 else "BUY",
+            order_type="MARKET" if order.orderType == "market" else "LIMIT",
+            proposed_limit_price=order.limitPrice,
+        )
     return {
         "previewOnly": True,
         "willExecute": False,
@@ -429,6 +446,8 @@ def _build_preview(order: OrderPreviewRequest, instrument: dict[str, Any]) -> di
         },
         "upstreamPayload": payload,
         "liveCompatibility": live_compatibility,
+        "liquiditySpreadGate": liquidity_gate,
+        "executionReady": bool(liquidity_gate and liquidity_gate["executionAllowed"]),
         "nextStep": "EXECUTE_DEMO" if TRADING212_ENV == "demo" else "EXECUTE_LIVE",
     }
 
@@ -454,6 +473,7 @@ async def status() -> dict[str, Any]:
             "Live orders require server-side live enablement plus EXECUTE_LIVE on every request.",
             "Every order requires a unique clientRequestId because Trading 212 beta order endpoints are not idempotent.",
             "Positive quantity buys; negative quantity sells.",
+            "MARKET and LIMIT execution requires same-ticker, attributable bid/ask evidence no more than 30 seconds old.",
         ],
     }
 
@@ -639,6 +659,7 @@ async def _place_order(
     confirmation: OrderConfirmation,
     client_request_id: str,
     control_token: str | None,
+    liquidity_gate: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     _require_control_token(control_token)
     order_type = endpoint.rsplit("/", 1)[-1]
@@ -655,6 +676,7 @@ async def _place_order(
         "orderType": order_type.upper(),
         "ticker": body.get("ticker"),
         "quantity": body.get("quantity"),
+        "liquiditySpreadGate": liquidity_gate,
     }
     return result
 
@@ -664,12 +686,19 @@ async def market_order(
     order: MarketOrderRequest,
     x_atlas_broker_token: str | None = Header(default=None),
 ) -> dict[str, Any]:
+    liquidity_gate = require_liquidity_execution(
+        order_ticker=order.ticker,
+        quantity=order.quantity,
+        order_type="MARKET",
+        evidence=order.liquidity,
+    )
     return await _place_order(
         "/equity/orders/market",
         {"ticker": order.ticker.strip(), "quantity": order.quantity, "extendedHours": order.extendedHours},
         order.confirmation,
         order.clientRequestId,
         x_atlas_broker_token,
+        liquidity_gate,
     )
 
 
@@ -678,6 +707,13 @@ async def limit_order(
     order: LimitOrderRequest,
     x_atlas_broker_token: str | None = Header(default=None),
 ) -> dict[str, Any]:
+    liquidity_gate = require_liquidity_execution(
+        order_ticker=order.ticker,
+        quantity=order.quantity,
+        order_type="LIMIT",
+        evidence=order.liquidity,
+        proposed_limit_price=order.limitPrice,
+    )
     return await _place_order(
         "/equity/orders/limit",
         {
@@ -689,6 +725,7 @@ async def limit_order(
         order.confirmation,
         order.clientRequestId,
         x_atlas_broker_token,
+        liquidity_gate,
     )
 
 

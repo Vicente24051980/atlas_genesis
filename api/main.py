@@ -12,6 +12,8 @@ import httpx
 from fastapi import FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
+from api.execution_safety_gate import LiquidityQuoteEvidence, require_liquidity_execution
+
 FINNHUB_BASE_URL = "https://finnhub.io/api/v1"
 FINNHUB_TOKEN = os.getenv("FINNHUB_TOKEN", "").strip()
 
@@ -32,6 +34,7 @@ class MarketOrderRequest(BaseModel):
     quantity: float
     extended_hours: bool = False
     confirmation: Literal["EXECUTE_DEMO", "EXECUTE_LIVE"]
+    liquidity: LiquidityQuoteEvidence
 
 def _require_token() -> str:
     if not FINNHUB_TOKEN: raise HTTPException(status_code=503, detail="FINNHUB_TOKEN is not configured")
@@ -116,7 +119,7 @@ async def discovery(q:str=Query(...,min_length=1,max_length=120),exchange:str|No
     if exchange: params["exchange"]=exchange.strip().upper()
     return {"query":q.strip(),"exchange":exchange,"source":"Finnhub","data":await _finnhub_get("/search",params)}
 @app.get("/v1/broker/status")
-async def broker_status()->dict[str,Any]: return {"provider":"Trading212","environment":TRADING212_ENV,"configured":_broker_configured(),"liveTradingEnabled":TRADING212_LIVE_TRADING_ENABLED,"mode":"LIVE" if TRADING212_ENV=="live" else "PAPER","guardrail":"Live orders require server-side enablement plus an explicit EXECUTE_LIVE confirmation on every order."}
+async def broker_status()->dict[str,Any]: return {"provider":"Trading212","environment":TRADING212_ENV,"configured":_broker_configured(),"liveTradingEnabled":TRADING212_LIVE_TRADING_ENABLED,"mode":"LIVE" if TRADING212_ENV=="live" else "PAPER","guardrail":"Live orders require server-side enablement, explicit EXECUTE_LIVE confirmation and same-ticker bid/ask evidence no more than 30 seconds old."}
 @app.get("/v1/broker/account")
 async def broker_account(x_atlas_broker_token:str|None=Header(default=None))->dict[str,Any]: _require_broker_control(x_atlas_broker_token); return {"provider":"Trading212","environment":TRADING212_ENV,"data":await _trading212_request("GET","/equity/account/summary")}
 @app.get("/v1/broker/positions")
@@ -137,8 +140,9 @@ async def broker_market_order(order:MarketOrderRequest,x_atlas_broker_token:str|
     expected="EXECUTE_LIVE" if TRADING212_ENV=="live" else "EXECUTE_DEMO"
     if order.confirmation!=expected: raise HTTPException(status_code=400,detail=f"confirmation must be {expected} for this environment")
     if TRADING212_ENV=="live" and not TRADING212_LIVE_TRADING_ENABLED: raise HTTPException(status_code=403,detail="Live trading is locked. Set TRADING212_LIVE_TRADING_ENABLED=true server-side only after paper validation.")
+    liquidity_gate=require_liquidity_execution(order_ticker=ticker,quantity=order.quantity,order_type="MARKET",evidence=order.liquidity)
     data=await _trading212_request("POST","/equity/orders/market",json={"ticker":ticker,"quantity":order.quantity,"extendedHours":order.extended_hours})
-    return {"provider":"Trading212","environment":TRADING212_ENV,"mode":"LIVE" if TRADING212_ENV=="live" else "PAPER","order":data,"audit":{"requestedTicker":ticker,"requestedQuantity":order.quantity,"extendedHours":order.extended_hours}}
+    return {"provider":"Trading212","environment":TRADING212_ENV,"mode":"LIVE" if TRADING212_ENV=="live" else "PAPER","order":data,"audit":{"requestedTicker":ticker,"requestedQuantity":order.quantity,"extendedHours":order.extended_hours,"liquiditySpreadGate":liquidity_gate}}
 @app.delete("/v1/broker/orders/{order_id}")
 async def broker_cancel_order(order_id:int,x_atlas_broker_token:str|None=Header(default=None))->dict[str,Any]: _require_broker_control(x_atlas_broker_token); return {"provider":"Trading212","environment":TRADING212_ENV,"orderId":order_id,"result":await _trading212_request("DELETE",f"/equity/orders/{order_id}")}
 

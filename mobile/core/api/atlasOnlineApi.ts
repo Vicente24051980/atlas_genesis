@@ -213,11 +213,23 @@ export type BrokerStatus = {
 };
 export type BrokerEnvelope = { provider: 'Trading212'; environment: 'demo' | 'live'; data: unknown };
 export type BrokerInstrumentSearch = { query: string; count: number; items: Array<Record<string, unknown>> };
+export type LiquidityQuoteEvidence = {
+  ticker: string;
+  lastTradePrice?: number;
+  bidPrice: number;
+  askPrice: number;
+  quoteTimestamp: string;
+  quoteSource: string;
+  venue?: string;
+  lowLiquidityFlag?: boolean;
+};
+
 export type MarketOrderInput = {
   ticker: string;
   quantity: number;
   extended_hours?: boolean;
   confirmation: 'EXECUTE_DEMO' | 'EXECUTE_LIVE';
+  liquidity: LiquidityQuoteEvidence;
 };
 
 type LiveQuote = {

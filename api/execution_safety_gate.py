@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/v1/mobile/broker/safety", tags=["execution-safety-gate"])
@@ -24,6 +25,18 @@ ExecutionState = Literal[
 
 Action = Literal["EXECUTE", "NO_EXECUTE"]
 PendingPolicy = Literal["NONE", "KEEP_PENDING", "REVIEW_REQUIRED"]
+LiquidityDecision = Literal[
+    "PASS",
+    "PASS_LIMIT_PROTECTED",
+    "LIMIT_ONLY",
+    "WAIT_SPREAD",
+    "EVIDENCE_REQUIRED",
+]
+
+MAX_QUOTED_SPREAD_PCT = 1.0
+MAX_REFERENCE_PREMIUM_PCT = 0.75
+SEVERE_QUOTED_SPREAD_PCT = 2.0
+MAX_QUOTE_AGE_SECONDS = 30.0
 
 
 class SafetyClassificationRequest(BaseModel):
@@ -41,6 +54,24 @@ class SafetyPreflightRequest(BaseModel):
     exchangeStatus: str | None = Field(default=None, max_length=120)
     closeOnly: bool = False
     tradable: bool | None = None
+
+
+class LiquidityQuoteEvidence(BaseModel):
+    ticker: str = Field(min_length=1, max_length=64)
+    lastTradePrice: float | None = Field(default=None, gt=0)
+    bidPrice: float = Field(gt=0)
+    askPrice: float = Field(gt=0)
+    quoteTimestamp: datetime
+    quoteSource: str = Field(min_length=1, max_length=120)
+    venue: str | None = Field(default=None, max_length=64)
+    lowLiquidityFlag: bool = False
+
+
+class LiquiditySpreadRequest(BaseModel):
+    side: Literal["BUY", "SELL"]
+    orderType: Literal["MARKET", "LIMIT"]
+    evidence: LiquidityQuoteEvidence
+    proposedLimitPrice: float | None = Field(default=None, gt=0)
 
 
 def _text(value: Any) -> str:
@@ -204,16 +235,212 @@ def classify_preflight(
     return _decision("READY", reason="No blocking execution condition detected by available preflight metadata.", source="preflight", ticker=ticker)
 
 
+def evaluate_liquidity_spread_gate(
+    *,
+    evidence: LiquidityQuoteEvidence,
+    side: Literal["BUY", "SELL"],
+    order_type: Literal["MARKET", "LIMIT"],
+    proposed_limit_price: float | None = None,
+    evaluated_at: datetime | None = None,
+) -> dict[str, Any]:
+    reasons: list[str] = []
+    now = evaluated_at or datetime.now(timezone.utc)
+    timestamp = evidence.quoteTimestamp
+    prices = [evidence.bidPrice, evidence.askPrice]
+    if evidence.lastTradePrice is not None:
+        prices.append(evidence.lastTradePrice)
+
+    def build(
+        decision: LiquidityDecision,
+        allowed: bool,
+        *,
+        immediate: bool | None,
+        quoted_spread_pct: float | None = None,
+        reference_premium_pct: float | None = None,
+        quote_age_seconds: float | None = None,
+    ) -> dict[str, Any]:
+        return {
+            "gate": "Liquidity / Spread Gate Ω",
+            "version": "1.1.0",
+            "ticker": evidence.ticker.strip(),
+            "side": side,
+            "orderType": order_type,
+            "decision": decision,
+            "executionAllowed": allowed,
+            "orderPlacementAllowed": allowed,
+            "immediateExecutionPossible": immediate,
+            "quotedSpreadPct": quoted_spread_pct,
+            "referencePremiumPct": reference_premium_pct,
+            "quoteAgeSeconds": quote_age_seconds,
+            "quoteSource": evidence.quoteSource.strip() or None,
+            "reasons": reasons,
+            "investmentSignalImpact": "NONE",
+        }
+
+    if now.tzinfo is None or timestamp.tzinfo is None:
+        reasons.append("Timezone-aware quoteTimestamp and evaluation time are required.")
+        return build("EVIDENCE_REQUIRED", False, immediate=None)
+
+    if not evidence.quoteSource.strip():
+        reasons.append("Attributable quoteSource evidence is required.")
+        return build("EVIDENCE_REQUIRED", False, immediate=None)
+
+    if not all(math.isfinite(value) and value > 0 for value in prices):
+        reasons.append("All supplied quote prices must be finite and positive.")
+        return build("EVIDENCE_REQUIRED", False, immediate=None)
+
+    if evidence.askPrice < evidence.bidPrice:
+        reasons.append("Invalid quote book: askPrice is below bidPrice.")
+        return build("EVIDENCE_REQUIRED", False, immediate=None)
+
+    quote_age_seconds = round((now.astimezone(timezone.utc) - timestamp.astimezone(timezone.utc)).total_seconds(), 3)
+    if quote_age_seconds < -5 or quote_age_seconds > MAX_QUOTE_AGE_SECONDS:
+        reasons.append(
+            f"Quote age {quote_age_seconds}s is outside the permitted {MAX_QUOTE_AGE_SECONDS:g}s freshness window."
+        )
+        return build("EVIDENCE_REQUIRED", False, immediate=None, quote_age_seconds=quote_age_seconds)
+
+    midpoint = (evidence.bidPrice + evidence.askPrice) / 2
+    reference_price = evidence.lastTradePrice or midpoint
+    quoted_spread_pct = round(((evidence.askPrice - evidence.bidPrice) / midpoint) * 100, 4)
+    executable_price = evidence.askPrice if side == "BUY" else evidence.bidPrice
+    if side == "BUY":
+        reference_premium_pct = round(((executable_price - reference_price) / reference_price) * 100, 4)
+        max_acceptable_limit = reference_price * (1 + MAX_REFERENCE_PREMIUM_PCT / 100)
+    else:
+        reference_premium_pct = round(((reference_price - executable_price) / reference_price) * 100, 4)
+        max_acceptable_limit = reference_price * (1 - MAX_REFERENCE_PREMIUM_PCT / 100)
+
+    reasons.append(
+        f"Quote evidence from {evidence.quoteSource.strip()} is attributable and fresh ({quote_age_seconds}s old)."
+    )
+
+    if order_type == "LIMIT":
+        if proposed_limit_price is None or not math.isfinite(proposed_limit_price) or proposed_limit_price <= 0:
+            reasons.append("A finite positive proposed limit price is required.")
+            return build(
+                "EVIDENCE_REQUIRED",
+                False,
+                immediate=None,
+                quoted_spread_pct=quoted_spread_pct,
+                reference_premium_pct=reference_premium_pct,
+                quote_age_seconds=quote_age_seconds,
+            )
+        protected = proposed_limit_price <= max_acceptable_limit if side == "BUY" else proposed_limit_price >= max_acceptable_limit
+        if not protected:
+            reasons.append("Proposed limit is too aggressive relative to the reference-price execution budget.")
+            return build(
+                "WAIT_SPREAD",
+                False,
+                immediate=False,
+                quoted_spread_pct=quoted_spread_pct,
+                reference_premium_pct=reference_premium_pct,
+                quote_age_seconds=quote_age_seconds,
+            )
+        immediate = proposed_limit_price >= evidence.askPrice if side == "BUY" else proposed_limit_price <= evidence.bidPrice
+        reasons.append("Protected limit placement is inside the configured execution budget.")
+        if not immediate:
+            reasons.append("No immediate fill is asserted at the current bid/ask.")
+        return build(
+            "PASS_LIMIT_PROTECTED",
+            True,
+            immediate=immediate,
+            quoted_spread_pct=quoted_spread_pct,
+            reference_premium_pct=reference_premium_pct,
+            quote_age_seconds=quote_age_seconds,
+        )
+
+    if quoted_spread_pct > SEVERE_QUOTED_SPREAD_PCT:
+        reasons.append("Severe quoted spread blocks market execution.")
+        return build(
+            "WAIT_SPREAD",
+            False,
+            immediate=False,
+            quoted_spread_pct=quoted_spread_pct,
+            reference_premium_pct=reference_premium_pct,
+            quote_age_seconds=quote_age_seconds,
+        )
+
+    if (
+        quoted_spread_pct > MAX_QUOTED_SPREAD_PCT
+        or reference_premium_pct > MAX_REFERENCE_PREMIUM_PCT
+        or evidence.lowLiquidityFlag
+    ):
+        reasons.append("Market order blocked; use a price-protected limit order or wait for liquidity.")
+        return build(
+            "LIMIT_ONLY",
+            False,
+            immediate=False,
+            quoted_spread_pct=quoted_spread_pct,
+            reference_premium_pct=reference_premium_pct,
+            quote_age_seconds=quote_age_seconds,
+        )
+
+    reasons.append("Bid/ask spread and executable-price premium are inside budget.")
+    return build(
+        "PASS",
+        True,
+        immediate=True,
+        quoted_spread_pct=quoted_spread_pct,
+        reference_premium_pct=reference_premium_pct,
+        quote_age_seconds=quote_age_seconds,
+    )
+
+
+def require_liquidity_execution(
+    *,
+    order_ticker: str,
+    quantity: float,
+    order_type: Literal["MARKET", "LIMIT"],
+    evidence: LiquidityQuoteEvidence,
+    proposed_limit_price: float | None = None,
+) -> dict[str, Any]:
+    normalized_order_ticker = order_ticker.strip().upper()
+    normalized_quote_ticker = evidence.ticker.strip().upper()
+    if normalized_order_ticker != normalized_quote_ticker:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Timing/order ticker and liquidity-evidence ticker do not match; execution fails closed.",
+                "ticker": normalized_order_ticker,
+                "liquidityTicker": normalized_quote_ticker,
+            },
+        )
+    side: Literal["BUY", "SELL"] = "SELL" if quantity < 0 else "BUY"
+    result = evaluate_liquidity_spread_gate(
+        evidence=evidence,
+        side=side,
+        order_type=order_type,
+        proposed_limit_price=proposed_limit_price,
+    )
+    if not result["executionAllowed"]:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "message": "Liquidity / Spread Gate Ω blocked execution.",
+                "ticker": normalized_order_ticker,
+                "liquiditySpreadGate": result,
+            },
+        )
+    return result
+
+
 @router.get("/policy")
 async def policy() -> dict[str, Any]:
     return {
         "gate": "Execution Safety Gate Ω",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "chain": "TRADING_HALT -> NO_EXECUTE -> KEEP_PENDING -> RECHECK",
         "temporaryStates": ["TRADING_HALT", "MARKET_CLOSED", "RATE_LIMIT"],
         "reviewStates": ["CLOSE_ONLY", "INSTRUMENT_NOT_TRADABLE", "INSUFFICIENT_FUNDS", "AUTH_ERROR", "ORDER_REJECTED", "API_ERROR"],
         "investmentSignalImpact": "NONE",
         "principle": "Execution availability is operational evidence, not an investment thesis signal.",
+        "liquiditySpreadGate": {
+            "maxQuotedSpreadPct": MAX_QUOTED_SPREAD_PCT,
+            "maxReferencePremiumPct": MAX_REFERENCE_PREMIUM_PCT,
+            "severeQuotedSpreadPct": SEVERE_QUOTED_SPREAD_PCT,
+            "maxQuoteAgeSeconds": MAX_QUOTE_AGE_SECONDS,
+        },
     }
 
 
@@ -237,4 +464,14 @@ async def preflight(payload: SafetyPreflightRequest) -> dict[str, Any]:
         exchange_status=payload.exchangeStatus,
         close_only=payload.closeOnly,
         tradable=payload.tradable,
+    )
+
+
+@router.post("/liquidity")
+async def liquidity(payload: LiquiditySpreadRequest) -> dict[str, Any]:
+    return evaluate_liquidity_spread_gate(
+        evidence=payload.evidence,
+        side=payload.side,
+        order_type=payload.orderType,
+        proposed_limit_price=payload.proposedLimitPrice,
     )

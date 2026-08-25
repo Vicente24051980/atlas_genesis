@@ -61,12 +61,24 @@ export type PortfolioReconciliation = {
   weightsComplete: boolean;
 };
 
+export type LiquidityQuoteEvidence = {
+  ticker: string;
+  lastTradePrice?: number;
+  bidPrice: number;
+  askPrice: number;
+  quoteTimestamp: string;
+  quoteSource: string;
+  venue?: string;
+  lowLiquidityFlag?: boolean;
+};
+
 export type MarketOrderInput = {
   ticker: string;
   quantity: number;
   extendedHours?: boolean;
   confirmation: 'EXECUTE_DEMO' | 'EXECUTE_LIVE';
   clientRequestId: string;
+  liquidity: LiquidityQuoteEvidence;
 };
 
 export type LimitOrderInput = {
@@ -76,6 +88,7 @@ export type LimitOrderInput = {
   timeValidity?: 'DAY' | 'GOOD_TILL_CANCEL';
   confirmation: 'EXECUTE_DEMO' | 'EXECUTE_LIVE';
   clientRequestId: string;
+  liquidity: LiquidityQuoteEvidence;
 };
 
 export type StopOrderInput = {
@@ -97,6 +110,7 @@ export type OrderPreviewInput = {
   limitPrice?: number;
   stopPrice?: number;
   timeValidity?: 'DAY' | 'GOOD_TILL_CANCEL';
+  liquidity?: LiquidityQuoteEvidence;
 };
 
 export type OrderPreview = {
