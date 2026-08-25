@@ -20,5 +20,6 @@ from .resource_rotation import BranchMarketInput, BranchMarketResult, GoldMinerI
 from .capital_competition import Candidate, rank_candidate, competition_for_capital
 from .universe_competition import UniverseCandidate, audit_candidate, full_universe_competition, green_time_in_portfolio
 from .portfolio_finalizer import FinalCandidate, FinalDecision, GreenTier, CANONICAL_FINALIZER_LAWS, classify, finalize, replacement_allowed
+from .market_technical_gates import CryptoConvergenceInput, CryptoConvergenceResult, DurationStressInput, DurationStressRegime, DurationStressResult, SOXTransmissionInput, SOXTransmissionResult, TECHNICAL_GATE_CANONICAL_LAWS, TechnicalGateState, evaluate_crypto_convergence, evaluate_duration_stress, evaluate_sox_transmission
 
 __all__ = [name for name in globals() if not name.startswith("_")]
