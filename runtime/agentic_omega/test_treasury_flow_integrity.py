@@ -19,12 +19,23 @@ def test_btc_holdings_growth_does_not_override_per_share_dilution():
 
 
 def test_zero_debt_with_preferred_is_not_zero_economic_leverage():
-    result = evaluate_bitcoin_treasury(
-        BitcoinTreasuryInput(0.40, 0.10, 0.20, debt=0, preferred_notional=200, preferred_cash_cost=26, common_equity_value=800)
-    )
+    result = evaluate_bitcoin_treasury(BitcoinTreasuryInput(0.40, 0.10, 0.20, debt=0, preferred_notional=200, preferred_cash_cost=26, common_equity_value=800))
     assert result.signal is SignalState.AMBER
     assert result.economic_leverage_ratio == 0.25
     assert result.portfolio_action_allowed is False
+
+
+def test_large_mnav_premium_blocks_green_common_equity_signal():
+    result = evaluate_bitcoin_treasury(BitcoinTreasuryInput(0.40, 0.05, 0.20, common_equity_value=2000, bitcoin_nav=800))
+    assert result.mnav == 2.5
+    assert result.signal is SignalState.AMBER
+    assert result.portfolio_action_allowed is False
+
+
+def test_preferred_cash_burden_can_turn_treasury_red():
+    result = evaluate_bitcoin_treasury(BitcoinTreasuryInput(0.40, 0.05, 0.20, preferred_cash_cost=60, annual_common_cash_generation=100, common_equity_value=1000))
+    assert result.preferred_cash_burden == 0.6
+    assert result.signal is SignalState.RED
 
 
 def test_flow_series_are_not_comparable_across_universes():
