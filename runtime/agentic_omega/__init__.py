@@ -13,5 +13,6 @@ from .treasury_flow_integrity import BitcoinTreasuryInput, BitcoinTreasuryResult
 from .earnings_flow_confirmation import EFCInput, FlowCausalityInput, earnings_flow_confirmation, residual_return, accumulation_state, portfolio_green, portfolio_state
 from .cyclical_normalization import RefiningInput, FreightInput, refining_normalization, freight_cycle
 from .capital_competition import Candidate, rank_candidate, competition_for_capital
+from .universe_competition import UniverseCandidate, audit_candidate, full_universe_competition, green_time_in_portfolio
 
 __all__ = [name for name in globals() if not name.startswith("_")]
