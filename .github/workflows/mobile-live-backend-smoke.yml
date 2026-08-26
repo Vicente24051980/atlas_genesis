@@ -7,6 +7,7 @@ on:
       - api/**
       - runtime/agentic_omega/**
       - render.yaml
+      - .python-version
       - .github/workflows/mobile-live-backend-smoke.yml
       - .github/workflows/release-certified-mobile-apk.yml
   workflow_dispatch:
@@ -119,7 +120,7 @@ jobs:
             SERVICE_ID=$(python3 - <<'PY'
           import json
           data=json.load(open('/tmp/render-services.json'))
-          preferred=('atlas-genesis','atlas-genesis-api')
+          preferred=('atlas_genesis','atlas-genesis','atlas-genesis-api')
           found=[]
           for item in data if isinstance(data,list) else []:
               s=item.get('service',item) if isinstance(item,dict) else {}
