@@ -43,7 +43,7 @@ jobs:
       ATLAS_PRODUCTION_API: ${{ vars.ATLAS_PRODUCTION_API }}
     steps:
       - id: deploy
-        name: Trigger Render deploy when authenticated
+        name: Trigger Render deploy or require Blueprint auto-deploy
         shell: bash
         run: |
           set -euo pipefail
@@ -56,11 +56,13 @@ jobs:
             exit 0
           fi
           if [ -z "${RENDER_API_KEY:-}" ]; then
-            echo "deploy_trigger=not_configured" >> "$GITHUB_OUTPUT"
-            echo "live_smoke_enabled=false" >> "$GITHUB_OUTPUT"
-            echo "RENDER_DEPLOY_TRIGGER=not_configured"
-            echo "No Render deploy credential is configured. Live smoke is skipped instead of producing a false 404 failure."
-            echo "Configure RENDER_DEPLOY_HOOK_URL or RENDER_API_KEY/RENDER_SERVICE_ID to certify the deployed service."
+            # render.yaml declares autoDeployTrigger: commit. Do not silently skip live
+            # certification when explicit Render credentials are absent: wait for the
+            # Blueprint auto-deploy and fail if production remains on an old artifact.
+            echo "deploy_trigger=blueprint_auto_deploy" >> "$GITHUB_OUTPUT"
+            echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
+            echo "RENDER_DEPLOY_TRIGGER=blueprint_auto_deploy"
+            echo "No Render API credential configured; production certification will verify Blueprint auto-deploy instead of skipping."
             exit 0
           fi
           SERVICE_ID="${RENDER_SERVICE_ID:-}"
@@ -97,7 +99,7 @@ jobs:
       ATLAS_PRODUCTION_API: ${{ vars.ATLAS_PRODUCTION_API }}
     steps:
       - id: resolve
-        name: Resolve deployed ATLAS production surface
+        name: Resolve and certify deployed ATLAS production surface
         shell: bash
         run: |
           set -euo pipefail
@@ -119,14 +121,29 @@ jobs:
               root=$(curl -sS --max-time 25 -o /tmp/root.json -w "%{http_code}" "$BASE/health" || true)
               mobile=$(curl -sS --max-time 25 -o /tmp/mobile.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
               gov=$(curl -sS --max-time 25 -o /tmp/gov.json -w "%{http_code}" "$BASE/v1/agentic-omega/v2/governance/capabilities" || true)
-              echo "probe=$attempt base=$BASE root=$root mobile=$mobile governance=$gov"
-              if [ "$mobile" = 200 ] && [ "$gov" = 200 ] && python3 - <<'PY'
+              openapi=$(curl -sS --max-time 25 -o /tmp/openapi.json -w "%{http_code}" "$BASE/openapi.json" || true)
+              echo "probe=$attempt base=$BASE root=$root mobile=$mobile governance=$gov openapi=$openapi"
+              if [ "$mobile" = 200 ] && [ "$gov" = 200 ] && [ "$openapi" = 200 ] && python3 - <<'PY'
           import json
-          m=json.load(open('/tmp/mobile.json')); g=json.load(open('/tmp/gov.json'))
+          m=json.load(open('/tmp/mobile.json')); g=json.load(open('/tmp/gov.json')); o=json.load(open('/tmp/openapi.json'))
           assert m.get('ok') is True and m.get('service')=='atlas-mobile-v2'
           assert g.get('version')=='2.3-governance-evidence'
           assert g.get('unknownCapabilityFailsClosed') is True
           assert g.get('credentialValuesPersisted') is False
+          paths=set((o.get('paths') or {}).keys())
+          required={
+              '/v1/mobile/health',
+              '/v1/mobile/indices',
+              '/v1/mobile/company/{ticker}',
+              '/v1/mobile/audit/{ticker}',
+              '/v1/mobile/broker/status',
+              '/v1/mobile/broker/account',
+              '/v1/mobile/broker/positions',
+              '/v1/mobile/broker/orders',
+              '/v1/mobile/broker/metadata/instruments/search',
+          }
+          missing=sorted(required-paths)
+          assert not missing, f'production deployment drift; missing routes: {missing}'
           PY
               then
                 echo "production_api=$BASE" >> "$GITHUB_OUTPUT"
@@ -135,8 +152,8 @@ jobs:
             done
             sleep 15
           done
-          echo "ERROR: deployed Render service never exposed required ATLAS surfaces after authenticated deploy."
-          echo "Check Render deploy logs, service startCommand, healthCheckPath, and ATLAS_PRODUCTION_API if using a non-default host."
+          echo "ERROR: deployed Render service never exposed the required current ATLAS mobile surface."
+          echo "Production deployment drift is a hard failure; do not ship an APK against a backend returning route 404s."
           exit 1
 
   live-atlas-api:
@@ -152,5 +169,13 @@ jobs:
         run: |
           set -euo pipefail
           BASE="$ATLAS_PRODUCTION_API"
-          for path in health v1/mobile/health v1/agentic-omega/health v1/agentic-omega/v2/capabilities v1/agentic-omega/v2/evidence-capabilities v1/agentic-omega/v2/governance/capabilities v1/mobile/portfolio v1/mobile/broker/status; do curl -fsS --max-time 30 "$BASE/$path" >/dev/null; done
+          for path in health v1/mobile/health v1/agentic-omega/health v1/agentic-omega/v2/capabilities v1/agentic-omega/v2/evidence-capabilities v1/agentic-omega/v2/governance/capabilities v1/mobile/portfolio v1/mobile/broker/status openapi.json; do curl -fsS --max-time 30 "$BASE/$path" >/dev/null; done
+          curl -fsS --max-time 30 "$BASE/openapi.json" > /tmp/openapi.json
+          python3 - <<'PY'
+          import json
+          paths=set((json.load(open('/tmp/openapi.json')).get('paths') or {}).keys())
+          required={'/v1/mobile/indices','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status'}
+          missing=sorted(required-paths)
+          assert not missing, f'missing certified mobile routes: {missing}'
+          PY
           echo LIVE_ATLAS_AGENTIC_V23_PASS
