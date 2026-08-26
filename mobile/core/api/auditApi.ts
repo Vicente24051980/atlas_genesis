@@ -68,6 +68,18 @@ const ENGINE_LABELS: [string, string, AuditEngineState][] = [
   ['EVIDENCE_DIRECTOR_OMEGA', 'Evidence Director Ω', 'PARTIAL'],
 ];
 
+class AuditHttpError extends Error {
+  readonly status: number;
+  readonly path: string;
+
+  constructor(status: number, path: string, message: string) {
+    super(message);
+    this.name = 'AuditHttpError';
+    this.status = status;
+    this.path = path;
+  }
+}
+
 async function request<T>(path: string, timeoutMs = 45000): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -79,8 +91,13 @@ async function request<T>(path: string, timeoutMs = 45000): Promise<T> {
     const payload: unknown = await response.json().catch(() => ({}));
     if (!response.ok) {
       const row = payload && typeof payload === 'object' ? payload as Record<string, unknown> : {};
-      const detail = typeof row.detail === 'string' ? row.detail : `ATLAS API HTTP ${response.status}`;
-      throw new Error(detail);
+      const rawDetail = row.detail;
+      const detail = typeof rawDetail === 'string'
+        ? rawDetail
+        : rawDetail && typeof rawDetail === 'object'
+          ? JSON.stringify(rawDetail)
+          : `ATLAS API HTTP ${response.status}`;
+      throw new AuditHttpError(response.status, path, detail);
     }
     return payload as T;
   } catch (error) {
@@ -94,7 +111,7 @@ async function request<T>(path: string, timeoutMs = 45000): Promise<T> {
 function fallbackLedger(company: CompanyPayload, capexMapped: boolean): AuditEngineResult[] {
   return ENGINE_LABELS.map(([engineId, label, baseState]) => {
     let state = baseState;
-    let detail = 'Motor visible, pero el endpoint unificado de auditoría aún no está disponible. ATLAS no fabrica el resultado.';
+    let detail = 'Motor visible, pero el endpoint unificado de auditoría no está disponible. ATLAS no fabrica el resultado.';
     const evidence: string[] = [];
     const provenance: string[] = [];
 
@@ -127,25 +144,29 @@ function fallbackLedger(company: CompanyPayload, capexMapped: boolean): AuditEng
   });
 }
 
-async function safeFallback(symbol: string): Promise<FullAuditPayload> {
+async function safeFallback(symbol: string, cause: unknown): Promise<FullAuditPayload> {
   const [company, capex] = await Promise.all([
     MobileApi.company(symbol),
     CapexChainApi.profile(symbol).catch(() => null),
   ]);
+  const deploymentDrift = cause instanceof AuditHttpError && cause.status === 404;
+  const causeText = cause instanceof Error ? cause.message : String(cause);
   return {
     ticker: symbol,
     asOf: new Date().toISOString(),
-    protocol: 'ATLAS_OMEGA_MOBILE_FULL_AUDIT_V2_FALLBACK',
+    protocol: deploymentDrift ? 'ATLAS_OMEGA_MOBILE_DEPLOYMENT_DRIFT_FALLBACK' : 'ATLAS_OMEGA_MOBILE_FULL_AUDIT_V2_FALLBACK',
     engineOrderRule: 'GREEN_FIRST_THEN_FULL_TRANSVERSAL_SWEEP',
     company,
     engines: fallbackLedger(company, capex?.mapped === true),
     contradictions: capex?.mapped ? ['CAPEX structural mapping exists while the full economic-evidence chain is incomplete.'] : [],
     decision: {
       recommendation: 'PENDING',
-      action: 'NO BUY · DATA GATE',
+      action: deploymentDrift ? 'NO BUY · BACKEND DEPLOYMENT DRIFT' : 'NO BUY · DATA GATE',
       executionState: 'BLOCKED',
       confidence: 'LOW',
-      reason: 'El endpoint unificado aún no respondió; se muestran datos reales disponibles y gates explícitos, nunca una recomendación inventada.',
+      reason: deploymentDrift
+        ? 'La APK detectó que el backend desplegado no contiene /v1/mobile/audit. Se usa sólo compatibilidad de lectura; ninguna recomendación se inventa.'
+        : `El endpoint unificado no respondió (${causeText}); se muestran datos reales disponibles y gates explícitos.`,
     },
     guardrails: [
       'Fallback fail-closed: no fabricated engine result or BUY decision.',
@@ -161,8 +182,8 @@ export const AuditApi = {
     if (!symbol) throw new Error('Escribe un ticker.');
     try {
       return await request<FullAuditPayload>(`/v1/mobile/audit/${encodeURIComponent(symbol)}`);
-    } catch {
-      return safeFallback(symbol);
+    } catch (cause) {
+      return safeFallback(symbol, cause);
     }
   },
 };
