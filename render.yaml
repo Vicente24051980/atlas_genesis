@@ -12,7 +12,7 @@ services:
     healthCheckPath: /v1/mobile/health
     envVars:
       - key: ATLAS_DEPLOY_REVISION
-        value: "2026-08-23-mobile-v103-audit-broker"
+        value: "2026-08-26-t212-mobile-route-recovery"
       - key: FINANCIALDATANET_API_KEY
         sync: false
       - key: FINNHUB_TOKEN
