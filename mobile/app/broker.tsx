@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { BrokerApi, BrokerEnvelope, BrokerStatus } from '../core/api/brokerApi';
+import { BrokerApi, BrokerEnvelope, BrokerHttpError, BrokerStatus } from '../core/api/brokerApi';
 import { BrokerSession } from '../core/security/brokerSession';
 
 export default function BrokerScreen() {
   const [status, setStatus] = useState<BrokerStatus | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [controlToken, setControlToken] = useState('');
   const [account, setAccount] = useState<BrokerEnvelope | null>(null);
   const [positions, setPositions] = useState<BrokerEnvelope | null>(null);
@@ -19,9 +20,16 @@ export default function BrokerScreen() {
 
   const loadStatus = async () => {
     try {
-      setStatus(await BrokerApi.status());
+      const next = await BrokerApi.status();
+      setStatus(next);
+      setStatusError(null);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setStatus(null);
+      if (cause instanceof BrokerHttpError && cause.status === 404) {
+        setStatusError('DEPLOYMENT DRIFT · las rutas Trading 212 existen en ATLAS, pero el backend desplegado no expone todavía el contrato requerido.');
+      } else {
+        setStatusError(cause instanceof Error ? cause.message : String(cause));
+      }
     }
   };
 
@@ -89,21 +97,28 @@ export default function BrokerScreen() {
     }
   };
 
+  const bridgeLabel = status ? (status.apiVersion === 'legacy-read-compat' ? 'ONLINE · LEGACY COMPAT' : 'ONLINE') : statusError ? 'NO DISPONIBLE' : 'CONECTANDO';
+  const credentialsLabel = status ? (status.credentialsConfigured ? 'CONFIGURADAS' : 'PENDIENTES EN SERVIDOR') : 'NO VERIFICADAS';
+  const readLabel = status ? (status.readReady ? 'LISTA' : 'BLOQUEADA') : 'NO VERIFICADA';
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
       <Pressable accessibilityRole="button" accessibilityLabel="Volver" onPress={() => router.back()} style={styles.back}><Text style={styles.backText}>← Terminal</Text></Pressable>
       <Text style={styles.eyebrow}>BROKER Ω · TRADING 212</Text>
-      <Text style={styles.title}>Cuenta conectada</Text>
+      <Text style={styles.title}>{status ? 'Cuenta conectada' : 'Bridge Trading 212'}</Text>
       <Text style={styles.subtitle}>Bridge server-side. La APK no contiene tu API key ni tu API secret de Trading 212. El token de control puede guardarse cifrado en SecureStore para cargar la cartera automáticamente al abrir ATLAS.</Text>
 
       <View style={styles.card}>
-        <Row label="Bridge" value={status ? 'ONLINE' : 'CONECTANDO'} good={Boolean(status)} />
+        <Row label="Bridge" value={bridgeLabel} good={status ? true : statusError ? false : undefined} />
         <Row label="Entorno" value={status ? `${status.environment.toUpperCase()} · ${status.mode}` : '—'} />
-        <Row label="Credenciales" value={status?.credentialsConfigured ? 'CONFIGURADAS' : 'PENDIENTES EN SERVIDOR'} good={status?.credentialsConfigured} />
-        <Row label="Lectura" value={status?.readReady ? 'LISTA' : 'BLOQUEADA'} good={status?.readReady} />
+        <Row label="Credenciales" value={credentialsLabel} good={status ? status.credentialsConfigured : undefined} />
+        <Row label="Lectura" value={readLabel} good={status ? status.readReady : undefined} />
         <Row label="Sesión local" value={sessionSaved ? 'CIFRADA EN DISPOSITIVO' : 'NO GUARDADA'} good={sessionSaved} />
-        <Row label="Órdenes live" value={status?.liveExecutionLocked === false ? 'HABILITADAS' : 'BLOQUEADAS'} good={status?.liveExecutionLocked !== false} />
+        <Row label="Órdenes live" value={status ? (status.liveExecutionLocked === false ? 'HABILITADAS' : 'BLOQUEADAS') : 'NO VERIFICADAS'} good={status ? status.liveExecutionLocked !== false : undefined} />
+        {status?.apiVersion === 'legacy-read-compat' ? <Text style={styles.compat}>READ COMPATIBILITY Ω · backend legacy detectado. Lectura permitida; ejecución v2 continúa fail-closed.</Text> : null}
       </View>
+
+      {statusError ? <Text style={styles.deploymentError}>{statusError}</Text> : null}
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>ACCESO PRIVADO</Text>
@@ -145,6 +160,6 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#080d0f', borderWidth: 1, borderColor: '#213138', padding: 12, gap: 10 }, cardTitle: { color: '#b8c5c1', fontFamily: 'monospace', fontWeight: '900', fontSize: 8, letterSpacing: 1 },
   row: { gap: 3, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#1b292e', paddingBottom: 8 }, label: { color: '#526168', fontSize: 8, fontFamily: 'monospace', fontWeight: '800', textTransform: 'uppercase' }, value: { color: '#dce6e2', fontFamily: 'monospace', fontWeight: '800', fontSize: 9 }, good: { color: '#4de7b4' }, warn: { color: '#ddb95f' },
   input: { backgroundColor: '#050809', borderWidth: 1, borderColor: '#2c3a40', color: '#eef5f3', paddingHorizontal: 12, paddingVertical: 12, fontFamily: 'monospace' }, button: { backgroundColor: '#0b2b21', borderWidth: 1, borderColor: '#2f725b', paddingVertical: 13, alignItems: 'center' }, buttonText: { color: '#65e9bd', fontFamily: 'monospace', fontWeight: '900', fontSize: 9 }, forgetButton: { borderWidth: 1, borderColor: '#55383a', paddingVertical: 10, alignItems: 'center' }, forgetText: { color: '#c78084', fontFamily: 'monospace', fontSize: 8, fontWeight: '900' }, secondaryButton: { borderWidth: 1, borderColor: '#315b75', paddingVertical: 12, alignItems: 'center' }, secondaryText: { color: '#8bc8eb', fontFamily: 'monospace', fontWeight: '900', fontSize: 8 },
-  pressed: { opacity: 0.68 }, loading: { flexDirection: 'row', alignItems: 'center', gap: 9, padding: 8 }, muted: { color: '#7e8c91', fontFamily: 'monospace', fontSize: 9 }, error: { color: '#e79a9a', backgroundColor: '#1d0e10', padding: 11, fontSize: 10 }, rate: { color: '#56656b', fontSize: 8, fontFamily: 'monospace' }, jsonText: { color: '#b8c6c2', fontFamily: 'monospace', fontSize: 9, lineHeight: 14 },
+  pressed: { opacity: 0.68 }, loading: { flexDirection: 'row', alignItems: 'center', gap: 9, padding: 8 }, muted: { color: '#7e8c91', fontFamily: 'monospace', fontSize: 9 }, error: { color: '#e79a9a', backgroundColor: '#1d0e10', padding: 11, fontSize: 10 }, deploymentError: { color: '#e6c36f', backgroundColor: '#18130a', borderWidth: 1, borderColor: '#5f4b1f', padding: 11, fontSize: 10, lineHeight: 15 }, compat: { color: '#79cdae', backgroundColor: '#071711', borderWidth: StyleSheet.hairlineWidth, borderColor: '#235343', padding: 8, fontFamily: 'monospace', fontSize: 8, lineHeight: 12 }, rate: { color: '#56656b', fontSize: 8, fontFamily: 'monospace' }, jsonText: { color: '#b8c6c2', fontFamily: 'monospace', fontSize: 9, lineHeight: 14 },
   guardrailCard: { backgroundColor: '#0b1013', borderTopWidth: 1, borderTopColor: '#223039', padding: 12, gap: 7 }, guardrailTitle: { color: '#8ba9c0', fontFamily: 'monospace', fontWeight: '900', fontSize: 8, letterSpacing: 1 }, guardrailText: { color: '#7e8d92', lineHeight: 16, fontSize: 10 },
 });
