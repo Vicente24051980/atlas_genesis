@@ -56,9 +56,6 @@ jobs:
             exit 0
           fi
           if [ -z "${RENDER_API_KEY:-}" ]; then
-            # render.yaml declares autoDeployTrigger: commit. Do not silently skip live
-            # certification when explicit Render credentials are absent: wait for the
-            # Blueprint auto-deploy and fail if production remains on an old artifact.
             echo "deploy_trigger=blueprint_auto_deploy" >> "$GITHUB_OUTPUT"
             echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
             echo "RENDER_DEPLOY_TRIGGER=blueprint_auto_deploy"
@@ -135,6 +132,7 @@ jobs:
               '/v1/mobile/health',
               '/v1/mobile/indices',
               '/v1/mobile/company/{ticker}',
+              '/v1/mobile/catalysts',
               '/v1/mobile/audit/{ticker}',
               '/v1/mobile/broker/status',
               '/v1/mobile/broker/account',
@@ -169,12 +167,12 @@ jobs:
         run: |
           set -euo pipefail
           BASE="$ATLAS_PRODUCTION_API"
-          for path in health v1/mobile/health v1/agentic-omega/health v1/agentic-omega/v2/capabilities v1/agentic-omega/v2/evidence-capabilities v1/agentic-omega/v2/governance/capabilities v1/mobile/portfolio v1/mobile/broker/status openapi.json; do curl -fsS --max-time 30 "$BASE/$path" >/dev/null; done
+          for path in health v1/mobile/health v1/agentic-omega/health v1/agentic-omega/v2/capabilities v1/agentic-omega/v2/evidence-capabilities v1/agentic-omega/v2/governance/capabilities v1/mobile/portfolio v1/mobile/broker/status v1/mobile/catalysts openapi.json; do curl -fsS --max-time 30 "$BASE/$path" >/dev/null; done
           curl -fsS --max-time 30 "$BASE/openapi.json" > /tmp/openapi.json
           python3 - <<'PY'
           import json
           paths=set((json.load(open('/tmp/openapi.json')).get('paths') or {}).keys())
-          required={'/v1/mobile/indices','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status'}
+          required={'/v1/mobile/indices','/v1/mobile/catalysts','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status'}
           missing=sorted(required-paths)
           assert not missing, f'missing certified mobile routes: {missing}'
           PY
