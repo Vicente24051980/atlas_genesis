@@ -47,12 +47,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           if [ -n "${RENDER_DEPLOY_HOOK_URL:-}" ]; then
-            code=$(curl -sS --max-time 30 -o /tmp/render-deploy.json -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK_URL" || true)
+            SEP='?'
+            case "$RENDER_DEPLOY_HOOK_URL" in *\?*) SEP='&' ;; esac
+            HOOK="${RENDER_DEPLOY_HOOK_URL}${SEP}ref=${GITHUB_SHA}"
+            code=$(curl -sS --max-time 30 -o /tmp/render-deploy.json -w "%{http_code}" -X POST "$HOOK" || true)
             test "$code" = 200 -o "$code" = 201 -o "$code" = 202 || { cat /tmp/render-deploy.json 2>/dev/null || true; echo "Render deploy hook failed: HTTP $code"; exit 1; }
-            echo "deploy_trigger=hook" >> "$GITHUB_OUTPUT"
+            echo "deploy_trigger=hook_exact_sha" >> "$GITHUB_OUTPUT"
             echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
-            echo "RENDER_DEPLOY_TRIGGER=hook"
+            echo "RENDER_DEPLOY_TRIGGER=hook_exact_sha"
             exit 0
           fi
 
@@ -60,25 +64,33 @@ jobs:
             BASE="${ATLAS_PRODUCTION_API:-https://atlas-genesis.onrender.com}"
             BASE="${BASE%/}"
             echo "RENDER_DEPLOY_TRIGGER=git_auto_deploy_preflight"
-            echo "No Render deploy credential is configured. Waiting up to five minutes for the Git-linked Render service to auto-deploy."
+            echo "No Render deploy credential is configured. Waiting up to five minutes for the Git-linked Render service to auto-deploy exact main SHA ${GITHUB_SHA}."
             for attempt in $(seq 1 30); do
               mobile=$(curl -sS --max-time 20 -o /tmp/mobile.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
+              deployment=$(curl -sS --max-time 20 -o /tmp/deployment.json -w "%{http_code}" "$BASE/v1/mobile/deployment" || true)
               gov=$(curl -sS --max-time 20 -o /tmp/gov.json -w "%{http_code}" "$BASE/v1/agentic-omega/v2/governance/capabilities" || true)
               openapi=$(curl -sS --max-time 20 -o /tmp/openapi.json -w "%{http_code}" "$BASE/openapi.json" || true)
-              echo "preflight=$attempt base=$BASE mobile=$mobile governance=$gov openapi=$openapi"
-              if [ "$mobile" = 200 ] && [ "$gov" = 200 ] && [ "$openapi" = 200 ] && python3 - <<'PY'
-          import json
-          m=json.load(open('/tmp/mobile.json')); g=json.load(open('/tmp/gov.json')); o=json.load(open('/tmp/openapi.json'))
+              echo "preflight=$attempt base=$BASE mobile=$mobile deployment=$deployment governance=$gov openapi=$openapi"
+              if [ "$mobile" = 200 ] && [ "$deployment" = 200 ] && [ "$gov" = 200 ] && [ "$openapi" = 200 ] && python3 - <<'PY'
+          import json, os
+          m=json.load(open('/tmp/mobile.json')); d=json.load(open('/tmp/deployment.json')); g=json.load(open('/tmp/gov.json')); o=json.load(open('/tmp/openapi.json'))
           assert m.get('ok') is True and m.get('service')=='atlas-mobile-v2'
+          assert d.get('service')=='atlas-mobile-deployment'
+          assert d.get('runtime')=='render'
+          assert d.get('sourceMatchesCanonical') is True
+          assert d.get('repoSlug')=='Vicente24051980/atlas_genesis'
+          assert d.get('branch')=='main'
+          assert d.get('gitCommit')==os.environ['GITHUB_SHA'], (d.get('gitCommit'), os.environ['GITHUB_SHA'])
+          assert d.get('secretsExposed') is False
           assert g.get('version')=='2.3-governance-evidence'
           paths=set((o.get('paths') or {}).keys())
-          required={'/v1/mobile/health','/v1/mobile/indices','/v1/mobile/company/{ticker}','/v1/mobile/catalysts','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status'}
+          required={'/v1/mobile/health','/v1/mobile/deployment','/v1/mobile/indices','/v1/mobile/company/{ticker}','/v1/mobile/catalysts','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status'}
           assert required <= paths
           PY
               then
-                echo "deploy_trigger=git_auto_deploy" >> "$GITHUB_OUTPUT"
+                echo "deploy_trigger=git_auto_deploy_exact_sha" >> "$GITHUB_OUTPUT"
                 echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
-                echo "Render Git auto-deploy exposed the current ATLAS contract."
+                echo "Render Git auto-deploy exposed the exact current ATLAS commit."
                 exit 0
               fi
               sleep 10
@@ -87,10 +99,10 @@ jobs:
             root=$(curl -sS --max-time 20 -o /tmp/root.json -w "%{http_code}" "$BASE/health" || true)
             echo "production_root_http=$root"
             echo "production_root_body_begin"
-            head -c 1200 /tmp/root.json 2>/dev/null || true
+            head -c 1600 /tmp/root.json 2>/dev/null || true
             echo
             echo "production_root_body_end"
-            echo "::error title=Render production deployment drift::The configured production host is reachable, but it did not expose the current ATLAS mobile/OpenAPI contract after five minutes. GitHub has no RENDER_DEPLOY_HOOK_URL or RENDER_API_KEY, so Actions cannot force a Render deploy. Relink the Render service source to Vicente24051980/atlas_genesis main or configure one of those GitHub Actions secrets."
+            echo "::error title=Render source drift / deploy auth blocked::The production host is reachable but is not running ${GITHUB_REPOSITORY}@main:${GITHUB_SHA}. GitHub has neither RENDER_DEPLOY_HOOK_URL nor RENDER_API_KEY, so Actions cannot mutate the external Render service. In Render, relink atlas-genesis to Vicente24051980/atlas_genesis main and deploy latest commit, or add the service Deploy Hook URL as GitHub Actions secret RENDER_DEPLOY_HOOK_URL."
             echo "deploy_trigger=blocked_no_render_auth" >> "$GITHUB_OUTPUT"
             echo "live_smoke_enabled=false" >> "$GITHUB_OUTPUT"
             exit 1
@@ -115,15 +127,15 @@ jobs:
           test -n "$SERVICE_ID" || { echo "ERROR: Render service could not be resolved."; exit 1; }
           code=$(curl -sS --max-time 30 -o /tmp/render-api-deploy.json -w "%{http_code}" -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" -H "Accept: application/json" -H "Content-Type: application/json" -H "Authorization: Bearer $RENDER_API_KEY" --data "{\"commitId\":\"$GITHUB_SHA\",\"clearCache\":\"do_not_clear\"}" || true)
           test "$code" = 201 -o "$code" = 202 || { cat /tmp/render-api-deploy.json 2>/dev/null || true; echo "Render API deploy failed: HTTP $code"; exit 1; }
-          echo "deploy_trigger=api" >> "$GITHUB_OUTPUT"
+          echo "deploy_trigger=api_exact_sha" >> "$GITHUB_OUTPUT"
           echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
-          echo "RENDER_DEPLOY_TRIGGER=api"
+          echo "RENDER_DEPLOY_TRIGGER=api_exact_sha"
 
   resolve-render-host:
     needs: kick-render-deploy
     if: needs.kick-render-deploy.outputs.live_smoke_enabled == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 15
     outputs:
       production_api: ${{ steps.resolve.outputs.production_api }}
     env:
@@ -147,23 +159,30 @@ jobs:
             done
             if [ "$seen" = false ]; then UNIQUE+=("$BASE"); fi
           done
-          for attempt in $(seq 1 80); do
+          for attempt in $(seq 1 40); do
             for BASE in "${UNIQUE[@]}"; do
-              root=$(curl -sS --max-time 25 -o /tmp/root.json -w "%{http_code}" "$BASE/health" || true)
               mobile=$(curl -sS --max-time 25 -o /tmp/mobile.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
+              deployment=$(curl -sS --max-time 25 -o /tmp/deployment.json -w "%{http_code}" "$BASE/v1/mobile/deployment" || true)
               gov=$(curl -sS --max-time 25 -o /tmp/gov.json -w "%{http_code}" "$BASE/v1/agentic-omega/v2/governance/capabilities" || true)
               openapi=$(curl -sS --max-time 25 -o /tmp/openapi.json -w "%{http_code}" "$BASE/openapi.json" || true)
-              echo "probe=$attempt base=$BASE root=$root mobile=$mobile governance=$gov openapi=$openapi"
-              if [ "$mobile" = 200 ] && [ "$gov" = 200 ] && [ "$openapi" = 200 ] && python3 - <<'PY'
-          import json
-          m=json.load(open('/tmp/mobile.json')); g=json.load(open('/tmp/gov.json')); o=json.load(open('/tmp/openapi.json'))
+              echo "probe=$attempt base=$BASE mobile=$mobile deployment=$deployment governance=$gov openapi=$openapi"
+              if [ "$mobile" = 200 ] && [ "$deployment" = 200 ] && [ "$gov" = 200 ] && [ "$openapi" = 200 ] && python3 - <<'PY'
+          import json, os
+          m=json.load(open('/tmp/mobile.json')); d=json.load(open('/tmp/deployment.json')); g=json.load(open('/tmp/gov.json')); o=json.load(open('/tmp/openapi.json'))
           assert m.get('ok') is True and m.get('service')=='atlas-mobile-v2'
+          assert d.get('runtime')=='render'
+          assert d.get('sourceMatchesCanonical') is True
+          assert d.get('repoSlug')=='Vicente24051980/atlas_genesis'
+          assert d.get('branch')=='main'
+          assert d.get('gitCommit')==os.environ['GITHUB_SHA']
+          assert d.get('secretsExposed') is False
           assert g.get('version')=='2.3-governance-evidence'
           assert g.get('unknownCapabilityFailsClosed') is True
           assert g.get('credentialValuesPersisted') is False
           paths=set((o.get('paths') or {}).keys())
           required={
               '/v1/mobile/health',
+              '/v1/mobile/deployment',
               '/v1/mobile/indices',
               '/v1/mobile/company/{ticker}',
               '/v1/mobile/catalysts',
@@ -184,8 +203,7 @@ jobs:
             done
             sleep 15
           done
-          echo "ERROR: deployed Render service never exposed the required current ATLAS mobile surface."
-          echo "Production deployment drift is a hard failure; do not ship an APK against a backend returning route 404s."
+          echo "ERROR: Render deploy was triggered but the exact current ATLAS commit never became live."
           exit 1
 
   live-atlas-api:
@@ -201,13 +219,20 @@ jobs:
         run: |
           set -euo pipefail
           BASE="$ATLAS_PRODUCTION_API"
-          for path in health v1/mobile/health v1/agentic-omega/health v1/agentic-omega/v2/capabilities v1/agentic-omega/v2/evidence-capabilities v1/agentic-omega/v2/governance/capabilities v1/mobile/portfolio v1/mobile/broker/status v1/mobile/catalysts openapi.json; do curl -fsS --max-time 30 "$BASE/$path" >/dev/null; done
+          for path in health v1/mobile/health v1/mobile/deployment v1/agentic-omega/health v1/agentic-omega/v2/capabilities v1/agentic-omega/v2/evidence-capabilities v1/agentic-omega/v2/governance/capabilities v1/mobile/portfolio v1/mobile/broker/status v1/mobile/catalysts openapi.json; do curl -fsS --max-time 30 "$BASE/$path" >/dev/null; done
+          curl -fsS --max-time 30 "$BASE/v1/mobile/deployment" > /tmp/deployment.json
           curl -fsS --max-time 30 "$BASE/openapi.json" > /tmp/openapi.json
           python3 - <<'PY'
-          import json
+          import json, os
+          d=json.load(open('/tmp/deployment.json'))
+          assert d.get('sourceMatchesCanonical') is True
+          assert d.get('repoSlug')=='Vicente24051980/atlas_genesis'
+          assert d.get('branch')=='main'
+          assert d.get('gitCommit')==os.environ['GITHUB_SHA']
+          assert d.get('secretsExposed') is False
           paths=set((json.load(open('/tmp/openapi.json')).get('paths') or {}).keys())
-          required={'/v1/mobile/indices','/v1/mobile/catalysts','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status'}
+          required={'/v1/mobile/health','/v1/mobile/deployment','/v1/mobile/indices','/v1/mobile/catalysts','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status'}
           missing=sorted(required-paths)
           assert not missing, f'missing certified mobile routes: {missing}'
           PY
-          echo LIVE_ATLAS_AGENTIC_V23_PASS
+          echo LIVE_ATLAS_AGENTIC_V23_EXACT_SHA_PASS
