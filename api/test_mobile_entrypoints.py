@@ -8,6 +8,7 @@ REQUIRED_MAIN_MOBILE_ROUTES = {
     "/v1/mobile/indices",
     "/v1/mobile/company/{ticker}",
     "/v1/mobile/portfolio",
+    "/v1/mobile/catalysts",
     "/v1/mobile/audit/{ticker}",
     "/v1/mobile/broker/status",
     "/v1/mobile/broker/account",
