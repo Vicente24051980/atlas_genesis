@@ -15,6 +15,7 @@ def test_production_app_exposes_mobile_and_agentic_surfaces() -> None:
         "/v1/mobile/indices",
         "/v1/mobile/company/{ticker}",
         "/v1/mobile/portfolio",
+        "/v1/mobile/catalysts",
         "/v1/mobile/audit/{ticker}",
         "/v1/mobile/broker/status",
         "/v1/mobile/broker/account",
@@ -41,6 +42,7 @@ def test_render_blueprint_targets_live_service_and_production_entrypoint() -> No
     for required_route in (
         "/v1/mobile/indices",
         "/v1/mobile/company/{ticker}",
+        "/v1/mobile/catalysts",
         "/v1/mobile/audit/{ticker}",
         "/v1/mobile/broker/status",
         "/v1/mobile/broker/account",
