@@ -12,6 +12,7 @@ def test_production_app_exposes_mobile_and_agentic_surfaces() -> None:
     required = {
         "/health",
         "/v1/mobile/health",
+        "/v1/mobile/deployment",
         "/v1/mobile/indices",
         "/v1/mobile/company/{ticker}",
         "/v1/mobile/portfolio",
@@ -33,6 +34,7 @@ def test_production_app_exposes_mobile_and_agentic_surfaces() -> None:
 def test_render_blueprint_targets_live_service_and_production_entrypoint() -> None:
     blueprint = Path("render.yaml").read_text(encoding="utf-8")
     assert "name: atlas-genesis\n" in blueprint
+    assert "repo: https://github.com/Vicente24051980/atlas_genesis" in blueprint
     assert "branch: main" in blueprint
     assert "autoDeployTrigger: commit" in blueprint
     assert "startCommand: uvicorn api.app:app --host 0.0.0.0 --port $PORT" in blueprint
@@ -40,6 +42,7 @@ def test_render_blueprint_targets_live_service_and_production_entrypoint() -> No
     assert "python -c" in blueprint
     assert "Missing production routes" in blueprint
     for required_route in (
+        "/v1/mobile/deployment",
         "/v1/mobile/indices",
         "/v1/mobile/company/{ticker}",
         "/v1/mobile/catalysts",
