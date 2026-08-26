@@ -3,6 +3,7 @@ services:
     name: atlas-genesis
     runtime: python
     plan: free
+    repo: https://github.com/Vicente24051980/atlas_genesis
     branch: main
     autoDeployTrigger: commit
     buildCommand: >-
@@ -12,7 +13,7 @@ services:
     healthCheckPath: /v1/mobile/health
     envVars:
       - key: ATLAS_DEPLOY_REVISION
-        value: "2026-08-26-mobile-route-contract-v3-catalysts"
+        value: "2026-08-26-mobile-route-contract-v4-render-source-pin"
       - key: FINANCIALDATANET_API_KEY
         sync: false
       - key: FINNHUB_TOKEN
