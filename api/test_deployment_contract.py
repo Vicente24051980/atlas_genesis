@@ -12,8 +12,14 @@ def test_production_app_exposes_mobile_and_agentic_surfaces() -> None:
     required = {
         "/health",
         "/v1/mobile/health",
+        "/v1/mobile/indices",
+        "/v1/mobile/company/{ticker}",
+        "/v1/mobile/portfolio",
         "/v1/mobile/audit/{ticker}",
         "/v1/mobile/broker/status",
+        "/v1/mobile/broker/account",
+        "/v1/mobile/broker/positions",
+        "/v1/mobile/broker/orders",
         "/v1/mobile/broker/metadata/instruments/search",
         "/v1/agentic-omega/health",
         "/v1/agentic-omega/v2/capabilities",
@@ -32,9 +38,17 @@ def test_render_blueprint_targets_live_service_and_production_entrypoint() -> No
     assert "healthCheckPath: /v1/mobile/health" in blueprint
     assert "python -c" in blueprint
     assert "Missing production routes" in blueprint
-    assert "/v1/mobile/audit/{ticker}" in blueprint
-    assert "/v1/mobile/broker/status" in blueprint
-    assert "/v1/mobile/broker/metadata/instruments/search" in blueprint
+    for required_route in (
+        "/v1/mobile/indices",
+        "/v1/mobile/company/{ticker}",
+        "/v1/mobile/audit/{ticker}",
+        "/v1/mobile/broker/status",
+        "/v1/mobile/broker/account",
+        "/v1/mobile/broker/positions",
+        "/v1/mobile/broker/orders",
+        "/v1/mobile/broker/metadata/instruments/search",
+    ):
+        assert required_route in blueprint
     assert "ATLAS_DEPLOY_REVISION" in blueprint
     assert "TRADING212_LIVE_TRADING_ENABLED" in blueprint
     assert 'value: "false"' in blueprint
