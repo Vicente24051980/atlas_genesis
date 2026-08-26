@@ -19,6 +19,7 @@ from .earnings_flow_confirmation import EFCInput, FlowCausalityInput, earnings_f
 from .cyclical_normalization import RefiningInput, FreightInput, refining_normalization, freight_cycle
 from .resource_rotation import BranchMarketInput, BranchMarketResult, GoldMinerInput, GoldMinerResult, Layer1ResourceResult, RESOURCE_CANONICAL_LAWS, ResourceBranch, RotationState, aggregate_layer1_resources, evaluate_gold_miner, evaluate_resource_branch
 from .capital_competition import Candidate, rank_candidate, competition_for_capital
+from .etf_coverage_gate import CANONICAL_REGIONAL_ETF_BASE, ETFCoverage, OverweightCase, etf_coverage_gate, regional_coverage
 from .universe_competition import UniverseCandidate, audit_candidate, full_universe_competition, green_time_in_portfolio
 from .portfolio_finalizer import FinalCandidate, FinalDecision, GreenTier, CANONICAL_FINALIZER_LAWS, classify, finalize, replacement_allowed
 from .market_technical_gates import CryptoConvergenceInput, CryptoConvergenceResult, DurationStressInput, DurationStressRegime, DurationStressResult, SOXTransmissionInput, SOXTransmissionResult, TECHNICAL_GATE_CANONICAL_LAWS, TechnicalGateState, evaluate_crypto_convergence, evaluate_duration_stress, evaluate_sox_transmission
