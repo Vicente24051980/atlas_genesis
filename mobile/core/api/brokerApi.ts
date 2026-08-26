@@ -131,6 +131,26 @@ export type OrderPreview = {
   nextStep: 'EXECUTE_DEMO' | 'EXECUTE_LIVE';
 };
 
+export class BrokerHttpError extends Error {
+  readonly status: number;
+  readonly path: string;
+
+  constructor(status: number, path: string, message: string) {
+    super(message);
+    this.name = 'BrokerHttpError';
+    this.status = status;
+    this.path = path;
+  }
+}
+
+const EMPTY_RATE_LIMIT: BrokerRateLimit = {
+  limit: null,
+  period: null,
+  remaining: null,
+  reset: null,
+  used: null,
+};
+
 async function request<T>(path: string, init?: RequestInit, timeoutMs = 20000): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -147,8 +167,13 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs = 20000): 
     const payload: unknown = await response.json().catch(() => ({}));
     if (!response.ok) {
       const row = payload && typeof payload === 'object' ? payload as Record<string, unknown> : {};
-      const detail = typeof row.detail === 'string' ? row.detail : `Trading 212 bridge HTTP ${response.status}`;
-      throw new Error(detail);
+      const rawDetail = row.detail;
+      const detail = typeof rawDetail === 'string'
+        ? rawDetail
+        : rawDetail && typeof rawDetail === 'object'
+          ? JSON.stringify(rawDetail)
+          : `Trading 212 bridge HTTP ${response.status}`;
+      throw new BrokerHttpError(response.status, path, detail);
     }
     return payload as T;
   } catch (error) {
@@ -165,17 +190,104 @@ function controlHeaders(controlToken: string): HeadersInit {
   return { 'x-atlas-broker-token': value };
 }
 
+function isRoute404(error: unknown): error is BrokerHttpError {
+  return error instanceof BrokerHttpError && error.status === 404;
+}
+
+function normalizeEnvironment(value: unknown): 'demo' | 'live' {
+  return String(value || '').toLowerCase() === 'live' ? 'live' : 'demo';
+}
+
+function normalizeLegacyStatus(raw: Record<string, unknown>): BrokerStatus {
+  const environment = normalizeEnvironment(raw.environment);
+  const configured = raw.configured === true;
+  const liveTradingEnabled = raw.liveTradingEnabled === true;
+  const guardrail = typeof raw.guardrail === 'string' ? raw.guardrail : 'Legacy Trading 212 read bridge compatibility active.';
+  return {
+    provider: 'Trading212',
+    apiVersion: 'legacy-read-compat',
+    environment,
+    mode: environment === 'live' ? 'LIVE' : 'PAPER',
+    credentialsConfigured: configured,
+    controlTokenConfigured: configured,
+    readReady: configured,
+    liveTradingEnabled,
+    liveExecutionLocked: environment !== 'live' || !liveTradingEnabled,
+    secretsExposed: false,
+    guardrails: [guardrail, 'Legacy fallback is read-only from the mobile compatibility layer; v2 execution remains fail-closed.'],
+  };
+}
+
+function normalizeLegacyEnvelope<T = unknown>(raw: Record<string, unknown>, data?: T): BrokerEnvelope<T> {
+  const environment = normalizeEnvironment(raw.environment);
+  return {
+    provider: 'Trading212',
+    environment,
+    mode: environment === 'live' ? 'LIVE' : 'PAPER',
+    data: (data === undefined ? raw.data : data) as T,
+    rateLimit: EMPTY_RATE_LIMIT,
+  };
+}
+
+async function readWithLegacyFallback<T>(
+  mobilePath: string,
+  legacyPath: string,
+  init: RequestInit | undefined,
+  normalizeLegacy: (raw: Record<string, unknown>) => T,
+  timeoutMs = 20000,
+): Promise<T> {
+  try {
+    return await request<T>(mobilePath, init, timeoutMs);
+  } catch (error) {
+    if (!isRoute404(error)) throw error;
+    const legacy = await request<Record<string, unknown>>(legacyPath, init, timeoutMs);
+    return normalizeLegacy(legacy);
+  }
+}
+
 export const BrokerApi = {
-  status: () => request<BrokerStatus>('/v1/mobile/broker/status', undefined, 12000),
-  account: (controlToken: string) => request<BrokerEnvelope>('/v1/mobile/broker/account', { headers: controlHeaders(controlToken) }),
-  positions: (controlToken: string, ticker?: string) => request<BrokerEnvelope>(`/v1/mobile/broker/positions${ticker ? `?ticker=${encodeURIComponent(ticker)}` : ''}`, { headers: controlHeaders(controlToken) }),
+  status: () => readWithLegacyFallback<BrokerStatus>(
+    '/v1/mobile/broker/status',
+    '/v1/broker/status',
+    undefined,
+    normalizeLegacyStatus,
+    12000,
+  ),
+  account: (controlToken: string) => readWithLegacyFallback<BrokerEnvelope>(
+    '/v1/mobile/broker/account',
+    '/v1/broker/account',
+    { headers: controlHeaders(controlToken) },
+    (raw) => normalizeLegacyEnvelope(raw),
+  ),
+  positions: (controlToken: string, ticker?: string) => {
+    const suffix = ticker ? `?ticker=${encodeURIComponent(ticker)}` : '';
+    return readWithLegacyFallback<BrokerEnvelope>(
+      `/v1/mobile/broker/positions${suffix}`,
+      `/v1/broker/positions${suffix}`,
+      { headers: controlHeaders(controlToken) },
+      (raw) => normalizeLegacyEnvelope(raw),
+    );
+  },
   reconcilePortfolio: (controlToken: string, expectedTickers: string[] = []) => request<BrokerEnvelope<PortfolioReconciliation>>('/v1/mobile/broker/portfolio/reconcile', {
     method: 'POST',
     headers: controlHeaders(controlToken),
     body: JSON.stringify({ expectedTickers }),
   }),
-  orders: (controlToken: string) => request<BrokerEnvelope>('/v1/mobile/broker/orders', { headers: controlHeaders(controlToken) }),
-  instruments: (controlToken: string, query: string) => request<BrokerEnvelope>(`/v1/mobile/broker/metadata/instruments/search?q=${encodeURIComponent(query.trim())}`, { headers: controlHeaders(controlToken) }),
+  orders: (controlToken: string) => readWithLegacyFallback<BrokerEnvelope>(
+    '/v1/mobile/broker/orders',
+    '/v1/broker/orders',
+    { headers: controlHeaders(controlToken) },
+    (raw) => normalizeLegacyEnvelope(raw),
+  ),
+  instruments: (controlToken: string, query: string) => {
+    const encoded = encodeURIComponent(query.trim());
+    return readWithLegacyFallback<BrokerEnvelope>(
+      `/v1/mobile/broker/metadata/instruments/search?q=${encoded}`,
+      `/v1/broker/instruments/search?q=${encoded}`,
+      { headers: controlHeaders(controlToken) },
+      (raw) => normalizeLegacyEnvelope(raw, raw.items ?? raw),
+    );
+  },
   historyOrders: (controlToken: string, limit = 20) => request<BrokerEnvelope>(`/v1/mobile/broker/history/orders?limit=${Math.min(50, Math.max(1, limit))}`, { headers: controlHeaders(controlToken) }),
   historyDividends: (controlToken: string, limit = 20) => request<BrokerEnvelope>(`/v1/mobile/broker/history/dividends?limit=${Math.min(50, Math.max(1, limit))}`, { headers: controlHeaders(controlToken) }),
   historyTransactions: (controlToken: string, limit = 20) => request<BrokerEnvelope>(`/v1/mobile/broker/history/transactions?limit=${Math.min(50, Math.max(1, limit))}`, { headers: controlHeaders(controlToken) }),
