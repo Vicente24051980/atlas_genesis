@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
@@ -36,6 +38,26 @@ app.include_router(agentic_evidence_bridge_router)
 app.include_router(agentic_governance_router)
 app.include_router(agent_infrastructure_router)
 app.include_router(document_ingestion_router)
+
+
+@app.get("/v1/mobile/deployment", tags=["mobile-v2"])
+async def mobile_deployment_provenance() -> dict[str, object]:
+    """Non-secret deployment identity used by CI to reject wrong Render services."""
+    repo_slug = os.getenv("RENDER_GIT_REPO_SLUG", "").strip()
+    branch = os.getenv("RENDER_GIT_BRANCH", "").strip()
+    commit = os.getenv("RENDER_GIT_COMMIT", "").strip()
+    canonical_repo = "Vicente24051980/atlas_genesis"
+    return {
+        "service": "atlas-mobile-deployment",
+        "runtime": "render" if os.getenv("RENDER", "").strip().lower() == "true" else "other",
+        "repoSlug": repo_slug or None,
+        "branch": branch or None,
+        "gitCommit": commit or None,
+        "externalHostname": os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip() or None,
+        "deployRevision": os.getenv("ATLAS_DEPLOY_REVISION", "").strip() or None,
+        "sourceMatchesCanonical": repo_slug.lower() == canonical_repo.lower() and branch == "main",
+        "secretsExposed": False,
+    }
 
 
 @app.exception_handler(HTTPException)
