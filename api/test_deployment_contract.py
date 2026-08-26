@@ -64,3 +64,12 @@ def test_render_blueprint_targets_live_service_and_production_entrypoint() -> No
     assert 'value: "false"' in blueprint
     assert "ATLAS_AGENT_CONTROL_TOKEN" in blueprint
     assert "generateValue: true" in blueprint
+
+
+def test_render_python_runtime_is_pinned_to_supported_version() -> None:
+    # Render defaults new Python services to 3.14, while the pinned Pydantic/PyO3
+    # dependency set is certified on Python 3.12. Keep this explicit and fail CI
+    # if the pin disappears, otherwise pydantic-core can fall back to a Rust
+    # source build and fail before the app is even imported.
+    python_version = Path(".python-version").read_text(encoding="utf-8").strip()
+    assert python_version == "3.12"
