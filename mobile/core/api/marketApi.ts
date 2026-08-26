@@ -89,7 +89,8 @@ async function legacyIndices(): Promise<GlobalIndicesPayload> {
   const results = await Promise.allSettled(LEGACY_INDEX_SET.map(async ([symbol, name, region]) => {
     const raw = await request<Record<string, unknown>>(`/v1/quote/${encodeURIComponent(symbol)}`, 12000);
     const data = raw.data && typeof raw.data === 'object' ? raw.data as Record<string, unknown> : {};
-    const price = finite(data.c);
+    const observedPrice = finite(data.c);
+    const validPrice = observedPrice !== null && observedPrice > 0;
     const change = finite(data.d);
     const percentageChange = finite(data.dp);
     const epoch = finite(data.t);
@@ -97,11 +98,11 @@ async function legacyIndices(): Promise<GlobalIndicesPayload> {
       symbol,
       name,
       region,
-      price,
-      change,
-      percentageChange,
-      time: epoch ? new Date(epoch * 1000).toISOString() : null,
-      status: price !== null ? 'OK' as const : 'MISSING' as const,
+      price: validPrice ? observedPrice : null,
+      change: validPrice ? change : null,
+      percentageChange: validPrice ? percentageChange : null,
+      time: validPrice && epoch && epoch > 0 ? new Date(epoch * 1000).toISOString() : null,
+      status: validPrice ? 'OK' as const : 'MISSING' as const,
     };
   }));
 
@@ -118,7 +119,8 @@ async function legacyIndices(): Promise<GlobalIndicesPayload> {
     items,
     guardrails: [
       'Fallback activado únicamente porque /v1/mobile/indices devolvió 404 por deployment drift.',
-      'Los valores proceden del endpoint legacy real de Finnhub; no se sustituyen índices por ETFs ni se fabrican cifras.',
+      'Los valores proceden del endpoint legacy real de Finnhub; cotizaciones cero/no soportadas se marcan MISSING.',
+      'No se sustituyen índices por ETFs ni se fabrican cifras.',
       'Fallback cacheado durante 60 segundos para respetar límites de proveedor.',
     ],
   };
