@@ -137,13 +137,14 @@ export const MobileApi = {
       return await request<MobileHealth>('/v1/mobile/health', 12000);
     } catch (error) {
       const legacy = await request<Record<string, unknown>>('/health', 12000);
+      const deploymentDrift = error instanceof AtlasHttpError && error.status === 404;
       return {
-        ok: legacy.ok === true,
-        service: error instanceof AtlasHttpError && error.status === 404 ? 'atlas-omega-api · DEPLOYMENT_DRIFT' : (typeof legacy.service === 'string' ? legacy.service : 'atlas-omega-api'),
+        ok: deploymentDrift ? false : legacy.ok === true,
+        service: deploymentDrift ? 'atlas-omega-api · DEPLOYMENT_DRIFT' : (typeof legacy.service === 'string' ? legacy.service : 'atlas-omega-api'),
         version: typeof legacy.version === 'string' ? legacy.version : undefined,
         financialdatanet_configured: false,
         finnhub_configured: legacy.finnhub_configured === true,
-        preferred_provider: error instanceof AtlasHttpError && error.status === 404 ? 'DEPLOYMENT_DRIFT' : (legacy.finnhub_configured === true ? 'Finnhub' : 'none'),
+        preferred_provider: deploymentDrift ? 'DEPLOYMENT_DRIFT' : (legacy.finnhub_configured === true ? 'Finnhub' : 'none'),
       };
     }
   },
