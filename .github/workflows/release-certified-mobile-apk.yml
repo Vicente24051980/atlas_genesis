@@ -21,7 +21,9 @@ jobs:
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
+    env:
+      ATLAS_PRODUCTION_API: ${{ vars.ATLAS_PRODUCTION_API }}
 
     steps:
       - name: Resolve certified build metadata
@@ -37,6 +39,46 @@ jobs:
           echo "tag=mobile-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "apk=ATLAS-Omega-${SHORT_SHA}.apk" >> "$GITHUB_OUTPUT"
           echo "source_run_id=$SOURCE_RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Require exact live backend before certification
+        shell: bash
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          BASE="${ATLAS_PRODUCTION_API:-https://atlas-genesis.onrender.com}"
+          BASE="${BASE%/}"
+          curl -fsS --max-time 30 "$BASE/v1/mobile/health" > /tmp/mobile.json
+          curl -fsS --max-time 30 "$BASE/v1/mobile/deployment" > /tmp/deployment.json
+          curl -fsS --max-time 30 "$BASE/v1/agentic-omega/v2/governance/capabilities" > /tmp/governance.json
+          curl -fsS --max-time 30 "$BASE/openapi.json" > /tmp/openapi.json
+          python3 - <<'PY'
+          import json, os
+          m=json.load(open('/tmp/mobile.json'))
+          d=json.load(open('/tmp/deployment.json'))
+          g=json.load(open('/tmp/governance.json'))
+          o=json.load(open('/tmp/openapi.json'))
+          assert m.get('ok') is True and m.get('service') == 'atlas-mobile-v2'
+          assert d.get('runtime') == 'render'
+          assert d.get('sourceMatchesCanonical') is True
+          assert d.get('repoSlug') == 'Vicente24051980/atlas_genesis'
+          assert d.get('branch') == 'main'
+          assert d.get('gitCommit') == os.environ['HEAD_SHA'], (d.get('gitCommit'), os.environ['HEAD_SHA'])
+          assert d.get('secretsExposed') is False
+          assert g.get('version') == '2.3-governance-evidence'
+          assert g.get('unknownCapabilityFailsClosed') is True
+          assert g.get('credentialValuesPersisted') is False
+          paths=set((o.get('paths') or {}).keys())
+          required={
+              '/v1/mobile/health','/v1/mobile/deployment','/v1/mobile/indices',
+              '/v1/mobile/company/{ticker}','/v1/mobile/catalysts','/v1/mobile/audit/{ticker}',
+              '/v1/mobile/broker/status','/v1/mobile/broker/account','/v1/mobile/broker/positions',
+              '/v1/mobile/broker/orders','/v1/mobile/broker/metadata/instruments/search'
+          }
+          missing=sorted(required-paths)
+          assert not missing, f'live backend missing required routes: {missing}'
+          PY
+          echo "LIVE_BACKEND_EXACT_SHA_CERTIFIED=$HEAD_SHA"
 
       - name: Download emulator-certified APK
         shell: bash
@@ -65,7 +107,7 @@ jobs:
           SOURCE_RUN_ID: ${{ steps.meta.outputs.source_run_id }}
         run: |
           set -euo pipefail
-          NOTES="Certified ATLAS Ω Android APK. Source commit: ${HEAD_SHA}. Source CI run: ${SOURCE_RUN_ID}. Passed backend contract tests, TypeScript gate, release build, provider-secret leak inspection and Android emulator launch/navigation gate."
+          NOTES="Certified ATLAS Ω Android APK. Source commit: ${HEAD_SHA}. Source CI run: ${SOURCE_RUN_ID}. Passed backend contract tests, TypeScript gate, release build, provider-secret leak inspection, Android emulator launch/navigation gate, and exact-SHA live Render backend certification."
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK_NAME" "$APK_NAME.sha256" --clobber --repo "$GITHUB_REPOSITORY"
           else
