@@ -49,6 +49,18 @@ export function apiBaseUrl(): string {
   return requestedBase;
 }
 
+export class AtlasHttpError extends Error {
+  readonly status: number;
+  readonly path: string;
+
+  constructor(status: number, path: string, message: string) {
+    super(message);
+    this.name = 'AtlasHttpError';
+    this.status = status;
+    this.path = path;
+  }
+}
+
 async function request<T>(path: string, timeoutMs = 25000): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -60,8 +72,13 @@ async function request<T>(path: string, timeoutMs = 25000): Promise<T> {
     const payload: unknown = await response.json().catch(() => ({}));
     if (!response.ok) {
       const row = payload && typeof payload === 'object' ? payload as Record<string, unknown> : {};
-      const detail = typeof row.detail === 'string' ? row.detail : `ATLAS API HTTP ${response.status}`;
-      throw new Error(detail);
+      const rawDetail = row.detail;
+      const detail = typeof rawDetail === 'string'
+        ? rawDetail
+        : rawDetail && typeof rawDetail === 'object'
+          ? JSON.stringify(rawDetail)
+          : `ATLAS API HTTP ${response.status}`;
+      throw new AtlasHttpError(response.status, path, detail);
     }
     return payload as T;
   } catch (error) {
@@ -114,24 +131,19 @@ function legacyCompanyToMobile(raw: Record<string, unknown>, symbol: string): Co
   };
 }
 
-const FALLBACK_PORTFOLIO = [
-  'GOOGL','MSFT','AMZN','TSM','ASML','FTNT','PWR','SU.PA','GE','MP','CB','ALNY','ARGX','EXENS.PA','HWM','AEM','KKR','IOT',
-  'LNG','AXON','ADYEN','NU','HALO','VST','GEV','RDDT','TJX','CRDO','WISE','RBRK','NXT','WST','FTAI','PLMR','SE','NVDA',
-];
-
 export const MobileApi = {
   health: async (): Promise<MobileHealth> => {
     try {
       return await request<MobileHealth>('/v1/mobile/health', 12000);
-    } catch {
+    } catch (error) {
       const legacy = await request<Record<string, unknown>>('/health', 12000);
       return {
         ok: legacy.ok === true,
-        service: typeof legacy.service === 'string' ? legacy.service : 'atlas-omega-api',
+        service: error instanceof AtlasHttpError && error.status === 404 ? 'atlas-omega-api · DEPLOYMENT_DRIFT' : (typeof legacy.service === 'string' ? legacy.service : 'atlas-omega-api'),
         version: typeof legacy.version === 'string' ? legacy.version : undefined,
         financialdatanet_configured: false,
         finnhub_configured: legacy.finnhub_configured === true,
-        preferred_provider: legacy.finnhub_configured === true ? 'Finnhub' : 'none',
+        preferred_provider: error instanceof AtlasHttpError && error.status === 404 ? 'DEPLOYMENT_DRIFT' : (legacy.finnhub_configured === true ? 'Finnhub' : 'none'),
       };
     }
   },
@@ -144,7 +156,11 @@ export const MobileApi = {
     } catch (primaryError) {
       try {
         const legacy = await request<Record<string, unknown>>(`/v1/company/${encodeURIComponent(symbol)}`);
-        return legacyCompanyToMobile(legacy, symbol);
+        const company = legacyCompanyToMobile(legacy, symbol);
+        company.fallbackReason = primaryError instanceof AtlasHttpError && primaryError.status === 404
+          ? 'Backend mobile desfasado: usando compatibilidad legacy de solo lectura.'
+          : 'Mobile company endpoint unavailable: using legacy read fallback.';
+        return company;
       } catch {
         throw primaryError;
       }
@@ -154,12 +170,12 @@ export const MobileApi = {
   portfolio: async (): Promise<PortfolioPayload> => {
     try {
       return await request<PortfolioPayload>('/v1/mobile/portfolio', 12000);
-    } catch {
+    } catch (error) {
       return {
-        snapshotId: 'ATLAS-PORTFOLIO-36-LOCAL-FALLBACK',
-        count: FALLBACK_PORTFOLIO.length,
-        items: FALLBACK_PORTFOLIO.map((ticker) => ({ ticker })),
-        guardrail: 'Fallback local de continuidad. La fuente canónica sigue siendo ATLAS.',
+        snapshotId: error instanceof AtlasHttpError && error.status === 404 ? 'DEPLOYMENT-DRIFT' : 'PORTFOLIO-DATA-GATE',
+        count: 0,
+        items: [],
+        guardrail: 'Portfolio backend unavailable. ATLAS does not substitute a stale hard-coded holdings list for the live/canonical portfolio.',
       };
     }
   },
