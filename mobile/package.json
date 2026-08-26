@@ -5,7 +5,7 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
+    "android": "expo run:android",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "build:apk": "eas build -p android --profile preview",
@@ -13,11 +13,14 @@
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
+    "drizzle-orm": "^0.45.2",
     "expo": "57.0.11",
     "expo-linking": "57.0.4",
     "expo-router": "57.0.9",
     "expo-secure-store": "57.0.1",
+    "expo-sqlite": "^57.0.1",
     "expo-status-bar": "57.0.1",
+    "expo-system-ui": "^57.0.2",
     "react": "19.2.3",
     "react-native": "0.86.2",
     "react-native-safe-area-context": "5.7.0",
@@ -26,6 +29,10 @@
   "devDependencies": {
     "@types/react": "19.2.2",
     "babel-preset-expo": "57.0.4",
+    "drizzle-kit": "^0.31.10",
+    "eas-cli": "^22.4.0",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~57.0.1",
     "typescript": "6.0.3"
   },
   "overrides": {
