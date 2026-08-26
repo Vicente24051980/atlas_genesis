@@ -10,6 +10,8 @@ on:
       - 'api/main.py'
       - 'api/mobile_v2.py'
       - 'api/mobile_audit_omega.py'
+      - 'api/mobile_catalysts.py'
+      - 'api/test_mobile_catalysts.py'
       - 'api/test_mobile_audit_omega.py'
       - 'api/test_mobile_v2.py'
       - 'api/test_mobile_entrypoints.py'
@@ -30,6 +32,8 @@ on:
       - 'api/main.py'
       - 'api/mobile_v2.py'
       - 'api/mobile_audit_omega.py'
+      - 'api/mobile_catalysts.py'
+      - 'api/test_mobile_catalysts.py'
       - 'api/test_mobile_audit_omega.py'
       - 'api/test_mobile_v2.py'
       - 'api/test_mobile_entrypoints.py'
@@ -57,7 +61,7 @@ env:
 
 jobs:
   api-unit:
-    name: Mobile backend + audit + Trading 212 + CAPEX + screener + deployment + entrypoint tests
+    name: Mobile backend + audit + Trading 212 + catalysts + CAPEX + screener + deployment + entrypoint tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -66,7 +70,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r api/requirements.txt
-      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_mobile_audit_omega.py api/test_trading212_v2.py api/test_global_capex_chain_mobile.py api/test_mobile_entrypoints.py api/test_deployment_contract.py tests/test_screener.py
+      - run: PYTHONPATH=. pytest -q api/test_mobile_v2.py api/test_mobile_audit_omega.py api/test_mobile_catalysts.py api/test_trading212_v2.py api/test_global_capex_chain_mobile.py api/test_mobile_entrypoints.py api/test_deployment_contract.py tests/test_screener.py
 
   typecheck:
     name: Mobile TypeScript gate
