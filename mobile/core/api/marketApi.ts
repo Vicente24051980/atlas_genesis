@@ -32,6 +32,18 @@ export class MarketHttpError extends Error {
   }
 }
 
+const LEGACY_INDEX_SET = [
+  ['^GSPC', 'S&P 500', 'USA'],
+  ['^NDX', 'Nasdaq 100', 'USA'],
+  ['^STOXX50E', 'Euro Stoxx 50', 'Europa'],
+  ['^N225', 'Nikkei 225', 'Japón'],
+  ['^HSI', 'Hang Seng', 'Hong Kong'],
+  ['^KS11', 'KOSPI', 'Corea del Sur'],
+] as const;
+
+let legacyCache: { at: number; payload: GlobalIndicesPayload } | null = null;
+const LEGACY_CACHE_MS = 60_000;
+
 async function request<T>(path: string, timeoutMs = 12000): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -50,7 +62,7 @@ async function request<T>(path: string, timeoutMs = 12000): Promise<T> {
           ? JSON.stringify(rawDetail)
           : `Market data HTTP ${response.status}`;
       if (response.status === 404) {
-        throw new MarketHttpError(404, path, 'BACKEND DEPLOYMENT DRIFT · /v1/mobile/indices no está desplegado todavía');
+        throw new MarketHttpError(404, path, 'BACKEND DEPLOYMENT DRIFT · ruta mobile no desplegada');
       }
       if (response.status === 503) {
         throw new MarketHttpError(503, path, `MARKET DATA GATE · ${detail}`);
@@ -66,6 +78,61 @@ async function request<T>(path: string, timeoutMs = 12000): Promise<T> {
   }
 }
 
+function finite(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+async function legacyIndices(): Promise<GlobalIndicesPayload> {
+  const now = Date.now();
+  if (legacyCache && now - legacyCache.at < LEGACY_CACHE_MS) return legacyCache.payload;
+
+  const results = await Promise.allSettled(LEGACY_INDEX_SET.map(async ([symbol, name, region]) => {
+    const raw = await request<Record<string, unknown>>(`/v1/quote/${encodeURIComponent(symbol)}`, 12000);
+    const data = raw.data && typeof raw.data === 'object' ? raw.data as Record<string, unknown> : {};
+    const price = finite(data.c);
+    const change = finite(data.d);
+    const percentageChange = finite(data.dp);
+    const epoch = finite(data.t);
+    return {
+      symbol,
+      name,
+      region,
+      price,
+      change,
+      percentageChange,
+      time: epoch ? new Date(epoch * 1000).toISOString() : null,
+      status: price !== null ? 'OK' as const : 'MISSING' as const,
+    };
+  }));
+
+  const items = results.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
+  if (!items.some((item) => item.status === 'OK')) {
+    throw new Error('GLOBAL INDICES DATA GATE · ni la ruta mobile ni el fallback Finnhub legacy devolvieron índices utilizables');
+  }
+
+  const payload: GlobalIndicesPayload = {
+    provider: 'Finnhub',
+    providerMode: 'legacy-read-compat-after-mobile-404',
+    generatedAt: new Date().toISOString(),
+    refreshHintSeconds: 60,
+    items,
+    guardrails: [
+      'Fallback activado únicamente porque /v1/mobile/indices devolvió 404 por deployment drift.',
+      'Los valores proceden del endpoint legacy real de Finnhub; no se sustituyen índices por ETFs ni se fabrican cifras.',
+      'Fallback cacheado durante 60 segundos para respetar límites de proveedor.',
+    ],
+  };
+  legacyCache = { at: now, payload };
+  return payload;
+}
+
 export const MarketApi = {
-  indices: () => request<GlobalIndicesPayload>('/v1/mobile/indices'),
+  indices: async (): Promise<GlobalIndicesPayload> => {
+    try {
+      return await request<GlobalIndicesPayload>('/v1/mobile/indices');
+    } catch (error) {
+      if (error instanceof MarketHttpError && error.status === 404) return legacyIndices();
+      throw error;
+    }
+  },
 };
