@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: atlas-genesis
+    name: atlas_genesis
     runtime: python
     plan: free
     repo: https://github.com/Vicente24051980/atlas_genesis
@@ -13,7 +13,7 @@ services:
     healthCheckPath: /v1/mobile/health
     envVars:
       - key: ATLAS_DEPLOY_REVISION
-        value: "2026-08-26-mobile-route-contract-v5-provenance"
+        value: "2026-08-26-mobile-route-contract-v6-existing-service-runtime-fix"
       - key: FINANCIALDATANET_API_KEY
         sync: false
       - key: FINNHUB_TOKEN
