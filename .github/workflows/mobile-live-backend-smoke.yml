@@ -8,7 +8,12 @@ on:
       - runtime/agentic_omega/**
       - render.yaml
       - .github/workflows/mobile-live-backend-smoke.yml
+      - .github/workflows/release-certified-mobile-apk.yml
   workflow_dispatch:
+
+concurrency:
+  group: atlas-live-backend-main
+  cancel-in-progress: true
 
 permissions:
   contents: read
