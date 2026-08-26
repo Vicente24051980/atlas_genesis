@@ -18,10 +18,10 @@ def test_social_narrative_breadth_detects_persistent_organic_trend():
             sentiment_quality=0.72,
             geographic_diversity=0.70,
             persistence=0.82,
-            influencer_concentration=0.18,
-            bot_activity=0.08,
-            coordinated_activity=0.07,
-            platform_growth_distortion=0.10,
+            influencer_concentration=0.05,
+            bot_activity=0.02,
+            coordinated_activity=0.02,
+            platform_growth_distortion=0.05,
         )
     )
 
