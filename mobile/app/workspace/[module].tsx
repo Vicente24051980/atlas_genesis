@@ -1,5 +1,8 @@
+import { useEffect, useMemo, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { CatalystApi, CatalystPayload } from '../../core/api/catalystApi';
 
 type PanelState = 'READY' | 'DATA GATE' | 'BROKER GATE';
 type ModuleSpec = { title: string; code: string; description: string; panels: { title: string; detail: string; state: PanelState }[]; primary?: { label: string; route: string } };
@@ -64,9 +67,9 @@ const MODULES: Record<string, ModuleSpec> = {
     title: 'Catalysts', code: 'CAL',
     description: 'Calendario operativo para resultados, FDA/clinical, guidance, macro, investor days y eventos que puedan cambiar una tesis.',
     panels: [
-      { title: 'Earnings Calendar', detail: 'Próximos resultados, guidance y ventanas de overnight risk; requiere feed de calendario certificado.', state: 'DATA GATE' },
+      { title: 'Earnings Calendar', detail: 'Cargando calendario real del proveedor…', state: 'DATA GATE' },
       { title: 'Clinical / FDA', detail: 'Readouts, PDUFA, congresos y evidencia clínica conectados a Clinical Evidence Shock Ω.', state: 'READY' },
-      { title: 'Macro Events', detail: 'FOMC, CPI, empleo, subastas, yields y otros eventos de régimen; requiere calendario macro live.', state: 'DATA GATE' },
+      { title: 'Macro Events', detail: 'Cargando calendario macro del proveedor…', state: 'DATA GATE' },
       { title: 'Catalyst Alerts', detail: 'Eventos enlazados con watchlist, resultados guardados y falsificadores.', state: 'READY' },
     ],
     primary: { label: 'Abrir Watchlist', route: '/watchlist' },
@@ -110,15 +113,60 @@ export default function WorkspaceScreen() {
   const params = useLocalSearchParams<{ module?: string }>();
   const key = typeof params.module === 'string' ? params.module.toLowerCase() : 'atlas';
   const spec: ModuleSpec = MODULES[key] ?? MODULES.atlas!;
+  const [catalysts, setCatalysts] = useState<CatalystPayload | null>(null);
+  const [catalystError, setCatalystError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (key !== 'catalysts') return;
+    let mounted = true;
+    CatalystApi.upcoming(14)
+      .then((payload) => { if (mounted) { setCatalysts(payload); setCatalystError(null); } })
+      .catch((cause) => { if (mounted) setCatalystError(cause instanceof Error ? cause.message : String(cause)); });
+    return () => { mounted = false; };
+  }, [key]);
+
+  const panels = useMemo(() => {
+    if (key !== 'catalysts') return spec.panels;
+    return spec.panels.map((panel) => {
+      if (panel.title === 'Earnings Calendar') {
+        if (!catalysts) return catalystError ? { ...panel, state: 'DATA GATE' as const, detail: `Feed no disponible: ${catalystError}` } : panel;
+        return {
+          ...panel,
+          state: catalysts.earnings.state === 'READY' ? 'READY' as const : 'DATA GATE' as const,
+          detail: earningsDetail(catalysts),
+        };
+      }
+      if (panel.title === 'Macro Events') {
+        if (!catalysts) return catalystError ? { ...panel, state: 'DATA GATE' as const, detail: `Feed no disponible: ${catalystError}` } : panel;
+        return {
+          ...panel,
+          state: catalysts.macro.state === 'READY' ? 'READY' as const : 'DATA GATE' as const,
+          detail: macroDetail(catalysts),
+        };
+      }
+      return panel;
+    });
+  }, [key, spec.panels, catalysts, catalystError]);
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.headerRow}><View style={styles.codeBox}><Text style={styles.code}>{spec.code}</Text></View><View style={styles.headerText}><Text style={styles.eyebrow}>ATLAS TERMINAL · WORKSPACE</Text><Text style={styles.title}>{spec.title}</Text></View></View>
       <Text style={styles.description}>{spec.description}</Text>
-      <View style={styles.grid}>{spec.panels.map((panel) => <View key={panel.title} style={styles.panel}><View style={styles.panelTop}><Text style={styles.panelTitle}>{panel.title}</Text><StateBadge state={panel.state} /></View><Text style={styles.panelDetail}>{panel.detail}</Text></View>)}</View>
+      <View style={styles.grid}>{panels.map((panel) => <View key={panel.title} style={styles.panel}><View style={styles.panelTop}><Text style={styles.panelTitle}>{panel.title}</Text><StateBadge state={panel.state} /></View><Text style={styles.panelDetail}>{panel.detail}</Text></View>)}</View>
       {spec.primary ? <Pressable accessibilityRole="button" accessibilityLabel={spec.primary.label} onPress={() => router.push(spec.primary!.route as never)} style={({ pressed }) => [styles.primary, pressed && styles.pressed]}><Text style={styles.primaryCode}>GO</Text><Text style={styles.primaryText}>{spec.primary.label}</Text><Text style={styles.primaryArrow}>→</Text></Pressable> : null}
       <View style={styles.rule}><Text style={styles.ruleTitle}>TERMINAL RULE</Text><Text style={styles.ruleText}>Una superficie puede existir antes que su feed. Si falta evidencia certificada, ATLAS muestra DATA GATE en lugar de fabricar una cifra.</Text></View>
     </ScrollView>
   );
+}
+
+function earningsDetail(payload: CatalystPayload): string {
+  const preview = payload.earnings.items.slice(0, 4).map((row) => `${row.date || '—'} ${row.symbol || '—'}${row.hour ? ` ${row.hour.toUpperCase()}` : ''}`).join(' · ');
+  return `${payload.earnings.detail}${preview ? ` Próximos: ${preview}.` : ''} Fuente: ${payload.source}.`;
+}
+
+function macroDetail(payload: CatalystPayload): string {
+  const preview = payload.macro.items.slice(0, 3).map((row) => `${row.time || '—'} ${row.country || ''} ${row.event || '—'}`).join(' · ');
+  return `${payload.macro.detail}${preview ? ` Próximos: ${preview}.` : ''} Fuente: ${payload.source}.`;
 }
 
 function StateBadge({ state }: { state: PanelState }) { const style = state === 'READY' ? styles.ready : state === 'BROKER GATE' ? styles.broker : styles.gate; return <View style={[styles.badge, style]}><Text style={styles.badgeText}>{state}</Text></View>; }
