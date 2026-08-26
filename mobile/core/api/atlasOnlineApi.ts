@@ -15,8 +15,8 @@ export type CompanyBundle = {
   quote: Record<string, unknown>;
   profile: Record<string, unknown>;
   metrics: Record<string, number | string | null>;
-  news: Array<Record<string, unknown>>;
-  recommendations: Array<Record<string, unknown>>;
+  news: Record<string, unknown>[];
+  recommendations: Record<string, unknown>[];
   sourceStatus: Record<string, string>;
   guardrail: string;
 };
@@ -165,7 +165,7 @@ export type AtlasAnalyzeBundle = {
   symbol: string;
   quote: MarketQuote;
   profile: Record<string, unknown>;
-  recommendations: Array<Record<string, unknown>>;
+  recommendations: Record<string, unknown>[];
   sourceStatus: Record<string, string>;
   analysis: AtlasAnalysis;
 };
@@ -176,7 +176,7 @@ export type MonitorItem = {
   symbol?: string;
   quote?: MarketQuote;
   profile?: Record<string, unknown>;
-  recommendations?: Array<Record<string, unknown>>;
+  recommendations?: Record<string, unknown>[];
   sourceStatus?: Record<string, string>;
   analysis?: AtlasAnalysis;
   error?: string;
@@ -199,7 +199,7 @@ export type EnginesPayload = { items: AtlasEngine[]; algorithm: string };
 export type AgenticSecurityPayload = {
   engine: string;
   status: string;
-  items: Array<{ ticker: string; role: string; state: string }>;
+  items: { ticker: string; role: string; state: string }[];
   guardrail: string;
 };
 
@@ -212,7 +212,7 @@ export type BrokerStatus = {
   guardrail: string;
 };
 export type BrokerEnvelope = { provider: 'Trading212'; environment: 'demo' | 'live'; data: unknown };
-export type BrokerInstrumentSearch = { query: string; count: number; items: Array<Record<string, unknown>> };
+export type BrokerInstrumentSearch = { query: string; count: number; items: Record<string, unknown>[] };
 export type LiquidityQuoteEvidence = {
   ticker: string;
   lastTradePrice?: number;
@@ -268,7 +268,7 @@ export function atlasApiBaseUrl(): string {
   return requestedBase;
 }
 
-const PORTFOLIO_ROWS: Array<[string, string, string]> = [
+const PORTFOLIO_ROWS: [string, string, string][] = [
   ['MSFT','Microsoft','Cloud / Software'],['AMZN','Amazon','Cloud / Consumer'],['GOOG','Alphabet','Cloud / Internet'],
   ['ORCL','Oracle','Cloud / Software'],['NOW','ServiceNow','Software'],['NVDA','NVIDIA','AI / Semiconductors'],
   ['AVGO','Broadcom','AI / Semiconductors'],['PLTR','Palantir','AI / Software'],['TSM','Taiwan Semiconductor','Semiconductors'],
@@ -284,7 +284,7 @@ const PORTFOLIO: TrackedTicker[] = PORTFOLIO_ROWS.map(([ticker,name,sector]) => 
 
 const PORTFOLIO_PENDING: TrackedTicker[] = [{ ticker: 'MCK', name: 'McKesson', sector: 'Health', state: 'PENDING' }];
 
-const WATCHLIST_ROWS: Array<[string, string, string]> = [
+const WATCHLIST_ROWS: [string, string, string][] = [
   ['MU','Micron Technology','Semiconductors'],['TER','Teradyne','Semiconductor Equipment'],['VRT','Vertiv','Data Centers'],
   ['IRM','Iron Mountain','Data Centers'],['DLR','Digital Realty','Data Centers'],['EQIX','Equinix','Data Centers'],
   ['PWR','Quanta Services','Electrical Infrastructure'],['CEG','Constellation Energy','Power'],['BE','Bloom Energy','Power'],
@@ -458,7 +458,7 @@ export const AtlasOnlineApi = {
       const symbol = clean.toUpperCase();
       return { query: clean, count: 1, items: [{ symbol, name: symbol, sector: 'Ticker' }] };
     }
-    const raw = await request<{ items?: Array<Record<string, unknown>> }>(`/v1/discovery?q=${encodeURIComponent(clean)}`);
+    const raw = await request<{ items?: Record<string, unknown>[] }>(`/v1/discovery?q=${encodeURIComponent(clean)}`);
     const items = (raw.items || []).flatMap((item) => {
       const symbol = String(item.symbol || item.ticker || '').trim().toUpperCase();
       if (!symbol) return [];

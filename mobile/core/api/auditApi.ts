@@ -45,7 +45,7 @@ export type FullAuditPayload = {
   guardrails: string[];
 };
 
-const ENGINE_LABELS: Array<[string, string, AuditEngineState]> = [
+const ENGINE_LABELS: [string, string, AuditEngineState][] = [
   ['GREEN_CONTINUITY_OMEGA', 'GREEN Continuity Ω', 'QUARANTINE'],
   ['GREEN_PULSE_OMEGA', 'GREEN Pulse / Breadth / Relative Green Ω', 'INSUFFICIENT_DATA'],
   ['ECONOMIC_PROOF_OMEGA', 'Economic Proof Ω', 'PARTIAL'],

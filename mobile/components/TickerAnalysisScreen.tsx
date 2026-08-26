@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -33,7 +33,7 @@ export default function TickerAnalysisScreen({ mode }: { mode: AnalysisMode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const analyze = async (requested?: string) => {
+  const analyze = useCallback(async (requested?: string) => {
     const symbol = (requested || ticker).trim().toUpperCase();
     if (!/^[A-Z0-9.\-]{1,20}$/.test(symbol)) {
       setError('Introduce un ticker válido.');
@@ -59,9 +59,9 @@ export default function TickerAnalysisScreen({ mode }: { mode: AnalysisMode }) {
     }
     if (atlasResult.status === 'rejected') setError(atlasResult.reason instanceof Error ? atlasResult.reason.message : String(atlasResult.reason));
     setLoading(false);
-  };
+  }, [mode, ticker]);
 
-  useEffect(() => { if (initial) void analyze(initial); }, []);
+  useEffect(() => { if (initial) void analyze(initial); }, [analyze, initial]);
 
   const score = config.scoreKey && atlas ? atlas.analysis.scores[config.scoreKey] : null;
   const inputs = useMemo(() => config.sourceKeys.map((key) => [key, atlas?.analysis.inputs[key]] as const).filter(([, value]) => value), [atlas, config.sourceKeys]);
@@ -137,7 +137,7 @@ function MarketView({ atlas, history }: { atlas: AtlasAnalyzeBundle; history: Ma
   );
 }
 
-function EngineScoreView({ title, score, inputs, state, inverse = false }: { title: string; score: number | null; inputs: ReadonlyArray<readonly [string, { value: number; sourceKey: string | null } | undefined]>; state?: string; inverse?: boolean }) {
+function EngineScoreView({ title, score, inputs, state, inverse = false }: { title: string; score: number | null; inputs: readonly (readonly [string, { value: number; sourceKey: string | null } | undefined])[]; state?: string; inverse?: boolean }) {
   const good = score != null && (inverse ? score <= 45 : score >= 60);
   return (
     <>
@@ -147,7 +147,7 @@ function EngineScoreView({ title, score, inputs, state, inverse = false }: { tit
   );
 }
 
-function CapexView({ atlas, inputs }: { atlas: AtlasAnalyzeBundle; inputs: ReadonlyArray<readonly [string, { value: number; sourceKey: string | null } | undefined]> }) {
+function CapexView({ atlas, inputs }: { atlas: AtlasAnalyzeBundle; inputs: readonly (readonly [string, { value: number; sourceKey: string | null } | undefined])[] }) {
   const score = atlas.analysis.scores.capexProductivity;
   const state = atlas.analysis.engineStates.capexProductivity;
   return (
@@ -171,7 +171,7 @@ function CatalystsView({ company, atlas }: { company: CompanyBundle | null; atla
 }
 
 function NewsView({ company }: { company: CompanyBundle | null }) { return <><NewsList news={company?.news || []} limit={20} /><Guardrail text="News Ω separa información de evidencia. Una noticia puede abrir revisión; no cambia la tesis sin validación." /></>; }
-function NewsList({ news, limit }: { news: Array<Record<string, unknown>>; limit: number }) { return <Panel title="NOTICIAS">{news.length ? news.slice(0, limit).map((item, index) => <View key={`${text(item.headline) || 'news'}-${index}`} style={styles.news}><Text style={styles.newsMeta}>{text(item.source) || 'Fuente'}</Text><Text style={styles.newsTitle}>{text(item.headline) || 'Noticia'}</Text><Text style={styles.newsSummary}>{text(item.summary) || ''}</Text></View>) : <Text style={styles.noData}>Sin noticias disponibles.</Text>}</Panel>; }
+function NewsList({ news, limit }: { news: Record<string, unknown>[]; limit: number }) { return <Panel title="NOTICIAS">{news.length ? news.slice(0, limit).map((item, index) => <View key={`${text(item.headline) || 'news'}-${index}`} style={styles.news}><Text style={styles.newsMeta}>{text(item.source) || 'Fuente'}</Text><Text style={styles.newsTitle}>{text(item.headline) || 'Noticia'}</Text><Text style={styles.newsSummary}>{text(item.summary) || ''}</Text></View>) : <Text style={styles.noData}>Sin noticias disponibles.</Text>}</Panel>; }
 function Panel({ title, children }: { title: string; children: ReactNode }) { return <View style={styles.panel}><Text style={styles.panelTitle}>{title}</Text>{children}</View>; }
 function Metric({ label, value }: { label: string; value: string }) { return <View style={styles.metric}><Text style={styles.metricLabel}>{label}</Text><Text style={styles.metricValue}>{value}</Text></View>; }
 function ScoreRow({ label, value, state, inverse = false }: { label: string; value: number | null; state?: string; inverse?: boolean }) { const good = value != null && (inverse ? value <= 45 : value >= 60); return <View style={styles.scoreRow}><View style={styles.scoreTop}><Text style={styles.scoreName}>{label}</Text><Text style={[styles.scoreNumber, value == null ? styles.muted : good ? styles.positive : styles.warning]}>{value == null ? '—' : Math.round(value)}</Text></View><Text style={styles.scoreState}>{state?.replaceAll('_', ' ') || '—'}</Text></View>; }

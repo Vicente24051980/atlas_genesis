@@ -69,7 +69,7 @@ const missing = (inputs: string[]): MetricProvenance => ({ origin: 'MISSING', fo
 const div = (a: number | null, b: number | null) => a == null || b == null || b === 0 ? null : a / b;
 const yoy = (a: number | null, b: number | null) => a == null || b == null || b === 0 ? null : (a / b - 1) * 100;
 const cagr = (a: number | null, b: number | null, years: number) => a == null || b == null || a <= 0 || b <= 0 || years <= 0 ? null : (Math.pow(a / b, 1 / years) - 1) * 100;
-const average = (values: Array<number | null>) => {
+const average = (values: (number | null)[]) => {
   const x = values.filter((v): v is number => v != null);
   return x.length ? x.reduce((s, v) => s + v, 0) / x.length : null;
 };

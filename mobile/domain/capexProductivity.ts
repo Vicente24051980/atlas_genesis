@@ -297,7 +297,7 @@ export function evaluateCapexProductivity(input: CapexProductivityInput): CapexP
   ];
   const completeness = Math.round((numericFields.filter((value) => value != null).length / numericFields.length) * 100);
   const componentScores = computeComponentScores(input);
-  const weightedComponents: Array<[number | null, number]> = [
+  const weightedComponents: [number | null, number][] = [
     [componentScores.roic, 20],
     [componentScores.fcfConversion, 20],
     [componentScores.assetProductivity, 15],

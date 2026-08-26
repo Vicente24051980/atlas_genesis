@@ -27,7 +27,7 @@ export type CompanyPayload = {
   providerMode?: string;
   generatedAt?: string;
   summary: CompanySummary;
-  sections: Record<string, Array<Record<string, unknown>>>;
+  sections: Record<string, Record<string, unknown>[]>;
   sourceStatus?: Record<string, string>;
   guardrails?: string[];
   fallbackReason?: string;
@@ -36,7 +36,7 @@ export type CompanyPayload = {
 export type PortfolioPayload = {
   snapshotId: string;
   count: number;
-  items: Array<{ ticker: string }>;
+  items: { ticker: string }[];
   guardrail: string;
 };
 

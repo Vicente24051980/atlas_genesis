@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 type PanelState = 'READY' | 'DATA GATE' | 'BROKER GATE';
-type ModuleSpec = { title: string; code: string; description: string; panels: Array<{ title: string; detail: string; state: PanelState }>; primary?: { label: string; route: string } };
+type ModuleSpec = { title: string; code: string; description: string; panels: { title: string; detail: string; state: PanelState }[]; primary?: { label: string; route: string } };
 
 const MODULES: Record<string, ModuleSpec> = {
   markets: {

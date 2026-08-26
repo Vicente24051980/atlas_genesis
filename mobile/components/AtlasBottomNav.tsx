@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router';
 
 type NavKey = 'home' | 'portfolio' | 'watchlist' | 'radar' | 'more';
 
-const ITEMS: Array<{ key: NavKey; label: string; glyph: string; route: '/' | '/portfolio' | '/watchlist' | '/radar' | '/more' }> = [
+const ITEMS: { key: NavKey; label: string; glyph: string; route: '/' | '/portfolio' | '/watchlist' | '/radar' | '/more' }[] = [
   { key: 'home', label: 'Inicio', glyph: '⌂', route: '/' },
   { key: 'portfolio', label: 'Cartera', glyph: '▦', route: '/portfolio' },
   { key: 'watchlist', label: 'Watchlist', glyph: '★', route: '/watchlist' },

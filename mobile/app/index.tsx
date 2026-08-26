@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { BrokerApi, BrokerEnvelope, BrokerStatus } from '../core/api/brokerApi';
 import { MobileApi, MobileHealth } from '../core/api/mobileApi';
@@ -143,7 +143,7 @@ function PriorityRow({ rank, title, detail, state, route }: { rank: string; titl
 function WorkspaceTile({ code, title, meta, route }: { code: string; title: string; meta: string; route: string }) { return <Pressable onPress={() => router.push(route as never)} style={({ pressed }) => [styles.tile, pressed && styles.pressed]}><Text style={styles.tileCode}>{code}</Text><Text style={styles.tileTitle}>{title}</Text><Text style={styles.tileMeta}>{meta}</Text><Text style={styles.tileArrow}>OPEN →</Text></Pressable>; }
 
 function objectRow(value: unknown): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}; }
-function normalizeRows(value: unknown): Array<Record<string, unknown>> { if (Array.isArray(value)) return value.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object' && !Array.isArray(row)); const row = objectRow(value); for (const key of ['items', 'positions', 'data', 'results']) { const nested = row[key]; if (Array.isArray(nested)) return normalizeRows(nested); } return []; }
+function normalizeRows(value: unknown): Record<string, unknown>[] { if (Array.isArray(value)) return value.filter((row): row is Record<string, unknown> => Boolean(row) && typeof row === 'object' && !Array.isArray(row)); const row = objectRow(value); for (const key of ['items', 'positions', 'data', 'results']) { const nested = row[key]; if (Array.isArray(nested)) return normalizeRows(nested); } return []; }
 function normalizedKey(value: string): string { return value.toLowerCase().replace(/[^a-z0-9]/g, ''); }
 function pickNumber(row: Record<string, unknown>, ...names: string[]): number | null { const normalized = new Map(Object.entries(row).map(([key, value]) => [normalizedKey(key), value])); for (const name of names) { const value = normalized.get(normalizedKey(name)); if (typeof value === 'number' && Number.isFinite(value)) return value; if (typeof value === 'string') { const parsed = Number(value); if (Number.isFinite(parsed)) return parsed; } } return null; }
 function pickText(row: Record<string, unknown>, ...names: string[]): string | null { const normalized = new Map(Object.entries(row).map(([key, value]) => [normalizedKey(key), value])); for (const name of names) { const value = normalized.get(normalizedKey(name)); if (typeof value === 'string' && value.trim()) return value.trim(); } return null; }

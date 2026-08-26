@@ -43,7 +43,7 @@ export interface AgenticSecurityDiscoveryResult {
   evidenceScore: number;
   discoveryScore: number;
   dimensions: Record<AgenticSecurityDimension, number>;
-  matchedSeeds: Array<{ ticker: string; similarity: number }>;
+  matchedSeeds: { ticker: string; similarity: number }[];
   evidenceRefs: string[];
   flags: string[];
   nextStep: 'ATLAS_FULL_SCORER' | 'RESEARCH_QUEUE' | 'NONE';
