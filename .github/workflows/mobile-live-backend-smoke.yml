@@ -32,7 +32,7 @@ jobs:
   kick-render-deploy:
     needs: local-production-contract
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 7
     outputs:
       live_smoke_enabled: ${{ steps.deploy.outputs.live_smoke_enabled }}
       deploy_trigger: ${{ steps.deploy.outputs.deploy_trigger }}
@@ -43,7 +43,7 @@ jobs:
       ATLAS_PRODUCTION_API: ${{ vars.ATLAS_PRODUCTION_API }}
     steps:
       - id: deploy
-        name: Trigger Render deploy or require Blueprint auto-deploy
+        name: Trigger Render deploy or verify Git auto-deploy
         shell: bash
         run: |
           set -euo pipefail
@@ -55,13 +55,47 @@ jobs:
             echo "RENDER_DEPLOY_TRIGGER=hook"
             exit 0
           fi
+
           if [ -z "${RENDER_API_KEY:-}" ]; then
-            echo "deploy_trigger=blueprint_auto_deploy" >> "$GITHUB_OUTPUT"
-            echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
-            echo "RENDER_DEPLOY_TRIGGER=blueprint_auto_deploy"
-            echo "No Render API credential configured; production certification will verify Blueprint auto-deploy instead of skipping."
-            exit 0
+            BASE="${ATLAS_PRODUCTION_API:-https://atlas-genesis.onrender.com}"
+            BASE="${BASE%/}"
+            echo "RENDER_DEPLOY_TRIGGER=git_auto_deploy_preflight"
+            echo "No Render deploy credential is configured. Waiting up to five minutes for the Git-linked Render service to auto-deploy."
+            for attempt in $(seq 1 30); do
+              mobile=$(curl -sS --max-time 20 -o /tmp/mobile.json -w "%{http_code}" "$BASE/v1/mobile/health" || true)
+              gov=$(curl -sS --max-time 20 -o /tmp/gov.json -w "%{http_code}" "$BASE/v1/agentic-omega/v2/governance/capabilities" || true)
+              openapi=$(curl -sS --max-time 20 -o /tmp/openapi.json -w "%{http_code}" "$BASE/openapi.json" || true)
+              echo "preflight=$attempt base=$BASE mobile=$mobile governance=$gov openapi=$openapi"
+              if [ "$mobile" = 200 ] && [ "$gov" = 200 ] && [ "$openapi" = 200 ] && python3 - <<'PY'
+          import json
+          m=json.load(open('/tmp/mobile.json')); g=json.load(open('/tmp/gov.json')); o=json.load(open('/tmp/openapi.json'))
+          assert m.get('ok') is True and m.get('service')=='atlas-mobile-v2'
+          assert g.get('version')=='2.3-governance-evidence'
+          paths=set((o.get('paths') or {}).keys())
+          required={'/v1/mobile/health','/v1/mobile/indices','/v1/mobile/company/{ticker}','/v1/mobile/catalysts','/v1/mobile/audit/{ticker}','/v1/mobile/broker/status'}
+          assert required <= paths
+          PY
+              then
+                echo "deploy_trigger=git_auto_deploy" >> "$GITHUB_OUTPUT"
+                echo "live_smoke_enabled=true" >> "$GITHUB_OUTPUT"
+                echo "Render Git auto-deploy exposed the current ATLAS contract."
+                exit 0
+              fi
+              sleep 10
+            done
+
+            root=$(curl -sS --max-time 20 -o /tmp/root.json -w "%{http_code}" "$BASE/health" || true)
+            echo "production_root_http=$root"
+            echo "production_root_body_begin"
+            head -c 1200 /tmp/root.json 2>/dev/null || true
+            echo
+            echo "production_root_body_end"
+            echo "::error title=Render production deployment drift::The configured production host is reachable, but it did not expose the current ATLAS mobile/OpenAPI contract after five minutes. GitHub has no RENDER_DEPLOY_HOOK_URL or RENDER_API_KEY, so Actions cannot force a Render deploy. Relink the Render service source to Vicente24051980/atlas_genesis main or configure one of those GitHub Actions secrets."
+            echo "deploy_trigger=blocked_no_render_auth" >> "$GITHUB_OUTPUT"
+            echo "live_smoke_enabled=false" >> "$GITHUB_OUTPUT"
+            exit 1
           fi
+
           SERVICE_ID="${RENDER_SERVICE_ID:-}"
           if [ -z "$SERVICE_ID" ]; then
             curl -fsS --max-time 30 -H "Accept: application/json" -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=100" > /tmp/render-services.json
