@@ -3,10 +3,19 @@
 Converts audited universe candidates into durable GREEN tiers and executable
 replacement decisions. Fail-closed by design: stale/incomplete/event-gated
 candidates cannot displace an incumbent.
+
+Canonical replacement hurdle: >=50 ATLAS Ω points on the 0–1000 scale OR
+>=3 percentage points of normalized Expected CAGR. FinalCandidate.omega_score is
+stored on the internal 0–100 scale, so 50 ATLAS points == 5 internal score points.
 """
 from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable, Optional
+
+ATLAS_SCORE_SCALE = 1000.0
+FINALIZER_SCORE_SCALE = 100.0
+DEFAULT_ATLAS_REPLACEMENT_HURDLE_POINTS = 50.0
+DEFAULT_EXPECTED_CAGR_HURDLE_PP = 3.0
 
 
 class GreenTier(str, Enum):
@@ -63,7 +72,6 @@ def classify(candidate: FinalCandidate) -> FinalDecision:
 
 
 def replacement_allowed(incumbent: FinalCandidate, challenger: FinalCandidate) -> tuple[bool, str]:
-    i = classify(incumbent)
     c = classify(challenger)
     if incumbent.falsifier:
         return c.executable, "incumbent falsified"
@@ -71,11 +79,20 @@ def replacement_allowed(incumbent: FinalCandidate, challenger: FinalCandidate) -
         return False, f"challenger blocked: {c.reason}"
     if challenger.normalized_expected_cagr is None or incumbent.normalized_expected_cagr is None:
         return False, "missing normalized Expected CAGR"
+
     cagr_edge = challenger.normalized_expected_cagr - incumbent.normalized_expected_cagr
-    score_edge = challenger.omega_score - incumbent.omega_score
-    if cagr_edge >= 3.0 or score_edge >= 5.0:
-        return True, f"replacement hurdle passed: CAGR edge {cagr_edge:.2f}pp, score edge {score_edge:.2f}"
-    return False, f"replacement hurdle failed: CAGR edge {cagr_edge:.2f}pp, score edge {score_edge:.2f}"
+    internal_score_edge = challenger.omega_score - incumbent.omega_score
+    atlas_score_edge_points = internal_score_edge * ATLAS_SCORE_SCALE / FINALIZER_SCORE_SCALE
+
+    if cagr_edge >= DEFAULT_EXPECTED_CAGR_HURDLE_PP or atlas_score_edge_points >= DEFAULT_ATLAS_REPLACEMENT_HURDLE_POINTS:
+        return True, (
+            f"replacement hurdle passed: CAGR edge {cagr_edge:.2f}pp, "
+            f"ATLAS edge {atlas_score_edge_points:.1f} points"
+        )
+    return False, (
+        f"replacement hurdle failed: CAGR edge {cagr_edge:.2f}pp, "
+        f"ATLAS edge {atlas_score_edge_points:.1f} points"
+    )
 
 
 def finalize(candidates: Iterable[FinalCandidate]) -> list[FinalDecision]:
@@ -89,5 +106,6 @@ CANONICAL_FINALIZER_LAWS = (
     "POSITIONING T-1 != CURRENT FLOW",
     "GREEN FUNDAMENTALS != EXECUTABLE BUY",
     "CHALLENGER QUALITY != REPLACEMENT",
+    "REPLACEMENT REQUIRES >=50 ATLAS OMEGA POINTS OR ~3PP EXPECTED CAGR EDGE",
     "MISSING EVIDENCE => NO EXECUTION",
 )
