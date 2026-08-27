@@ -28,5 +28,6 @@ from .aime_signal_engines import AIME_CANONICAL_LAWS, ExternalSignalInput, Exter
 from .social_narrative_breadth import SOCIAL_NARRATIVE_CANONICAL_LAWS, SocialNarrativeBreadthInput, SocialNarrativeBreadthResult, evaluate_social_narrative_breadth
 from .thread_signal_engines import AgenticProductionProofInput, AgenticProductionProofResult, LeverageFlowDistortionInput, LeverageFlowDistortionResult, LongTermLeverageGateInput, LongTermLeverageGateResult, MemoryScarcityTransmissionInput, MemoryScarcityTransmissionResult, ScarcityPaidInput, ScarcityPaidResult, THREAD_SIGNAL_CANONICAL_LAWS, evaluate_agentic_production_proof, evaluate_leverage_flow_distortion, evaluate_long_term_leverage_gate, evaluate_memory_scarcity_transmission, evaluate_scarcity_paid
 from .market_fragility import ExpectationsGapInput, ExpectationsGapResult, ExpectationsGapState, FragilityState, MarketFragilityInput, MarketFragilityResult, ReturnDecompositionInput, evaluate_market_fragility, evaluate_negative_expectations_gap, layer_jump_state, unexplained_return
+from .post_nvda_transmission import POST_NVDA_CANONICAL_LAWS, PostNVDATransmissionInput, PostNVDATransmissionResult, evaluate_post_nvda_transmission
 
 __all__ = [name for name in globals() if not name.startswith("_")]
