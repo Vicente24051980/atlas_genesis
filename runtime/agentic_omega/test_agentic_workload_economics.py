@@ -65,7 +65,7 @@ def test_workload_without_paid_usage_stops_at_workload_stage():
 def test_owner_economics_can_make_layer_eligible_for_competition_not_trade():
     result = evaluate_agentic_layer_economics(
         AgenticLayerEconomicsInput(
-            AgenticLayer.OBSERVABILITY, 0.5, 0.35, 0.30, 2.0, 0.30, 0.25, 3.0, 0.08, 0.01, 0.85, 0.95
+            AgenticLayer.OBSERVABILITY, 0.60, 0.50, 0.45, 2.0, 0.45, 0.40, 3.0, 0.08, 0.01, 0.85, 0.95
         )
     )
     assert result.evidence_stage == "OWNER_ECONOMICS"
