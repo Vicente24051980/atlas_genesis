@@ -1,9 +1,9 @@
 # ATLAS Ω — CURRENT CANON
 
 **Status:** SOLE_CANON / ACTIVE  
-**Effective date:** 2026-08-19  
+**Effective date:** 2026-08-28  
 **Canonical source:** `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`  
-**Canonical version:** **ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v3.1**
+**Canonical version:** **ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v4.0**
 
 ## Authority rule
 
@@ -144,6 +144,20 @@ Canon: `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`.
 - `DATA_FAIL ≠ NO_BUY`; `CATEGORY_MISMATCH ≠ BUSINESS_FAILURE`; `NO_PASS_OPERATING_SHELL` is distinct from a weak operating company.
 - Power-to-AI candidates must pass CFQ + FD + contract quality + project-finance recourse + commissioned-capacity/cash-conversion gates.
 - If a Future ticker enters the active portfolio, it is removed from Future in the same reconciliation.
+
+## AI VALUE DISTRIBUTION Ω — 2026-08-28
+
+**Estado:** CANONICAL / ACTIVE / TRANSVERSAL  
+**MCR:** `docs/canon/MCR-2026-08-28-AI-DISTRIBUTION.md`  
+**Modulo:** `CURRENT_CANON/AI_VALUE_DISTRIBUTION_OMEGA.md`
+
+ATLAS amplía el análisis IA desde el CAPEX y el compute hacia el profit pool, la interfaz, el system of record y la distribución al usuario. **AAPL** queda como `C19 TECH CONSUMPTION / AI DISTRIBUTION / CORE CANDIDATE`, clasificada como `DEVICE_OS_ECOSYSTEM` y comparada con GOOG, MSFT, META y AMZN mediante Competition for Capital.
+
+Cadena obligatoria: `CAPABILITY -> ADOPTION -> USAGE -> CUSTOMER ACCEPTANCE -> REVENUE -> MARGIN -> FCF/SHARE -> INCREMENTAL ROIC`.
+
+Nuevos motores: AI Value Migration, AI Cost per Intelligence, AI Stack Control, Enterprise Agentic Interface, Apple Distribution Gate, NVIDIA Demand Quality, Custom Silicon Risk y Newsletter Evidence Filter.
+
+**Limites:** ninguna de estas capas crea BUY/SELL, cambia la cartera, promueve una capa C1-C19, infiere flujos desde precio o supera Falsifier Veto, Valuation, Competition for Capital o Decision Safety Gate. Claims privados, benchmarks y anuncios no verificados permanecen `DISCOVERY / HYPOTHESIS / UNKNOWN`.
 
 ## Portfolio rule
 
