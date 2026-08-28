@@ -209,6 +209,18 @@ Until then: `HYPOTHESIS / WATCH`, not a falsifier.
 | FCF and incremental ROIC | T4/T5 | Eligible for full underwriting |
 | Price reaction | MARKET VALIDATION | Never alone |
 
+## Capital Malinvestment and Cash Reality dependency
+
+Every CAPEX-heavy AI thesis must pass:
+
+`CAPEX -> capacity -> utilization -> incremental NOPAT -> incremental FCF/share -> incremental ROIC`
+
+Use `FCF = CFO - Total CAPEX`; do not subtract CAPEX twice. Separate cash generation from growth CAPEX, M&A, dividends, net buybacks and net debt reduction. SBC is tested through economic expense, dilution and FCF/share.
+
+Capital Malinvestment states: `CM0_PRODUCTIVE / CM1_EARLY_PRODUCTIVE / CM2_UNCERTAIN / CM3_DETERIORATING / CM4_DESTRUCTIVE`.
+
+Hype-to-Economics Gap remains ordinal and has no autonomous trade authority.
+
 ## Portfolio and model governance
 
 This module cannot:
