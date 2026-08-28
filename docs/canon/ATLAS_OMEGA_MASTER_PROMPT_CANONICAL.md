@@ -1,4 +1,4 @@
-# ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v3.1
+# ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v4.0
 
 **Fecha canónica:** 2026-08-28  
 **Horizonte:** 3–6 años  
@@ -379,6 +379,30 @@ Estados de Economic Proof:
 
 **T0_NARRATIVE → T1_ADOPTION → T2_REVENUE_LINKAGE → T3_MARGIN_LINKAGE → T4_FCF_PROOF → T5_DURABLE_ROIC**
 
+### Mandatory AI Value Distribution Gate Ω
+
+Todo análisis relacionado con IA debe pasar obligatoriamente por **AI Value Distribution Ω** antes de cualquier recomendación de asignación de capital.
+
+La separación económica es estricta y no admite inferencias automáticas entre etapas:
+- **Narrativa = T0_NARRATIVE**
+- **Adopción = T1_ADOPTION**
+- **Monetización = T2_REVENUE_LINKAGE + T3_MARGIN_LINKAGE**
+- **FCF = T4_FCF_PROOF**
+- **ROIC durable = T5_DURABLE_ROIC**
+
+Una evidencia de una etapa anterior no prueba una etapa posterior. **Narrativa ≠ adopción ≠ monetización ≠ FCF ≠ ROIC durable.**
+
+La promoción de una tesis, módulo, MCR o capa de conocimiento no tiene autoridad autónoma sobre la cartera. **Portfolio impact = NONE** por defecto.
+
+Cualquier **BUY / SELL / ROTATE / RESIZE** derivado de una tesis de IA debe superar de forma independiente y explícita:
+1. **Portfolio Integrity Ω**
+2. **Valuation Ω**
+3. **Expected Return Ω**
+4. **Competition for Capital Ω**
+5. **Decision Safety Gate Ω**
+
+Si cualquiera falla o permanece sin verificar: **NO ACTION / NO PORTFOLIO CHANGE**.
+
 Reglas:
 
 - AI mention, partnership, benchmark, CAPEX announcement, beta o developer activity no son Economic Proof por sí solos.
@@ -389,7 +413,7 @@ Reglas:
 - Newsletter, podcast, redes y marketing son Discovery; no elevan convicción sin fuente primaria.
 - Afirmaciones sobre proyectos privados, adquisiciones o benchmarks permanecen UNVERIFIED hasta autenticación independiente.
 
-El módulo no puede modificar por sí solo cartera, Expected Return, C1–C19, Falsifier Veto, Valuation, Competition for Capital ni Decision Safety Gate.
+El módulo no puede modificar por sí solo cartera, Portfolio Integrity, Expected Return, C1–C19, Falsifier Veto, Valuation, Competition for Capital ni Decision Safety Gate.
 
 ## LEY FINAL Ω
 
