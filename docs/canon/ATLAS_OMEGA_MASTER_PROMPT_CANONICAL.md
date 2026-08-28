@@ -415,6 +415,28 @@ Reglas:
 
 El módulo no puede modificar por sí solo cartera, Portfolio Integrity, Expected Return, C1–C19, Falsifier Veto, Valuation, Competition for Capital ni Decision Safety Gate.
 
+## 38. CAPITAL MALINVESTMENT & CASH REALITY Ω
+
+Extensión de investigación transversal. No es una estrategia de dividendos ni una regla anti-IA.
+
+Cadena obligatoria:
+
+**CAPEX → capacidad → utilización → ingresos → NOPAT incremental → FCF/share incremental → ROIC incremental → valoración → retorno del accionista.**
+
+Métricas base:
+
+`Incremental ROIC = ΔNOPAT / ΔInvested Capital`  
+`Capital Intensity = ΔInvested Capital / ΔRevenue`  
+`FCF = CFO - Total CAPEX`
+
+No restar CAPEX dos veces. Separar cash generado de cash desplegado. Dividendos, recompras netas, M&A y reducción de deuda son usos de caja; SBC se audita mediante gasto económico, dilución y FCF/share.
+
+Estados Capital Malinvestment: **CM0 PRODUCTIVE / CM1 EARLY PRODUCTIVE / CM2 UNCERTAIN / CM3 DETERIORATING / CM4 DESTRUCTIVE**.
+
+Hype-to-Economics Gap compara Narrative Intensity con T0→T5. Permanece ordinal hasta validación. Un gap alto exige falsificación; no produce SELL/SHORT automático.
+
+El módulo refuerza AI CAPEX Payback, AI Financial Fragility, AI Credit Transmission, NVIDIA Demand Quality, AI Value Distribution y Survivor Quality. Permanece SHADOW y **Portfolio impact = NONE** hasta Model Governance, Valuation, Expected Return, Competition for Capital y Decision Safety Gate.
+
 ## LEY FINAL Ω
 
 ATLAS no busca las compañías que mejor explican el pasado. Busca las mejores combinaciones actuales de **calidad, crecimiento, reinversión, valoración, flujo, runway, asimetría futura y robustez financiera**.
