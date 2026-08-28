@@ -56,6 +56,30 @@ Toda tesis IA CAPEX-heavy debe pasar por Capital Malinvestment Gate Ω y Cash Re
 
 Usar `FCF = CFO - Total CAPEX`; no restar CAPEX dos veces. Un HEG alto exige mayor falsificación, nunca venta automática.
 
+## AI Value Migration / Receiver Gate dependency
+
+Canon: `CURRENT_CANON/AI_VALUE_MIGRATION_RECEIVER_GATE_OMEGA.md`  
+Engine: `src/atlas/algorithm/ai-value-migration-receiver-omega.ts`  
+Research: `docs/information/2026-08-28_AI_VALUE_MIGRATION_RECEIVER_RESEARCH.md`
+
+ATLAS debe separar siempre:
+
+`SOURCE-LAYER FUNDAMENTALS -> TARGET-LAYER ECONOMIC CAPTURE -> EQUITY PRICE RESPONSE`.
+
+Una divergencia del tipo `compute down / software up` crea como máximo una hipótesis de migración. Un receptor sólo puede promoverse con evidencia económica: adopción, uso recurrente, aceptación, expansión pagada, revenue atribuible, margen, FCF/share e incremental ROIC.
+
+Receiver states:
+
+`DISCOVERY -> WATCH -> RECEIVER_CANDIDATE -> ECONOMIC_RECEIVER_CONFIRMED -> DURABLE_VALUE_RECEIVER`.
+
+Migration states:
+
+`NO_MIGRATION_SIGNAL -> MIGRATION_WATCH -> MIGRATION_CANDIDATE -> MIGRATION_CONFIRMED`.
+
+La confirmación es de cohorte, no de ticker aislado, y no puede reutilizar denominadores C1-C19 para declarar un Hard Layer Jump. ARR, ACV, bookings y run-rate no se promueven silenciosamente a recognized revenue.
+
+Estado inicial 2026-08-28: **MIGRATION_WATCH / NO PORTFOLIO CHANGE**.
+
 ## Authority limits
 
 This module has no direct BUY/SELL authority, does not alter the frozen portfolio or C1-C19 states, does not infer flows from price and cannot override Falsifier Veto, Valuation, Competition for Capital or Decision Safety Gate.
