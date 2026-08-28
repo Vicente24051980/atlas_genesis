@@ -1,9 +1,9 @@
 # ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v3.1
 
-**Fecha canónica:** 16-ago-2026  
+**Fecha canónica:** 2026-08-28  
 **Horizonte:** 3–6 años  
 **Estado:** SOLE_CANON / ACTIVE  
-**Base preservada:** v3.0 del 15-ago-2026; v3.1 incorpora la arquitectura sistémica, sucesores, crédito AI, plumbing soberano y nuevas capas de falsificación solicitadas el 16-ago-2026.
+**Base preservada:** v3.1 del 16-ago-2026; v4.0 incorpora las extensiones de gobernanza y distribución de valor IA aceptadas el 28-ago-2026.
 
 **Objetivo:** maximizar retorno esperado ajustado por riesgo, detectar futuros líderes antes del consenso y evitar pérdida permanente de capital por narrativa, valoración, concentración, apalancamiento, fragilidad de financiación o sesgo de familiaridad.
 
@@ -96,6 +96,14 @@ Analizar runway 3–6 años, TAM, market-share gains, operating leverage, FCF in
 - **Successor Detection Ω**
 
 ### Especializados estructurales
+- **AI Value Distribution Ω**
+- **AI Cost per Intelligence Ω**
+- **AI Stack Control Ω**
+- **Enterprise Agentic Interface Ω**
+- **Apple Distribution Gate Ω**
+- **NVIDIA Demand Quality Ω**
+- **Custom Silicon Risk Ω**
+- **Newsletter Evidence Filter Ω**
 - **AI CAPEX Payback Ω**
 - **AI Financial Fragility Ω**
 - **AI Credit Transmission Ω**
@@ -353,6 +361,36 @@ Toda modificación canónica debe mantener: **GitHub = fuente técnica/versionad
 
 Implementación incompleta hasta **GitHub + Notion reconciliados**. Mantener versionado, changelog y Decision Log.
 
+## 37. AI VALUE DISTRIBUTION Ω
+
+ATLAS no analiza únicamente quién fabrica la infraestructura IA. Debe localizar quién controla el compute, el modelo, la inference, los datos, el workflow, la interfaz y la distribución, y quién convierte ese control en FCF/share e incremental ROIC.
+
+Cadena obligatoria:
+
+**CAPABILITY → ADOPTION → USAGE → CUSTOMER ACCEPTANCE → REVENUE → MARGIN → FCF/SHARE → INCREMENTAL ROIC**
+
+Registrar también el leakage:
+
+**CAPEX + DEPRECIATION + SBC/DILUTION + SUPERVISION + SECURITY + FINANCING + CUSTOMER INCENTIVES**
+
+**AAPL** es candidato obligatorio de **C19 TECH CONSUMPTION / AI DISTRIBUTION / DEVICE_OS_ECOSYSTEM** y se compara mediante Competition for Capital con **GOOG, MSFT, META y AMZN**. No es BUY automático.
+
+Estados de Economic Proof:
+
+**T0_NARRATIVE → T1_ADOPTION → T2_REVENUE_LINKAGE → T3_MARGIN_LINKAGE → T4_FCF_PROOF → T5_DURABLE_ROIC**
+
+Reglas:
+
+- AI mention, partnership, benchmark, CAPEX announcement, beta o developer activity no son Economic Proof por sí solos.
+- Coste por tarea menor no implica menor compute total; la elasticidad de uso puede producir Jevons.
+- Agent interface owner y system-of-record owner deben evaluarse por separado hasta demostrar acción, persistencia y valor para el cliente.
+- NVIDIA Demand Quality clasifica demanda como **ORGANIC / SUPPORTED / INTERDEPENDENT / REFLEXIVE / UNKNOWN**.
+- Custom silicon permanece **HYPOTHESIS / WATCH** hasta deployment, utilization, share shift y efecto financiero verificable.
+- Newsletter, podcast, redes y marketing son Discovery; no elevan convicción sin fuente primaria.
+- Afirmaciones sobre proyectos privados, adquisiciones o benchmarks permanecen UNVERIFIED hasta autenticación independiente.
+
+El módulo no puede modificar por sí solo cartera, Expected Return, C1–C19, Falsifier Veto, Valuation, Competition for Capital ni Decision Safety Gate.
+
 ## LEY FINAL Ω
 
 ATLAS no busca las compañías que mejor explican el pasado. Busca las mejores combinaciones actuales de **calidad, crecimiento, reinversión, valoración, flujo, runway, asimetría futura y robustez financiera**.
@@ -365,4 +403,4 @@ Una megacap debe defender su puesto. Una nueva compañía debe ganárselo. Un ga
 
 ## Supersession rule
 
-Desde el 16-ago-2026 este documento v3.1 es la **única autoridad canónica operativa ATLAS Ω**. v3.0 queda preservado en el historial Git pero es superseded como autoridad activa. Los módulos previos siguen válidos sólo cuando sean compatibles con v3.1; los específicamente reemplazados quedan históricos.
+Desde el 16-ago-2026 este documento v4.0 es la **única autoridad canónica operativa ATLAS Ω**. v3.1 queda preservado en el historial Git pero es superseded como autoridad activa. Los módulos previos siguen válidos sólo cuando sean compatibles con v3.1; los específicamente reemplazados quedan históricos.
