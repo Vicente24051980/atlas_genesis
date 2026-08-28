@@ -38,6 +38,14 @@ and subtracts:
 
 `T0_NARRATIVE -> T1_ADOPTION -> T2_REVENUE_LINKAGE -> T3_MARGIN_LINKAGE -> T4_FCF_PROOF -> T5_DURABLE_ROIC`
 
+## Capital Malinvestment dependency
+
+Toda tesis IA CAPEX-heavy debe pasar por Capital Malinvestment Gate Ω y Cash Reality Gate Ω:
+
+`CAPEX -> capacity -> utilization -> incremental NOPAT -> incremental FCF/share -> incremental ROIC`
+
+Usar `FCF = CFO - Total CAPEX`; no restar CAPEX dos veces. Un HEG alto exige mayor falsificación, nunca venta automática.
+
 ## Authority limits
 
 This module has no direct BUY/SELL authority, does not alter the frozen portfolio or C1-C19 states, does not infer flows from price and cannot override Falsifier Veto, Valuation, Competition for Capital or Decision Safety Gate.
