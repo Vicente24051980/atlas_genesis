@@ -20,6 +20,16 @@ and subtracts:
 
 `CAPEX + DEPRECIATION + SBC/DILUTION + SUPERVISION + SECURITY + FINANCING + CUSTOMER INCENTIVES`
 
+## Workflow Penetration dependency
+
+AI adoption must also pass `CURRENT_CANON/WORKFLOW_PENETRATION_OMEGA.md` when workflow evidence is relevant.
+
+Required workflow chain:
+
+`W0_DEMO -> W1_TRIAL -> W2_RECURRENT_USE -> W3_WORKFLOW_INTEGRATION -> W4_MEASURED_PRODUCTIVITY -> W5_PAID_EXPANSION -> W6_PROVIDER_FCF_CAPTURE`
+
+Users, prompts, tokens, pilots, partnerships and demos are not monetization proof by themselves. ATLAS must identify the workflow owner, measured customer value, paid expansion and eventual FCF/ROIC capture.
+
 ## Canonical rules
 
 - **AAPL** is a mandatory `C19 TECH CONSUMPTION / AI DISTRIBUTION / CORE CANDIDATE`, not an automatic BUY.
@@ -54,4 +64,4 @@ Default incomplete state: **WATCH / WAIT FOR PROOF / NO PORTFOLIO CHANGE**.
 
 ## Required output
 
-`FACTS -> DELTA -> LAYER -> ECONOMIC PROOF -> OWNER CAPTURE -> VALUATION -> RISK -> FALSIFIERS -> ACTION`
+`FACTS -> DELTA -> LAYER -> W_STATE/WPS -> ECONOMIC PROOF -> OWNER CAPTURE -> VALUATION -> RISK -> FALSIFIERS -> ACTION`
