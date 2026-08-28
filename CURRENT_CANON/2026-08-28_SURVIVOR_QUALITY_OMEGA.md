@@ -149,7 +149,15 @@ No comprar la primera vela sólo por porcentaje de caída.
 ## 17. Prediction-market evidence firewall
 Mercados predictivos se tratan como información de probabilidades/precios, no como señal de cartera. Verificar siempre resolución, fuente de fixing, timestamp, mutually-exclusive outcomes, costes y precios actuales. Narrativa geopolítica no prueba edge; edge exige probabilidad propia > break-even con margen de error.
 
-## 18. Model Governance
+## 18. Cash Reality / Capital Malinvestment dependency
+
+El componente **A — Capital Allocation** debe pasar por Cash Reality Gate Ω y Shareholder Cash Discipline Ω. Separar caja generada, caja desplegada y resultado por acción. No restar CAPEX dos veces ni tratar dividendos/recompras/reducción de deuda como generación de FCF.
+
+Survivor Quality se debilita cuando el crecimiento exige capital intensity creciente, incremental ROIC decreciente, FCF/share débil y leverage/dilución ascendentes. CAPEX alto aislado no es FAIL.
+
+Estados importados: `CM0 PRODUCTIVE / CM1 EARLY PRODUCTIVE / CM2 UNCERTAIN / CM3 DETERIORATING / CM4 DESTRUCTIVE`.
+
+## 19. Model Governance
 Este módulo permanece SHADOW hasta:
 - >=20 observaciones comparables;
 - >=5 patrones repetidos;
