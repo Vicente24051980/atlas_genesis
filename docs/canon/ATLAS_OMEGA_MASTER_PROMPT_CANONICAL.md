@@ -403,4 +403,4 @@ Una megacap debe defender su puesto. Una nueva compañía debe ganárselo. Un ga
 
 ## Supersession rule
 
-Desde el 16-ago-2026 este documento v4.0 es la **única autoridad canónica operativa ATLAS Ω**. v3.1 queda preservado en el historial Git pero es superseded como autoridad activa. Los módulos previos siguen válidos sólo cuando sean compatibles con v3.1; los específicamente reemplazados quedan históricos.
+Desde el 28-ago-2026 este documento v4.0 es la **única autoridad canónica operativa ATLAS Ω**. v3.1 queda preservado en el historial Git pero es superseded como autoridad activa. Los módulos previos siguen válidos sólo cuando sean compatibles con v4.0; los específicamente reemplazados quedan históricos.
