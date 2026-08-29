@@ -203,7 +203,7 @@ export function calculateReplacementAlpha(input: ReplacementAlphaInput): Replace
   const taxFrictionPct = input.taxFrictionPct ?? 0;
   const reasons: string[] = [];
 
-  const identityOk = input.incumbentTicker.trim() && input.challengerTicker.trim() && validDate(input.reviewDate);
+  const identityOk = Boolean(input.incumbentTicker.trim() && input.challengerTicker.trim() && validDate(input.reviewDate));
   const numbersOk = finite(
     input.incumbentExpectedCagrPct,
     input.challengerExpectedCagrPct,
