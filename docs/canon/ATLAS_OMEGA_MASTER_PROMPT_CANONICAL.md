@@ -437,6 +437,44 @@ Hype-to-Economics Gap compara Narrative Intensity con T0→T5. Permanece ordinal
 
 El módulo refuerza AI CAPEX Payback, AI Financial Fragility, AI Credit Transmission, NVIDIA Demand Quality, AI Value Distribution y Survivor Quality. Permanece SHADOW y **Portfolio impact = NONE** hasta Model Governance, Valuation, Expected Return, Competition for Capital y Decision Safety Gate.
 
+## 39. PROPICKS CHALLENGER + REPLACEMENT ALPHA Ω
+
+ProPicks AI / InvestingPro se incorpora como **modelo challenger externo**, no como autoridad de cartera.
+
+Cadena obligatoria:
+
+**PROPICKS SIGNAL → ATLAS INTEGRITY GATE → EXPECTED RETURN Ω → VALUATION Ω → FALSIFIERS Ω → COMPETITION FOR CAPITAL Ω → REPLACEMENT ALPHA Ω → INVESTMENT COMMITTEE Ω**
+
+Estados ProPicks Challenger:
+
+- **PASS:** ProPicks y ATLAS coinciden; evidencia independiente fuerte, no orden de compra.
+- **WATCH:** ProPicks detecta algo que ATLAS no valida todavía, o elimina algo que ATLAS aún defiende.
+- **REJECT:** falla trazabilidad, Integrity Gate, valoración, Expected Return, Competition for Capital o Falsifiers Ω.
+
+Replacement Alpha Ω decide si una alternativa merece desplazar a una posición de la cartera 35:
+
+`Net Replacement Alpha = Challenger Expected CAGR - Incumbent Expected CAGR + Marginal Portfolio Contribution Delta - Rotation Friction - Incremental Risk Penalty - Evidence Uncertainty Penalty - Concentration Penalty - Tax/Fee Friction`
+
+Umbrales por defecto:
+
+- **>= 2.0%** net expected CAGR advantage: sustitución ordinaria elegible si todos los gates pasan.
+- **>= 0.75%** net expected CAGR advantage: WATCH, no rotación automática.
+
+Reglas:
+
+- ProPicks addition ≠ BUY.
+- ProPicks removal ≠ SELL.
+- Performance marketing claims = calibration-only unless independently auditable.
+- Decimal-point score differences do not justify turnover.
+- Falsifiers Ω keeps absolute veto.
+- Portfolio impact = NONE until Investment Committee Ω confirms a concrete replacement.
+
+Implementación canónica:
+
+- `CURRENT_CANON/2026-08-29_PROPICKS_CHALLENGER_REPLACEMENT_ALPHA_OMEGA.md`
+- `docs/rfcs/RFC-PROPICKS-CHALLENGER-REPLACEMENT-ALPHA-OMEGA-v1.0.md`
+- `src/atlas/algorithm/propicks-challenger-replacement-alpha-omega.ts`
+
 ## LEY FINAL Ω
 
 ATLAS no busca las compañías que mejor explican el pasado. Busca las mejores combinaciones actuales de **calidad, crecimiento, reinversión, valoración, flujo, runway, asimetría futura y robustez financiera**.
