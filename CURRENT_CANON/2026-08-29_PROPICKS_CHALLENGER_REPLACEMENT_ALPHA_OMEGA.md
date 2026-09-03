@@ -1,67 +1,35 @@
-# ATLAS OMEGA - ProPicks Challenger + Replacement Alpha Omega
+# ATLAS Ω — ProPicks Challenger + Replacement Alpha Ω
 
 **Date:** 2026-08-29  
-**Status:** ACTIVE CANONICAL ADDENDUM  
-**Parent canon:** ATLAS Omega v4.0  
-**Portfolio impact:** NONE until Investment Committee confirms a specific replacement.
+**Status:** HISTORICAL / SUPERSEDED 2026-09-03  
+**Parent canon:** ATLAS Ω v4.0  
+**Superseded by:** `CURRENT_CANON/2026-09-03_INVESTING_AI_CLONE_OMEGA_V1_3.md`
 
-## Canonical decision
+## Supersession notice
 
-ProPicks AI / InvestingPro is incorporated into ATLAS as an independent challenger signal, not as the decision engine.
+The former ProPicks Challenger + Replacement Alpha Ω architecture is preserved for historical traceability but is no longer the active Investing.com-derived analytical layer wherever it conflicts with INVESTING AI CLONE Ω v1.3.
 
-The adopted discipline is monthly separation between:
+The active replacement is:
 
-1. **selection:** which candidates ProPicks surfaces, retains, removes or reranks;
-2. **maintenance:** whether any current ATLAS 35 position still deserves its slot versus the best available alternative.
+- Canon: `CURRENT_CANON/2026-09-03_INVESTING_AI_CLONE_OMEGA_V1_3.md`
+- Master-prompt amendment: `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_INVESTING_AI_CLONE_V1_3_AMENDMENT.md`
+- Engine: `src/atlas/algorithm/investing-ai-clone-omega.ts`
+- Tests: `src/atlas/algorithm/investing-ai-clone-omega.test.ts`
 
-## Operating chain
+## Historical architecture — retained for audit only
 
-`PROPICKS SIGNAL -> ATLAS INTEGRITY GATE -> EXPECTED RETURN OMEGA -> VALUATION -> FALSIFIERS -> COMPETITION FOR CAPITAL -> REPLACEMENT ALPHA -> INVESTMENT COMMITTEE`
+ProPicks AI / InvestingPro had been incorporated as a monthly external challenger signal with the chain:
 
-## ProPicks Challenger Omega
+`PROPICKS SIGNAL -> ATLAS INTEGRITY GATE -> EXPECTED RETURN Ω -> VALUATION -> FALSIFIERS -> COMPETITION FOR CAPITAL -> REPLACEMENT ALPHA -> INVESTMENT COMMITTEE`
 
-Monthly ProPicks outputs receive one of three ATLAS states:
+Historical states were `PASS / WATCH / REJECT`, and Replacement Alpha compared expected CAGR after friction/risk penalties.
 
-- `PASS`: ProPicks and ATLAS independently agree. This is stronger evidence, not a trade order.
-- `WATCH`: ProPicks detects or removes something ATLAS must review, but ATLAS has not confirmed action.
-- `REJECT`: the signal fails ATLAS hard gates, data integrity, valuation, falsifiers or traceability.
+These constructs may still be referenced by old audits, but they must not override v1.3's current architecture:
 
-ProPicks additions do not create BUY. ProPicks removals do not create SELL.
+`Clone Score ≠ Coverage ≠ Current Confidence ≠ Reliability`
 
-## Replacement Alpha Omega
+with ten non-duplicative factors F1–F10 and nominal integration:
 
-A challenger only enters the 35 if it beats the displaced incumbent by a clear net expected-return advantage after frictions and risks.
+`FINAL ANALYTICAL COMPOSITE Ω = 60% ATLAS Ω + 40% INVESTING AI CLONE Ω`.
 
-Formula:
-
-`Net Replacement Alpha = Challenger Expected CAGR - Incumbent Expected CAGR + Marginal Portfolio Contribution Delta - Rotation Friction - Incremental Risk Penalty - Evidence Uncertainty Penalty - Concentration Penalty - Tax/Fee Friction`
-
-Default thresholds:
-
-- ordinary replacement: `>= 2.0%` net expected CAGR advantage,
-- watch replacement: `>= 0.75%` net expected CAGR advantage.
-
-## Replacement states
-
-- `RA0_NO_ACTION_DATA_INSUFFICIENT`
-- `RA1_KEEP_INCUMBENT`
-- `RA2_WATCH_REPLACEMENT`
-- `RA3_REPLACEMENT_CANDIDATE`
-- `RA4_REPLACE_CONFIRMED`
-- `RA5_EXIT_FUNDAMENTAL`
-
-## Bias controls
-
-ATLAS must explicitly guard against survivorship bias, look-ahead bias, backtest cherry-picking, redundant factor counting, hidden turnover costs, benchmark mismatch and regime instability.
-
-External performance claims remain calibration-only unless independently auditable.
-
-## Implementation
-
-RFC: `docs/rfcs/RFC-PROPICKS-CHALLENGER-REPLACEMENT-ALPHA-OMEGA-v1.0.md`  
-Engine: `src/atlas/algorithm/propicks-challenger-replacement-alpha-omega.ts`  
-Tests: `src/atlas/algorithm/propicks-challenger-replacement-alpha-omega.test.ts`
-
-## Final authority
-
-Only Investment Committee Omega can emit BUY / HOLD / WATCH / REJECT / NO PORTFOLIO CHANGE. Falsifiers Omega keeps veto authority. Replacement Alpha Omega prevents emotional attachment and also prevents decimal-point rotation.
+ATLAS hard gates and falsifiers retain independent veto authority.
