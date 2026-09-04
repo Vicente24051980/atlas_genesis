@@ -1,5 +1,5 @@
 import {
-  DIVIDOLOGY_EXTRACTION_OMEGA_GOVERNANCE,
+  DIVIDENDOLOGY_EXTRACTION_OMEGA_GOVERNANCE,
   evaluateCompounderEfficiencyDiagnostic,
   evaluateDividendSustainabilityOverlay,
   evaluateDividendologyExtraction,
@@ -111,6 +111,6 @@ describe('Dividendology Extraction Ω', () => {
 
     expect(result.uniqueCandidateSignal).toBe('SUSTAINABLE_DISTRIBUTION_DELTA_OMEGA_V1');
     expect(result.directAtlasScoreDelta).toBe(0);
-    expect(DIVIDOLOGY_EXTRACTION_OMEGA_GOVERNANCE.directAtlasScoreWeight).toBe(0);
+    expect(DIVIDENDOLOGY_EXTRACTION_OMEGA_GOVERNANCE.directAtlasScoreWeight).toBe(0);
   });
 });
