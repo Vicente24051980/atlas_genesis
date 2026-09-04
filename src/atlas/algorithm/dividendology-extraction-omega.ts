@@ -1,6 +1,6 @@
-export const DIVIDOLOGY_EXTRACTION_OMEGA_VERSION = '2026-09-04-v1.0.0' as const;
+export const DIVIDENDOLOGY_EXTRACTION_OMEGA_VERSION = '2026-09-04-v1.0.0' as const;
 
-export const DIVIDOLOGY_EXTRACTION_OMEGA_GOVERNANCE = {
+export const DIVIDENDOLOGY_EXTRACTION_OMEGA_GOVERNANCE = {
   status: 'ACTIVE_DIAGNOSTIC_OOS_REQUIRED',
   directAtlasScoreWeight: 0,
   canAuthorizeBuySell: false,
@@ -276,6 +276,6 @@ export function evaluateDividendologyExtraction(input: DividendologyExtractionIn
     directAtlasScoreDelta: 0,
     learningStatus: 'EXPERIMENTAL_OUT_OF_SAMPLE_REQUIRED',
     uniqueCandidateSignal: 'SUSTAINABLE_DISTRIBUTION_DELTA_OMEGA_V1',
-    redundantSignalsDoNotDoubleCount: DIVIDOLOGY_EXTRACTION_OMEGA_GOVERNANCE.reusedCanonicalEngines,
+    redundantSignalsDoNotDoubleCount: DIVIDENDOLOGY_EXTRACTION_OMEGA_GOVERNANCE.reusedCanonicalEngines,
   };
 }
