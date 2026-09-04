@@ -1,0 +1,35 @@
+export const FORWARD_DETERIORATION_INDEX_MIGRATION_OMEGA_REGISTRY = {
+  version: '2026-09-05-v1.0.0',
+  status: 'ACTIVE_CANONICAL_AMENDMENT',
+  modules: [
+    'INDEX_PROMOTION_DISCOVERY_OMEGA_V1',
+    'INDEX_MIGRATION_SIGNAL_OMEGA_V1',
+    'FORWARD_DETERIORATION_GATE_OMEGA_V1',
+  ] as const,
+  insertion: {
+    indexPromotionDiscovery: 'AFTER_GLOBAL_DISCOVERY_BEFORE_SIZE_BLIND_T0',
+    indexMigrationSignal: 'DISCOVERY_AND_SUCCESSOR_SECONDARY_SIGNAL_ONLY',
+    forwardDeteriorationGate: 'AFTER_TEMPORAL_NORMALIZATION_BEFORE_FINAL_CROSS_ENGINE_SYNTHESIS',
+  } as const,
+  invariants: [
+    'INDEX_INCLUSION_NEVER_BUY_ALONE',
+    'INDEX_DELETION_NEVER_SELL_ALONE',
+    'INDEX_MIGRATION_BUSINESS_QUALITY_POINTS_ZERO',
+    'INDEX_MIGRATION_SIGNAL_BOUNDED_PLUS_MINUS_2',
+    'INDEX_PROMOTION_DISCOVERY_STARTING_SCORE_ZERO',
+    'T0_ANTI_MEGACAP_REQUIRED_AFTER_INDEX_PROMOTION',
+    'FORWARD_DETERIORATION_ONLY_USES_LIKE_FOR_LIKE_NORMALIZED_GROWTH',
+    'NON_COMPARABLE_PERIODS_SUPPRESS_MECHANICAL_GROWTH_DELTA',
+    'PRICE_VOLATILITY_ALONE_NEVER_TRIGGERS_FUNDAMENTAL_ALERT',
+  ] as const,
+  thresholds: {
+    yellowGrowthDecelerationPp: 3,
+    orangeGrowthDecelerationPp: 5,
+    redGrowthDecelerationPp: 8,
+    redOnExplicitGuidanceCut: true,
+    redOnSimultaneousMaterialKpiCount: 2,
+  } as const,
+  canonicalDocument: 'CURRENT_CANON/2026-09-05_FORWARD_DETERIORATION_INDEX_MIGRATION_OMEGA_V1_0.md',
+  implementation: 'src/atlas/algorithm/forward-deterioration-index-migration-omega.ts',
+  tests: 'src/atlas/algorithm/forward-deterioration-index-migration-omega.test.ts',
+} as const;
