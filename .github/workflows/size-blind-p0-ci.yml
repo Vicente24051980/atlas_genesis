@@ -1,0 +1,39 @@
+name: Size-Blind P0 Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/size-blind-point-zero-omega.ts'
+      - 'src/atlas/algorithm/size-blind-point-zero-omega.test.ts'
+      - 'src/atlas/algorithm/capex-asymmetry-omega.ts'
+      - 'src/atlas/algorithm/capex-asymmetry-omega.test.ts'
+      - 'CURRENT_CANON/SIZE_BLIND_POINT_ZERO_OMEGA.md'
+      - '.github/workflows/size-blind-p0-ci.yml'
+  push:
+    branches:
+      - 'feat/size-blind-p0-omega'
+    paths:
+      - 'src/atlas/algorithm/size-blind-point-zero-omega.ts'
+      - 'src/atlas/algorithm/size-blind-point-zero-omega.test.ts'
+      - 'src/atlas/algorithm/capex-asymmetry-omega.ts'
+      - 'src/atlas/algorithm/capex-asymmetry-omega.test.ts'
+      - 'CURRENT_CANON/SIZE_BLIND_POINT_ZERO_OMEGA.md'
+      - '.github/workflows/size-blind-p0-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  size-blind-p0-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Size-Blind P0 and Expectations Debt tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/size-blind-point-zero-omega.test.ts
+          src/atlas/algorithm/capex-asymmetry-omega.test.ts
