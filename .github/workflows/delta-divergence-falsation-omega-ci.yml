@@ -6,6 +6,8 @@ on:
       - 'src/atlas/algorithm/delta-divergence-falsation-omega.ts'
       - 'src/atlas/algorithm/delta-divergence-falsation-omega.test.ts'
       - 'src/atlas/algorithm/delta-divergence-boundary-omega.test.ts'
+      - 'src/atlas/algorithm/delta-independence-authority-omega.ts'
+      - 'src/atlas/algorithm/delta-independence-authority-omega.test.ts'
       - 'src/atlas/algorithm/greek-contracts-omega.ts'
       - '.github/workflows/delta-divergence-falsation-omega-ci.yml'
 
@@ -15,4 +17,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Delta falsation matrix
-        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/delta-divergence-falsation-omega.test.ts src/atlas/algorithm/delta-divergence-boundary-omega.test.ts src/atlas/algorithm/greek-contracts-omega.test.ts
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/delta-divergence-falsation-omega.test.ts src/atlas/algorithm/delta-divergence-boundary-omega.test.ts src/atlas/algorithm/delta-independence-authority-omega.test.ts src/atlas/algorithm/greek-contracts-omega.test.ts
