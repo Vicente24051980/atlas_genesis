@@ -10,6 +10,8 @@ on:
       - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
       - 'supabase/migrations/20260905062500_gamma_kappa_append_only_ledgers.sql'
       - 'supabase/migrations/20260905062600_gamma_kappa_permissions_hardening.sql'
+      - 'supabase/migrations/20260905064000_gamma_kappa_pgcrypto_schema_fix.sql'
+      - 'supabase/migrations/20260905064500_gamma_kappa_external_checkpoint_heads.sql'
       - 'supabase/tests/gamma_kappa_ledger_adversarial.sql'
       - '.github/workflows/gamma-kappa-assurance-ledger-ci.yml'
 
@@ -48,6 +50,11 @@ jobs:
           set -euo pipefail
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20260905062500_gamma_kappa_append_only_ledgers.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20260905062600_gamma_kappa_permissions_hardening.sql
+          # Local PostgreSQL installs pgcrypto in public; Supabase installs it in extensions.
+          # The production-only schema fix is syntax-checked rather than applied locally.
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20260905064500_gamma_kappa_external_checkpoint_heads.sql
+      - name: Syntax check Supabase pgcrypto schema fix
+        run: grep -q "extensions.digest" supabase/migrations/20260905064000_gamma_kappa_pgcrypto_schema_fix.sql
       - name: Run adversarial ledger tests
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/gamma_kappa_ledger_adversarial.sql
       - name: Prove concurrent seals cannot fork Gamma chain
