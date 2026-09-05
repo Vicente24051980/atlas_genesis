@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   live-pit-smoke:
@@ -53,8 +53,6 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: feature/145-pre-consensus-live-data
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -78,18 +76,6 @@ jobs:
           assert all(not r['latest_filing_used'] or r['latest_filing_used']<=r['snapshot_date'] for r in rows)
           print('FULL_PIT_ROWS',len(rows),'TICKERS',len(tickers),'SNAPSHOTS',len(snapshots),'VALID',valid,'COVERAGE',round(coverage,4))
           PY
-      - name: Persist certified panel on implementation branch
-        if: github.head_ref == 'feature/145-pre-consensus-live-data'
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f data/pre_consensus/generated/pit_panel.csv
-          if git diff --cached --quiet; then
-            echo 'Certified PIT panel already current.'
-          else
-            git commit -m 'data: persist certified 30-name PIT panel'
-            git push origin HEAD:feature/145-pre-consensus-live-data
-          fi
       - uses: actions/upload-artifact@v4
         with:
           name: pre-consensus-pit-full-financial-panel
