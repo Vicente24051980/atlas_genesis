@@ -1,0 +1,58 @@
+name: Information Power Omega Monthly Refresh
+
+on:
+  schedule:
+    - cron: '15 7 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  open-refresh-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Open monthly evidence refresh issue if absent
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PERIOD="$(date -u +%Y-%m)"
+          TITLE="Information Power Ω refresh · ${PERIOD}"
+          EXISTING="$(gh issue list --repo "$REPO" --state open --search "in:title $TITLE" --json number --jq 'length')"
+          if [ "$EXISTING" != "0" ]; then
+            echo "Refresh issue already open for $PERIOD"
+            exit 0
+          fi
+          BODY=$(cat <<'EOF'
+          ## Monthly evidence refresh
+
+          Update the Information / Attention Power Ω time series using the canonical gate.
+
+          Required checks:
+          - Global/West: cloud, mobile OS, browsers, search, AI assistants, digital ads, social/referral, edge/reverse proxy, app distribution, backbone/cables where individual shares are measurable.
+          - China: search, mobile OS, Android app stores, cloud, AI assistants, social/super-apps, digital ads, telecom/backbone where comparable shares exist.
+          - Record source date, market boundary, residual share, evidence level and proxy status.
+          - Append a NEW `src/atlas/information-power/snapshots/YYYY-MM-DD.json`; never overwrite history.
+          - Recompute CRn, HHI, ENA, LayerPower, GIPCI, VRS and SCn.
+          - Compare with previous snapshot.
+
+          Material-change gate:
+          - |ΔHHI| >= 250
+          - |ΔCR3| >= 5 pp
+          - top-3 actor changes
+          - new/lost E3+ chokepoint
+          - GIPCI move >= 3 points
+          - canonical evidence validity changes
+
+          Hard rules:
+          - concentration != coordination
+          - structural power != behavioural causality
+          - missing != zero
+          - keep China and Global/West separate until comparability is demonstrated
+          EOF
+          )
+          gh issue create --repo "$REPO" --title "$TITLE" --body "$BODY"
