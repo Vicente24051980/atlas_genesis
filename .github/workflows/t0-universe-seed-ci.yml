@@ -1,0 +1,29 @@
+name: T0 Universe Seed CI
+
+on:
+  pull_request:
+    paths:
+      - 'data/t0-universe-user-seed-2026-09-05.txt'
+      - 'data/t0-universe-prospective-expansion-2026-09-05.csv'
+      - 'src/atlas/algorithm/t0-universe-seed-builder.ts'
+      - 'src/atlas/algorithm/t0-universe-seed-builder.test.ts'
+      - 'CURRENT_CANON/2026-09-05_T0_UNIVERSE_SEED_V1.md'
+      - '.github/workflows/t0-universe-seed-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data/t0-universe-user-seed-2026-09-05.txt'
+      - 'data/t0-universe-prospective-expansion-2026-09-05.csv'
+      - 'src/atlas/algorithm/t0-universe-seed-builder.ts'
+      - 'src/atlas/algorithm/t0-universe-seed-builder.test.ts'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run T0 universe tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/t0-universe-seed-builder.test.ts
