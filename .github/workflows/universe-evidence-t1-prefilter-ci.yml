@@ -1,0 +1,25 @@
+name: Universe Evidence T1 Prefilter CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/universe-evidence-t1-prefilter-omega.ts'
+      - 'src/atlas/algorithm/universe-evidence-t1-prefilter-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-05_UNIVERSE_EVIDENCE_T1_PREFILTER_OMEGA_V1.md'
+      - '.github/workflows/universe-evidence-t1-prefilter-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/atlas/algorithm/universe-evidence-t1-prefilter-omega.ts'
+      - 'src/atlas/algorithm/universe-evidence-t1-prefilter-omega.test.ts'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run T1 universe evidence tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/universe-evidence-t1-prefilter-omega.test.ts
