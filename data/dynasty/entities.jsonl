@@ -1,0 +1,49 @@
+{"record_type":"entity","id":"FAM-ORONTID","entity_type":"dynasty","name":"Orontid / Eruanduni","aliases":["Orontids","Eruanduni"],"status":"accepted","notes":"Ancient Armenian-Iranian dynasty; internal succession incomplete."}
+{"record_type":"entity","id":"FAM-ARTSRUNI","entity_type":"family","name":"Artsruni","aliases":["Arcruni","Artsrunik"],"status":"accepted","notes":"Armenian princely house; proposed Orontid derivation remains historiographical."}
+{"record_type":"entity","id":"FAM-MAMIKONEAN","entity_type":"family","name":"Mamikonean","aliases":["Mamikonian"],"status":"accepted"}
+{"record_type":"entity","id":"FAM-KAMSARAKAN","entity_type":"family","name":"Kamsarakan","status":"accepted"}
+{"record_type":"entity","id":"FAM-SIUNI","entity_type":"family","name":"Siwni","aliases":["Siunid","Syunik"],"status":"accepted"}
+{"record_type":"entity","id":"FAM-RSHTUNI","entity_type":"family","name":"Rshtuni","status":"accepted"}
+{"record_type":"entity","id":"FAM-BAGRATUNI","entity_type":"family","name":"Bagratuni","aliases":["Bagratid"],"status":"accepted"}
+{"record_type":"entity","id":"FAM-GREGORID","entity_type":"family","name":"Gregorid","status":"accepted"}
+{"record_type":"entity","id":"PER-ART-VACHE-04C","entity_type":"person","name":"Vache Artsruni","house_id":"FAM-ARTSRUNI","date_min":300,"date_max":399,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-ART-SHAVASP-A","entity_type":"person","name":"Shavasp Artsruni","aliases":["Shawasp"],"house_id":"FAM-ARTSRUNI","date_min":300,"date_max":399,"date_precision":"range","status":"accepted","notes":"Early Shavasp, son of Vache; not merged with later homonyms."}
+{"record_type":"entity","id":"PER-ART-MERUZHAN-0363","entity_type":"person","name":"Meruzhan Artsruni","aliases":["Mehuzhan"],"house_id":"FAM-ARTSRUNI","date_min":350,"date_max":380,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-ART-NERSHAPUH-0451","entity_type":"person","name":"Nershapuh Artsruni","house_id":"FAM-ARTSRUNI","date_min":440,"date_max":470,"date_precision":"range","status":"accepted","notes":"Great prince / head-level figure around 451."}
+{"record_type":"entity","id":"PER-ART-MERSHAPUH-05C","entity_type":"person","name":"Mershapuh Artsruni","house_id":"FAM-ARTSRUNI","date_min":440,"date_max":490,"date_precision":"range","status":"unresolved","notes":"Kept separate from Nershapuh pending textual resolution."}
+{"record_type":"entity","id":"PER-ART-AGHAN-05C","entity_type":"person","name":"Aghan Artsruni","house_id":"FAM-ARTSRUNI","date_min":430,"date_max":480,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-ART-MERHUZHAN-05C","entity_type":"person","name":"Merhuzhan Artsruni","house_id":"FAM-ARTSRUNI","date_min":430,"date_max":480,"date_precision":"range","status":"accepted","notes":"Brother of Aghan; distinct by default from c.363 Meruzhan."}
+{"record_type":"entity","id":"PER-ART-SAHak-0600","entity_type":"person","name":"Sahak Artsruni","house_id":"FAM-ARTSRUNI","date_min":560,"date_max":620,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-ART-VASAK-0611","entity_type":"person","name":"Vasak Artsruni","house_id":"FAM-ARTSRUNI","date_min":580,"date_max":611,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-ART-VAHAN-08C","entity_type":"person","name":"Vahan Artsruni","house_id":"FAM-ARTSRUNI","date_min":700,"date_max":780,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-ART-SAHak-08C-A","entity_type":"person","name":"Sahak Artsruni","house_id":"FAM-ARTSRUNI","date_min":720,"date_max":780,"date_precision":"range","status":"accepted","notes":"Son of Vahan; distinct from Sahak son of Gagik."}
+{"record_type":"entity","id":"PER-ART-HAMAZASP-08C-A","entity_type":"person","name":"Hamazasp Artsruni","house_id":"FAM-ARTSRUNI","date_min":720,"date_max":780,"date_precision":"range","status":"accepted","notes":"Son of Vahan."}
+{"record_type":"entity","id":"PER-ART-GAGIK-08C","entity_type":"person","name":"Gagik Artsruni","house_id":"FAM-ARTSRUNI","date_min":720,"date_max":790,"date_precision":"range","status":"accepted","notes":"Brother of Sahak and Hamazasp, sons of Vahan."}
+{"record_type":"entity","id":"PER-ART-HAMAZASP-08C-B","entity_type":"person","name":"Hamazasp Artsruni","house_id":"FAM-ARTSRUNI","date_min":740,"date_max":810,"date_precision":"range","status":"accepted","notes":"Son of Gagik; distinct from Hamazasp son of Vahan."}
+{"record_type":"entity","id":"PER-ART-SAHak-08C-B","entity_type":"person","name":"Sahak Artsruni","house_id":"FAM-ARTSRUNI","date_min":740,"date_max":810,"date_precision":"range","status":"accepted","notes":"Son of Gagik; distinct from Sahak son of Vahan."}
+{"record_type":"entity","id":"PER-MAM-HMAYEAK-05C","entity_type":"person","name":"Hmayeak Mamikonean","house_id":"FAM-MAMIKONEAN","date_min":410,"date_max":460,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-MAM-VARDAN-0451","entity_type":"person","name":"Vardan Mamikonean","aliases":["Vardan the Red"],"house_id":"FAM-MAMIKONEAN","date_min":390,"date_max":451,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-MAM-VAHAN-0482","entity_type":"person","name":"Vahan Mamikonean","house_id":"FAM-MAMIKONEAN","date_min":430,"date_max":510,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-MAM-VASAK-05C","entity_type":"person","name":"Vasak Mamikonean","house_id":"FAM-MAMIKONEAN","date_min":430,"date_max":490,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-MAM-ARTASHES-05C","entity_type":"person","name":"Artashes Mamikonean","house_id":"FAM-MAMIKONEAN","date_min":430,"date_max":500,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-MAM-VARD-05C","entity_type":"person","name":"Vard Patrik","house_id":"FAM-MAMIKONEAN","date_min":430,"date_max":520,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-KAM-ARSHAWIR-05C","entity_type":"person","name":"Arshawir Kamsarakan","house_id":"FAM-KAMSARAKAN","date_min":400,"date_max":480,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-KAM-NERSEH-0484","entity_type":"person","name":"Nerseh Kamsarakan","house_id":"FAM-KAMSARAKAN","date_min":430,"date_max":490,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-KAM-HRAHAT-0484","entity_type":"person","name":"Hrahat Kamsarakan","house_id":"FAM-KAMSARAKAN","date_min":430,"date_max":490,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-SIU-VASAK-0451","entity_type":"person","name":"Vasak Siwni","house_id":"FAM-SIUNI","date_min":400,"date_max":470,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-SIU-BABIK-05C","entity_type":"person","name":"Babik Siwni","house_id":"FAM-SIUNI","date_min":420,"date_max":490,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-SIU-AMIRNERSEH-05C","entity_type":"person","name":"Amirnerseh Siwni","house_id":"FAM-SIUNI","date_min":420,"date_max":490,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-SIU-BABGEN-0482","entity_type":"person","name":"Babgen Siwni","house_id":"FAM-SIUNI","date_min":420,"date_max":490,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-SIU-BAKUR-05C","entity_type":"person","name":"Bakur Siwni","house_id":"FAM-SIUNI","date_min":420,"date_max":490,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-RSH-THEODOROS-0656","entity_type":"person","name":"Theodoros Rshtuni","house_id":"FAM-RSHTUNI","date_min":600,"date_max":656,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-RSH-VARD-07C","entity_type":"person","name":"Vard Rshtuni","house_id":"FAM-RSHTUNI","date_min":630,"date_max":710,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-BAG-SMBAT-KHOSROVSHUM","entity_type":"person","name":"Smbat Bagratuni","aliases":["Khosrov Shum"],"house_id":"FAM-BAGRATUNI","date_min":560,"date_max":620,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-BAG-VARAZTIROTS","entity_type":"person","name":"Varaz-Tirots Bagratuni","house_id":"FAM-BAGRATUNI","date_min":590,"date_max":650,"date_precision":"range","status":"accepted"}
+{"record_type":"entity","id":"PER-BAG-SMBAT-SON","entity_type":"person","name":"Smbat Bagratuni","house_id":"FAM-BAGRATUNI","date_min":610,"date_max":680,"date_precision":"range","status":"accepted","notes":"Eldest son of Varaz-Tirots; separate from Khosrov Shum."}
+{"record_type":"entity","id":"SRC-PARPETSI","entity_type":"source","name":"Lazar Parpetsi","status":"accepted"}
+{"record_type":"entity","id":"SRC-YEGHISHE","entity_type":"source","name":"Yeghishe","status":"accepted"}
+{"record_type":"entity","id":"SRC-SEBEOS","entity_type":"source","name":"Sebeos","status":"accepted"}
+{"record_type":"entity","id":"SRC-GHEWOND","entity_type":"source","name":"Ghewond / Lewond","status":"accepted"}
+{"record_type":"entity","id":"SRC-TOVMA","entity_type":"source","name":"Tovma Artsruni","status":"accepted"}
+{"record_type":"entity","id":"SRC-TOUMANOFF","entity_type":"source","name":"Cyril Toumanoff","status":"accepted"}
+{"record_type":"entity","id":"SRC-FACELLA","entity_type":"source","name":"Margherita Facella","status":"accepted"}
