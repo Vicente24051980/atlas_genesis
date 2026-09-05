@@ -1,0 +1,19 @@
+name: Rho AI Demand Provenance Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/counterparty-exposure-omega.ts'
+      - 'src/atlas/algorithm/ai-demand-provenance-omega.ts'
+      - 'src/atlas/algorithm/atlas-kernel-contract-registry-omega.ts'
+      - 'src/atlas/algorithm/rho-ai-demand-provenance-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-05_RHO_AND_AI_DEMAND_PROVENANCE_OMEGA_V1.md'
+      - '.github/workflows/rho-ai-demand-provenance-omega-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Rho and demand provenance tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/rho-ai-demand-provenance-omega.test.ts
