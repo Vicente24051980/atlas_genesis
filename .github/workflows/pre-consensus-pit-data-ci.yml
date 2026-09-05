@@ -1,0 +1,43 @@
+name: Pre-Consensus PIT Data CI
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_pre_consensus_pit_dataset.py'
+      - 'data/pre_consensus/pilot_universe.csv'
+      - 'CURRENT_CANON/2026-09-05_PRE_CONSENSUS_PIT_DATASET_V1.md'
+      - '.github/workflows/pre-consensus-pit-data-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-pit-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Build live point-in-time smoke panel
+        env:
+          ATLAS_PIT_LIMIT: '5'
+          ATLAS_PIT_SNAPSHOTS: '2024-03-31,2024-06-30,2024-09-30,2024-12-31,2025-03-31,2025-06-30'
+        run: python scripts/build_pre_consensus_pit_dataset.py
+      - name: Validate generated panel
+        run: |
+          python - <<'PY'
+          import csv
+          p='data/pre_consensus/generated/pit_panel.csv'
+          rows=list(csv.DictReader(open(p)))
+          assert len(rows)>=20, len(rows)
+          assert sum(r['pit_valid']=='True' for r in rows)>=int(len(rows)*.70)
+          assert all(not r['latest_filing_used'] or r['latest_filing_used']<=r['snapshot_date'] for r in rows)
+          print('PIT_ROWS',len(rows),'VALID',sum(r['pit_valid']=='True' for r in rows))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pre-consensus-pit-smoke-panel
+          path: data/pre_consensus/generated/pit_panel.csv
