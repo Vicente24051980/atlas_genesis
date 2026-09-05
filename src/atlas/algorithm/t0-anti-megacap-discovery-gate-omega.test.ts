@@ -37,12 +37,12 @@ const balancedTen = (): T0DiscoveryCandidate[] => [
 ];
 
 describe('T0 Anti-Megacap Discovery Gate Ω v1.1', () => {
-  it('remains the constitutional first gate through the v1 compatibility alias', () => {
-    expect(ATLAS_PRIMARY_ENGINE_HIERARCHY.version).toBe('2026-09-05-v4.17.0');
+  it('is the constitutional first gate in v4.18', () => {
+    expect(ATLAS_PRIMARY_ENGINE_HIERARCHY.version).toBe('2026-09-05-v4.18.0');
     expect(ATLAS_PRIMARY_ENGINE_HIERARCHY.firstConstitutionalGate)
-      .toBe('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1');
+      .toBe('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1_1');
     expect(ATLAS_CANONICAL_DECISION_SEQUENCE[0]).toBe('INPUT');
-    expect(ATLAS_CANONICAL_DECISION_SEQUENCE[1]).toBe('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1');
+    expect(ATLAS_CANONICAL_DECISION_SEQUENCE[1]).toBe('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1_1');
   });
 
   it('uses the auditable five-bucket policy', () => {
