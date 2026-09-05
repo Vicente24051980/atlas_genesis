@@ -1,0 +1,30 @@
+name: Capital-Blind Portfolio Selection Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/capital-blind-portfolio-selection-omega.ts'
+      - 'src/atlas/algorithm/capital-blind-portfolio-selection-omega.test.ts'
+      - 'src/atlas/algorithm/portfolio-selection-canon-omega.ts'
+      - 'src/atlas/algorithm/portfolio-selection-canon-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-05_CAPITAL_BLIND_PORTFOLIO_SELECTION_OMEGA_V1.md'
+      - '.github/workflows/capital-blind-portfolio-selection-omega-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/atlas/algorithm/capital-blind-portfolio-selection-omega.ts'
+      - 'src/atlas/algorithm/capital-blind-portfolio-selection-omega.test.ts'
+      - 'src/atlas/algorithm/portfolio-selection-canon-omega.ts'
+      - 'src/atlas/algorithm/portfolio-selection-canon-omega.test.ts'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx vitest run src/atlas/algorithm/capital-blind-portfolio-selection-omega.test.ts src/atlas/algorithm/portfolio-selection-canon-omega.test.ts
