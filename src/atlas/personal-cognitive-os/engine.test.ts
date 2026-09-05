@@ -26,15 +26,18 @@ describe('ATLAS AI Personal Cognitive OS Ω — Memory Foundation v1', () => {
   });
 
   it('routes one unit to multiple contexts rather than forcing a single folder', () => {
-    const unit = atlasParser({
+    const units = atlasParser({
       id: 'CAP-ROUTE-1',
       source: 'TEXT',
       createdAt: '2026-09-05T11:31:00+02:00',
       provenance: 'chat:test',
       text: 'Hay que revisar Atlas AI y dejarlo como open loop.',
-    })[0];
+    });
+    const actionUnit = units.find((candidate) => candidate.type === 'ACTION');
+    expect(actionUnit).toBeDefined();
+    if (!actionUnit) throw new Error('expected_action_unit');
 
-    const routed = contextRouter(unit);
+    const routed = contextRouter(actionUnit);
     expect(routed.projects).toContain('ATLAS_AI');
     expect(routed.contexts).toContain('ACTIONS');
   });
@@ -74,6 +77,18 @@ describe('ATLAS AI Personal Cognitive OS Ω — Memory Foundation v1', () => {
 
     const resolution = resolveZeroInbox(sourceUnit, waitingLoop);
     expect(resolution.state).toBe('WAITING');
+  });
+
+  it('never promotes an evidence mention to FACT before validation', () => {
+    const units = atlasParser({
+      id: 'CAP-EVIDENCE-1',
+      source: 'TEXT',
+      createdAt: '2026-09-05T11:33:30+02:00',
+      provenance: 'chat:research',
+      text: 'La evidencia académica parece apoyar esta conexión.',
+    });
+    const evidence = units.find((unit) => unit.type === 'EVIDENCE');
+    expect(evidence?.epistemicClass).toBe('USER_STATED');
   });
 
   it('never stores an explicit user preference as an inferred prediction', () => {
