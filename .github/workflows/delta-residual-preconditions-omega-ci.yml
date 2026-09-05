@@ -1,0 +1,16 @@
+name: Delta Residual Preconditions Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/delta-divergence-preconditions-omega.ts'
+      - 'src/atlas/algorithm/delta-divergence-preconditions-omega.test.ts'
+      - '.github/workflows/delta-residual-preconditions-omega-ci.yml'
+
+jobs:
+  residual-falsation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run residual Delta falsation gates
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/delta-divergence-preconditions-omega.test.ts
