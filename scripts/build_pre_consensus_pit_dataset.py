@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
-import csv, io, json, os, time, urllib.parse, urllib.request
+import csv, gzip, io, json, os, time, urllib.parse, urllib.request
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-UA='ATLAS-Research/1.0 contact: atlas@example.invalid'
+UA='ATLAS-Research/1.0 github.com/Vicente24051980/atlas_genesis'
 ROOT=Path(__file__).resolve().parents[1]
 UNIVERSE=ROOT/'data/pre_consensus/pilot_universe.csv'
 OUT=ROOT/'data/pre_consensus/generated/pit_panel.csv'
 SEC_TICKERS='https://www.sec.gov/files/company_tickers.json'
 
-def get(url, timeout=30):
-    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept-Encoding':'gzip, deflate'})
-    with urllib.request.urlopen(req,timeout=timeout) as r: return r.read()
+def get(url, timeout=45):
+    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept':'application/json,text/csv,text/plain,*/*'})
+    with urllib.request.urlopen(req,timeout=timeout) as r:
+        raw=r.read()
+        if r.headers.get('Content-Encoding','').lower()=='gzip' or raw[:2]==b'\x1f\x8b':
+            raw=gzip.decompress(raw)
+        return raw
 
 def load_universe(limit=None):
     with UNIVERSE.open() as f: rows=list(csv.DictReader(f))
@@ -19,9 +23,7 @@ def load_universe(limit=None):
 
 def sec_map():
     data=json.loads(get(SEC_TICKERS))
-    out={}
-    for x in data.values(): out[x['ticker'].upper()]={'cik':int(x['cik_str']),'title':x['title']}
-    return out
+    return {x['ticker'].upper():{'cik':int(x['cik_str']),'title':x['title']} for x in data.values()}
 
 def facts_for(cik):
     return json.loads(get(f'https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json'))
@@ -41,25 +43,37 @@ def latest_fact_asof(facts, concepts, asof):
     if not best: return None
     return {'value':best[1],'unit':best[2],'concept':best[3],'period_end':best[4],'form':best[5],'filed':best[0][0]}
 
-def stooq_price(ticker, asof):
+def stooq_history(ticker, start='20200101', end='20260705'):
     sym=ticker.lower().replace('-','.')+'.us'
-    d2=asof.replace('-',''); d1=(datetime.fromisoformat(asof)-timedelta(days=10)).date().strftime('%Y%m%d')
-    url=f'https://stooq.com/q/d/l/?s={urllib.parse.quote(sym)}&d1={d1}&d2={d2}&i=d'
+    url=f'https://stooq.com/q/d/l/?s={urllib.parse.quote(sym)}&d1={start}&d2={end}&i=d'
     text=get(url).decode('utf-8','replace')
-    rows=list(csv.DictReader(io.StringIO(text)))
-    if not rows: return None
-    r=rows[-1]
-    try: return {'date':r['Date'],'close':float(r['Close']),'source':url}
-    except Exception: return None
+    rows=[]
+    for r in csv.DictReader(io.StringIO(text)):
+        try: rows.append((r['Date'],float(r['Close'])))
+        except Exception: pass
+    return {'rows':rows,'source':url}
 
-def pageviews(title, asof, days=90):
-    end=datetime.fromisoformat(asof).date()-timedelta(days=1); start=end-timedelta(days=days-1)
+def stooq_price_from_history(hist, asof):
+    eligible=[r for r in hist['rows'] if r[0]<=asof]
+    if not eligible: return None
+    d,c=eligible[-1]
+    return {'date':d,'close':c,'source':hist['source']}
+
+def pageviews_history(title, start='20201201', end='20260630'):
     t=urllib.parse.quote(title,safe='')
-    url=f'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/{t}/daily/{start:%Y%m%d}/{end:%Y%m%d}'
+    url=f'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/{t}/daily/{start}/{end}'
     try:
-        items=json.loads(get(url)).get('items',[]); vals=[int(x.get('views',0)) for x in items]
-        return {'views':sum(vals),'days':len(vals),'source':url} if vals else None
-    except Exception: return None
+        items=json.loads(get(url)).get('items',[])
+        rows=[(datetime.strptime(str(x['timestamp'])[:8],'%Y%m%d').date(),int(x.get('views',0))) for x in items]
+        return {'rows':rows,'source':url}
+    except Exception as e:
+        print('PAGEVIEWS_FAIL',title,e)
+        return {'rows':[],'source':url}
+
+def pageviews_from_history(hist, asof, days=90):
+    end=datetime.fromisoformat(asof).date()-timedelta(days=1); start=end-timedelta(days=days-1)
+    vals=[v for d,v in hist['rows'] if start<=d<=end]
+    return {'views':sum(vals),'days':len(vals),'source':hist['source']} if vals else None
 
 def quarter_ends(start_year=2021,end_year=2026):
     out=[]
@@ -80,22 +94,28 @@ def main():
       'equity':['StockholdersEquity','StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'],
       'cash':['CashAndCashEquivalentsAtCarryingValue','CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents'],
       'assets':['Assets'],'liabilities':['Liabilities'],
-      'shares':['CommonStocksIncludingAdditionalPaidInCapitalMember','EntityCommonStockSharesOutstanding']
+      'shares':['EntityCommonStockSharesOutstanding','WeightedAverageNumberOfDilutedSharesOutstanding']
     }
     for u in universe:
-        sec=mapping.get(u['ticker'].replace('-','')) or mapping.get(u['ticker'])
+        ticker=u['ticker']
+        map_keys=[ticker,ticker.replace('-',''),ticker.replace('-','.')]
+        sec=next((mapping.get(k) for k in map_keys if mapping.get(k)),None)
         if not sec:
-            print('NO_SEC_MAP',u['ticker']); continue
+            print('NO_SEC_MAP',ticker); continue
         try: facts=facts_for(sec['cik'])
         except Exception as e:
-            print('SEC_FAIL',u['ticker'],e); continue
+            print('SEC_FAIL',ticker,e); continue
+        try: price_hist=stooq_history(ticker)
+        except Exception as e:
+            print('PRICE_FAIL',ticker,e); price_hist={'rows':[],'source':''}
+        att_hist=pageviews_history(u['wikipedia_title'])
         for snap in snaps:
-            px=stooq_price(u['ticker'],snap); att=pageviews(u['wikipedia_title'],snap)
-            rec={'ticker':u['ticker'],'sector':u['sector'],'snapshot_date':snap,'cik':sec['cik'],'company_name':sec['title'],
+            px=stooq_price_from_history(price_hist,snap); att=pageviews_from_history(att_hist,snap)
+            rec={'ticker':ticker,'sector':u['sector'],'snapshot_date':snap,'cik':sec['cik'],'company_name':sec['title'],
                  'price_date':px['date'] if px else '','close':px['close'] if px else '',
                  'pageviews_90d':att['views'] if att else '','pageview_days':att['days'] if att else '',
                  'sec_companyfacts_url':f'https://data.sec.gov/api/xbrl/companyfacts/CIK{sec["cik"]:010d}.json',
-                 'price_source':px['source'] if px else '','attention_source':att['source'] if att else ''}
+                 'price_source':px['source'] if px else price_hist.get('source',''),'attention_source':att['source'] if att else att_hist.get('source','')}
             filed=[]
             for name, cs in concepts.items():
                 f=latest_fact_asof(facts,cs,snap)
@@ -104,13 +124,14 @@ def main():
             rec['latest_filing_used']=max(filed) if filed else ''
             rec['pit_valid']=bool(px and rec['latest_filing_used'] and rec['latest_filing_used']<=snap)
             rows.append(rec)
-        time.sleep(0.11)
+        time.sleep(0.12)
     OUT.parent.mkdir(parents=True,exist_ok=True)
     fields=list(rows[0].keys()) if rows else []
     with OUT.open('w',newline='') as f:
         w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(rows)
     valid=sum(1 for r in rows if r['pit_valid'])
-    print(json.dumps({'rows':len(rows),'valid_pit_rows':valid,'tickers':len(set(r['ticker'] for r in rows)),'output':str(OUT)}))
-    if not rows or valid < max(1,int(len(rows)*0.70)): raise SystemExit('FAIL_CLOSED: insufficient PIT-valid rows')
+    coverage=valid/len(rows) if rows else 0
+    print(json.dumps({'rows':len(rows),'valid_pit_rows':valid,'pit_coverage':round(coverage,4),'tickers':len(set(r['ticker'] for r in rows)),'output':str(OUT)}))
+    if not rows or coverage<0.70: raise SystemExit('FAIL_CLOSED: insufficient PIT-valid rows')
 
 if __name__=='__main__': main()
