@@ -50,6 +50,7 @@ describe('T0 Anti-Megacap Discovery Gate Ω', () => {
     expect(result.marketCapContribution).toBe(0);
     expect(result.directScoreContribution).toBe(0);
     expect(result.state).toBe('PASS_SIZE_NEUTRAL_DISCOVERY');
+    expect(result.downstreamAuthorized).toBe(true);
   });
 
   it('allows a megacap to rank first after T0 when evidence is strongest', () => {
@@ -61,13 +62,15 @@ describe('T0 Anti-Megacap Discovery Gate Ω', () => {
     expect(ranked.map((row) => row.ticker)).toEqual(['MEGA', 'MID', 'SMALL']);
   });
 
-  it('flags explicit upstream size/familiarity bias even if final scores are zeroed later', () => {
+  it('flags upstream size bias and blocks the entire downstream pipeline', () => {
     const result = evaluateT0DiscoveryGate([
       candidate('A', 1, 500_000_000_000, { sizeInfluencedDiscovery: true }),
       candidate('B', 2, 5_000_000_000),
       candidate('C', 3, 1_000_000_000),
     ]);
     expect(result.state).toBe('DISCOVERY_BIAS_DETECTED');
+    expect(result.downstreamAuthorized).toBe(false);
+    expect(result.requiredAction).toBe('REDISCOVER');
     expect(result.reasons).toContain('UPSTREAM_DISCOVERY_BIAS_PRESENT');
   });
 
@@ -81,6 +84,7 @@ describe('T0 Anti-Megacap Discovery Gate Ω', () => {
     ], 'CHALLENGER', 5);
     expect(result.firstTrancheMegaShare).toBe(0.6);
     expect(result.state).toBe('DISCOVERY_BIAS_DETECTED');
+    expect(result.downstreamAuthorized).toBe(false);
     expect(result.reasons).toContain('FIRST_TRANCHE_MEGACAP_SHARE_ABOVE_20_PERCENT');
   });
 
@@ -95,7 +99,7 @@ describe('T0 Anti-Megacap Discovery Gate Ω', () => {
     expect(result.state).not.toBe('DISCOVERY_BIAS_DETECTED');
   });
 
-  it('warns when discovery coverage collapses into too few capitalization buckets', () => {
+  it('warns in general discovery when bucket coverage is narrow but does not change score', () => {
     const result = evaluateT0DiscoveryGate([
       candidate('A', 1, 40_000_000_000),
       candidate('B', 2, 30_000_000_000),
@@ -105,13 +109,42 @@ describe('T0 Anti-Megacap Discovery Gate Ω', () => {
       candidate('F', 6, 11_000_000_000),
     ]);
     expect(result.state).toBe('PASS_WITH_COVERAGE_WARNING');
+    expect(result.downstreamAuthorized).toBe(true);
     expect(result.reasons).toContain('INSUFFICIENT_CAPITALIZATION_BUCKET_COVERAGE');
+  });
+
+  it('blocks challenger discovery when capitalization bucket coverage is insufficient', () => {
+    const result = evaluateT0DiscoveryGate([
+      candidate('A', 1, 40_000_000_000),
+      candidate('B', 2, 30_000_000_000),
+      candidate('C', 3, 20_000_000_000),
+      candidate('D', 4, 15_000_000_000),
+      candidate('E', 5, 12_000_000_000),
+      candidate('F', 6, 11_000_000_000),
+    ], 'CHALLENGER', 6);
+    expect(result.state).toBe('COVERAGE_INSUFFICIENT');
+    expect(result.downstreamAuthorized).toBe(false);
+    expect(result.requiredAction).toBe('EXPAND_BUCKET_COVERAGE');
   });
 
   it('fails closed to evidence pending when there is no discovery universe', () => {
     const result = evaluateT0DiscoveryGate([]);
     expect(result.state).toBe('EVIDENCE_PENDING');
+    expect(result.downstreamAuthorized).toBe(false);
     expect(result.firstTrancheMegaShare).toBeNull();
+  });
+
+  it('fails closed in challenger mode when post-freeze market-cap evidence is incomplete', () => {
+    const unknown = candidate('UNKNOWN', 1, 1_000_000_000);
+    unknown.marketCapUsd = null;
+    const result = evaluateT0DiscoveryGate([
+      unknown,
+      candidate('MID', 2, 5_000_000_000),
+      candidate('SMALL', 3, 1_000_000_000),
+    ], 'NO_AI', 3);
+    expect(result.state).toBe('EVIDENCE_PENDING');
+    expect(result.downstreamAuthorized).toBe(false);
+    expect(result.reasons).toContain('CHALLENGER_MEGA_SHARE_NOT_FULLY_AUDITABLE');
   });
 
   it('records analyst, familiarity and raw-data discovery contamination in the audit trail', () => {
