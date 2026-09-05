@@ -133,10 +133,10 @@ export function falsifyDeltaIndependence(passes: readonly DeltaHardenedPass[]): 
   }
 
   const raw = evaluateDeltaDivergence(passes);
-  if (raw.state === 'MEDIBLE' && raw.meanProbability != null && raw.normalizedDOmega != null) {
+  if (raw.state === 'MEDIBLE' && raw.meanProbability != null && raw.dOmega != null) {
     const boundary = raw.meanProbability <= 0.02 || raw.meanProbability >= 0.98;
-    if (boundary && raw.normalizedDOmega > 1) {
-      findings.push({ code: 'BOUNDARY_NORMALIZATION_UNSTABLE', severity: 'SHADOW', detail: 'Normalized divergence is unstable near Bernoulli boundaries; retain raw sigma/IQR only in shadow.' });
+    if (boundary && raw.dOmega > 1e-9) {
+      findings.push({ code: 'BOUNDARY_NORMALIZATION_UNSTABLE', severity: 'SHADOW', detail: 'Near Bernoulli boundaries, normalized divergence is hypersensitive to a small denominator. Retain raw sigma/IQR only as shadow evidence.' });
     }
   }
 
