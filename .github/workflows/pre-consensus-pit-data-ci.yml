@@ -1,0 +1,82 @@
+name: Pre-Consensus PIT Data CI
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/build_pre_consensus_pit_dataset.py'
+      - 'scripts/build_pre_consensus_pit_core_smoke.py'
+      - 'data/pre_consensus/pilot_universe.csv'
+      - 'CURRENT_CANON/2026-09-05_PRE_CONSENSUS_PIT_DATASET_V1.md'
+      - '.github/workflows/pre-consensus-pit-data-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-pit-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PIT data dependencies
+        run: python -m pip install --disable-pip-version-check duckdb==1.4.0
+      - name: Build live point-in-time financial-core smoke panel
+        env:
+          ATLAS_PIT_LIMIT: '5'
+          ATLAS_PIT_SNAPSHOTS: '2024-03-31,2024-06-30,2024-09-30,2024-12-31,2025-03-31,2025-06-30'
+        run: python scripts/build_pre_consensus_pit_core_smoke.py
+      - name: Validate generated panel
+        run: |
+          python - <<'PY'
+          import csv
+          p='data/pre_consensus/generated/pit_panel.csv'
+          rows=list(csv.DictReader(open(p)))
+          assert len(rows)>=20, len(rows)
+          valid=sum(r['pit_valid']=='True' for r in rows)
+          assert valid>=int(len(rows)*.70), (valid,len(rows))
+          assert all(not r['latest_filing_used'] or r['latest_filing_used']<=r['snapshot_date'] for r in rows)
+          assert all(r['attention_source']=='SKIPPED_IN_CORE_SMOKE' for r in rows)
+          assert all(r['pageviews_90d']=='' for r in rows)
+          print('PIT_ROWS',len(rows),'VALID',valid,'ATTENTION_MISSING_BY_DESIGN',len(rows))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pre-consensus-pit-smoke-panel
+          path: data/pre_consensus/generated/pit_panel.csv
+
+  full-financial-pit-panel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install PIT data dependencies
+        run: python -m pip install --disable-pip-version-check duckdb==1.4.0
+      - name: Build 30-name quarterly PIT financial panel
+        run: python scripts/build_pre_consensus_pit_core_smoke.py
+      - name: Validate full panel
+        run: |
+          python - <<'PY'
+          import csv
+          p='data/pre_consensus/generated/pit_panel.csv'
+          rows=list(csv.DictReader(open(p)))
+          tickers={r['ticker'] for r in rows}
+          snapshots={r['snapshot_date'] for r in rows}
+          valid=sum(r['pit_valid']=='True' for r in rows)
+          coverage=valid/len(rows) if rows else 0
+          assert len(tickers)>=28, len(tickers)
+          assert len(snapshots)>=20, len(snapshots)
+          assert coverage>=.70, coverage
+          assert all(not r['latest_filing_used'] or r['latest_filing_used']<=r['snapshot_date'] for r in rows)
+          print('FULL_PIT_ROWS',len(rows),'TICKERS',len(tickers),'SNAPSHOTS',len(snapshots),'VALID',valid,'COVERAGE',round(coverage,4))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pre-consensus-pit-full-financial-panel
+          path: data/pre_consensus/generated/pit_panel.csv
