@@ -1,0 +1,36 @@
+name: Greek Contracts Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/greek-contracts-omega.ts'
+      - 'src/atlas/algorithm/greek-contracts-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
+      - 'CURRENT_CANON/2026-09-05_GREEK_CONTRACTS_DELTA_KAPPA_GAMMA_UPSILON_OMEGA_V1.md'
+      - '.github/workflows/greek-contracts-omega-ci.yml'
+  push:
+    branches:
+      - 'feature/100-greek-contracts-delta-kappa-gamma-upsilon'
+    paths:
+      - 'src/atlas/algorithm/greek-contracts-omega.ts'
+      - 'src/atlas/algorithm/greek-contracts-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
+      - 'CURRENT_CANON/2026-09-05_GREEK_CONTRACTS_DELTA_KAPPA_GAMMA_UPSILON_OMEGA_V1.md'
+      - '.github/workflows/greek-contracts-omega-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  greek-contracts-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Δ Κ Γ Υ regression tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/greek-contracts-omega.test.ts
