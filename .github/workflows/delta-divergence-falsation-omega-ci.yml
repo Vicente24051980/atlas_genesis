@@ -1,0 +1,18 @@
+name: Delta Divergence Falsation Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/delta-divergence-falsation-omega.ts'
+      - 'src/atlas/algorithm/delta-divergence-falsation-omega.test.ts'
+      - 'src/atlas/algorithm/delta-divergence-boundary-omega.test.ts'
+      - 'src/atlas/algorithm/greek-contracts-omega.ts'
+      - '.github/workflows/delta-divergence-falsation-omega-ci.yml'
+
+jobs:
+  falsation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Delta falsation matrix
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/delta-divergence-falsation-omega.test.ts src/atlas/algorithm/delta-divergence-boundary-omega.test.ts src/atlas/algorithm/greek-contracts-omega.test.ts
