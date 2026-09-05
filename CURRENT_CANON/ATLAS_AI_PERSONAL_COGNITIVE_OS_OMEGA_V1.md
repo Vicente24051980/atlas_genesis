@@ -1,7 +1,7 @@
 # ATLAS AI — Personal Cognitive OS Ω v1.0
 
-**Status:** CANONICAL  
-**Date:** 2026-09-05  
+**Status:** CANONICAL — ARCHITECTURE FROZEN / NEW IMPLEMENTATION PAUSED  
+**Date:** 2026-09-06  
 **Persistent knowledge infrastructure:** GitHub + Notion only
 
 ## Mission
@@ -9,6 +9,18 @@
 Build ATLAS AI as Vicente's persistent 24/7 personal cognitive operating system: capture life and work context, structure it, preserve longitudinal memory, close open loops, reason with explicit epistemic status, learn Vicente's decision patterns, select models/tools safely, propose what Vicente would probably do, and learn from outcomes.
 
 ATLAS must not become another inbox Vicente has to maintain.
+
+## Current implementation decision — 2026-09-06
+
+The target architecture is preserved, but **new implementation work is paused before further expansion**. The existing experimental Memory Foundation work must not be promoted merely because it exists.
+
+When the next model generation Vicente intends to evaluate is actually available with verifiable capabilities, ATLAS will run a capability audit before resuming implementation:
+
+`REAL CAPABILITIES → GAP ANALYSIS AGAINST ATLAS OS → ARCHITECTURE REVIEW → CANON UPDATE → TESTS → IMPLEMENTATION → MERGE`
+
+No architecture will be designed around unverified or assumed future-model capabilities.
+
+Existing experimental PR/work should remain experimental until tests and architectural review justify promotion.
 
 ## ATLAS LAW — ZERO-INBOX Ω
 
@@ -39,34 +51,17 @@ Capability does not imply permission. Atlas may understand how to perform an act
 ## Persistent architecture
 
 ### Notion Knowledge Layer
-Human-readable persistent layer for:
-- memory
-- projects
-- people and relationships
-- decisions
-- context
-- knowledge
-- open loops
-- outcomes and learning
+Human-readable persistent layer for memory, projects, people and relationships, decisions, context, knowledge, open loops, outcomes and learning.
 
 ### GitHub Cognitive Kernel
-Versioned machine/governance layer for:
-- architecture
-- schemas
-- rules
-- engines
-- prompts
-- tests
-- permissions policy
-- routing policy
-- governance
+Versioned machine/governance layer for architecture, schemas, rules, engines, prompts, tests, permissions policy, routing policy and governance.
 
 External systems are sources/tools, not additional master memories.
 
 ## Canonical modules
 
-1. `ATLAS Capture Ω` — voice, text, conversations and future authorized inputs.
-2. `Structure Engine Ω` — atomizes captures into typed cognitive objects.
+1. `ATLAS Capture Ω`
+2. `Structure Engine / ATLAS Parser Ω`
 3. `IDEAS`
 4. `DECISIONS`
 5. `COMMITMENTS`
@@ -84,298 +79,93 @@ External systems are sources/tools, not additional master memories.
 17. `Decision Prediction Ω`
 18. `Confidence + Provenance Ω`
 19. `ATLAS Executive Ω`
-20. `ATLAS Model Router Ω`
-21. `ATLAS Tool Router Ω`
-22. `ATLAS Permission & Containment Ω`
-23. `ATLAS Personal Data Gateway Ω`
-24. `Result Validator Ω`
-25. `ATLAS Daily Brief Ω`
-26. `Live Response Ω`
+20. `ATLAS Agent Harness Ω`
+21. `ATLAS Model Router Ω`
+22. `ATLAS Tool Router Ω`
+23. `ATLAS Permission & Containment Ω`
+24. `ATLAS Personal Data Gateway Ω`
+25. `Result Validator Ω`
+26. `ATLAS Daily Brief Ω`
+27. `Live Response Ω`
+
+## Agent Harness Ω
+
+Agent execution is governed as an iterative harness rather than an unconstrained prompt loop:
+
+`OBJECTIVE → PLAN → MODEL/TOOL ROUTING → EXECUTE → VALIDATE → PASS | MATERIAL RETRY | ESCALATE → LEARNING`
+
+Invariants:
+1. `NO LOOP WITHOUT STOP CONDITION`
+2. `NO ACTION WITHOUT PERMISSION CHECK`
+3. `NO SUCCESS WITHOUT VALIDATION`
+4. `NO MEMORY WRITE WITHOUT PROVENANCE`
+5. `NO RETRY WITHOUT MATERIAL CHANGE`
+6. `NO HIGH-RISK EXECUTION WITHOUT HUMAN AUTHORITY`
 
 ## Epistemic Layer Ω
 
-Atlas must never silently collapse distinct epistemic classes. Minimum canonical classes:
+Minimum canonical classes:
+`FACT`, `USER_STATED`, `INFERENCE`, `PREFERENCE`, `HYPOTHESIS`, `PREDICTION`, `STALE_MEMORY`, `CONTRADICTION`.
 
-- `FACT`
-- `USER_STATED`
-- `INFERENCE`
-- `PREFERENCE`
-- `HYPOTHESIS`
-- `PREDICTION`
-- `STALE_MEMORY`
-- `CONTRADICTION`
+Every decision-relevant memory supports source, date, confidence, validity, provenance, supersession and contradictions. Atlas must distinguish an explicit Vicente statement from an inferred Vicente pattern.
 
-Every decision-relevant memory must support:
-
-```yaml
-source: <origin>
-source_type: <epistemic class>
-created_at: <timestamp>
-valid_from: <timestamp|null>
-valid_until: <timestamp|null>
-confidence: <0..1>
-provenance: <reference>
-supersedes: <id|null>
-contradicts: [<id>]
-```
-
-Atlas must distinguish an explicit Vicente statement from an inferred Vicente pattern.
-
-Suggested inference strength:
-- `EXPLICIT`
-- `DERIVED_HIGH`
-- `DERIVED_MEDIUM`
-- `DERIVED_LOW`
-- `UNKNOWN`
+Inference strength:
+`EXPLICIT`, `DERIVED_HIGH`, `DERIVED_MEDIUM`, `DERIVED_LOW`, `UNKNOWN`.
 
 ## Context Router Ω
 
-A capture may belong to multiple contexts simultaneously. Routing is many-to-many, not forced single-folder classification.
-
-Possible targets include:
-- project
-- person
-- life area
-- research thread
-- investment system
-- decision history
-- action
-- open loop
-
-Classification should be automatic unless confidence is too low to route safely.
+Routing is many-to-many. A capture may simultaneously belong to projects, people, life areas, research threads, investment systems, decision history, actions and open loops. Classification is automatic unless confidence is insufficient.
 
 ## Open Loops Engine Ω
 
-Detect language and semantics such as:
-- queda pendiente
-- mañana miramos
-- sigue
-- acuérdate
-- falta comprobar
-- cuando ocurra X
-- hay que terminar
-- quiero investigar
-- no hemos cerrado
+Open loops are first-class persistent objects containing objective, status, evidence requirement, last progress, next best action, dependency/date and provenance. A future input such as `Sigue` must resolve against active context/open loops rather than restart from zero.
 
-Canonical object:
+## Memory ≠ Digital Twin
 
-```yaml
-open_loop:
-  id: OL-YYYY-NNNNN
-  project: <context>
-  subject: <subject>
-  status: ACTIVE|WAITING|BLOCKED|RESOLVED|DISMISSED
-  created_from: <provenance>
-  objective: <definition of done>
-  evidence_required: <standard>
-  last_progress: <summary>
-  next_best_action: <action>
-  waiting_for: <event/person/date|null>
-  confidence: <0..1>
-```
-
-A future input such as `Sigue` must resolve against active context/open loops rather than start from zero.
+Remembering an explicit statement is memory. Predicting what Vicente would probably do from longitudinal decisions, preferences, constraints, outcomes and contradictions is the Digital Twin / Vicente Decision Model. Predictions must never be represented as remembered facts.
 
 ## Vicente Decision Model Ω
 
-The Digital Twin is not merely memory. It models Vicente's decision function longitudinally.
-
 Canonical training trace:
 
-```text
-situation
-→ information available at the time
-→ relevant preferences
-→ constraints
-→ alternatives considered
-→ Vicente's actual decision
-→ outcome
-→ learning
-```
-
-Decision Prediction must compare current situations with historical analogues, stable and time-varying preferences, constraints, contradictions, outcomes and explicit statements.
-
-Predictions must include confidence and provenance and must never be represented as remembered facts.
-
-## Contradiction Detection Ω
-
-Detect at least:
-- explicit statement vs explicit statement
-- current preference vs stale preference
-- rule vs proposed action
-- decision vs stated objective
-- inferred pattern vs new observed behavior
-- evidence vs stored hypothesis
-
-Contradiction is a first-class object, not an error to hide.
+`situation → information available → relevant preferences → constraints → alternatives considered → Vicente actual decision → outcome → learning`
 
 ## Two-speed cognition
 
-### LIVE
-For time-sensitive inputs, immediate responses, urgent open loops and authorized alerts.
-
-### CONSOLIDATION
-Periodic maintenance for:
-- deduplication
-- memory consolidation
-- stale-memory detection
-- contradiction review
-- relationship updates
-- open-loop reconciliation
-- decision outcome ingestion
-- briefing preparation
+- **LIVE:** time-sensitive inputs, immediate responses, urgent open loops and authorized alerts.
+- **CONSOLIDATION:** deduplication, memory consolidation, stale-memory detection, contradiction review, relationship updates, open-loop reconciliation, decision outcomes and briefing preparation.
 
 ## ATLAS Executive Ω
 
-The Executive decides what deserves Vicente's attention.
-
-Internal processing volume must not become UI volume. Atlas may process many objects while surfacing only the few that change a decision, require approval, create risk, or deserve attention.
-
-## Model Router Ω
-
-```text
-TASK
-→ classify capability
-→ eligible models
-→ rank by reasoning fit / modality / reliability / privacy / latency / cost
-→ execute
-→ validate
-```
-
-The Vicente Model and persistent memory must remain provider-independent.
-
-## Tool Router Ω
-
-```text
-INTENT
-→ REQUIRED CAPABILITY
-→ TOOL DISCOVERY
-→ ELIGIBLE TOOLS
-→ RANK
-   capability
-   reliability
-   privacy
-   permissions
-   latency
-   cost
-   provenance
-→ BEST TOOL
-→ EXECUTION
-→ VALIDATION
-```
-
-Atlas routes by capability, not by hard-coded product identity where avoidable.
+Internal processing volume must not become UI volume. The Executive surfaces only what changes a decision, requires approval, creates risk or deserves Vicente's attention.
 
 ## Permission & Containment Ω
 
-Minimum capability classes:
-
-- `READ`
-- `WRITE`
-- `CREATE`
-- `MODIFY`
-- `DELETE`
-- `COMMUNICATE`
-- `PURCHASE`
-- `FINANCIAL`
-- `LEGAL`
-- `IDENTITY`
-- `EXTERNAL_WEB`
-- `PERSONAL_DATA`
-
-Every executable action should be evaluable as:
-
-```yaml
-action:
-  capability: <capability>
-risk:
-  level: LOW|MEDIUM|HIGH|CRITICAL
-permission:
-  granted: true|false
-scope: <authorized scope>
-requires_user_confirmation: true|false
-audit:
-  provenance: <origin>
-  timestamp: <time>
-```
-
-High-impact financial, legal, identity, destructive, purchase or external-communication actions require explicit policy and, by default, human approval.
-
-## Personal Data Gateway Ω
-
-External systems remain at source. Atlas retrieves authorized data when required and persists only relevant structured knowledge, references, relationships and provenance into the GitHub/Notion architecture.
-
-Potential sources/tools include email, calendar, contacts, Drive, photos, documents, web and future authorized services.
-
-## Result Validator Ω
-
-Before a result becomes action, durable knowledge, or decision-model evidence, validate:
-- task completion
-- provenance
-- epistemic class
-- permission compliance
-- contradictions
-- confidence
-- expected vs observed outcome where applicable
+Reasoning is separate from authority. Minimum capability classes include `READ`, `WRITE`, `CREATE`, `MODIFY`, `DELETE`, `COMMUNICATE`, `PURCHASE`, `FINANCIAL`, `LEGAL`, `IDENTITY`, `EXTERNAL_WEB`, `PERSONAL_DATA`. High-impact actions default to human approval unless explicit policy states otherwise.
 
 ## Canonical end-to-end flow
 
-```text
-CAPTURE
-→ STRUCTURE
-→ CONTEXT ROUTING
-→ MEMORY RETRIEVAL
-→ UNDERSTANDING
-→ REASONING
-→ VICENTE MODEL
-→ PREDICTION (when relevant)
-→ EXECUTIVE
-→ MODEL/TOOL SELECTION
-→ PERMISSION CHECK
-→ ACTION / RESPONSE
-→ RESULT VALIDATION
-→ LEARNING
-→ CONSOLIDATION
-```
+`CAPTURE → STRUCTURE → CONTEXT ROUTING → MEMORY RETRIEVAL → UNDERSTANDING → REASONING → VICENTE MODEL → PREDICTION → EXECUTIVE → AGENT HARNESS → MODEL/TOOL SELECTION → PERMISSION CHECK → ACTION/RESPONSE → RESULT VALIDATION → LEARNING → CONSOLIDATION`
 
-## Construction order
+## Construction order after capability audit
 
-### Phase 1 — Memory Foundation
-Capture, typed schemas, Structure Engine, Context Router, provenance and epistemic layer.
-
-### Phase 2 — Operational Memory
-Memory Retrieval, Open Loops Engine, Actions, Zero-Inbox lifecycle and Daily Brief.
-
-### Phase 3 — Personal Graph
-People/Relationships, projects, decisions and transversal graph links.
-
-### Phase 4 — Digital Twin
-Vicente Model, longitudinal decision traces, temporal preferences, outcomes and learning.
-
-### Phase 5 — Cognitive Intelligence
-Contradiction Detection and Decision Prediction with calibrated confidence/provenance.
-
-### Phase 6 — Atlas Executive & Execution
-Executive attention policy, Model Router, Tool Router, Permission & Containment, Personal Data Gateway and Result Validator.
+1. **Memory Foundation** — Capture, schemas, Parser, Context Router, provenance and epistemic layer.
+2. **Operational Memory** — Memory Retrieval, Open Loops, Actions, Zero-Inbox and Daily Brief.
+3. **Personal Graph** — People/Relationships, projects, decisions and transversal graph.
+4. **Digital Twin** — Vicente Model, longitudinal decisions, temporal preferences, outcomes and learning.
+5. **Cognitive Intelligence** — Contradiction Detection and Decision Prediction.
+6. **Atlas Executive & Execution** — Executive, Agent Harness, Model Router, Tool Router, Permission & Containment, Personal Data Gateway and Result Validator.
 
 ## First functional acceptance test
 
-Atlas passes the first meaningful MVP test when Vicente can end a multi-day research conversation, return later and say only `Sigue`, and Atlas can reliably recover:
-
-1. the correct active project/thread;
-2. what is already established;
-3. what remains hypothesis;
-4. the unresolved open loop;
-5. the evidence standard required;
-6. the next best action;
-7. provenance for the recovered state.
+Atlas passes the first meaningful MVP test when Vicente can end a multi-day research conversation, return later and say only `Sigue`, and Atlas reliably recovers the correct project/thread, established evidence, remaining hypotheses, unresolved open loop, evidence standard, next best action and provenance.
 
 ## Durable moat
 
-ATLAS's durable advantage is not a particular LLM. It is the accumulated and governed combination of:
+ATLAS's durable advantage is not a particular LLM. It is:
 
 `longitudinal decisions + preferences + outcomes + projects + relationships + contradictions + rules + memory + provenance + execution history`.
 
 ---
 
-**Canonical target:** ATLAS AI is a persistent personal cognitive OS, not a chatbot with memory and not a note-taking application.
+**Canonical target:** ATLAS AI is a persistent Personal Cognitive OS, not a chatbot with memory and not a note-taking application. Architecture preserved; new implementation remains paused until the planned next-model capability audit.
