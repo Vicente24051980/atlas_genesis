@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import csv, gzip, io, json, os, tempfile, time, urllib.parse, urllib.request
-from datetime import date, datetime, timedelta
+import csv, gzip, io, json, os, tempfile, time, urllib.error, urllib.parse, urllib.request
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import duckdb
@@ -15,23 +15,27 @@ FORMS={'10-Q','10-K','10-Q/A','10-K/A'}
 CACHE=Path(tempfile.gettempdir())/'atlas-sec-parquet'
 CACHE.mkdir(parents=True,exist_ok=True)
 
-def get(url, timeout=60):
-    req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept':'application/json,text/csv,text/plain,*/*'})
-    with urllib.request.urlopen(req,timeout=timeout) as r:
-        raw=r.read()
-        if r.headers.get('Content-Encoding','').lower()=='gzip' or raw[:2]==b'\x1f\x8b': raw=gzip.decompress(raw)
-        return raw
+def get(url, timeout=60, attempts=4):
+    last=None
+    for i in range(attempts):
+        try:
+            req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept':'application/json,text/csv,text/plain,*/*'})
+            with urllib.request.urlopen(req,timeout=timeout) as r:
+                raw=r.read()
+                if r.headers.get('Content-Encoding','').lower()=='gzip' or raw[:2]==b'\x1f\x8b': raw=gzip.decompress(raw)
+                return raw
+        except urllib.error.HTTPError as e:
+            last=e
+            if e.code not in {429,500,502,503,504}: raise
+            time.sleep(min(8,0.75*(2**i)))
+        except Exception as e:
+            last=e; time.sleep(min(8,0.5*(2**i)))
+    raise last
 
 def download(name):
     p=CACHE/name
     if p.exists() and p.stat().st_size>0: return p
-    req=urllib.request.Request(f'{PARQUET_BASE}/{name}',headers={'User-Agent':UA})
-    with urllib.request.urlopen(req,timeout=180) as r, p.open('wb') as f:
-        while True:
-            chunk=r.read(1<<20)
-            if not chunk: break
-            f.write(chunk)
-    return p
+    raw=get(f'{PARQUET_BASE}/{name}',timeout=180,attempts=3); p.write_bytes(raw); return p
 
 def load_universe(limit=None):
     with UNIVERSE.open() as f: rows=list(csv.DictReader(f))
@@ -54,8 +58,7 @@ def issuer_map():
 
 def sec_records_direct(cik,tags):
     url=f'https://data.sec.gov/api/xbrl/companyfacts/CIK{int(cik):010d}.json'
-    data=json.loads(get(url)); out=[]
-    gaap=data.get('facts',{}).get('us-gaap',{})
+    data=json.loads(get(url)); out=[]; gaap=data.get('facts',{}).get('us-gaap',{})
     for tag in tags:
         obj=gaap.get(tag) or {}
         for unit,vals in obj.get('units',{}).items():
@@ -65,8 +68,7 @@ def sec_records_direct(cik,tags):
     return out
 
 def sec_records_parquet(cik,tags,max_asof):
-    bucket=int(cik)%64
-    facts=download(f'facts_enc-b{bucket:05d}.parquet'); xtags=download('xbrl_tags.parquet')
+    bucket=int(cik)%64; facts=download(f'facts_enc-b{bucket:05d}.parquet'); xtags=download('xbrl_tags.parquet')
     tag_list=','.join("'"+t.replace("'","''")+"'" for t in sorted(tags)); forms=','.join("'"+f+"'" for f in sorted(FORMS))
     q=f"""SELECT x.tag,f.unit,CAST(f.start AS VARCHAR),CAST(f.end AS VARCHAR),f.val,f.fy,f.fp,f.form,CAST(f.filed AS VARCHAR)
     FROM read_parquet('{facts.as_posix()}') f JOIN read_parquet('{xtags.as_posix()}') x ON f.tag_id=x.tag_id
@@ -98,12 +100,38 @@ def stooq_history(ticker,start='20200101',end='20260705'):
     for r in csv.DictReader(io.StringIO(text)):
         try: rows.append((r['Date'],float(r['Close'])))
         except Exception: pass
-    return {'rows':rows,'source':url}
+    return {'rows':rows,'source':url,'provider':'STOOQ'}
 
-def stooq_price_from_history(hist,asof):
+def yahoo_history(ticker,start='2020-01-01',end='2026-07-06'):
+    symbol=ticker.replace('.','-')
+    p1=int(datetime.fromisoformat(start).replace(tzinfo=timezone.utc).timestamp()); p2=int(datetime.fromisoformat(end).replace(tzinfo=timezone.utc).timestamp())
+    last=None
+    for host in ('query1.finance.yahoo.com','query2.finance.yahoo.com'):
+        url=f'https://{host}/v8/finance/chart/{urllib.parse.quote(symbol)}?period1={p1}&period2={p2}&interval=1d&events=history&includeAdjustedClose=true'
+        try:
+            data=json.loads(get(url,attempts=3)); result=(data.get('chart') or {}).get('result') or []
+            if not result: continue
+            r=result[0]; stamps=r.get('timestamp') or []; quote=((r.get('indicators') or {}).get('quote') or [{}])[0]; closes=quote.get('close') or []
+            rows=[]
+            for ts,close in zip(stamps,closes):
+                if close is not None: rows.append((datetime.fromtimestamp(ts,tz=timezone.utc).date().isoformat(),float(close)))
+            if rows: return {'rows':rows,'source':url,'provider':'YAHOO_CHART'}
+        except Exception as e: last=e
+    if last: raise last
+    return {'rows':[],'source':'','provider':'YAHOO_CHART'}
+
+def price_history(ticker):
+    try:
+        h=stooq_history(ticker)
+        if h['rows']: return h
+        print('STOOQ_EMPTY_FALLBACK_YAHOO',ticker)
+    except Exception as e: print('STOOQ_FAIL_FALLBACK_YAHOO',ticker,repr(e))
+    return yahoo_history(ticker)
+
+def price_from_history(hist,asof):
     eligible=[r for r in hist['rows'] if r[0]<=asof]
     if not eligible: return None
-    d,c=eligible[-1]; return {'date':d,'close':c,'source':hist['source']}
+    d,c=eligible[-1]; return {'date':d,'close':c,'source':hist['source'],'provider':hist.get('provider','UNKNOWN')}
 
 def pageviews_history(title,first_snap,last_snap):
     first=datetime.fromisoformat(first_snap).date()-timedelta(days=100); last=datetime.fromisoformat(last_snap).date(); rows=[]; sources=[]
@@ -111,7 +139,7 @@ def pageviews_history(title,first_snap,last_snap):
         start=max(first,date(y,1,1)); end=min(last,date(y,12,31)); t=urllib.parse.quote(title,safe='')
         url=f'https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/{t}/daily/{start:%Y%m%d}/{end:%Y%m%d}'; sources.append(url)
         try:
-            items=json.loads(get(url)).get('items',[]); rows.extend((datetime.strptime(str(x['timestamp'])[:8],'%Y%m%d').date(),int(x.get('views',0))) for x in items)
+            items=json.loads(get(url,attempts=5)).get('items',[]); rows.extend((datetime.strptime(str(x['timestamp'])[:8],'%Y%m%d').date(),int(x.get('views',0))) for x in items); time.sleep(0.15)
         except Exception as e: print('PAGEVIEWS_SEGMENT_FAIL',title,y,repr(e))
     return {'rows':rows,'source':' ; '.join(sources)}
 
@@ -131,18 +159,19 @@ def main():
         if not sec: print('NO_ISSUER_MAP',ticker); continue
         try: facts,fact_source=issuer_records(sec['cik'],tags,max_asof)
         except Exception as e: print('FACTS_FAIL_CLOSED',ticker,repr(e)); continue
-        try: price_hist=stooq_history(ticker)
-        except Exception as e: print('PRICE_FAIL',ticker,repr(e)); price_hist={'rows':[],'source':''}
+        try: price_hist=price_history(ticker)
+        except Exception as e: print('PRICE_FAIL',ticker,repr(e)); price_hist={'rows':[],'source':'','provider':'NONE'}
         att_hist=pageviews_history(u['wikipedia_title'],min(snaps),max(snaps))
+        print('SOURCE_COUNTS',ticker,'facts',len(facts),'prices',len(price_hist['rows']),'attention_days',len(att_hist['rows']),'price_provider',price_hist.get('provider'))
         for snap in snaps:
-            px=stooq_price_from_history(price_hist,snap); att=pageviews_from_history(att_hist,snap)
-            rec={'ticker':ticker,'sector':u['sector'],'snapshot_date':snap,'cik':sec['cik'],'company_name':sec['title'],'identity_source':sec['identity_source'],'facts_provider':fact_source,'price_date':px['date'] if px else '','close':px['close'] if px else '','pageviews_90d':att['views'] if att else '','pageview_days':att['days'] if att else '','price_source':px['source'] if px else price_hist.get('source',''),'attention_source':att['source'] if att else att_hist.get('source','')}
+            px=price_from_history(price_hist,snap); att=pageviews_from_history(att_hist,snap)
+            rec={'ticker':ticker,'sector':u['sector'],'snapshot_date':snap,'cik':sec['cik'],'company_name':sec['title'],'identity_source':sec['identity_source'],'facts_provider':fact_source,'price_provider':px['provider'] if px else price_hist.get('provider','NONE'),'price_date':px['date'] if px else '','close':px['close'] if px else '','pageviews_90d':att['views'] if att else '','pageview_days':att['days'] if att else '','price_source':px['source'] if px else price_hist.get('source',''),'attention_source':att['source'] if att else att_hist.get('source','')}
             filed=[]; sources=[]
             for name,cs in concepts.items():
                 f=latest_fact_asof(facts,cs,snap); rec[name]=f['value'] if f else ''; rec[name+'_filed']=f['filed'] if f else ''; rec[name+'_period_end']=f['period_end'] if f else ''
                 if f: filed.append(f['filed']); sources.append(f.get('source') or '')
             rec['latest_filing_used']=max(filed) if filed else ''; rec['fundamental_source']=' ; '.join(sorted(set(x for x in sources if x))); rec['pit_valid']=bool(px and rec['latest_filing_used'] and rec['latest_filing_used']<=snap); rows.append(rec)
-        time.sleep(0.03)
+        time.sleep(0.05)
     OUT.parent.mkdir(parents=True,exist_ok=True); fields=list(rows[0].keys()) if rows else []
     with OUT.open('w',newline='') as f:
         w=csv.DictWriter(f,fieldnames=fields); w.writeheader(); w.writerows(rows)
