@@ -9,6 +9,7 @@ on:
       - 'src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.test.ts'
       - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
       - 'supabase/migrations/20260905062500_gamma_kappa_append_only_ledgers.sql'
+      - 'supabase/migrations/20260905062600_gamma_kappa_permissions_hardening.sql'
       - 'supabase/tests/gamma_kappa_ledger_adversarial.sql'
       - '.github/workflows/gamma-kappa-assurance-ledger-ci.yml'
 
@@ -41,8 +42,12 @@ jobs:
         run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/gamma-kappa-assurance-hardening-omega.test.ts src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.test.ts
       - name: Install PostgreSQL client
         run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
-      - name: Apply append-only ledger migration
-        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20260905062500_gamma_kappa_append_only_ledgers.sql
+      - name: Apply append-only ledger migrations
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20260905062500_gamma_kappa_append_only_ledgers.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20260905062600_gamma_kappa_permissions_hardening.sql
       - name: Run adversarial ledger tests
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/gamma_kappa_ledger_adversarial.sql
       - name: Prove concurrent seals cannot fork Gamma chain
