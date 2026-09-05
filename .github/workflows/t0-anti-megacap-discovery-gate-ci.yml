@@ -31,11 +31,11 @@ jobs:
           const fs = require('fs');
           const source = fs.readFileSync('src/atlas/algorithm/atlas-primary-engine-hierarchy.ts', 'utf8');
           const sequence = source.slice(source.indexOf('export const ATLAS_CANONICAL_DECISION_SEQUENCE'));
-          const t0 = sequence.indexOf("'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1'");
+          const t0 = sequence.indexOf("'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1_1'");
           const discovery = sequence.indexOf("'GLOBAL_DISCOVERY_OMEGA'");
           const principal = sequence.indexOf("'PRINCIPAL_OMEGA'");
           if (t0 < 0 || discovery < 0 || principal < 0 || !(t0 < discovery && t0 < principal)) {
-            console.error('T0 is not first constitutional gate');
+            console.error('T0 v1.1 is not first constitutional gate');
             process.exit(1);
           }
           NODE
