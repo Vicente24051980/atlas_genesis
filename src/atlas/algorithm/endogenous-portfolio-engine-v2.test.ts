@@ -117,10 +117,19 @@ describe('Endogenous Portfolio Engine v2',()=>{
   });
 
   it('can preserve a material missing-driver exception beyond the knee',()=>{
-    const xs=Array.from({length:21},(_,i)=>c(i+1,12,`d${i}`));
-    xs[20].causalDrivers={health:1};
-    for(const s of CANONICAL_SCENARIOS) xs[20].scenarios[s]=4;
-    const r=runEndogenousPortfolioEngineV2(xs,{marginalUtilityThreshold:100,requiredStructuralDrivers:['health'],missingDriverRobustnessThreshold:0});
+    const xs=Array.from({length:20},(_,i)=>c(i+1,12,`d${i}`));
+    const hedge=c(21,0,'health');
+    hedge.causalDrivers={health:1};
+    for(const s of CANONICAL_SCENARIOS) hedge.scenarios[s]=4;
+    const r=runEndogenousPortfolioEngineV2([...xs,hedge],{
+      marginalUtilityThreshold:100,
+      requiredStructuralDrivers:['health'],
+      missingDriverRobustnessThreshold:0,
+      betaRobustness:0,
+    });
+    expect(r.frontier[0].driverCoverage).toBeUndefined();
+    expect(r.frontier[0].metrics.driverCoverage).not.toContain('health');
+    expect(r.frontier[1].metrics.driverCoverage).toContain('health');
     expect(r.optimalN).toBe(21);
   });
 });
