@@ -1,0 +1,64 @@
+name: Gamma Kappa Assurance Ledger Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/gamma-kappa-assurance-hardening-omega.ts'
+      - 'src/atlas/algorithm/gamma-kappa-assurance-hardening-omega.test.ts'
+      - 'src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.ts'
+      - 'src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
+      - 'supabase/migrations/20260905062500_gamma_kappa_append_only_ledgers.sql'
+      - 'supabase/tests/gamma_kappa_ledger_adversarial.sql'
+      - '.github/workflows/gamma-kappa-assurance-ledger-ci.yml'
+
+jobs:
+  assurance:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: atlas_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d atlas_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGDATABASE: atlas_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run TypeScript falsation tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/gamma-kappa-assurance-hardening-omega.test.ts src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.test.ts
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Apply append-only ledger migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20260905062500_gamma_kappa_append_only_ledgers.sql
+      - name: Run adversarial ledger tests
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/gamma_kappa_ledger_adversarial.sql
+      - name: Prove concurrent seals cannot fork Gamma chain
+        shell: bash
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -c "truncate table public.atlas_gamma_ledger restart identity;"
+          psql -v ON_ERROR_STOP=1 -c "select (public.atlas_seal_gamma_falsifier('CONC-1','AAA','growth',20,'pct','10-Q','2026-06-30','2026-06-30','<',10,'<',0,'2Q',0.5,'MAJOR',true,true,true,null)).record_hash;" &
+          p1=$!
+          psql -v ON_ERROR_STOP=1 -c "select (public.atlas_seal_gamma_falsifier('CONC-2','BBB','growth',20,'pct','10-Q','2026-06-30','2026-06-30','<',10,'<',0,'2Q',0.5,'MAJOR',true,true,true,null)).record_hash;" &
+          p2=$!
+          wait "$p1"
+          wait "$p2"
+          count=$(psql -Atqc "select count(*) from public.atlas_gamma_ledger;")
+          test "$count" = "2"
+          ok=$(psql -Atqc "select ok from public.atlas_verify_gamma_chain();")
+          test "$ok" = "t"
+          forks=$(psql -Atqc "select count(*) from (select prev_hash,count(*) c from public.atlas_gamma_ledger group by prev_hash having count(*)>1) x;")
+          test "$forks" = "0"
