@@ -1,0 +1,38 @@
+name: Open Source Quant AI Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/open-source-quant-ai-omega.ts'
+      - 'src/atlas/algorithm/tail-risk-diagnostics-omega.ts'
+      - 'src/atlas/algorithm/open-source-quant-ai-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
+      - 'CURRENT_CANON/2026-09-05_OPEN_SOURCE_QUANT_AI_OMEGA_V1.md'
+      - '.github/workflows/open-source-quant-ai-omega-ci.yml'
+  push:
+    branches:
+      - 'feature/98-open-source-quant-ai-omega'
+    paths:
+      - 'src/atlas/algorithm/open-source-quant-ai-omega.ts'
+      - 'src/atlas/algorithm/tail-risk-diagnostics-omega.ts'
+      - 'src/atlas/algorithm/open-source-quant-ai-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
+      - 'CURRENT_CANON/2026-09-05_OPEN_SOURCE_QUANT_AI_OMEGA_V1.md'
+      - '.github/workflows/open-source-quant-ai-omega-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  quant-ai-omega-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Open Source Quant AI Omega tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/open-source-quant-ai-omega.test.ts
