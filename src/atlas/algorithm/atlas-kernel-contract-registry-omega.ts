@@ -1,4 +1,4 @@
-export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-05-v2.0.0' as const;
+export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-06-v2.1.0' as const;
 
 export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
   governanceStatus: 'ACTIVE_CANONICAL_PENDING_PR_MERGE',
@@ -8,6 +8,16 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     gamma: { id: 'GAMMA_VIGENCIA_OMEGA_V1_2', runtimeAuthority: 'VIGENCIA_ONLY' },
     upsilon: { id: 'UPSILON_ALLOCATION_OMEGA_V1', runtimeAuthority: 'ALLOCATION_ONLY' },
     rho: { id: 'RHO_COUNTERPARTY_EXPOSURE_OMEGA_V1', runtimeAuthority: 'EXPOSURE_AGGREGATION_ONLY' },
+    durableRevisionGap: {
+      id: 'DURABLE_REVISION_GAP_OMEGA_V1',
+      runtimeAuthority: 'CORE_SELECTION_INPUT',
+      scoreAuthority: 'MAIN_ENGINE_ECONOMIC_SCORE',
+    },
+    revealedCapitalIntelligence: {
+      id: 'REVEALED_CAPITAL_INTELLIGENCE_OMEGA_V1',
+      runtimeAuthority: 'CORROBORATIVE_EVIDENCE_ONLY',
+      directScoreWeight: 0,
+    },
   },
   boundaries: {
     deltaCannotConclude: true,
@@ -18,9 +28,27 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     rhoCannotBuySell: true,
     rhoCannotSetWeight: true,
     rhoCannotAdmitExclude: true,
+    revealedCapitalCannotCreateDirectScore: true,
+    revealedCapitalCannotBypassFundamentals: true,
+    revealedCapitalCannotBypassValuation: true,
+    revealedCapitalCannotBypassFalsifierVeto: true,
+    durableRevisionGapRequiresIndependentFundamentalEvidence: true,
     falsifierVetoIndependent: true,
     decisionSafetyIndependent: true,
   },
+  mainSelectionSequence: [
+    'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1_1',
+    'PRINCIPAL_OMEGA',
+    'BUSINESS_QUALITY_OMEGA',
+    'GROWTH_OMEGA',
+    'PER_SHARE_ECONOMICS_OMEGA_V1',
+    'OWNER_ECONOMICS_NORMALIZATION_OMEGA_V1',
+    'DURABLE_REVISION_GAP_OMEGA_V1',
+    'VALUATION_OMEGA',
+    'EXPECTED_RETURN_3_6Y',
+    'RISK_OMEGA',
+    'COMPETITION_FOR_CAPITAL_OMEGA',
+  ],
   aiCapexPreScoreSequence: [
     'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1_1',
     'T1_FUNDAMENTAL_HARD_GATES',
