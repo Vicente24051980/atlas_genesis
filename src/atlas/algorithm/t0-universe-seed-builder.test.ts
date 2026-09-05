@@ -31,9 +31,11 @@ describe('T0 Universe Seed Builder', () => {
   const rawTickers = parseRawSeedTickers(raw);
   const entities = dedupeSeedByEconomicEntity(rawTickers);
   const expansion = parseExpansionCsv(expansionRaw);
+  const seedIds = new Set(entities.map((x) => x.economicEntityId));
+  const novelExpansion = expansion.filter((x) => !seedIds.has(economicEntityId(x.ticker)));
 
-  it('preserves a large user seed but removes exact duplicate occurrences', () => {
-    expect(rawTickers.length).toBeGreaterThan(500);
+  it('preserves the exact 650 user rows and removes duplicate occurrences', () => {
+    expect(rawTickers.length).toBe(650);
     expect(entities.length).toBeLessThan(rawTickers.length);
     expect(entities.find((x) => x.canonicalTicker === 'NVDA')?.rawOccurrences).toBeGreaterThan(1);
   });
@@ -50,8 +52,9 @@ describe('T0 Universe Seed Builder', () => {
     expect(entities.every((x) => x.source === 'USER_INDEX_SEED')).toBe(true);
   });
 
-  it('adds at least 50 prospective candidates beyond the raw index ordering', () => {
-    expect(expansion.length).toBeGreaterThanOrEqual(50);
+  it('adds 50 prospective candidates and at least 40 new economic entities', () => {
+    expect(expansion.length).toBe(50);
+    expect(novelExpansion.length).toBeGreaterThanOrEqual(40);
     expect(expansion.every((x) => x.provenance === 'PROSPECTIVE_AUDITABLE')).toBe(true);
   });
 
@@ -80,10 +83,12 @@ describe('T0 Universe Seed Builder', () => {
     expect(expansion.slice(20).some((x) => x.marketCapUsd === null)).toBe(true);
   });
 
-  it('reports the actual raw and deduped counts for audit logs', () => {
+  it('reports the actual universe counts for audit logs', () => {
     console.log(`T0_UNIVERSE_RAW_ROWS=${rawTickers.length}`);
     console.log(`T0_UNIVERSE_UNIQUE_ECONOMIC_ENTITIES=${entities.length}`);
     console.log(`T0_UNIVERSE_PROSPECTIVE_EXPANSION=${expansion.length}`);
-    expect(entities.length).toBeGreaterThan(400);
+    console.log(`T0_UNIVERSE_NOVEL_EXPANSION_ENTITIES=${novelExpansion.length}`);
+    console.log(`T0_UNIVERSE_UNION_ECONOMIC_ENTITIES=${seedIds.size + novelExpansion.length}`);
+    expect(entities.length).toBe(487);
   });
 });
