@@ -13,6 +13,7 @@ on:
       - 'supabase/migrations/20260905062700_gamma_kappa_external_anchor_verification.sql'
       - 'supabase/migrations/20260905064000_gamma_kappa_pgcrypto_schema_fix.sql'
       - 'supabase/migrations/20260905064500_gamma_kappa_external_checkpoint_heads.sql'
+      - 'supabase/migrations/20260905065000_gamma_kappa_security_linter_hardening.sql'
       - 'supabase/tests/gamma_kappa_ledger_adversarial.sql'
       - 'supabase/tests/gamma_kappa_external_anchor_adversarial.sql'
       - '.github/workflows/gamma-kappa-assurance-ledger-ci.yml'
@@ -55,7 +56,8 @@ jobs:
             supabase/migrations/20260905062600_gamma_kappa_permissions_hardening.sql \
             supabase/migrations/20260905062700_gamma_kappa_external_anchor_verification.sql \
             supabase/migrations/20260905064000_gamma_kappa_pgcrypto_schema_fix.sql \
-            supabase/migrations/20260905064500_gamma_kappa_external_checkpoint_heads.sql
+            supabase/migrations/20260905064500_gamma_kappa_external_checkpoint_heads.sql \
+            supabase/migrations/20260905065000_gamma_kappa_security_linter_hardening.sql
           do
             psql -v ON_ERROR_STOP=1 -f "$f"
           done
