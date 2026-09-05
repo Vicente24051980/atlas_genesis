@@ -117,6 +117,7 @@ export const PERSONAL_COGNITIVE_OS_MANIFEST = {
   invariants: [
     'MEMORY_IS_NOT_DIGITAL_TWIN',
     'EXPLICIT_USER_STATEMENT_MUST_NOT_BE_DOWNCAST_TO_INFERENCE',
+    'EVIDENCE_MENTION_MUST_NOT_BE_AUTOMATICALLY_PROMOTED_TO_FACT',
     'PREDICTION_MUST_NOT_BE_STORED_AS_EXPLICIT_MEMORY',
     'ZERO_INBOX_REQUIRES_TERMINAL_CLASSIFICATION',
     'OPEN_LOOPS_ARE_FIRST_CLASS_PERSISTENT_OBJECTS',
@@ -218,8 +219,9 @@ function classifyFragment(fragment: string): CognitiveUnitType[] {
 
 function epistemicFor(type: CognitiveUnitType): EpistemicClass {
   if (type === 'PREFERENCE') return 'PREFERENCE';
-  if (type === 'EVIDENCE') return 'FACT';
   if (type === 'QUESTION') return 'HYPOTHESIS';
+  // Parsing a mention of evidence does not verify the underlying claim.
+  // Promotion to FACT belongs to a later validator with traceable provenance.
   return 'USER_STATED';
 }
 
@@ -309,7 +311,7 @@ export function openLoopsEngine(unit: RoutedUnit): OpenLoop | null {
   if (unit.type !== 'OPEN_LOOP') return null;
 
   const subject = deriveObjective(unit.text) || unit.text;
-  const waitingMatch = unit.text.match(/\b(?:mañana|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo|cuando [^,.!?]+)/i);
+  const waitingMatch = unit.text.match(/\b(?:mañana|lunes|martes|mi[eé]rcoles|jueves|viernes|s[aá]bado|domingo|cuando [^,.!?]+)/i);
 
   return {
     id: `OL-${unit.id.replace(/[^A-Za-z0-9]/g, '-')}`,
