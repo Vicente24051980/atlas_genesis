@@ -1,5 +1,6 @@
 export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
-  version: '2026-09-05-v4.16.0',
+  version: '2026-09-05-v4.17.0',
+  firstConstitutionalGate: 'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1',
   firstAnalyticalEngine: 'GREEN_VERIFIED_CONTINUITY_OMEGA_V1_0',
   greenVerificationStack: ['GREEN_PROVIDER_QUORUM_OMEGA_V1_1', 'GREEN_CONTINUITY_OMEGA_V1_4'] as const,
   primaryEngine: 'PRINCIPAL_OMEGA',
@@ -59,12 +60,21 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'MODEL_LEARNING_GOVERNANCE_OMEGA_V1',
   ] as const,
   transversalGates: [
+    'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1',
     'ANTI_DELUSION_CORE_OMEGA', 'EVIDENCE_INTEGRITY_OMEGA', 'SOURCE_AUTHENTICITY_OMEGA', 'QUANTITATIVE_INTEGRITY_OMEGA',
     'TEMPORAL_NORMALIZATION_OMEGA', 'VALUATION_METHOD_INTEGRITY_OMEGA_V1', 'SIZE_NEUTRALITY_AUDIT_OMEGA_V1', 'SYSTEMIC_CASCADE_OMEGA_V1',
     'CONVEXITY_RUIN_GUARD_OMEGA_V1', 'PRE_MORTEM_INVERSION_OMEGA_V1',
     'FALSIFIER_VETO_OMEGA_V1', 'LIQUIDITY_SPREAD_GATE_OMEGA_V1_1', 'DECISION_SAFETY_GATE_OMEGA',
   ] as const,
   rules: [
+    'T0 ANTI-MEGACAP DISCOVERY GATE is constitutional and precedes every ATLAS analytical, learning, Greek-contract, allocation and execution engine.',
+    'T0 neutralizes discovery bias upstream: market cap, index membership, analyst coverage, brand familiarity and raw data availability contribute exactly zero to discovery priority and exactly zero to score.',
+    'T0 does not penalize megacaps. A megacap may rank first after T0 when evidence-based economics, Expected Return and applicable gates justify it.',
+    'In CHALLENGER and NO-AI discovery, absent explicit evidence justifying a different composition, megacaps may not exceed 20% of the first discovery tranche.',
+    'T0 requires capitalization-bucket coverage as a discovery audit; bucket balancing changes coverage only and never changes a frozen company score.',
+    'Market-cap bucket is assigned only after discovery priority is frozen and remains an audit/risk descriptor rather than a discovery or scoring input.',
+    'Size-related saturation, runway, liquidity or execution-capacity effects are admissible only when demonstrated causally by economic evidence after T0; size itself is never proof.',
+    'A universe already dominated by megacaps because of familiarity, index-first sourcing, analyst coverage or data convenience is DISCOVERY_BIAS_DETECTED even if later scoring starts at zero.',
     'After integrity and ticker-identity normalization, canonical GREEN execution enters through GREEN VERIFIED CONTINUITY Ω, which runs Provider Quorum before GREEN classification.',
     'No caller may promote vendor performance labels, inferred percentages or unsynchronized observations directly into a GREEN score.',
     'GREEN requires 3 core providers per horizon; Trading 212 user evidence is an optional broker cross-check and never counts toward the core-provider minimum.',
@@ -100,7 +110,6 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
     'Unverified evidence cannot be promoted to a confirmed falsifier.',
     'Price is not evidence and a trigger is not a falsifier.',
     'SIZE-NEUTRAL RETURN RANKING starts every ticker at 0/1000; market cap and generic quality provide zero bonus and zero penalty.',
-    'Market-cap bucket is assigned only after score freeze; size distribution is an audit output, never a score input.',
     'Growth Saturation may reduce expected-return opportunity only from economic evidence, never from size alone.',
     'ENTRY TIMING RETURN-AWARE credits the correction already observed before calculating any remaining pullback requirement.',
     'Current drawdown from ATH or rolling peak is preferred to a negative window return; window return is a fallback only when peak data are unavailable.',
@@ -168,6 +177,7 @@ export const ATLAS_PRIMARY_ENGINE_HIERARCHY = {
 
 export const ATLAS_CANONICAL_DECISION_SEQUENCE = [
   'INPUT',
+  'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1',
   'ANTI_DELUSION_CORE_OMEGA',
   'EVIDENCE_INTEGRITY_OMEGA',
   'SOURCE_AUTHENTICITY_OMEGA',
