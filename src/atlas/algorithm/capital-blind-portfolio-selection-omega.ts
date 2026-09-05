@@ -56,14 +56,18 @@ function finite(x: number | undefined): x is number {
   return typeof x === 'number' && Number.isFinite(x);
 }
 
+function optionalFinite(x: number | undefined): boolean {
+  return x === undefined || finite(x);
+}
+
 function validateCandidate(c: CapitalBlindCandidate): boolean {
   return Boolean(c.ticker?.trim()) &&
     finite(c.expectedCompoundReturnPct) &&
     finite(c.permanentLossRiskPct) &&
     finite(c.fragilityPenaltyPct) &&
-    (!finite(c.robustnessBenefitPct) || true) &&
-    (!finite(c.causalDiversificationBenefitPct) || true) &&
-    (!finite(c.complexityPenaltyPct) || true);
+    optionalFinite(c.robustnessBenefitPct) &&
+    optionalFinite(c.causalDiversificationBenefitPct) &&
+    optionalFinite(c.complexityPenaltyPct);
 }
 
 function baseUtility(c: CapitalBlindCandidate): number {
