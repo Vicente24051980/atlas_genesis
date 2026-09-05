@@ -1,0 +1,200 @@
+{
+  "snapshotDate": "2026-09-05",
+  "status": "BASELINE_V1",
+  "globalWest": [
+    {
+      "id": "CLOUD_GLOBAL",
+      "label": "Global cloud infrastructure services",
+      "date": "2026-Q2",
+      "shares": [
+        { "actor": "Amazon", "share": 0.28 },
+        { "actor": "Microsoft", "share": 0.20 },
+        { "actor": "Alphabet", "share": 0.15 },
+        { "actor": "Others", "share": 0.37 }
+      ],
+      "lock": 0.75,
+      "verticalIntegration": 0.85,
+      "evidenceLevel": "E3",
+      "source": "Synergy Research Group Q2 2026",
+      "notes": "Shares are revenue-market shares; switching friction is an ATLAS documented assessment and must retain uncertainty."
+    },
+    {
+      "id": "MOBILE_OS_GLOBAL",
+      "label": "Worldwide mobile operating systems",
+      "date": "2026-08",
+      "shares": [
+        { "actor": "Alphabet", "share": 0.675 },
+        { "actor": "Apple", "share": 0.325 }
+      ],
+      "lock": 0.9,
+      "verticalIntegration": 0.95,
+      "evidenceLevel": "E3",
+      "source": "StatCounter August 2026",
+      "notes": "Android attributed to Alphabet for global stack only; do not apply this attribution to China AOSP ecosystem."
+    },
+    {
+      "id": "BROWSER_GLOBAL",
+      "label": "Worldwide browser usage",
+      "date": "2026-08",
+      "shares": [
+        { "actor": "Alphabet", "share": 0.6939 },
+        { "actor": "Apple", "share": 0.1583 },
+        { "actor": "Microsoft", "share": 0.0536 },
+        { "actor": "Others", "share": 0.0942 }
+      ],
+      "lock": 0.7,
+      "verticalIntegration": 0.9,
+      "evidenceLevel": "E3",
+      "source": "StatCounter August 2026"
+    },
+    {
+      "id": "SEARCH_GLOBAL",
+      "label": "Worldwide search engine usage",
+      "date": "2026-08",
+      "shares": [
+        { "actor": "Alphabet", "share": 0.911 },
+        { "actor": "Microsoft", "share": 0.045 },
+        { "actor": "Others", "share": 0.044 }
+      ],
+      "lock": 0.8,
+      "verticalIntegration": 0.95,
+      "evidenceLevel": "E3",
+      "source": "StatCounter August 2026"
+    },
+    {
+      "id": "AI_CHATBOT_GLOBAL",
+      "label": "Worldwide AI chatbot usage",
+      "date": "2026-08",
+      "shares": [
+        { "actor": "OpenAI", "share": 0.794 },
+        { "actor": "Alphabet", "share": 0.109 },
+        { "actor": "Perplexity", "share": 0.0431 },
+        { "actor": "Microsoft", "share": 0.0279 },
+        { "actor": "Anthropic", "share": 0.0257 }
+      ],
+      "lock": 0.45,
+      "verticalIntegration": 0.65,
+      "evidenceLevel": "E3",
+      "source": "StatCounter August 2026",
+      "notes": "Consumer chatbot usage metric; enterprise API market must be tracked separately."
+    },
+    {
+      "id": "DIGITAL_ADS_GLOBAL",
+      "label": "Worldwide digital advertising revenue share",
+      "date": "2026E",
+      "shares": [
+        { "actor": "Meta", "share": 0.268 },
+        { "actor": "Alphabet", "share": 0.264 },
+        { "actor": "Amazon", "share": 0.09 },
+        { "actor": "Others", "share": 0.378 }
+      ],
+      "lock": 0.55,
+      "verticalIntegration": 0.85,
+      "evidenceLevel": "E2",
+      "source": "EMARKETER 2026 estimate",
+      "notes": "Forecast/estimate; retain as E2 until reconciled with audited year data."
+    },
+    {
+      "id": "SOCIAL_REFERRAL_GLOBAL",
+      "label": "Worldwide social-media referral/usage proxy",
+      "date": "2026-08",
+      "shares": [
+        { "actor": "Meta", "share": 0.783 },
+        { "actor": "Alphabet", "share": 0.082 },
+        { "actor": "Others", "share": 0.135 }
+      ],
+      "lock": 0.55,
+      "verticalIntegration": 0.8,
+      "evidenceLevel": "E2",
+      "source": "StatCounter social media stats, grouped by parent",
+      "notes": "Referral/traffic proxy, not MAU share."
+    },
+    {
+      "id": "REVERSE_PROXY_GLOBAL",
+      "label": "Identified reverse proxy services",
+      "date": "2026-09",
+      "shares": [
+        { "actor": "Cloudflare", "share": 0.846 },
+        { "actor": "Others", "share": 0.154 }
+      ],
+      "lock": 0.6,
+      "verticalIntegration": 0.45,
+      "evidenceLevel": "E2",
+      "source": "W3Techs 2026",
+      "notes": "Share of identified reverse-proxy services, not share of all websites."
+    }
+  ],
+  "china": [
+    {
+      "id": "SEARCH_CHINA",
+      "label": "China search engine usage",
+      "date": "2026",
+      "shares": [
+        { "actor": "Baidu", "share": 0.5926 },
+        { "actor": "Microsoft", "share": 0.1892 },
+        { "actor": "Yandex", "share": 0.1141 },
+        { "actor": "Others", "share": 0.1041 }
+      ],
+      "lock": 0.65,
+      "verticalIntegration": 0.7,
+      "evidenceLevel": "E3",
+      "source": "StatCounter China 2026"
+    },
+    {
+      "id": "MOBILE_OS_CHINA",
+      "label": "China smartphone OS sales",
+      "date": "2026-Q2",
+      "shares": [
+        { "actor": "Android ecosystem", "share": 0.58 },
+        { "actor": "Huawei", "share": 0.24 },
+        { "actor": "Apple", "share": 0.18 }
+      ],
+      "lock": 0.75,
+      "verticalIntegration": 0.8,
+      "evidenceLevel": "E3",
+      "source": "Counterpoint Research Q2 2026",
+      "notes": "Android ecosystem is not assigned to Alphabet in China."
+    },
+    {
+      "id": "APP_STORES_CHINA_ANDROID",
+      "label": "China Android app-store distribution",
+      "date": "2026",
+      "shares": [
+        { "actor": "Huawei", "share": 0.273 },
+        { "actor": "vivo", "share": 0.138 },
+        { "actor": "Tencent", "share": 0.137 },
+        { "actor": "Xiaomi", "share": 0.126 },
+        { "actor": "OPPO", "share": 0.11 },
+        { "actor": "Others", "share": 0.216 }
+      ],
+      "lock": 0.65,
+      "verticalIntegration": 0.7,
+      "evidenceLevel": "E2",
+      "source": "AppInChina 2026"
+    },
+    {
+      "id": "CLOUD_CHINA",
+      "label": "China cloud infrastructure market",
+      "date": "2026",
+      "shares": [
+        { "actor": "Alibaba", "share": 0.37 },
+        { "actor": "Huawei", "share": 0.17 },
+        { "actor": "Tencent", "share": 0.10 },
+        { "actor": "China Telecom", "share": 0.08 },
+        { "actor": "China Mobile", "share": 0.066 },
+        { "actor": "Baidu", "share": 0.056 },
+        { "actor": "ByteDance", "share": 0.04 },
+        { "actor": "Others", "share": 0.118 }
+      ],
+      "lock": 0.7,
+      "verticalIntegration": 0.75,
+      "evidenceLevel": "E2",
+      "source": "AppInChina aggregation 2026"
+    }
+  ],
+  "nonCanonical": {
+    "globalWestGipciBaseline": { "point": 65.2, "low": 58.7, "high": 74.0 },
+    "chinaGipciProvisional": { "point": 54.5, "low": 48.2, "high": 59.3 },
+    "warning": "These historical baseline values were produced by the research specification before this executable module. Recompute from normalized snapshots before promoting any value to canonical runtime output."
+  }
+}
