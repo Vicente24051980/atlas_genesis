@@ -1,0 +1,39 @@
+name: Pre-Consensus Discovery Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/pre-consensus-discovery-omega.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-omega.test.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-canon.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-canon.test.ts'
+      - 'CURRENT_CANON/2026-09-05_PRE_CONSENSUS_DISCOVERY_OMEGA_V1.md'
+      - '.github/workflows/pre-consensus-discovery-omega-ci.yml'
+  push:
+    branches:
+      - 'feature/141-pre-consensus-discovery'
+    paths:
+      - 'src/atlas/algorithm/pre-consensus-discovery-omega.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-omega.test.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-canon.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-canon.test.ts'
+      - 'CURRENT_CANON/2026-09-05_PRE_CONSENSUS_DISCOVERY_OMEGA_V1.md'
+      - '.github/workflows/pre-consensus-discovery-omega-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  pre-consensus-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Pre-Consensus Discovery Omega tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/pre-consensus-discovery-omega.test.ts
+          src/atlas/algorithm/pre-consensus-discovery-canon.test.ts
