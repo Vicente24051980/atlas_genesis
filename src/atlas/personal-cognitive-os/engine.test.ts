@@ -61,7 +61,7 @@ describe('ATLAS AI Personal Cognitive OS Ω — Memory Foundation v1', () => {
       source: 'TEXT',
       createdAt: '2026-09-05T11:33:00+02:00',
       provenance: 'chat:portfolio',
-      text: 'El martes revisamos si merece la pena meter más dinero en la cartera.',
+      text: 'Queda pendiente: el martes revisamos si merece la pena meter más dinero en la cartera.',
     });
 
     const waitingLoop = result.openLoops.find((loop) => loop.status === 'WAITING');
