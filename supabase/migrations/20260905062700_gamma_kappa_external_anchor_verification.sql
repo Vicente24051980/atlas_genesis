@@ -8,8 +8,9 @@ language sql
 security definer
 set search_path = public, pg_temp
 as $$
-  select coalesce(max(seq),0)::bigint,
-         coalesce((select record_hash from public.atlas_gamma_ledger order by seq desc limit 1), repeat('0',64));
+  select
+    coalesce((select max(g.seq) from public.atlas_gamma_ledger g),0)::bigint,
+    coalesce((select g.record_hash from public.atlas_gamma_ledger g order by g.seq desc limit 1), repeat('0',64));
 $$;
 
 create or replace function public.atlas_kappa_chain_head()
@@ -18,8 +19,9 @@ language sql
 security definer
 set search_path = public, pg_temp
 as $$
-  select coalesce(max(seq),0)::bigint,
-         coalesce((select record_hash from public.atlas_kappa_ledger order by seq desc limit 1), repeat('0',64));
+  select
+    coalesce((select max(k.seq) from public.atlas_kappa_ledger k),0)::bigint,
+    coalesce((select k.record_hash from public.atlas_kappa_ledger k order by k.seq desc limit 1), repeat('0',64));
 $$;
 
 create or replace function public.atlas_verify_gamma_against_anchor(
