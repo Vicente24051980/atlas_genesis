@@ -22,9 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - run: npm ci
-      - run: npx vitest run src/atlas/algorithm/capital-blind-portfolio-selection-omega.test.ts src/atlas/algorithm/portfolio-selection-canon-omega.test.ts
+      - name: Run Capital-Blind Portfolio Selection Omega tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/capital-blind-portfolio-selection-omega.test.ts
+          src/atlas/algorithm/portfolio-selection-canon-omega.test.ts
