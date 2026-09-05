@@ -1,0 +1,41 @@
+name: T0 Anti-Megacap Discovery Gate Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.ts'
+      - 'src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
+      - 'CURRENT_CANON/2026-09-05_T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1.md'
+      - '.github/workflows/t0-anti-megacap-discovery-gate-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.ts'
+      - 'src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-primary-engine-hierarchy.ts'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run T0 regression tests
+        run: npx --yes vitest@3.2.4 run src/atlas/algorithm/t0-anti-megacap-discovery-gate-omega.test.ts
+      - name: Assert constitutional order
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const source = fs.readFileSync('src/atlas/algorithm/atlas-primary-engine-hierarchy.ts', 'utf8');
+          const sequence = source.slice(source.indexOf('export const ATLAS_CANONICAL_DECISION_SEQUENCE'));
+          const t0 = sequence.indexOf("'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1'");
+          const discovery = sequence.indexOf("'GLOBAL_DISCOVERY_OMEGA'");
+          const principal = sequence.indexOf("'PRINCIPAL_OMEGA'");
+          if (t0 < 0 || discovery < 0 || principal < 0 || !(t0 < discovery && t0 < principal)) {
+            console.error('T0 is not first constitutional gate');
+            process.exit(1);
+          }
+          NODE
