@@ -1,0 +1,27 @@
+name: Endogenous Portfolio Engine v2 CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.ts'
+      - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
+      - 'src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts'
+      - 'CURRENT_CANON/2026-09-05_ENDOGENOUS_PORTFOLIO_ENGINE_V2.md'
+      - '.github/workflows/endogenous-portfolio-engine-v2-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.ts'
+      - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
+      - 'src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Endogenous Portfolio Engine v2 tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts
