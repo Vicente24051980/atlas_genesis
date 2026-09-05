@@ -1,0 +1,22 @@
+name: Structural Edge Combo Audit CI
+on:
+  pull_request:
+    paths:
+      - 'scripts/atlas_structural_edge_combo_audit.py'
+      - '.github/workflows/structural-edge-combo-audit-ci.yml'
+  workflow_dispatch:
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install --disable-pip-version-check pandas yfinance
+      - name: Run structural-edge combo audit
+        run: python scripts/atlas_structural_edge_combo_audit.py --start 2023-09-05 --end 2026-09-05 --outdir artifacts/structural-edge-combo
+      - uses: actions/upload-artifact@v4
+        with:
+          name: atlas-structural-edge-combo
+          path: artifacts/structural-edge-combo
