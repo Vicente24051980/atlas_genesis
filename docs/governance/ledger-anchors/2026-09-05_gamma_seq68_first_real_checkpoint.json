@@ -1,0 +1,24 @@
+{
+  "schema": "ATLAS_LEDGER_EXTERNAL_CHECKPOINT_V1",
+  "stream": "gamma",
+  "environment": "production",
+  "supabase_project": "Atlas_omega",
+  "checkpoint_date": "2026-09-05",
+  "head_seq": 68,
+  "head_hash": "d69eae15fca75dfab507b7ed970ec9fbf935fdba123052c9a94ab8d4413bc0a1",
+  "batch": {
+    "companies": 17,
+    "falsifiers": 68,
+    "gamma_schema": "GAMMA_V1_2",
+    "chain_verified_before_anchor": true
+  },
+  "epistemic_boundary": {
+    "first_real_external_checkpoint": true,
+    "pre_anchor_history_cryptographically_demonstrable_by_this_mechanism": false,
+    "github_rulesets_observed": 0,
+    "classic_branch_protection_status": "UNVERIFIED_CONNECTOR_403",
+    "commit_or_tag_signature_status": "UNVERIFIED",
+    "authority_separation_service_role_vs_github": "NOT_PROVEN"
+  },
+  "consumption_rule": "Canonical consumption is authorized only while the internal chain verifies and the live head matches this or a later valid external checkpoint. Any mismatch freezes canonical consumption until explicit Governance resume."
+}
