@@ -1,4 +1,4 @@
-export const TAIL_RISK_DIAGNOSTICS_OMEGA_VERSION = '2026-09-05-v1.0.0' as const;
+export const TAIL_RISK_DIAGNOSTICS_OMEGA_VERSION = '2026-09-05-v1.0.1' as const;
 
 export const TAIL_RISK_DIAGNOSTICS_OMEGA_GOVERNANCE = {
   status: 'ACTIVE_DIAGNOSTIC',
@@ -11,6 +11,10 @@ export const TAIL_RISK_DIAGNOSTICS_OMEGA_GOVERNANCE = {
 
 function finiteSeries(values: readonly number[], minimum = 2): boolean {
   return values.length >= minimum && values.every(Number.isFinite);
+}
+
+function validSimpleReturns(values: readonly number[], minimum = 2): boolean {
+  return finiteSeries(values, minimum) && values.every((value) => value >= -1);
 }
 
 function mean(values: readonly number[]): number {
@@ -28,22 +32,25 @@ function quantile(sortedAscending: readonly number[], q: number): number {
 }
 
 export function downsideDeviation(returns: readonly number[], target = 0): number | null {
-  if (!finiteSeries(returns, 2) || !Number.isFinite(target)) return null;
+  if (!validSimpleReturns(returns, 2) || !Number.isFinite(target)) return null;
   const downsideSquares = returns.map((r) => Math.min(0, r - target) ** 2);
   return Math.sqrt(downsideSquares.reduce((sum, value) => sum + value, 0) / returns.length);
 }
 
 export function conditionalValueAtRisk(returns: readonly number[], confidence = 0.95): number | null {
-  if (!finiteSeries(returns, 20) || !Number.isFinite(confidence) || confidence <= 0 || confidence >= 1) return null;
+  if (!validSimpleReturns(returns, 20) || !Number.isFinite(confidence) || confidence <= 0 || confidence >= 1) return null;
   const sorted = [...returns].sort((a, b) => a - b);
-  const tailCount = Math.max(1, Math.ceil((1 - confidence) * sorted.length));
+  // Subtract a tiny tolerance before ceil so exact tails such as 5% of 20
+  // are not accidentally rounded from 1.0000000000000009 to two observations.
+  const exactTail = (1 - confidence) * sorted.length;
+  const tailCount = Math.max(1, Math.ceil(exactTail - 1e-12));
   const tail = sorted.slice(0, tailCount);
   const tailMean = mean(tail);
   return Math.max(0, -tailMean);
 }
 
 export function maximumDrawdown(returns: readonly number[]): number | null {
-  if (!finiteSeries(returns, 2)) return null;
+  if (!validSimpleReturns(returns, 2)) return null;
   let equity = 1;
   let peak = 1;
   let maxDrawdown = 0;
@@ -56,7 +63,7 @@ export function maximumDrawdown(returns: readonly number[]): number | null {
 }
 
 export function ulcerIndex(returns: readonly number[]): number | null {
-  if (!finiteSeries(returns, 2)) return null;
+  if (!validSimpleReturns(returns, 2)) return null;
   let equity = 1;
   let peak = 1;
   const drawdownSquares: number[] = [];
@@ -70,7 +77,7 @@ export function ulcerIndex(returns: readonly number[]): number | null {
 }
 
 export function skewness(returns: readonly number[]): number | null {
-  if (!finiteSeries(returns, 3)) return null;
+  if (!validSimpleReturns(returns, 3)) return null;
   const m = mean(returns);
   const n = returns.length;
   const m2 = returns.reduce((sum, r) => sum + (r - m) ** 2, 0) / n;
@@ -80,7 +87,7 @@ export function skewness(returns: readonly number[]): number | null {
 }
 
 export function excessKurtosis(returns: readonly number[]): number | null {
-  if (!finiteSeries(returns, 4)) return null;
+  if (!validSimpleReturns(returns, 4)) return null;
   const m = mean(returns);
   const n = returns.length;
   const m2 = returns.reduce((sum, r) => sum + (r - m) ** 2, 0) / n;
@@ -90,12 +97,13 @@ export function excessKurtosis(returns: readonly number[]): number | null {
 }
 
 export function tailRatio(returns: readonly number[]): number | null {
-  if (!finiteSeries(returns, 20)) return null;
+  if (!validSimpleReturns(returns, 20)) return null;
   const sorted = [...returns].sort((a, b) => a - b);
   const q05 = quantile(sorted, 0.05);
   const q95 = quantile(sorted, 0.95);
-  if (q05 === 0) return null;
-  return Math.max(0, q95) / Math.abs(Math.min(0, q05));
+  const downsideTail = Math.abs(Math.min(0, q05));
+  if (downsideTail === 0) return null;
+  return Math.max(0, q95) / downsideTail;
 }
 
 export interface TailRiskDiagnosticInput {
@@ -121,15 +129,16 @@ export interface TailRiskDiagnosticResult {
 
 export function evaluateTailRiskDiagnostics(input: TailRiskDiagnosticInput): TailRiskDiagnosticResult {
   const evidenceOk = input.evidenceTraceable && input.evidenceIds.some((id) => id.trim().length > 0);
-  if (!evidenceOk || !finiteSeries(input.returns, 20)) {
+  const confidence = input.confidence ?? 0.95;
+  const target = input.targetReturn ?? 0;
+  const parametersOk = Number.isFinite(confidence) && confidence > 0 && confidence < 1 && Number.isFinite(target);
+  if (!evidenceOk || !validSimpleReturns(input.returns, 20) || !parametersOk) {
     return {
       state: 'EVIDENCE_PENDING', cvar: null, downsideDeviation: null, maxDrawdown: null, ulcerIndex: null,
       skewness: null, excessKurtosis: null, tailRatio: null, directAtlasScoreDelta: 0,
-      reasons: ['Tail Risk Diagnostics requires traceable evidence and at least 20 finite return observations.'],
+      reasons: ['Tail Risk Diagnostics requires traceable evidence, valid confidence/target parameters, and at least 20 finite simple-return observations with return >= -100%.'],
     };
   }
-  const confidence = input.confidence ?? 0.95;
-  const target = input.targetReturn ?? 0;
   return {
     state: 'AVAILABLE',
     cvar: conditionalValueAtRisk(input.returns, confidence),
@@ -165,6 +174,19 @@ export interface RiskUtilityInput {
 export function calculateResearchRiskUtility(input: RiskUtilityInput): number | null {
   const values = Object.values(input);
   if (!values.every((value) => Number.isFinite(value))) return null;
+  const nonNegativeInputs = [
+    input.cvarPct,
+    input.maxDrawdownPct,
+    input.turnoverPct,
+    input.costsPct,
+    input.concentrationPenaltyPct,
+    input.lambdaCvar,
+    input.lambdaDrawdown,
+    input.lambdaTurnover,
+    input.lambdaCosts,
+    input.lambdaConcentration,
+  ];
+  if (nonNegativeInputs.some((value) => value < 0)) return null;
   return input.expectedReturnPct
     - input.lambdaCvar * input.cvarPct
     - input.lambdaDrawdown * input.maxDrawdownPct
