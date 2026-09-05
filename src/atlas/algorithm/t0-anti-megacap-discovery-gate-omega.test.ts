@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ATLAS_CANONICAL_DECISION_SEQUENCE,
+  ATLAS_PRIMARY_ENGINE_HIERARCHY,
+} from './atlas-primary-engine-hierarchy';
+import {
   classifyMarketCapBucket,
   evaluateT0DiscoveryGate,
   rankAfterT0,
@@ -23,6 +27,19 @@ const candidate = (
 });
 
 describe('T0 Anti-Megacap Discovery Gate Ω', () => {
+  it('is the constitutional first gate before every analytical engine', () => {
+    expect(ATLAS_PRIMARY_ENGINE_HIERARCHY.version).toBe('2026-09-05-v4.17.0');
+    expect(ATLAS_PRIMARY_ENGINE_HIERARCHY.firstConstitutionalGate)
+      .toBe('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1');
+    expect(ATLAS_CANONICAL_DECISION_SEQUENCE[0]).toBe('INPUT');
+    expect(ATLAS_CANONICAL_DECISION_SEQUENCE[1])
+      .toBe('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1');
+    expect(ATLAS_CANONICAL_DECISION_SEQUENCE.indexOf('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1'))
+      .toBeLessThan(ATLAS_CANONICAL_DECISION_SEQUENCE.indexOf('GLOBAL_DISCOVERY_OMEGA'));
+    expect(ATLAS_CANONICAL_DECISION_SEQUENCE.indexOf('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1'))
+      .toBeLessThan(ATLAS_CANONICAL_DECISION_SEQUENCE.indexOf('PRINCIPAL_OMEGA'));
+  });
+
   it('classifies capitalization only after discovery and gives size zero score contribution', () => {
     expect(classifyMarketCapBucket(250_000_000_000)).toBe('MEGA');
     const result = evaluateT0DiscoveryGate([
