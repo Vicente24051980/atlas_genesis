@@ -9,15 +9,15 @@ language sql
 security definer
 set search_path = public, pg_temp
 as $$
-  select 'GAMMA'::text, g.seq, g.record_hash
-  from public.atlas_gamma_ledger g
-  order by g.seq desc
-  limit 1
+  (select 'GAMMA'::text, g.seq, g.record_hash
+   from public.atlas_gamma_ledger g
+   order by g.seq desc
+   limit 1)
   union all
-  select 'KAPPA'::text, k.seq, k.record_hash
-  from public.atlas_kappa_ledger k
-  order by k.seq desc
-  limit 1;
+  (select 'KAPPA'::text, k.seq, k.record_hash
+   from public.atlas_kappa_ledger k
+   order by k.seq desc
+   limit 1);
 $$;
 
 revoke all on function public.atlas_ledger_heads() from public;
