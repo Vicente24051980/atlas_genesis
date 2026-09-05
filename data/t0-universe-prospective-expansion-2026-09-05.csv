@@ -1,0 +1,51 @@
+rank,ticker,discovery_source,source_universe_type,market_cap_usd,selection_reason,provenance
+1,ADV,AAII Price-to-FCF screen 2026-09-03,BROAD,409300000,Sub-$1B cash-flow screen candidate,PROSPECTIVE_AUDITABLE
+2,BLBD,FinanceCharts high-ROIC small-cap screen 2026-09-02,BROAD,1955000000,High-ROIC small industrial candidate,PROSPECTIVE_AUDITABLE
+3,ZS,StockAnalysis current statistics 2026-09-04,BROAD,28750000000,Large growth/security candidate outside seed-bias ordering,PROSPECTIVE_AUDITABLE
+4,GD,ValueSense current industrial screen 2026-09-04,BROAD,102500000000,100B-1T industrial durability candidate,PROSPECTIVE_AUDITABLE
+5,NVDA,US market-cap broad ranking 2026-09-04,BROAD,5580000000000,Mega bucket control candidate with zero size bonus,PROSPECTIVE_AUDITABLE
+6,BRSP,FinanceCharts small-cap screen 2026-09-01,BROAD,573477000,Sub-$1B control candidate,PROSPECTIVE_AUDITABLE
+7,POWL,SmallCap Quality / current market data 2026-07-24,BROAD,8800000000,Electrical infrastructure quality candidate,PROSPECTIVE_AUDITABLE
+8,BE,Current S&P rebalance coverage 2026-09-05,BROAD,74000000000,Power infrastructure candidate discovered outside original index seed ordering,PROSPECTIVE_AUDITABLE
+9,LMT,ValueSense current industrial screen 2026-09-04,BROAD,129800000000,100B-1T defense/industrial driver candidate,PROSPECTIVE_AUDITABLE
+10,AAPL,US market-cap broad ranking 2026-09-04,BROAD,4700000000000,Mega bucket control candidate with zero size bonus,PROSPECTIVE_AUDITABLE
+11,HESM,StockAnalysis current statistics 2026-09-03,BROAD,8220000000,Mid-cap energy infrastructure cash-flow candidate,PROSPECTIVE_AUDITABLE
+12,WFRD,StockTitan SEC-based financial screen 2026-09-04,BROAD,6900000000,Mid-cap energy services FCF candidate,PROSPECTIVE_AUDITABLE
+13,OWL,Current market-cap screen 2026-09-03,BROAD,8100000000,Alternative asset manager candidate,PROSPECTIVE_AUDITABLE
+14,SPB,FinanceCharts low-PFCF small-cap screen 2026-09-01,BROAD,1979000000,Small-cap cash-flow/value candidate,PROSPECTIVE_AUDITABLE
+15,NSP,FinanceCharts low-PFCF small-cap screen 2026-09-01,BROAD,1963000000,Small-cap services cash-flow candidate,PROSPECTIVE_AUDITABLE
+16,GSL,FinanceCharts high-ROIC small-cap screen 2026-09-02,BROAD,1626000000,Small-cap transport/capital-return candidate,PROSPECTIVE_AUDITABLE
+17,SLVM,FinanceCharts high-ROIC/value small-cap screen 2026-09-02,BROAD,1477000000,Small-cap materials diversification candidate,PROSPECTIVE_AUDITABLE
+18,STBA,FinanceCharts quality/value small-cap screen 2026-09-01,BROAD,1735000000,Small financial candidate,PROSPECTIVE_AUDITABLE
+19,LKFN,FinanceCharts quality/value small-cap screen 2026-09-01,BROAD,1462000000,Small financial quality candidate,PROSPECTIVE_AUDITABLE
+20,AFYA,AAII Price-to-FCF screen 2026-09-03,BROAD,1303300000,Healthcare/education cash-flow candidate,PROSPECTIVE_AUDITABLE
+21,CORT,S&P SmallCap 600 Quality FCF Aristocrats 2026-08-31,BROAD,,High-quality small-cap healthcare candidate,PROSPECTIVE_AUDITABLE
+22,JXN,S&P SmallCap 600 Quality FCF Aristocrats 2026-08-31,BROAD,,High-quality small-cap financial candidate,PROSPECTIVE_AUDITABLE
+23,PAYC,S&P SmallCap 600 Quality FCF Aristocrats 2026-08-31,BROAD,,High-quality software/payroll candidate,PROSPECTIVE_AUDITABLE
+24,ENVA,S&P SmallCap 600 Quality FCF Aristocrats 2026-08-31,BROAD,,High-quality financial candidate,PROSPECTIVE_AUDITABLE
+25,BOX,S&P SmallCap 600 Quality FCF Aristocrats 2026-08-31,BROAD,,High-quality software candidate,PROSPECTIVE_AUDITABLE
+26,MGY,S&P SmallCap 600 Quality FCF Aristocrats 2026-08-31,BROAD,,Energy cash-flow candidate,PROSPECTIVE_AUDITABLE
+27,BFH,S&P SmallCap 600 Quality FCF Aristocrats 2026-08-31,BROAD,,Consumer-finance cash-flow candidate,PROSPECTIVE_AUDITABLE
+28,SANM,S&P SmallCap 600 Quality Index 2026-05-29,BROAD,,Electronics manufacturing quality candidate,PROSPECTIVE_AUDITABLE
+29,YOU,S&P SmallCap 600 Quality Index 2026-05-29,BROAD,,Identity/security quality candidate,PROSPECTIVE_AUDITABLE
+30,ECG,S&P SmallCap 600 Quality Index 2026-05-29,BROAD,,Construction-services quality candidate,PROSPECTIVE_AUDITABLE
+31,AWI,S&P SmallCap 600 Quality Index 2026-05-29,BROAD,,Building-products quality candidate,PROSPECTIVE_AUDITABLE
+32,PJT,S&P SmallCap 600 Quality Index 2026-05-29,BROAD,,Advisory/financial quality candidate,PROSPECTIVE_AUDITABLE
+33,NVT,S&P MidCap 400 current constituents 2026-08-31,BROAD,,Electrical protection infrastructure candidate,PROSPECTIVE_AUDITABLE
+34,CRS,S&P MidCap 400 current constituents 2026-08-31,BROAD,,Specialty materials/aerospace candidate,PROSPECTIVE_AUDITABLE
+35,ATI,S&P MidCap 400 current constituents 2026-08-31,BROAD,,Specialty materials/aerospace candidate,PROSPECTIVE_AUDITABLE
+36,THC,S&P MidCap 400 current constituents 2026-08-31,BROAD,,Healthcare services candidate,PROSPECTIVE_AUDITABLE
+37,USFD,S&P MidCap 400 Value 2026-08-31,BROAD,,Food distribution candidate,PROSPECTIVE_AUDITABLE
+38,RS,S&P MidCap 400 Value 2026-08-31,BROAD,,Metals distribution candidate,PROSPECTIVE_AUDITABLE
+39,WCC,S&P MidCap 400 Value 2026-08-31,BROAD,,Electrical distribution candidate,PROSPECTIVE_AUDITABLE
+40,PFGC,S&P MidCap 400 Value 2026-08-31,BROAD,,Food distribution candidate,PROSPECTIVE_AUDITABLE
+41,GWRE,S&P MidCap 400 equal-weight current constituents 2026-07-31,BROAD,,Insurance software candidate,PROSPECTIVE_AUDITABLE
+42,ELF,S&P MidCap 400 equal-weight current constituents 2026-07-31,BROAD,,Consumer growth candidate,PROSPECTIVE_AUDITABLE
+43,SN,S&P MidCap 400 consumer discretionary 2026-08-31,BROAD,,Consumer product growth candidate,PROSPECTIVE_AUDITABLE
+44,TXRH,S&P MidCap 400 consumer discretionary 2026-08-31,BROAD,,Restaurant compounder candidate,PROSPECTIVE_AUDITABLE
+45,DKS,S&P MidCap 400 consumer discretionary 2026-08-31,BROAD,,Retail cash-flow candidate,PROSPECTIVE_AUDITABLE
+46,FIX,Off-index ATLAS challenger / SEC results review,BROAD,,Mechanical/electrical infrastructure candidate,PROSPECTIVE_AUDITABLE
+47,EME,Off-index ATLAS challenger / SEC results review,BROAD,,Electrical/mechanical infrastructure candidate,PROSPECTIVE_AUDITABLE
+48,MLI,Off-index ATLAS challenger / current valuation review,BROAD,,Industrial/materials candidate,PROSPECTIVE_AUDITABLE
+49,WMS,Off-index ATLAS challenger / SEC results review,BROAD,,Water infrastructure candidate,PROSPECTIVE_AUDITABLE
+50,LMB,Off-index ATLAS challenger / current holdings audit,BROAD,,Mechanical/building-services candidate,PROSPECTIVE_AUDITABLE
