@@ -5,6 +5,8 @@ on:
     paths:
       - 'src/atlas/algorithm/pre-consensus-discovery-omega.ts'
       - 'src/atlas/algorithm/pre-consensus-discovery-omega.test.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-canon.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-canon.test.ts'
       - 'CURRENT_CANON/2026-09-05_PRE_CONSENSUS_DISCOVERY_OMEGA_V1.md'
       - '.github/workflows/pre-consensus-discovery-omega-ci.yml'
   push:
@@ -13,6 +15,8 @@ on:
     paths:
       - 'src/atlas/algorithm/pre-consensus-discovery-omega.ts'
       - 'src/atlas/algorithm/pre-consensus-discovery-omega.test.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-canon.ts'
+      - 'src/atlas/algorithm/pre-consensus-discovery-canon.test.ts'
       - 'CURRENT_CANON/2026-09-05_PRE_CONSENSUS_DISCOVERY_OMEGA_V1.md'
       - '.github/workflows/pre-consensus-discovery-omega-ci.yml'
 
@@ -32,3 +36,4 @@ jobs:
         run: >-
           npx --yes vitest@3.2.4 run --globals
           src/atlas/algorithm/pre-consensus-discovery-omega.test.ts
+          src/atlas/algorithm/pre-consensus-discovery-canon.test.ts
