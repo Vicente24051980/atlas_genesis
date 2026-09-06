@@ -31,9 +31,10 @@ The audit did **not** find equivalent executable controls for these cross-cuttin
 5. material-task contracts with checkpoints and abort criteria;
 6. verified shutdown beyond the main process;
 7. post-termination state reconciliation;
-8. a general flow-type firewall preventing asset-allocation/fiscal/consumption/capital-return flows from being silently interpreted as productive CAPEX;
-9. objective/instrument fit as an explicit last-mile gate;
-10. causal-driver overlap diagnostics for possible signal double counting.
+8. ordered correctability receipts preserving detection, containment, correction, validation and learning;
+9. a general flow-type firewall preventing asset-allocation/fiscal/consumption/capital-return flows from being silently interpreted as productive CAPEX;
+10. objective/instrument fit as an explicit last-mile gate;
+11. causal-driver overlap diagnostics for possible signal double counting.
 
 These are implemented here without changing portfolio membership, canonical score or PR #160.
 
@@ -81,6 +82,23 @@ Ledgered event types include:
 - `SHUTDOWN_STATE_RECONCILIATION`.
 
 The runtime computes lease validity itself rather than trusting a caller-provided permission assertion.
+
+### `runtime/agentic_omega/correctability.py`
+
+Implements an ordered append-only lifecycle:
+
+`DETECTED -> CONTAINED -> CORRECTED -> VALIDATED -> LEARNING_RECORDED`
+
+Hard properties:
+
+- stages cannot be skipped or reordered;
+- every stage needs evidence references;
+- `CORRECTED` requires an explicit rollback reference or an explicit reason rollback is not applicable;
+- a green validation cannot erase the original failure;
+- learning is a separate terminal receipt rather than an implicit narrative after a patch;
+- all receipts live on the existing hash-chained ledger.
+
+`CorrectabilityTracker`, `CorrectionReceipt`, `CorrectionStage` and `CorrectabilityStatus` are exported through `runtime.agentic_omega`.
 
 ### `runtime/agentic_omega/capital_flow_firewall.py`
 
@@ -159,16 +177,21 @@ Cases include:
 19. causal-driver overlap is surfaced;
 20. PIT temporal ordering is fail-closed;
 21. runtime decisions are actually ledgered;
-22. runtime task checkpoints are actually ledgered.
+22. runtime task checkpoints are actually ledgered;
+23. correctability follows `DETECTED -> CONTAINED -> CORRECTED -> VALIDATED -> LEARNING_RECORDED`;
+24. stage-skipping / silent correction is rejected;
+25. correction requires rollback provenance or explicit non-applicability.
 
-`.github/workflows/agentic-runtime-v2.yml` is updated to run both test files alongside the existing focused suite.
+`.github/workflows/agentic-runtime-v2.yml` runs these files alongside the existing focused suite.
 
 ### CI evidence
 
 - First PR CI (`Agentic Runtime Omega v2 CI #121`, run `34063302948`): **FAIL — 93 passed / 1 failed**. The failure exposed an arbitrary `20x` horizon-ratio condition in the explanatory gate.
 - Correction commit: `8209c3d797214445b60e5feab75724d80179835a`. The rule now requires an explicit transmission bridge whenever the signal horizon is shorter than the decision horizon and no bridge is otherwise supplied; no arbitrary ratio is used.
 - Second PR CI (`Agentic Runtime Omega v2 CI #122`, run `34063435956`): **SUCCESS — 94 passed / 20 warnings**.
-- The 20 warnings are pre-existing FastAPI duplicate `operation_id` warnings surfaced by `api/test_deployment_contract.py`. They do not fail this PR and are recorded as separate technical debt rather than hidden inside the PASS.
+- After Correctability was added, CI #125 (`34063649546`): **SUCCESS — 97 passed / 20 warnings**.
+- Final export/package CI #126 (`34063760234`): **SUCCESS — 97 passed / 20 warnings**.
+- The 20 warnings are pre-existing FastAPI duplicate `operation_id` warnings surfaced by `api/test_deployment_contract.py`. They do not fail this PR and are tracked separately in issue #171 rather than hidden inside the PASS.
 
 ## 6. Explicit non-changes
 
@@ -187,9 +210,11 @@ This branch does **not**:
 - claim OpenClaw integration;
 - claim a completed Work-level Master Audit baseline.
 
-## 7. PR #160 boundary
+## 7. PR #160 boundary and observed continuity debt
 
 PR #160 remains an independent continuity binding whose remaining explicit gate is the real Notion smoke with authorized credentials. This implementation neither copies its incomplete live-continuity path into `main` nor bypasses that gate.
+
+A separate repository inspection found that `continuity-registry.ts` still transports `established` and `hypotheses` as `string[]`. This can lose claim-level epistemic type/provenance across continuity handoffs. The gap is recorded as issue #170 and is deliberately **not** patched before PR #160's preregistered smoke so the acceptance target is not moved after observing results.
 
 ## 8. Risk / rollback
 
@@ -206,13 +231,21 @@ PR #160 remains an independent continuity binding whose remaining explicit gate 
 - all production research outputs keep `direct_atlas_score_delta = 0` and `portfolio_action_allowed = false`;
 - runtime decisions are ledgered;
 - CI tests preserve the boundary conditions;
-- this implementation remains isolated on a reversible branch until PR review/CI.
+- correctability receipts prevent a later patch from erasing the original failure sequence;
+- this implementation remains isolated on a reversible branch until PR review/audit gate.
 
 ### Rollback
 
 Close the PR / delete the branch. `main@1bd56a13f4177e60205ef668e6d07e076d3bd375` is the pre-change reference.
 
-## 9. Dual persistence
+## 9. Tracked debt outside this PR
+
+- **Issue #170 — P1:** typed epistemic continuity handoff after PR #160 real-Notion smoke.
+- **Issue #171 — P2:** eliminate duplicate FastAPI operation IDs without changing route semantics or route fingerprints.
+
+No warning is silenced globally and no cross-PR contract is rewritten silently.
+
+## 10. Dual persistence
 
 Human-readable Notion mirror:
 
@@ -223,15 +256,17 @@ Human-readable Notion mirror:
 
 GitHub remains the technical/versioned source of truth; Notion is the human-readable operating mirror.
 
-## 10. Completion state
+## 11. Completion state
 
 `CODE_WRITTEN = TRUE`  
 `FOCUSED_TESTS_ADDED = TRUE`  
 `CI_WIRED = TRUE`  
-`CI_RESULT = SUCCESS_94_OF_94`  
+`CI_RESULT = SUCCESS_97_OF_97`  
 `MAIN_MODIFIED = FALSE`  
 `CANON_MODIFIED = FALSE`  
 `PORTFOLIO_AUTHORITY_CHANGED = FALSE`  
 `DUAL_PERSISTENCE = COMPLETE`  
 `PR_STATUS = DRAFT_OPEN_NOT_MERGED`  
-`MASTER_BASELINE_CLAIMED = FALSE`
+`MASTER_BASELINE_CLAIMED = FALSE`  
+`CONTINUITY_TYPED_CLAIMS_GAP = TRACKED_ISSUE_170`  
+`DUPLICATE_OPERATION_ID_DEBT = TRACKED_ISSUE_171`
