@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   CANONICAL_SCENARIOS,
+  MAX_PORTFOLIO_POSITIONS_V2,
+  MIN_PORTFOLIO_POSITIONS_V2,
   evaluatePortfolioSetV2,
   evaluateReplacementV2,
   expectedReturnPct,
@@ -11,16 +13,27 @@ import {
 function c(i:number, er=12, driver=`d${i}`, funding:string[]=[]): PortfolioCandidateV2 {
   const scenarios = Object.fromEntries(CANONICAL_SCENARIOS.map(s => [s, -0.5])) as PortfolioCandidateV2['scenarios'];
   return {
-    ticker:`T${i}`, hardGatesPassed:true, falsifierVetoPassed:true,
+    ticker:`T${i}`, canonicalEntityId:`ENTITY-${i}`, hardGatesPassed:true, falsifierVetoPassed:true,
     expectedReturn:{ fundamentalGrowthPct:er-4, cashYieldPct:2, capitalReturnsPct:1, multipleNormalizationPct:1 },
     permanentLossRisk:2, tailRisk:1, volatilityRisk:2, fragility:1, convexity:1, confidence:0.9, individualScore:90,
     causalDrivers:{[driver]:1}, fundingSources:funding, scenarios,
   };
 }
 
-describe('Endogenous Portfolio Engine v2.1 — MAX RETURN / LOW VOL',()=>{
+describe('Endogenous Portfolio Engine v2.2 — Point Zero / fully endogenous N',()=>{
+  it('has no binding ex-ante cardinality floor or ceiling',()=>{
+    expect(MIN_PORTFOLIO_POSITIONS_V2).toBe(0);
+    expect(MAX_PORTFOLIO_POSITIONS_V2).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it('rejects caller-supplied fixed cardinality bounds',()=>{
+    const xs=Array.from({length:5},(_,i)=>c(i+1));
+    expect(runEndogenousPortfolioEngineV2(xs,{minPositions:5}).status).toBe('EVIDENCE_PENDING');
+    expect(runEndogenousPortfolioEngineV2(xs,{maxPositions:5}).status).toBe('EVIDENCE_PENDING');
+  });
+
   it('keeps expected return decomposed and independent from confidence',()=>{
-    const a=c(1,12); const b={...a, ticker:'B', confidence:0.4};
+    const a=c(1,12); const b={...a, ticker:'B', canonicalEntityId:'ENTITY-B', confidence:0.4};
     expect(expectedReturnPct(a)).toBe(12);
     expect(expectedReturnPct(b)).toBe(12);
   });
@@ -50,16 +63,8 @@ describe('Endogenous Portfolio Engine v2.1 — MAX RETURN / LOW VOL',()=>{
 
   it('fails closed if a caller tries to reward diversification or penalize causal redundancy independently',()=>{
     const xs=Array.from({length:5},(_,i)=>c(i+1));
-    expect(runEndogenousPortfolioEngineV2(xs,{minPositions:5,maxPositions:5,alphaDiversification:1}).status).toBe('EVIDENCE_PENDING');
-    expect(runEndogenousPortfolioEngineV2(xs,{minPositions:5,maxPositions:5,rhoCausalRedundancy:1}).status).toBe('EVIDENCE_PENDING');
-  });
-
-  it('allows concentrated same-driver portfolios when those names dominate return/risk utility',()=>{
-    const winners=Array.from({length:5},(_,i)=>c(i+1,30,'financials'));
-    const prettyDiversifiers=Array.from({length:5},(_,i)=>c(i+101,10,`other-${i}`));
-    const r=runEndogenousPortfolioEngineV2([...winners,...prettyDiversifiers],{minPositions:5,maxPositions:5});
-    expect(r.status).toBe('SELECTED');
-    expect(r.selectedTickers.sort()).toEqual(winners.map(x=>x.ticker).sort());
+    expect(runEndogenousPortfolioEngineV2(xs,{alphaDiversification:1}).status).toBe('EVIDENCE_PENDING');
+    expect(runEndogenousPortfolioEngineV2(xs,{rhoCausalRedundancy:1}).status).toBe('EVIDENCE_PENDING');
   });
 
   it('detects shared funding-source correlation as risk',()=>{
@@ -83,39 +88,53 @@ describe('Endogenous Portfolio Engine v2.1 — MAX RETURN / LOW VOL',()=>{
   it('fails closed when a scenario is missing',()=>{
     const xs=Array.from({length:5},(_,i)=>c(i+1));
     delete (xs[0].scenarios as any).US_RECESSION;
-    expect(runEndogenousPortfolioEngineV2(xs,{minPositions:5,maxPositions:5}).status).toBe('EVIDENCE_PENDING');
+    expect(runEndogenousPortfolioEngineV2(xs).status).toBe('EVIDENCE_PENDING');
   });
 
   it('rejects hard-gate and falsifier-veto failures',()=>{
     const xs=Array.from({length:5},(_,i)=>c(i+1));
     const bad={...c(99,100),hardGatesPassed:false};
     const veto={...c(100,100),falsifierVetoPassed:false};
-    const r=runEndogenousPortfolioEngineV2([...xs,bad,veto],{minPositions:5,maxPositions:5});
+    const r=runEndogenousPortfolioEngineV2([...xs,bad,veto]);
     expect(r.selectedTickers).not.toContain('T99');
     expect(r.selectedTickers).not.toContain('T100');
     expect(r.classifications.T99).toBe('REJECTED');
     expect(r.classifications.T100).toBe('REJECTED');
   });
 
-  it('builds a full endogenous frontier from N=1 through the eligible/default ceiling',()=>{
+  it('builds the frontier from Point Zero and stops at the first non-improving N+1',()=>{
     const xs=Array.from({length:35},(_,i)=>c(i+1,16-i*0.4));
-    const r=runEndogenousPortfolioEngineV2(xs,{marginalUtilityThreshold:0.05});
+    const r=runEndogenousPortfolioEngineV2(xs);
     expect(r.frontier[0].n).toBe(1);
-    expect(r.frontier.at(-1)?.n).toBe(35);
-    expect(r.optimalN).toBeGreaterThanOrEqual(1);
-    expect(r.optimalN).toBeLessThanOrEqual(35);
+    expect(r.optimalN).toBeGreaterThanOrEqual(0);
+    expect(r.optimalN).toBeLessThanOrEqual(xs.length);
+    expect(r.frontier.at(-1)!.n).toBeGreaterThanOrEqual(r.optimalN ?? 0);
     expect(r.emitsTargetWeights).toBe(false);
     expect(r.emitsEntryTiming).toBe(false);
   });
 
+  it('deduplicates canonical economic entities before portfolio competition',()=>{
+    const a=c(1,15);
+    const duplicate={...a,ticker:'ALT_SHARE_CLASS'};
+    const r=runEndogenousPortfolioEngineV2([a,duplicate,c(2,10)]);
+    expect(r.status).toBe('SELECTED');
+    expect(r.selectedTickers.filter(t=>t==='T1'||t==='ALT_SHARE_CLASS')).toHaveLength(1);
+  });
+
+  it('fails closed when duplicate entity rows disagree on normalized evidence',()=>{
+    const a=c(1,15);
+    const duplicate={...a,ticker:'ALT_SHARE_CLASS',permanentLossRisk:99};
+    expect(runEndogenousPortfolioEngineV2([a,duplicate]).status).toBe('EVIDENCE_PENDING');
+  });
+
   it('does not claim combinatorial global optimality',()=>{
     const xs=Array.from({length:5},(_,i)=>c(i+1));
-    const r=runEndogenousPortfolioEngineV2(xs,{minPositions:5,maxPositions:5});
+    const r=runEndogenousPortfolioEngineV2(xs);
     expect(r.searchMode).toBe('DETERMINISTIC_LOCAL_SEARCH');
     expect(r.globalOptimalityProven).toBe(false);
   });
 
-  it('allows a lower-score challenger to win when it materially improves return/risk utility',()=>{
+  it('allows a lower-score challenger to win at execution when it materially improves return/risk utility',()=>{
     const p=Array.from({length:5},(_,i)=>c(i+1,12,'financials',['shared']));
     p[4].permanentLossRisk=8;
     p[4].volatilityRisk=10;
@@ -125,16 +144,16 @@ describe('Endogenous Portfolio Engine v2.1 — MAX RETURN / LOW VOL',()=>{
     challenger.permanentLossRisk=0.5;
     challenger.volatilityRisk=0.5;
     challenger.fragility=0.5;
-    const d=evaluateReplacementV2(p,'T5',challenger,'RED',{minPositions:5,maxPositions:5});
+    const d=evaluateReplacementV2(p,'T5',challenger,'RED');
     expect(d.allowed).toBe(true);
     expect(d.deltaPortfolioUtility).toBeGreaterThan(0);
   });
 
-  it('hysteresis makes GREEN harder to replace than RED',()=>{
+  it('keeps execution hysteresis separate: GREEN is harder to replace than RED',()=>{
     const p=Array.from({length:5},(_,i)=>c(i+1,12,`d${i}`));
     const challenger=c(99,12.2,'new-driver');
-    const green=evaluateReplacementV2(p,'T5',challenger,'GREEN',{minPositions:5,maxPositions:5});
-    const red=evaluateReplacementV2(p,'T5',challenger,'RED',{minPositions:5,maxPositions:5});
+    const green=evaluateReplacementV2(p,'T5',challenger,'GREEN');
+    const red=evaluateReplacementV2(p,'T5',challenger,'RED');
     expect(green.threshold).toBeGreaterThan(red.threshold);
   });
 
@@ -142,11 +161,7 @@ describe('Endogenous Portfolio Engine v2.1 — MAX RETURN / LOW VOL',()=>{
     const xs=Array.from({length:5},(_,i)=>c(i+1,12,`d${i}`));
     const hedge=c(21,0,'health');
     for(const s of CANONICAL_SCENARIOS) hedge.scenarios[s]=4;
-    const r=runEndogenousPortfolioEngineV2([...xs,hedge],{
-      minPositions:5,
-      maxPositions:6,
-      requiredStructuralDrivers:['health'],
-    });
+    const r=runEndogenousPortfolioEngineV2([...xs,hedge],{requiredStructuralDrivers:['health']});
     expect(r.status).toBe('EVIDENCE_PENDING');
   });
 });
