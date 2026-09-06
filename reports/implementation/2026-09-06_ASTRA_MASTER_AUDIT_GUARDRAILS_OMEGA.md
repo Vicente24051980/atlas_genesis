@@ -163,6 +163,13 @@ Cases include:
 
 `.github/workflows/agentic-runtime-v2.yml` is updated to run both test files alongside the existing focused suite.
 
+### CI evidence
+
+- First PR CI (`Agentic Runtime Omega v2 CI #121`, run `34063302948`): **FAIL — 93 passed / 1 failed**. The failure exposed an arbitrary `20x` horizon-ratio condition in the explanatory gate.
+- Correction commit: `8209c3d797214445b60e5feab75724d80179835a`. The rule now requires an explicit transmission bridge whenever the signal horizon is shorter than the decision horizon and no bridge is otherwise supplied; no arbitrary ratio is used.
+- Second PR CI (`Agentic Runtime Omega v2 CI #122`, run `34063435956`): **SUCCESS — 94 passed / 20 warnings**.
+- The 20 warnings are pre-existing FastAPI duplicate `operation_id` warnings surfaced by `api/test_deployment_contract.py`. They do not fail this PR and are recorded as separate technical debt rather than hidden inside the PASS.
+
 ## 6. Explicit non-changes
 
 This branch does **not**:
@@ -205,13 +212,26 @@ PR #160 remains an independent continuity binding whose remaining explicit gate 
 
 Close the PR / delete the branch. `main@1bd56a13f4177e60205ef668e6d07e076d3bd375` is the pre-change reference.
 
-## 9. Completion state
+## 9. Dual persistence
+
+Human-readable Notion mirror:
+
+- `ATLAS Ω — Master Audit Guardrails · PR #169 · 6-sep-2026`
+- Notion page ID: `3d37622f-9462-8106-beca-f6da680b316a`
+- URL: `https://app.notion.com/p/3d37622f94628106becaf6da680b316a?pvs=204`
+- Parent: `13 — Proyectos · Atlas Genesis, App, Software y GitHub`
+
+GitHub remains the technical/versioned source of truth; Notion is the human-readable operating mirror.
+
+## 10. Completion state
 
 `CODE_WRITTEN = TRUE`  
 `FOCUSED_TESTS_ADDED = TRUE`  
 `CI_WIRED = TRUE`  
-`CI_RESULT = PENDING_UNTIL_PR_RUN`  
+`CI_RESULT = SUCCESS_94_OF_94`  
 `MAIN_MODIFIED = FALSE`  
 `CANON_MODIFIED = FALSE`  
 `PORTFOLIO_AUTHORITY_CHANGED = FALSE`  
-`DUAL_PERSISTENCE = PENDING_NOTION_MIRROR`
+`DUAL_PERSISTENCE = COMPLETE`  
+`PR_STATUS = DRAFT_OPEN_NOT_MERGED`  
+`MASTER_BASELINE_CLAIMED = FALSE`
