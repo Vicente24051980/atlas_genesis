@@ -27,6 +27,8 @@ const obs = (
   style,
   action,
   portfolioWeightPct,
+  denominatorState: 'TOTAL_PORTFOLIO_VALID' as const,
+  hedgeVisibility: 'UNKNOWN' as const,
   positionChangePct,
   quartersHeld: action === 'NEW' ? 0 : 8,
   sourceQuality: 95,
@@ -34,12 +36,12 @@ const obs = (
   evidenceId,
 });
 
-describe('Gurus & Funds Omega v1.0', () => {
-  it('uses the canonical 25/20/15/10/10/10/10 score', () => {
+describe('Gurus & Funds Omega v1.1', () => {
+  it('uses the research-priority 25/20/15/10/10/10/10 score', () => {
     expect(calculateGurusFundsScore(fullScore)).toBe(100);
   });
 
-  it('maps signal states deterministically', () => {
+  it('maps research signal states deterministically', () => {
     expect(classifyGuruSignalState(39)).toBe('WEAK_SIGNAL');
     expect(classifyGuruSignalState(54)).toBe('NEUTRAL');
     expect(classifyGuruSignalState(64)).toBe('DISCOVERY');
@@ -48,7 +50,7 @@ describe('Gurus & Funds Omega v1.0', () => {
     expect(classifyGuruSignalState(85)).toBe('STRONG_GURU_CONVICTION');
   });
 
-  it('rewards independent cross-style convergence and hands strong signals to downstream gates', () => {
+  it('rewards independent cross-style convergence but preserves zero company-score authority', () => {
     const result = assessGurusFundsCandidate({
       ticker: 'abc',
       observations: [
@@ -67,6 +69,9 @@ describe('Gurus & Funds Omega v1.0', () => {
     expect(result.reasons).toContain('independent_cross_style_convergence');
     expect(['SMART_MONEY_CONVERGENCE', 'STRONG_GURU_CONVICTION']).toContain(result.state);
     expect(result.action).toBe('HANDOFF_TO_ATLAS_GATES');
+    expect(result.scoreSemantics).toBe('RESEARCH_PRIORITY_ONLY');
+    expect(result.directCompanyScoreContribution).toBe(0);
+    expect(result.portfolioOrderAuthority).toBe(false);
   });
 
   it('keeps distribution visible instead of averaging it away', () => {
@@ -87,7 +92,7 @@ describe('Gurus & Funds Omega v1.0', () => {
     expect(['WEAK_SIGNAL', 'NEUTRAL', 'DISCOVERY', 'ACCUMULATION']).toContain(result.state);
   });
 
-  it('marks a high-weight new position as exceptional but never calls one manager convergence', () => {
+  it('marks a high-weight new position as exceptional only with a valid total-portfolio denominator', () => {
     const result = assessGurusFundsCandidate({
       ticker: 'new',
       observations: [obs('Manager A', 'CONCENTRATED_QUALITY', 'NEW', 18, 100, 'sec:a')],
@@ -99,12 +104,26 @@ describe('Gurus & Funds Omega v1.0', () => {
     expect(result.state).toBe('ACCUMULATION');
     expect(result.action).toBe('RESEARCH');
     expect(result.reasons).toContain('single_manager_signal_cannot_be_smart_money_convergence');
+    expect(result.reasons).toContain('research_priority_score_has_zero_direct_company_score_contribution');
+  });
+
+  it('does not turn a visible-disclosure weight into conviction without a valid denominator', () => {
+    const observation = {
+      ...obs('Manager A', 'CONCENTRATED_QUALITY', 'NEW', 18, 100, 'sec:a'),
+      denominatorState: 'VISIBLE_DISCLOSURE_ONLY' as const,
+    };
+
+    const result = assessGurusFundsCandidate({ ticker: 'vis', observations: [observation] });
+
+    expect(result.factors.conviction).toBe(0);
+    expect(result.factors.exceptionality).toBe(75);
+    expect(result.outputs).not.toContain('GURU_CONVICTION_OMEGA');
     expect(result.reasons).toContain(
-      'guru_signal_requires_economic_proof_quality_valuation_expected_return_and_falsifiers_before_portfolio_action',
+      'visible_disclosure_weights_ignored_for_conviction_without_valid_total_portfolio_denominator',
     );
   });
 
-  it('ranks candidates by score and then by breadth of manager evidence', () => {
+  it('ranks candidates by research-priority score and then by breadth of manager evidence', () => {
     const ranked = rankGurusFundsCandidates([
       {
         ticker: 'low',
