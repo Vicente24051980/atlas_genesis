@@ -2,7 +2,7 @@
 
 **Status:** CANONICAL / ACTIVE / RESEARCH-PRIORITY ONLY  
 **Effective date:** 2026-09-06  
-**Runtime authority:** `CORROBORATIVE_EVIDENCE_ONLY`  
+**Runtime authority:** `RESEARCH_PRIORITY_AND_FALSIFICATION_ONLY`  
 **Direct company-score weight:** `0`  
 **Portfolio authority:** `NONE`
 
