@@ -1,0 +1,24 @@
+name: ATLAS Model Intelligence Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/model-intelligence/**'
+      - 'third_party/omniroute/**'
+      - 'scripts/sync-omniroute-upstream.sh'
+      - 'docs/2026-09-06_ATLAS_MODEL_INTELLIGENCE_OMEGA_OMNIROUTE.md'
+      - '.github/workflows/atlas-model-intelligence-omega-ci.yml'
+
+jobs:
+  model-intelligence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Model Intelligence Omega tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/model-intelligence/scoring.test.ts
+          src/atlas/model-intelligence/router.test.ts
