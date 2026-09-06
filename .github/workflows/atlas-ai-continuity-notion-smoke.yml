@@ -1,0 +1,27 @@
+name: ATLAS AI Real Notion Continuity Smoke
+
+on:
+  workflow_dispatch:
+
+jobs:
+  real-notion-continuity:
+    runs-on: ubuntu-latest
+    env:
+      NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+      ATLAS_CONTINUITY_DATA_SOURCE_ID: 20a48cee-6fe0-46ce-b750-5ac78177fcb6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Require Notion integration secret
+        shell: bash
+        run: |
+          if [ -z "$NOTION_API_KEY" ]; then
+            echo "NOTION_API_KEY repository secret is required for the real continuity gate."
+            exit 1
+          fi
+      - name: Run locked 10-case test through real Notion-backed runtime
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/personal-cognitive-os/continuity-runtime.notion.integration.test.ts
