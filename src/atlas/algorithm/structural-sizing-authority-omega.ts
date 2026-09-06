@@ -1,4 +1,6 @@
-export const STRUCTURAL_SIZING_AUTHORITY_VERSION = '2026-09-06-v0.1.0' as const;
+import { structuralRiskUnitsCanonicalReady } from './structural-risk-unit-authority-omega';
+
+export const STRUCTURAL_SIZING_AUTHORITY_VERSION = '2026-09-06-v0.2.0' as const;
 
 export const STRUCTURAL_SIZING_AUTHORITY = {
   version: STRUCTURAL_SIZING_AUTHORITY_VERSION,
@@ -12,6 +14,7 @@ export const STRUCTURAL_SIZING_AUTHORITY = {
     'A caller-provided covariance label or volatility hash is not sufficient attestation.',
     'Canonical sizing requires a versioned deterministic sizing engine and versioned policy.',
     'Expected-return inputs and risk inputs must have explicit units before they may be combined in an optimizer objective.',
+    'Canonical sizing cannot activate while Structural Risk Unit Authority is unresolved.',
     'Covariance must be PIT-tagged, symmetric, finite and positive-semidefinite within declared numerical tolerance.',
     'Sector, geography, style and aesthetic diversification have zero independent sizing authority.',
     'Concentration may be high when supported by return/risk utility; concentration constraints may exist only as calibrated ruin/liquidity/risk controls.',
@@ -28,6 +31,7 @@ export type StructuralSizingAttestation = {
 };
 
 export function isCanonicalSizingAttestationValid(attestation?: StructuralSizingAttestation): boolean {
+  if (!structuralRiskUnitsCanonicalReady()) return false;
   if (!STRUCTURAL_SIZING_AUTHORITY.canonicalReady) return false;
   if (!attestation) return false;
   if (attestation.validationState !== 'VALIDATED') return false;
