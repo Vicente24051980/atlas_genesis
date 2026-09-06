@@ -1,0 +1,56 @@
+name: ATLAS Legacy Fixed-Portfolio Guard CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/legacy_fixed_portfolio_guard.py'
+      - 'scripts/atlas_quant_portfolio_audit.py'
+      - 'scripts/atlas_marginal_addition_audit.py'
+      - 'scripts/atlas_replacement_value_audit.py'
+      - 'scripts/atlas_structural_edge_combo_audit.py'
+      - '.github/workflows/legacy-fixed-portfolio-guard-ci.yml'
+  pull_request:
+    paths:
+      - 'scripts/legacy_fixed_portfolio_guard.py'
+      - 'scripts/atlas_quant_portfolio_audit.py'
+      - 'scripts/atlas_marginal_addition_audit.py'
+      - 'scripts/atlas_replacement_value_audit.py'
+      - 'scripts/atlas_structural_edge_combo_audit.py'
+      - '.github/workflows/legacy-fixed-portfolio-guard-ci.yml'
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Guard fails closed without explicit opt-in
+        working-directory: scripts
+        run: |
+          python - <<'PY'
+          from legacy_fixed_portfolio_guard import require_explicit_legacy_opt_in
+          try:
+              require_explicit_legacy_opt_in('ci-test')
+          except RuntimeError as e:
+              assert 'LEGACY_FIXED_PORTFOLIO_DIAGNOSTIC' in str(e)
+          else:
+              raise SystemExit('guard failed open')
+          PY
+      - name: Guard permits explicit historical reproduction only
+        working-directory: scripts
+        env:
+          ATLAS_ALLOW_LEGACY_FIXED_PORTFOLIO: '1'
+        run: python -c "from legacy_fixed_portfolio_guard import require_explicit_legacy_opt_in; require_explicit_legacy_opt_in('ci-test')"
+      - name: Every stale fixed-portfolio script calls the guard
+        run: |
+          for f in \
+            scripts/atlas_quant_portfolio_audit.py \
+            scripts/atlas_marginal_addition_audit.py \
+            scripts/atlas_replacement_value_audit.py \
+            scripts/atlas_structural_edge_combo_audit.py; do
+            grep -q 'require_explicit_legacy_opt_in' "$f" || { echo "unguarded legacy script: $f"; exit 1; }
+            grep -q 'LEGACY_FIXED_PORTFOLIO_DIAGNOSTIC' "$f" || { echo "missing legacy marker: $f"; exit 1; }
+          done
