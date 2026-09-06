@@ -6,9 +6,13 @@ on:
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts'
+      - 'src/atlas/algorithm/structural-universe-authority-omega.ts'
+      - 'src/atlas/algorithm/structural-sizing-authority-omega.ts'
+      - 'src/atlas/algorithm/structural-sizing-authority-omega.test.ts'
       - 'src/atlas/algorithm/structural-portfolio-publication-gate-omega.ts'
       - 'src/atlas/algorithm/structural-portfolio-publication-gate-omega.test.ts'
       - 'CURRENT_CANON/2026-09-05_ENDOGENOUS_PORTFOLIO_ENGINE_V2.md'
+      - 'CURRENT_CANON/2026-09-06_STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_OMEGA.md'
       - '.github/workflows/endogenous-portfolio-engine-v2-ci.yml'
   push:
     branches: [main]
@@ -16,8 +20,12 @@ on:
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts'
+      - 'src/atlas/algorithm/structural-universe-authority-omega.ts'
+      - 'src/atlas/algorithm/structural-sizing-authority-omega.ts'
+      - 'src/atlas/algorithm/structural-sizing-authority-omega.test.ts'
       - 'src/atlas/algorithm/structural-portfolio-publication-gate-omega.ts'
       - 'src/atlas/algorithm/structural-portfolio-publication-gate-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-06_STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_OMEGA.md'
 
 jobs:
   test:
@@ -27,5 +35,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Run Endogenous Portfolio Engine v2 + publication-gate tests
-        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts src/atlas/algorithm/structural-portfolio-publication-gate-omega.test.ts
+      - name: Run Endogenous Portfolio Engine v2 + universe/sizing/publication-gate tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts src/atlas/algorithm/structural-portfolio-publication-gate-omega.test.ts src/atlas/algorithm/structural-sizing-authority-omega.test.ts
