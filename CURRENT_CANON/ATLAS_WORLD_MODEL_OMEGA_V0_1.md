@@ -1,323 +1,243 @@
 # ATLAS World Model Ω v0.1
 
-**Status:** CANONICAL ARCHITECTURAL EXTENSION — IMPLEMENTATION PAUSED  
+**Status:** CANONICAL TARGET CAPABILITY SPEC — NON-OPERATIVE / IMPLEMENTATION FROZEN  
 **Date:** 2026-09-06  
 **Parent canon:** `CURRENT_CANON/ATLAS_AI_PERSONAL_COGNITIVE_OS_OMEGA_V1.md`  
 **Persistent infrastructure:** GitHub Cognitive Kernel + Notion Knowledge Layer
 
+## 0. Governance correction
+
+World Model Ω is retained because the capability is valuable, but it is **not an active implementation priority** and does not authorize new runtime work while continuity remains unvalidated.
+
+Activation prerequisites, in order:
+
+1. Real ATLAS continuity runtime passes the locked continuity test.
+2. Current capability audit is completed before feature expansion resumes.
+3. World Model-specific acceptance tests are preregistered before implementation outputs are inspected.
+4. Implementation begins only with the smallest decision-state + counterfactual simulation slice.
+
+Until then:
+
+`WORLD_MODEL = TARGET_SPEC_ONLY`
+
+`RUNTIME_AUTHORITY = NONE`
+
+`DECISION_WEIGHT = 0`
+
+This document must not compete with the continuity remediation open loop.
+
 ## 1. Mission
 
-ATLAS World Model Ω adds counterfactual simulation to the Personal Cognitive OS.
+World Model Ω defines a future ATLAS capability for comparing plausible consequences of materially different actions.
 
-ATLAS must not jump directly from understanding a situation to recommending or executing an action when the decision is material. It should first represent the current state, generate materially distinct candidate actions, simulate plausible consequences, expose uncertainty, compare outcomes against Vicente's objectives and constraints, and only then recommend or route an action.
+Target loop:
 
-Canonical loop:
+`OBSERVE → BUILD DECISION STATE → GENERATE ALTERNATIVES → SIMULATE PLAUSIBLE FUTURES → COMPARE → RECOMMEND → PERMISSION CHECK → ACT → VERIFY → LEARN`
 
-`OBSERVE → UPDATE STATE → GENERATE ACTIONS → SIMULATE FUTURES → COMPARE → DECIDE/RECOMMEND → PERMISSION CHECK → ACT → VERIFY OUTCOME → LEARN`
+Minimal transition representation:
 
-Minimal transition model:
+`STATE_t + ACTION_a + EXOGENOUS_ASSUMPTIONS_s → DISTRIBUTION(OUTCOMES, UNCERTAINTY)`
 
-`STATE_t + ACTION_a + EXOGENOUS_ASSUMPTIONS_s → DISTRIBUTION(STATE_t+1, OUTCOME, UNCERTAINTY)`
-
-The output is never a single deterministic future. It is a set or distribution of plausible futures with explicit assumptions, confidence and provenance.
+A simulated future is never a fact.
 
 ## 2. Core distinction
 
 ### Memory
 What is known, stated, observed or previously recorded.
 
-### Vicente Decision Model Ω / Digital Twin
-What Vicente would probably choose, given longitudinal preferences, constraints, decisions and outcomes.
+### Vicente Model / Digital Twin
+What Vicente is likely to choose, when enough behavioral evidence exists.
 
-### Decision Prediction Ω
-A prediction of Vicente's likely next choice or behavior.
-
-### World Model Ω
-What is likely to happen under each candidate action, including actions Vicente might not naturally choose.
+### World Model
+What may happen under A/B/C/DO_NOTHING, regardless of what Vicente is predicted to choose.
 
 Therefore:
 
-`P(Vicente chooses A | context) ≠ P(outcome | choose A, world state)`
+`P(Vicente chooses A | context) != P(outcome | A, world state)`
 
-Digital Twin models the decision-maker. World Model models consequences. They must not be collapsed into one system.
+The Digital Twin models the decision-maker. World Model models consequences. They must remain separable.
 
-## 3. New canonical modules
+## 3. Architecture pruning — v0.1 governance revision
 
-### 3.1 `STATE_ENGINE`
-Builds a decision-relevant state representation at time `t`.
+The first draft created five new top-level engines. That is unnecessary architecture inflation at this stage. The target capability is retained, but duplicated modules are collapsed into existing ATLAS responsibilities.
+
+### 3.1 Decision State View — NOT a new standalone engine
+
+Former name: `STATE_ENGINE`.
+
+For the MVP this is a typed, decision-specific state snapshot assembled from existing Context Routing, Memory Retrieval, Contradiction Detection and Confidence/Provenance.
 
 Minimum fields:
-- objective(s)
+- objectives and horizon
 - current facts
-- temporal state
-- actors/entities
-- resources
-- constraints
+- actors/resources/constraints
 - permissions
 - commitments/open loops
-- known causal relationships
-- unknowns
-- stale or conflicting evidence
-- decision horizon
-- source/provenance for every material variable
+- relevant unknowns
+- stale/conflicting evidence
+- material assumptions
+- provenance
 
-State must be decision-specific. ATLAS must not dump all memory into every simulation.
+Do not create a persistent parallel state system unless evidence later shows the existing layers cannot support this view.
 
-### 3.2 `COUNTERFACTUAL_ENGINE`
-Generates materially distinct candidate actions and counterfactual baselines.
+### 3.2 Counterfactual generation — capability inside reasoning/world-model path
 
-Mandatory baseline when applicable:
-- `A0 = DO_NOTHING / STATUS_QUO`
+Former name: `COUNTERFACTUAL_ENGINE`.
 
-Candidate actions must not be generated merely to confirm the Digital Twin's preferred action.
+It must generate materially distinct alternatives, including `A0 = DO_NOTHING / STATUS_QUO` when applicable, plus delayed, partial, information-gathering, exit or reversible options where material.
 
-The engine must support:
-- action decomposition
-- mutually exclusive alternatives
-- reversible vs irreversible actions
-- delayed action
-- partial action
-- information-gathering action
-- stop-loss / exit action
+It does not need a standalone service/module until benchmarks justify one.
 
-### 3.3 `WORLD_MODEL`
-Simulates plausible state transitions and outcomes for every candidate action.
+### 3.3 `WORLD_MODEL` — retained target module
 
-Each simulation must separate:
-- endogenous consequences of the action
-- exogenous assumptions/scenarios
-- direct effects
-- second-order effects
-- path dependencies
-- time horizon
+This is the only genuinely new target capability preserved as a distinct module.
+
+It compares plausible outcomes for each action × scenario and must separate:
+- endogenous effects
+- exogenous assumptions
+- direct and second-order effects
+- path dependence
+- horizon
 - uncertainty
 - failure modes
 
-World Model may use multiple methods depending on domain: structured causal reasoning, statistical forecasting, scenario trees, historical analogues, Monte Carlo, domain simulators, external tools, specialist models or explicit rule engines.
+Allowed methods may include causal reasoning, scenario trees, statistical models, historical analogues, Monte Carlo, specialist simulators or external tools.
 
-No single LLM narrative counts as a validated simulation.
+**A single LLM narrative is not a validated simulation.**
 
-### 3.4 `OUTCOME_VERIFIER`
-Compares predicted outcomes with reality after action or passage of time.
+### 3.4 Outcome verification — folded into existing Result Validator + decision ledger
 
-Records:
-- prediction timestamp
+Former name: `OUTCOME_VERIFIER`.
+
+Do not create a separate engine initially. Extend the existing result/outcome trace to store:
+- forecast timestamp
 - predicted range/distribution
+- action actually taken
 - realized outcome
 - forecast error
-- missing variables
-- wrong assumptions
-- causal attribution confidence
-- whether the action was actually executed as modeled
+- assumption failure
+- execution deviation
+- exogenous shock
+- attribution confidence
 
-The verifier must distinguish `MODEL_ERROR`, `DATA_ERROR`, `ASSUMPTION_FAILURE`, `EXECUTION_DEVIATION`, `EXOGENOUS_SHOCK` and `UNKNOWN`.
+### 3.5 Policy learning — folded into Learning / Consolidation until data justifies separation
 
-### 3.5 `POLICY_LEARNER`
-Updates decision policy from repeated prediction-versus-outcome evidence.
+Former name: `POLICY_LEARNER`.
 
-It may update:
-- scenario priors
-- calibration
-- causal weights
-- preferred simulation methods
-- risk penalties
-- uncertainty thresholds
-- domain-specific routing
+No autonomous policy learner is authorized now. Calibration updates belong inside existing Learning/Consolidation until there is enough repeated forecast-vs-outcome evidence to justify a dedicated learner.
 
-It must not silently rewrite Vicente's explicit values or preferences. Preference learning belongs to the Vicente Model; consequence learning belongs to the World Model.
+It may never silently rewrite Vicente's explicit values or preferences.
 
-## 4. Integration with existing ATLAS modules
+## 4. Anti-Self-Confirmation Law Ω
 
-### Vicente Decision Model Ω / Digital Twin
-Provides:
-- likely Vicente action
-- relevant preferences
-- personal constraints
-- risk tolerance
-- historical decision analogues
+The likely Vicente action must never become the default recommended action merely because the Digital Twin predicts it.
 
-World Model returns consequence estimates for the likely action and credible alternatives.
+For material decisions, Atlas must attempt to falsify the likely Vicente option and compare at least one materially distinct alternative unless only one feasible action exists.
 
-### Decision Prediction Ω
-Runs before or alongside counterfactual generation, but has zero authority to suppress superior alternatives.
-
-Required output:
-`LIKELY_VICENTE_ACTION` is labeled as a prediction, not as the recommended action.
-
-### Contradiction Detection Ω
-Must inspect contradictions between:
-- current state variables
-- stale memories
-- explicit preferences
-- proposed assumptions
-- previous predictions
-- realized outcomes
-
-Material contradictions block high-confidence simulation until resolved or explicitly modeled as scenario uncertainty.
-
-### Confidence + Provenance Ω
-Every simulated future must carry:
-- evidence provenance
-- assumption list
-- confidence/calibration status
-- model/tool provenance
-- timestamp
-- horizon
-- uncertainty class
-
-### ATLAS Executive Ω
-Surfaces only decision-changing results: dominant alternatives, meaningful downside, key assumptions, uncertainty, permission requirement and recommended next action.
-
-### Agent Harness Ω
-World Model becomes a planning stage inside the harness for material tasks:
-
-`OBJECTIVE → STATE → CANDIDATE ACTIONS → SIMULATE → SELECT PLAN → MODEL/TOOL ROUTING → PERMISSION CHECK → EXECUTE → VALIDATE → LEARN`
-
-### Permission & Containment Ω
-Simulation never grants authority. A modeled action still requires the same permission gate before execution.
+This law remains valid even if Decision Prediction is unavailable; in that case Atlas simply compares alternatives without a predicted-Vicente baseline.
 
 ## 5. Epistemic requirements
 
-Add simulation-specific epistemic classes:
+Simulation-specific classes may be used when implementation exists:
 
-- `SCENARIO`
-- `ASSUMPTION`
-- `COUNTERFACTUAL`
-- `FORECAST`
-- `FORECAST_RANGE`
-- `MODEL_UNCERTAINTY`
-- `CALIBRATION_RESULT`
-- `REALIZED_OUTCOME`
+`SCENARIO`, `ASSUMPTION`, `COUNTERFACTUAL`, `FORECAST`, `FORECAST_RANGE`, `MODEL_UNCERTAINTY`, `CALIBRATION_RESULT`, `REALIZED_OUTCOME`.
 
 Hard rule:
 
-**A simulated future must never be stored or presented as a FACT.**
+**No simulated or forecast future may enter memory as `FACT`.**
 
-## 6. Decision protocol Ω
+## 6. Future decision protocol
 
-For any material decision:
+For a material decision, after activation gates pass:
 
 1. Define objective and horizon.
-2. Build `STATE_t` from fresh, relevant evidence.
-3. Detect contradictions and stale inputs.
-4. Generate `A0` plus materially distinct candidate actions.
-5. Identify exogenous scenarios.
-6. Simulate each `(action × scenario)` pair.
-7. Estimate upside, downside, reversibility, tail risk, confidence and information value.
-8. Compare against Vicente's objectives and constraints.
-9. Show the Digital Twin's likely action separately.
-10. Recommend the action with the best expected decision quality, not the action most similar to Vicente's historical behavior.
-11. Route through permission gates.
-12. Execute only when authorized.
-13. Verify actual outcome later.
-14. Update calibration and policy.
+2. Build decision state from fresh relevant evidence.
+3. Surface contradictions, stale evidence and unknowns.
+4. Generate status quo plus materially distinct alternatives.
+5. Make exogenous assumptions explicit.
+6. Simulate plausible outcomes for each action/scenario pair.
+7. Compare upside, downside, reversibility, tail risk, uncertainty and information value.
+8. If available and behaviorally validated, show the Digital Twin's likely action separately.
+9. Recommend based on decision quality, not similarity to historical behavior.
+10. Pass permission gates.
+11. Verify realized outcome later.
+12. Feed measured forecast error into Learning/Consolidation.
 
-## 7. Anti-self-confirmation law Ω
+## 7. Abstention
 
-The Digital Twin must not contaminate the World Model.
-
-The World Model is required to search for consequences that can falsify the Digital Twin's preferred action.
-
-For a material decision, at least one counterfactual must challenge the likely Vicente action unless only one feasible action exists.
-
-## 8. Uncertainty and abstention
-
-ATLAS must abstain from high-confidence recommendations when:
-- critical state variables are missing
-- the decision is dominated by unresolved contradictions
+Atlas must abstain from high-confidence consequence claims when:
+- critical variables are missing
+- contradictions remain unresolved
 - scenario dispersion is too high
-- the model is uncalibrated in the domain
-- relevant external evidence is stale
-- an irreversible action has asymmetric downside and insufficient evidence
+- the domain is uncalibrated
+- external evidence is stale
+- irreversible downside is asymmetric and evidence is insufficient
 
-In these cases, `INFORMATION_GATHERING` may be the optimal action.
+`INFORMATION_GATHERING` may be the best action.
 
-## 9. ATLAS Financiero Ω adapter
+## 8. ATLAS Financiero Ω invariant
 
-World Model is a simulation layer, not a replacement for Point Zero, ranking, underwriting, valuation, Portfolio Construction Ω or Capital-Blind Selection Ω.
+World Model does not replace Point Zero, underwriting, valuation, Portfolio Construction Ω or Capital-Blind Selection Ω.
 
-For a proposed portfolio change such as `X OUT → Y IN`, mandatory counterfactuals should include when material:
-- keep X / no trade
-- execute replacement
-- hold both / partial replacement
-- delay for new evidence
-- valuation compression
-- earnings/revenue miss
-- thesis acceleration
-- macro/regime shock
-- sector-specific supply/demand change
-- liquidity/dilution/capital-structure event
+It may alter a financial recommendation only through decision-relevant evidence about expected outcomes, risk, tax/liquidity/execution constraints or information value.
 
-Financial outputs should prioritize distributions rather than point estimates:
-- expected return range
-- downside range
-- probability-weighted thesis states
-- drawdown sensitivity
-- fundamental impairment risk
-- valuation sensitivity
-- information gain from waiting
+It may not introduce:
+- sector quotas
+- incumbent protection
+- current personal P/L as preference
+- current invested capital as preference
+- familiarity bias
+- narrative preference
 
-**Point Zero invariant:** World Model may change a decision only through evidence about expected outcomes and risk. It may not introduce sector quotas, familiarity, incumbent protection, current personal P/L, current invested capital or narrative preference.
+unless a variable is explicitly relevant to a genuine execution/tax/liquidity constraint.
 
-## 10. Personal OS adapter
+## 9. Longitudinal trace
 
-Applicable domains include:
-- projects
-- agenda and commitments
-- purchases
-- relationships
-- learning/research
-- travel/logistics
-- business decisions
-- administrative decisions
-- authorized communications
+Target trace:
 
-For high-stakes medical, legal, financial, identity or irreversible actions, World Model output remains advisory unless the existing Permission & Containment policy explicitly authorizes execution.
+`decision_id → state_snapshot → candidate_actions → scenario_set → predicted_outcomes → confidence → selected_action → executed_action → realized_outcome → forecast_error → attribution → learning_update`
 
-## 11. Learning record schema
+This is the evidence base for calibration. No claimed learning without realized outcomes.
 
-Canonical trace:
+## 10. Acceptance gates before runtime activation
 
-`decision_id → state_snapshot → candidate_actions → scenario_set → predicted_outcomes → confidence → selected_action → permission_state → executed_action → realized_outcome → forecast_error → attribution → learning_update`
+1. **Continuity prerequisite:** live continuity already passes its locked test.
+2. **Counterfactual completeness:** status quo + materially distinct alternative.
+3. **Digital Twin independence:** recommendation can disagree with predicted Vicente behavior.
+4. **Provenance completeness:** material state variables and assumptions are traceable.
+5. **Uncertainty honesty:** no false precision.
+6. **No future-as-fact:** simulated outcomes never become FACT.
+7. **Permission invariance:** simulation cannot grant execution authority.
+8. **Outcome binding:** forecast can later be matched to reality.
+9. **Calibration measurability:** repeated predictions produce measurable error.
+10. **Contradiction gate:** unresolved material contradictions reduce confidence or block output.
+11. **Point Zero finance invariance:** personal holdings/P&L/current weights cannot bias simulations except genuine constraints.
 
-This trace must be longitudinal and queryable so calibration can be measured by domain and horizon.
+## 11. Minimal construction order after all prerequisite gates
 
-## 12. Acceptance tests before implementation promotion
+1. decision-state schema/view using existing modules
+2. explicit counterfactual generator
+3. structured `WORLD_MODEL` MVP using scenario trees
+4. outcome fields added to existing Result Validator / decision ledger
+5. calibration metrics inside Learning/Consolidation
+6. only later, if evidence demands it, split dedicated services/modules
 
-World Model implementation cannot become canonical runtime until it passes tests including:
+No provider, model or vendor is hard-coded.
 
-1. **Counterfactual completeness:** includes status quo and at least one materially distinct alternative.
-2. **Digital Twin independence:** recommendation can disagree with predicted Vicente behavior.
-3. **Provenance completeness:** every material state variable and assumption is traceable.
-4. **Uncertainty honesty:** refuses false precision when evidence is weak.
-5. **No future-as-fact:** simulated outcomes never enter memory as FACT.
-6. **Permission invariance:** simulation cannot bypass execution authorization.
-7. **Outcome binding:** predicted decision can later be matched to realized outcome.
-8. **Calibration:** repeated forecasts produce measurable error metrics.
-9. **Contradiction gate:** unresolved material contradictions reduce confidence or block recommendation.
-10. **Point Zero finance test:** personal holdings/P&L/current weights cannot bias financial simulation outputs unless explicitly relevant to tax, liquidity or execution constraints.
+## 12. Target architecture — non-operative
 
-## 13. Construction order after capability audit
+The target flow is expressed without forcing duplicate top-level engines:
 
-1. `STATE_ENGINE`
-2. `COUNTERFACTUAL_ENGINE`
-3. structured `WORLD_MODEL` MVP using explicit scenario trees
-4. `OUTCOME_VERIFIER`
-5. calibration store
-6. `POLICY_LEARNER`
-7. domain adapters
-8. optional specialist simulators/models after benchmark validation
+`CAPTURE → STRUCTURE → CONTEXT ROUTING → MEMORY RETRIEVAL → DECISION STATE VIEW → CONTRADICTION CHECK → REASONING / VICENTE MODEL (WHEN VALIDATED) → COUNTERFACTUALS → WORLD_MODEL → EXECUTIVE → AGENT HARNESS → MODEL/TOOL ROUTING → PERMISSION CHECK → ACTION/RESPONSE → RESULT VALIDATION + OUTCOME TRACE → LEARNING / CONSOLIDATION`
 
-No model name or vendor is hard-coded into the architecture.
+This is a target capability map, not the current runtime flow.
 
-## 14. Canonical end-to-end architecture after this extension
+## 13. Invariant
 
-`CAPTURE → STRUCTURE → CONTEXT ROUTING → MEMORY RETRIEVAL → STATE_ENGINE → CONTRADICTION CHECK → VICENTE MODEL / DECISION PREDICTION → COUNTERFACTUAL_ENGINE → WORLD_MODEL → EXECUTIVE → AGENT HARNESS → MODEL/TOOL ROUTING → PERMISSION CHECK → ACTION/RESPONSE → RESULT VALIDATION → OUTCOME_VERIFIER → POLICY_LEARNER → CONSOLIDATION`
+**ATLAS should eventually be able to distinguish “what Vicente would probably choose” from “what appears to have the best consequence distribution.”**
 
-## 15. Canonical invariant
-
-**ATLAS should not merely predict what Vicente will do. It should estimate what is likely to happen if Vicente does A, B, C or nothing — and learn from the gap between simulated and realized outcomes.**
+That is the durable idea preserved by this specification.
 
 ---
 
-This document extends the frozen target architecture only. It does **not** authorize implementation promotion before the capability audit required by the parent canon.
+**Governance:** World Model Ω remains a canonical target capability specification only. It has zero runtime authority, zero decision weight and zero implementation priority until continuity passes and feature expansion is explicitly reopened.
