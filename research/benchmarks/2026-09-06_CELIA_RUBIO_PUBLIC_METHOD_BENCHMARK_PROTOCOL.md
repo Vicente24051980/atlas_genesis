@@ -43,11 +43,13 @@ OBSERVED public interviews support two different execution regimes:
 - index funds / ETFs: automated periodic DCA;
 - individual equities: discretionary opportunity capital, with some technical-analysis use for entry timing and both long-term and shorter multi-month holding intentions.
 
+A dated public interview contains a direct portfolio disclosure: Celia described approximately `70-80%` of the weight of her portfolio at that time as being in index funds, with additional ETFs, selected equities, crypto and some real estate. Treat this only as a contemporaneous self-disclosed snapshot, not as an eternal allocation rule and not as enough information to reconstruct the internal weights or instruments of her portfolio.
+
 Therefore the public method is better represented as:
 
 `Portfolio = Systematic diversified core + Active satellite + Opportunity liquidity`
 
-Do not infer exact weights from this architecture unless a dated primary disclosure supplies them.
+Do not infer exact weights from this architecture beyond dated primary disclosures.
 
 ## Public equity-selection evidence
 ### OBSERVED
