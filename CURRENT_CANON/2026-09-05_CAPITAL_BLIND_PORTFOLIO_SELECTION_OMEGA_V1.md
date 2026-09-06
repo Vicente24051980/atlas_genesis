@@ -1,96 +1,64 @@
 # ATLAS Ω — Capital-Blind Portfolio Selection Ω v1.0
 
-Date: 2026-09-05
-Governance basis: explicit user ratification that portfolio selection must ignore current invested capital and must choose an endogenous number of positions between 20 and 35.
+**Status:** `HISTORICAL / SUPERSEDED_AS_CARDINALITY_AUTHORITY`  
+**Original date:** `2026-09-05`  
+**Superseded by:** `ATLAS Ω — MASTER UNIVERSE PROMPT` effective `2026-09-06`
 
-## Constitutional rule
+## Governance notice
 
-ATLAS never asks how much money is currently invested in a ticker to determine whether that ticker deserves portfolio membership.
+This file is retained only for provenance and audit history.
 
-The following inputs have zero selection authority:
+The original v1.0 law correctly established that current invested capital, current position weight, personal P/L, personal average cost and incumbent status have **zero clean-selection authority**. That Capital-Blind principle survives.
 
-- current invested euros;
-- current position weight;
-- personal unrealized/realized P&L;
-- personal average cost;
-- current total portfolio capital base;
-- incumbent/held status.
+The original v1.0 cardinality rule **does not survive**. The former `MIN_POSITIONS = 20` and `MAX_POSITIONS = 35` are void as canonical portfolio constraints.
 
-The same company must receive the same portfolio-selection result whether the user owns EUR 0, EUR 1, EUR 1,000 or EUR 100,000 of it.
+## Current controlling law
 
-## Objective
+Authoritative source:
 
-Portfolio_Omega* = argmax over 20 <= N <= 35 of:
+`docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`
 
-Expected Compound Return
-- Permanent-Loss Risk
-- Fragility
-- Portfolio Redundancy
-- Complexity
-+ Causal Diversification Benefit
-+ Robustness Benefit
+Universe:
 
-subject to all applicable Hard Gates and T0 discovery integrity.
+`ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06`
 
-## Cardinality
+Current cardinality law:
 
-- MIN_POSITIONS = 20.
-- MAX_POSITIONS = 35.
-- OPTIMAL_N is endogenous.
-- 25, 30 and 35 are not targets.
-- Above the 20-position floor, a new ticker enters only if marginal portfolio contribution is positive.
-- ATLAS never fills to 35 merely because capacity exists.
-- ATLAS never ejects a positive marginal contributor merely to force N=25 or N=30.
+`OPTIMAL_N = FULLY_ENDOGENOUS`
 
-## Separation of concerns
+There is no ex-ante target, floor or ceiling of 20, 25, 30, 32, 35, 37, 50 or any other arbitrary position count.
 
-Selection Omega decides membership only.
+Clean selection starts from Point Zero. Every canonical economic entity begins with zero prior advantage. The portfolio expands only while the best next addition improves whole-portfolio return/risk utility; expansion stops when the next addition fails that test.
 
-It does not emit target weights.
-It does not emit entry timing.
-It does not use current cost basis.
+## What remains valid from v1.0
 
-Canonical flow:
+- current invested euros have zero selection authority;
+- current position weight has zero selection authority;
+- personal unrealized/realized P/L has zero selection authority;
+- personal average cost has zero selection authority;
+- current total portfolio capital base has zero selection authority;
+- held/incumbent status has zero clean-selection authority;
+- Capital-Blind is not Price-Blind: valuation and Expected Return remain legitimate economic inputs;
+- selection remains separate from sizing and entry timing;
+- execution friction / hysteresis may exist downstream but cannot rewrite the clean Point-Zero ranking.
 
-T0 Size-Blind Discovery
--> Hard Gates / Fundamental Quality
--> Growth / FCF / ROIC
--> Revisions / Inflection
--> Financing Quality / Circular Demand when applicable
--> Expectation Gap
--> Valuation / Expected Return 3-6Y
--> Permanent-Loss Risk
--> Falsifiers / Drivers / Chain Budget
--> Competition for Capital
--> Capital-Blind Portfolio Selection Omega
--> Replacement Firewall for executable transitions
--> Position Sizing / Upsilon
--> Entry Timing
--> Capital execution
+## What is explicitly superseded
 
-## Important distinction
+- `20 <= N <= 35`;
+- `MIN_POSITIONS = 20`;
+- `MAX_POSITIONS = 35`;
+- any requirement to fill a minimum number of slots;
+- any preferred Top‑N inherited from prior portfolio snapshots;
+- any use of a fixed ceiling as a proxy for endogenous portfolio optimization.
 
-Capital-Blind is not Price-Blind.
+## Current implementation
 
-Valuation and Expected Return are legitimate economic inputs because they affect future return from today's price. Personal average cost is not.
+Primary modules:
 
-## Incumbency
+- `src/atlas/algorithm/capital-blind-portfolio-selection-omega.ts`
+- `src/atlas/algorithm/endogenous-portfolio-engine-v2.ts`
+- `src/atlas/algorithm/portfolio-selection-canon-omega.ts`
+- `src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts`
+- `src/atlas/algorithm/atlas-kernel-contract-registry-omega.ts`
 
-Current holdings receive zero membership bonus. A current holding and a zero-position challenger compete on the same evidence standard after T0.
-
-Replacement Firewall remains downstream because execution friction and anti-churn govern whether and how a transition is implemented; they do not rewrite the clean portfolio-selection ranking.
-
-## T0 inheritance
-
-This law does not weaken T0. Discovery remains size-blind and auditable across capitalization buckets before score or portfolio membership is considered.
-
-## Implementation
-
-Primary module:
-`src/atlas/algorithm/capital-blind-portfolio-selection-omega.ts`
-
-Canonical registry:
-`src/atlas/algorithm/portfolio-selection-canon-omega.ts`
-
-Hierarchy rollup target:
-`2026-09-05-v4.19.0`
+> **No intentes justificar la cartera que ya tenemos. Intenta derrotarla.**
