@@ -1,61 +1,45 @@
 # ATLAS Ω — MAX RETURN / LOW VOL PORTFOLIO LAW
 
-Date: 2026-09-06
-Status: ACTIVE_CANONICAL / INVIOLABLE
-Precedence: this law supersedes any prior ATLAS portfolio rule that grants independent authority to sector balance, geographic balance, style balance, diversification aesthetics, causal-driver coverage or minimum-cardinality diversification.
+Date: 2026-09-06  
+Status: `ACTIVE_SUBORDINATE_OBJECTIVE`
 
-## Law
+## Authority
 
-ATLAS portfolio construction has one constitutional objective:
+This document no longer has independent portfolio-selection authority.
 
-**Maximize expected return subject to low modeled volatility, low permanent-loss risk, low tail risk and low fragility.**
+Sole authority for clean rebuild, ranking, membership, replacement and `OPTIMAL_N`:
 
-Sector, geography, market-cap bucket, style, index resemblance and visual/aesthetic balance have zero independent portfolio-membership authority.
+`docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`
 
-## Consequences
+Universe:
 
-- No sector quotas.
-- No geographic quotas.
-- No style quotas.
-- No requirement to hold a missing sector or causal driver.
-- No minimum portfolio size justified by diversification.
-- No rejection merely because many winners share one sector or driver.
-- No admission of a weaker security merely to make the portfolio look diversified.
-- No replacement merely to reduce a sector count.
+`ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06`
 
-If the best return/risk set is concentrated, ATLAS must permit concentration.
+## Objective retained
 
-## Diversification semantics
+ATLAS seeks to maximize expected return subject to low modeled volatility, low permanent-loss risk, low tail risk and low fragility.
 
-Diversification is not an objective. It is an instrument.
+Sector, geography, market-cap bucket, style, index resemblance and aesthetic balance have zero independent membership authority.
 
-It may affect a decision only when independent evidence shows that a combination of assets reduces portfolio risk enough to improve whole-portfolio return/risk utility after accounting for any expected-return dilution.
+Diversification is not an aesthetic target. It matters only when modeled economic risk reduction improves whole-portfolio return/risk utility.
 
-Causal Redundancy Ω and driver coverage remain diagnostic/stress fields with zero standalone scoring authority.
+## Cardinality
 
-Financing Correlation Ω remains admissible because shared financing can create common fragility; that is a risk mechanism, not an aesthetic diversification rule.
+`OPTIMAL_N = FULLY_ENDOGENOUS`
 
-## Enforced implementation
+There is no canonical target, floor or ceiling of 20, 25, 30, 32, 35, 37, 50 or any other preset number.
 
-Canonical engine: `src/atlas/algorithm/endogenous-portfolio-engine-v2.ts` version `2026-09-06-v2.1.0`.
+Clean selection starts at Point Zero with an empty portfolio and expands only while the best next addition improves whole-portfolio return/risk utility.
 
-Enforcement:
-- `alphaDiversification = 0` canonically;
-- `rhoCausalRedundancy = 0` canonically;
-- non-zero overrides fail closed;
-- non-empty `requiredStructuralDrivers` fails closed;
-- missing-driver exception removed from endogenous-N selection;
-- default cardinality search floor changed from 20 to 1;
-- default search ceiling is 50 as a computational bound, not a target;
-- risk weights revised to Permanent Loss 40% / Tail Risk 20% / Volatility 40% as a versioned operating policy;
-- Replacement Firewall evaluates only whole-portfolio return/risk utility improvement plus hysteresis.
+## Implementation
 
-## Anti-beauty rule
+Subordinate engines:
 
-**A portfolio is never improved merely by looking more diversified.**
+- `src/atlas/algorithm/capital-blind-portfolio-selection-omega.ts` — v2.0.0
+- `src/atlas/algorithm/endogenous-portfolio-engine-v2.ts` — v2.2.0
 
-A portfolio with 15 financials and 15 healthcare companies is valid if those securities dominate expected-return/risk utility. A portfolio with one security from every sector is invalid if weaker names were admitted to satisfy sector coverage.
+Replacement Firewall and Hysteresis are execution controls only; they have zero authority to protect incumbents during the clean rebuild.
 
-## Separation from prediction
+## Final rule
 
-Historical Sharpe, Sortino, Calmar, CAGR, volatility and drawdown are evidence inputs, not guarantees of future return. LONA/quantitative backtests may inform risk-efficiency diagnostics but cannot by themselves bypass ATLAS Hard Gates, Falsifier Veto, forward Expected Return, valuation, financing quality or evidence integrity.
+**No intentes justificar la cartera que ya tenemos. Intenta derrotarla.**
