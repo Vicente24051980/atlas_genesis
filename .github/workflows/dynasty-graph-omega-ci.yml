@@ -1,10 +1,11 @@
-name: Dynasty Graph Omega CI
+name: Dynasty Historical Graph Omega CI
 
 on:
   pull_request:
     paths:
       - 'data/dynasty/**'
       - 'schemas/dynasty_graph.schema.json'
+      - 'schemas/corporate_ownership_graph.schema.json'
       - 'scripts/validate_dynasty_graph.py'
       - '.github/workflows/dynasty-graph-omega-ci.yml'
   push:
@@ -12,15 +13,16 @@ on:
     paths:
       - 'data/dynasty/**'
       - 'schemas/dynasty_graph.schema.json'
+      - 'schemas/corporate_ownership_graph.schema.json'
       - 'scripts/validate_dynasty_graph.py'
 
 jobs:
-  validate:
+  validate-historical:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate ATLAS Dynasty Graph Ω
+      - name: Validate DINASTÍA HISTÓRICA Ω
         run: python scripts/validate_dynasty_graph.py
