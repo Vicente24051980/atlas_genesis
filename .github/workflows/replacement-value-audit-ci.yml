@@ -1,15 +1,18 @@
-name: Replacement Value Audit CI
+name: Legacy Replacement Value Audit CI
 
 on:
   pull_request:
     paths:
       - 'scripts/atlas_replacement_value_audit.py'
+      - 'scripts/legacy_fixed_portfolio_guard.py'
       - '.github/workflows/replacement-value-audit-ci.yml'
   workflow_dispatch:
 
 jobs:
   audit:
     runs-on: ubuntu-24.04
+    env:
+      ATLAS_ALLOW_LEGACY_FIXED_PORTFOLIO: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,9 +20,9 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install --disable-pip-version-check numpy pandas yfinance
-      - name: Run exhaustive replacement audit
+      - name: Reproduce LEGACY replacement audit — no current portfolio authority
         run: python scripts/atlas_replacement_value_audit.py --start 2023-09-05 --end 2026-09-05 --outdir artifacts/replacement-value-audit
       - uses: actions/upload-artifact@v4
         with:
-          name: atlas-replacement-value-audit
+          name: atlas-legacy-replacement-value-audit
           path: artifacts/replacement-value-audit
