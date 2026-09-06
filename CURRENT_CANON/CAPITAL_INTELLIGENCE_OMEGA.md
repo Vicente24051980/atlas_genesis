@@ -1,14 +1,40 @@
 # CAPITAL INTELLIGENCE Ω / DYNASTIC ALLOCATOR TRACKER
 
-**Status:** CANONICAL SENSOR  
+**Status:** CANONICAL SENSOR / SOURCING ONLY  
 **Effective date:** 2026-09-02  
+**Methodology revision:** 2026-09-06  
 **Role:** discovery / challenger sensor only. **Never an autonomous BUY engine.**
 
+> **2026-09-06 methodological override:** allocator prestige, family reputation, target-company ownership percentage, or a 13F appearance do **not** establish investment skill or portfolio conviction. `ALO` is not an economic route. Allocator/filing origin is orthogonal sourcing metadata. Listed holdings are evaluated under `HCO — HOLDCO/NAV Ω` when appropriate; operating companies use QCO/CQO/NCO/STO with multi-route sensitivity when ambiguous.
+
+Canonical companions:
+- `CURRENT_CANON/CAPITAL_STYLE_ROUTER_OMEGA.md`
+- `CURRENT_CANON/CAPITAL_INTELLIGENCE_EVIDENCE_GATES_OMEGA.md`
+- `research/capital_intelligence/2026-09-06_LINGOTTO_DISCLOSURE_BACKTEST_PROTOCOL.md`
+
+Current Lingotto validation state: **`A1_SAMPLE_INCOMPLETE / SKILL_UNVALIDATED`**. No prestige or historical-family premium enters any company score until post-publication alpha is demonstrated under the canonical backtest.
+
 ## Mission
-Transform public and legal capital-allocation disclosures into falsifiable ATLAS signals. Track whether selected allocators, family offices, holdings and professional capital brokers identify companies, sectors or value-chain bottlenecks before those theses become consensus.
+Transform public and legal capital-allocation disclosures into falsifiable ATLAS discovery signals. Track whether selected allocators, family offices, holdings and professional capital brokers identify companies, sectors or value-chain bottlenecks before those theses become consensus.
 
 ## Epistemic rule
 Do **not** attribute anticipation to inside information without documentary evidence. Test legal explanations first: sector specialization, management access, due diligence, private-market deal flow, board exposure, operating-company feedback, pilots, proprietary research, long horizon, valuation discipline, network density and superior selection.
+
+### PRESTIGE TRANSFER GATE Ω
+`LINEAGE_REPUTATION != MANAGER_SKILL`.
+Legal/organizational continuity, dynastic persistence, brand prestige and allocator skill are distinct variables. Skill must be demonstrated with attributable, post-publication outcomes.
+
+### DENOMINATOR GATE Ω
+`TARGET_OWNERSHIP_PCT != PORTFOLIO_WEIGHT`.
+For every position distinguish:
+- `TARGET_OWNERSHIP_PCT`
+- `VISIBLE_13F_WEIGHT`
+- `TOTAL_PORTFOLIO_WEIGHT` only when an independently valid global denominator exists.
+If only 13F data are observable, set `DENOMINATOR_STATE = 13F_VISIBLE_ONLY`.
+
+### DISCLOSURE COVERAGE GATE Ω
+`13F_VISIBLE_BOOK != TOTAL_PORTFOLIO`.
+13F coverage can omit non-13(f) foreign listings, shorts, debt, private assets, cash and parts of derivative exposure. A long disclosed position may also be hedged. Disclosure-type, latency, jurisdiction, known directionality and hedge visibility must be recorded.
 
 ## Core entities — initial priority
 1. Lingotto / Exor / John Elkann
@@ -38,17 +64,20 @@ For every observable position record:
 **All public-signal backtests start at PUBLICATION_DATE.** Never use quarter-end as the date ATLAS could have known the information.
 
 ## Official events
-### NEW CONVICTION Ω
-New position with material portfolio weight or company ownership.
+### NEW POSITION Ω
+New disclosed position. Do not call it conviction until the relevant denominator is reconstructed.
 
 ### POSITION ACCELERATION Ω
-Material quarter-on-quarter increase in shares or economic exposure. Default research trigger: `>=50%`, adjusted for splits and corporate actions.
+Material quarter-on-quarter increase in shares or economic exposure. Default research trigger: `>=50%`, adjusted for splits and corporate actions. Report separately:
+- `SHARE_ACCELERATION`
+- `VISIBLE_WEIGHT_ACCELERATION`
+- `PRICE_EFFECT`
 
 ### PERSISTENT ACCUMULATION Ω
 Repeated additions across `>=3` reporting periods.
 
 ### CONVICTION TRAJECTORY Ω
-Track real capital conviction through `shares-adjusted + weight + value + price effect`, not portfolio weight alone.
+May be used only when shares, weight, value, price effect and denominator quality are explicitly separated.
 
 ### TOE-HOLD → VALIDATE → SCALE Ω
 Small initial position followed by a large increase after one or more validation periods.
@@ -68,147 +97,69 @@ Private investment is translated into listed suppliers, competitors, customers, 
 ### CAPITAL EXIT Ω
 Material reduction or full exit. Default research trigger: `>50%` reduction.
 
-## Signal-quality framework
-`CAPITAL SIGNAL QUALITY = Materiality + Freshness + Persistence + Independent Convergence + Decision Authority + Source Quality + Historical Lead-Time Value`
+## Validation ladder for allocator skill
+- `A0_UNTESTED`
+- `A1_SAMPLE_INCOMPLETE`
+- `A2_NO_POST_PUBLICATION_ALPHA`
+- `A3_WEAK_OR_REGIME_DEPENDENT_ALPHA`
+- `A4_PERSISTENT_POST_PUBLICATION_ALPHA`
+- `A5_REPLICATED`
 
-Suggested weights:
-- Materiality 25
-- Freshness 15
-- Persistence 15
-- Convergence 15
-- Decision authority 10
-- Source quality 10
-- Historical lead-time value 10
-
-States:
-- `85–100` 🔥 CAPITAL PRIORITY
-- `70–84` 🟢 STRONG SIGNAL
-- `55–69` 🟡 WATCH
-- `<55` ⚪ ARCHIVE
-
-## INFORMATION ADVANTAGE EXPLAINER Ω
-When a signal later produces alpha, classify plausible mechanism:
-- BOARD / governance access
-- PRIVATE-MARKET exposure
-- MANAGEMENT access
-- INDUSTRY specialization
-- OPERATING-company feedback
-- PILOT / customer data
-- DEAL-FLOW / sourcing network
-- EXPERT network / due diligence
-- LONG-HORIZON advantage
-- VALUATION / contrarian discipline
-- CAPITAL-STRUCTURE advantage
-- LUCK / unresolved
-
-This module must distinguish **SMART PROCESS**, **STRUCTURAL ACCESS**, **LUCK** and **UNKNOWN**.
+Only A4/A5 may justify persistent research-priority uplift. Even then, allocator sourcing never enters company quality or thesis score directly.
 
 ## Backtest protocol
-For every event calculate from `PUBLICATION_DATE`:
-- 1D / 5D / 1M / 3M / 6M / 12M / 24M
+For every reconstructible event calculate from `PUBLICATION_DATE`:
+- 6M / 12M / 24M primary horizons
+- optional 1D / 5D / 1M / 3M diagnostics
 - absolute return
-- excess return vs S&P 500
-- excess return vs Nasdaq-100
+- excess return vs broad market
 - excess return vs sector benchmark
-- MFE
-- MAE
+- MFE / MAE
 - max drawdown
 - volatility
 - hit rate
 - median alpha
 - mean alpha
-- approximate information ratio
+- confidence intervals where sample allows
 
-No look-ahead bias. No survivorship bias where avoidable. Include delisted names when possible.
+Required variants:
+1. equal-event;
+2. visible-13F-weighted;
+3. high-materiality threshold defined ex ante.
 
-## Current historical case studies
-### CASE 001 — CCJ / Cameco
-Working finding: Exor predecessor disclosed Cameco in Q4-2017; Progeny independently built uranium exposure from 2018 onward. Classify as `CROSS-CAPITAL EARLY CONVERGENCE Ω` and `THEME BEFORE TICKER Ω`. Audit exact filing/publication dates and post-publication alpha before using in statistical summaries.
+No look-ahead bias. No survivorship bias where avoidable. Include delisted names when possible. A result that depends on retrospective threshold choice is not validation.
 
-### CASE 002 — APG / APi Group
-Progeny pattern: small initial position followed by major scale-up and multi-year persistence. Classify `TOE-HOLD → VALIDATE → SCALE Ω`.
+### Lingotto test
+H0: after public disclosure latency, Lingotto events do not produce persistent sector-adjusted alpha.
+H1: at least one ex-ante-defined public event class retains repeatable post-publication alpha.
 
-### CASE 003 — IBKR
-Progeny pattern: persistent accumulation into a core position. Correct all share histories for stock splits before scoring acceleration.
+Current state: **A1_SAMPLE_INCOMPLETE**.
 
-### CASE 004 — TSM
-Lingotto pattern: initial smaller position followed by repeated additions and weight expansion. Classify `PERSISTENT ACCUMULATION Ω`.
+## Historical case studies
+All prior named cases (CCJ, APG, IBKR, TSM, NBIS, RRC, MOH, CVNA, TEVA and others) are **case studies only** until they are included in the complete-event backtest. They may not be used as evidence of allocator skill through cherry-picked success stories.
 
-### CASE 005 — NBIS
-Working pattern: first public signal underperformed initially; later addition after drawdown performed much better. Classify `PERSISTENCE AFTER DRAWDOWN Ω`; keep provisional until exact price and filing timestamps are audited.
-
-## LIVE 2026 — RRC / MOH deep-dive
-### RRC — Range Resources
-Current interpretation: **high-quality live capital signal**.
-
-Observed working facts to audit from primary filings:
-- Lingotto has held RRC for years and materially increased exposure in Q2-2026.
-- Reported Q2 increase: approximately `+53.5%` shares.
-- Kopernik independently increased RRC materially in the same quarter, creating a `CROSS-CAPITAL Ω` candidate.
-- Thesis cluster: low-cost Marcellus gas, LNG, U.S. gas strategic value, power/data-center demand, long inventory, capital returns.
-
-ATLAS provisional scores:
-- Capital Intelligence: 97/100
-- Convergence: 100/100
-- Fundamentals: 91/100
-- Valuation: 87/100
-- Risk-adjusted return: 90/100
-- Entry: 82/100
-- Composite working score: **92/100 🔥**
-
-Interpretation: `PERSISTENCE + POSITION ACCELERATION + CROSS-CAPITAL`. RRC is currently the cleaner of the two live Lingotto signals because allocator conviction is accompanied by stronger current fundamentals and independent convergence.
-
-### MOH — Molina Healthcare
-Current interpretation: **very high allocator conviction, but thesis still requires fundamental normalization**.
-
-Observed working facts to audit from primary filings:
-- Lingotto opened a very large new Q2-2026 position.
-- Working estimate: ~2.51M shares, ~$574M, ~12.3% of Lingotto's disclosed 13F and ~4.8% of MOH.
-- Thesis appears consistent with an earnings-normalization / Medicaid-rate-lag turnaround rather than current-earnings cheapness.
-- Baupost appears to maintain exposure; Kopernik reportedly exited, creating meaningful smart-money disagreement rather than convergence.
-
-ATLAS provisional scores:
-- Capital Intelligence: 98/100
-- Convergence: 72/100
-- Current fundamentals: 58/100
-- Normalization potential: 96/100
-- Valuation on normalized EPS: 86/100
-- Valuation on current EPS: 45/100
-- Composite working score: **78/100 🟢/🟡**
-
-Interpretation: `NEW CONVICTION Ω` / `EARNINGS NORMALIZATION TRADE Ω`. High upside if margins normalize; materially higher thesis risk than RRC.
+## LIVE 2026 — RRC / MOH
+The former RRC/MOH scores are retained as historical research snapshots only. As of the 2026-09-06 methodology revision:
+- RRC allocator origin may raise research priority but cannot add score.
+- MOH target ownership percentage cannot be called portfolio conviction without a valid denominator.
+- Both must be routed through the applicable economic engines and common ATLAS gates independently of Lingotto.
 
 ## Experimental portfolios
-### CAPITAL SNIPER Ω — HISTORICAL / VALIDATED CORE
-Research-only portfolio. Not part of the official ATLAS holdings.
-- CCJ
-- IBKR
-- APG
-- TSM
-- CVNA
-- TEVA
-- RRC
-
-### CAPITAL SNIPER Ω — LIVE 2026 WATCH
-Research-only forward-test universe:
-- MOH
-- RRC
-- TSM
-- NBIS
-- CCJ
-- IBKR
-- APG
-- TIC
-- SSNC
-- CLBT
-- AROC
-
-Weights and membership may change **only under explicit signal rules**, never because of hindsight or discretionary narrative repair.
+Any `CAPITAL SNIPER Ω` universe is research-only and must be treated as a forward-test sample, never as a validated core until the backtest reaches A4/A5.
 
 ## ATLAS integration gate
-`CAPITAL INTELLIGENCE Ω = SENSOR → CHALLENGER / RESEARCH FLAG`
+`CAPITAL INTELLIGENCE Ω = SOURCING SENSOR → RESEARCH FLAG`
 
-Then candidate must still pass applicable ATLAS engines:
+Then candidate must pass the economic router:
+- QCO — QUALITY COMPOUNDER Ω
+- CQO — CYCLICAL QUALITY Ω
+- NCO — NORMALIZATION / CONTRARIAN Ω
+- STO — STRATEGIC TURNAROUND Ω
+- HCO — HOLDCO/NAV Ω
+
+When more than one route is plausible, apply `MULTI-ROUTE SENSITIVITY GATE Ω`. If the verdict changes materially by route, classify `ROUTE_SENSITIVE` and do not let taxonomy decide the investment.
+
+Then pass common ATLAS gates:
 - fundamentals
 - quality
 - growth
@@ -227,4 +178,4 @@ Then candidate must still pass applicable ATLAS engines:
 - geopolitical risk
 - Competition for Capital Ω
 
-**No allocator, family office, billionaire, 13F or coinvestor network can override these gates.**
+**No allocator, family office, billionaire, dynasty, 13F, 13D/G, board network or coinvestor can override these gates.**
