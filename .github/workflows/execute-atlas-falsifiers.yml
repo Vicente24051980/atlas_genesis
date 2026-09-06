@@ -15,7 +15,7 @@ permissions:
 jobs:
   execute:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - name: Checkout research branch
         uses: actions/checkout@v4
@@ -32,14 +32,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install numpy pandas yfinance requests beautifulsoup4 lxml html5lib
 
-      - name: Execute Strategy Factory null arm
+      - name: Execute Strategy Factory null arm if absent
         env:
           ATLAS_NULL_REPLICATIONS: '500'
-        run: python scripts/atlas_strategy_factory_null_arm.py
+        run: |
+          if [ -f research/executions/strategy_factory_null_arm/summary.json ]; then
+            echo "Existing null-arm execution retained; no reason to consume another search trial."
+          else
+            python scripts/atlas_strategy_factory_null_arm.py
+          fi
 
       - name: Execute Elite Capital post-filing backtest
         env:
           ATLAS_ELITE_PERMUTATIONS: '5000'
+          ATLAS_13F_REQUEST_DELAY: '0.45'
         run: python scripts/atlas_elite_capital_post_filing_backtest.py
 
       - name: Commit execution outputs
