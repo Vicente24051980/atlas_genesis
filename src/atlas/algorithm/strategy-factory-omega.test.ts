@@ -1,7 +1,9 @@
+import { describe, expect, it } from 'vitest';
+
 import {
   DEFAULT_STRATEGY_FACTORY_POLICY,
   STRATEGY_FACTORY_OMEGA,
-  StrategyFactoryCandidate,
+  type StrategyFactoryCandidate,
   evaluateStrategyFactoryCandidate,
 } from './strategy-factory-omega';
 
