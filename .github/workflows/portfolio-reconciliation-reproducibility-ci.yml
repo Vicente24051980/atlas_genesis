@@ -1,0 +1,27 @@
+name: Portfolio Reconciliation Reproducibility CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/atlas/data/portfolio-reconciliation-universe-2026-09-06.ts'
+      - 'src/atlas/data/portfolio-reconciliation-universe-2026-09-06.test.ts'
+      - 'CURRENT_CANON/2026-09-06_PORTFOLIO_RECONCILIATION_REPRODUCIBILITY_LAW.md'
+      - '.github/workflows/portfolio-reconciliation-reproducibility-ci.yml'
+  pull_request:
+    paths:
+      - 'src/atlas/data/portfolio-reconciliation-universe-2026-09-06.ts'
+      - 'src/atlas/data/portfolio-reconciliation-universe-2026-09-06.test.ts'
+      - 'CURRENT_CANON/2026-09-06_PORTFOLIO_RECONCILIATION_REPRODUCIBILITY_LAW.md'
+      - '.github/workflows/portfolio-reconciliation-reproducibility-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run reconciliation reproducibility tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/data/portfolio-reconciliation-universe-2026-09-06.test.ts
