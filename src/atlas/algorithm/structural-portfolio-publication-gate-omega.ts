@@ -4,8 +4,12 @@ import {
   type PortfolioCandidateV2,
   type PortfolioEnginePolicyV2,
 } from './endogenous-portfolio-engine-v2';
+import {
+  resolveStructuralUniverseAuthority,
+  type StructuralUniverseAuthorityVersion,
+} from './structural-universe-authority-omega';
 
-export const STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_VERSION = '2026-09-06-v1.0.0' as const;
+export const STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_VERSION = '2026-09-06-v1.1.0' as const;
 
 export type StructuralPublicationState =
   | 'CANONICAL_READY'
@@ -33,13 +37,28 @@ export type StructuralSizingEvidence = {
   weights: Record<string, number>;
 };
 
-export type StructuralPortfolioRunRequest = {
+/**
+ * Low-level request shape. This exists for deterministic unit testing and
+ * internal mechanics only. It has NO canonical publication authority because
+ * its whitelist/count are caller supplied.
+ */
+export type StructuralPortfolioRunRequestUnsafe = {
   rawUniverseSource: string;
   normalizedUniverseHash: string;
   snapshotHash: string;
   policyHash: string;
   allowedTickers: string[];
   expectedCanonicalEntityCount: number;
+  candidates: PortfolioCandidateV2[];
+  policy?: PortfolioEnginePolicyV2;
+  reproducibilityRuns?: number;
+  sizing?: StructuralSizingEvidence;
+};
+
+export type CanonicalStructuralPortfolioRunRequest = {
+  universeVersion: StructuralUniverseAuthorityVersion;
+  snapshotHash: string;
+  policyHash: string;
   candidates: PortfolioCandidateV2[];
   policy?: PortfolioEnginePolicyV2;
   reproducibilityRuns?: number;
@@ -195,7 +214,11 @@ function marginalRanking(
   return rows.sort((a, b) => b.deltaUAdd - a.deltaUAdd || a.ticker.localeCompare(b.ticker));
 }
 
-export function runStructuralPortfolioPublicationGate(req: StructuralPortfolioRunRequest): StructuralPortfolioRun {
+/**
+ * INTERNAL/TEST primitive. Caller-provided universe authority is deliberately
+ * explicit in the name. Do not use this API to publish an ATLAS portfolio.
+ */
+export function runStructuralPortfolioPublicationGateUnsafe(req: StructuralPortfolioRunRequestUnsafe): StructuralPortfolioRun {
   const repeats = Math.max(2, Math.floor(req.reproducibilityRuns ?? 100));
   const base = (state: StructuralPublicationState, reason: string): StructuralPortfolioRun => ({
     publicationState: state, reason, selectedTickers: [], optimalN: null, portfolioHash: null,
@@ -208,7 +231,7 @@ export function runStructuralPortfolioPublicationGate(req: StructuralPortfolioRu
 
   const allowed = new Set(req.allowedTickers.map(upper));
   if (!allowed.size || req.candidates.some(c => !allowed.has(upper(c.ticker))))
-    return base('BLOCKED_UNIVERSE_MISMATCH', 'At least one candidate is outside the canonical universe whitelist.');
+    return base('BLOCKED_UNIVERSE_MISMATCH', 'At least one candidate is outside the supplied universe whitelist.');
 
   const canonical = canonicalizeEntities(req.candidates);
   if (!canonical) return base('BLOCKED_CONFLICTING_ENTITY_ROWS', 'Canonical entity IDs are missing or duplicate entity rows disagree on evidence.');
@@ -219,7 +242,6 @@ export function runStructuralPortfolioPublicationGate(req: StructuralPortfolioRu
   let firstHash: string | null = null;
   let firstResult: ReturnType<typeof runEndogenousPortfolioEngineV2> | null = null;
   for (let i = 0; i < repeats; i++) {
-    // Deliberately perturb caller order, then canonicalize again. Same evidence must be order-invariant.
     const rotated = canonical.slice(i % canonical.length).concat(canonical.slice(0, i % canonical.length));
     const supplied = i % 2 ? [...rotated].reverse() : rotated;
     const rerunInput = canonicalizeEntities(supplied)!;
@@ -260,6 +282,27 @@ export function runStructuralPortfolioPublicationGate(req: StructuralPortfolioRu
     globalOptimalityProven: false,
     searchMode: 'DETERMINISTIC_LOCAL_SEARCH',
   };
+}
+
+/**
+ * SOLE CANONICAL PUBLICATION API.
+ * Universe whitelist, entity count, source and normalized hash are resolved
+ * from the versioned ATLAS authority registry and cannot be caller supplied.
+ */
+export function runStructuralPortfolioPublicationGate(req: CanonicalStructuralPortfolioRunRequest): StructuralPortfolioRun {
+  const authority = resolveStructuralUniverseAuthority(req.universeVersion);
+  return runStructuralPortfolioPublicationGateUnsafe({
+    rawUniverseSource: authority.rawUniverseSource,
+    normalizedUniverseHash: authority.normalizedUniverseHash,
+    snapshotHash: req.snapshotHash,
+    policyHash: req.policyHash,
+    allowedTickers: [...authority.allowedTickers],
+    expectedCanonicalEntityCount: authority.expectedCanonicalEntityCount,
+    candidates: req.candidates,
+    policy: req.policy,
+    reproducibilityRuns: req.reproducibilityRuns,
+    sizing: req.sizing,
+  });
 }
 
 export function buildFourSessionEqualWeightExperiment(
