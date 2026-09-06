@@ -1,6 +1,6 @@
-# LINGOTTO VISIBLE BOOK MATRIX Ω v0.2
+# LINGOTTO VISIBLE BOOK MATRIX Ω v0.3
 
-**Status:** RESEARCH / PARTIAL / NON-CANONICAL DATASET  
+**Status:** RESEARCH / PRIMARY-FILING TIMELINE COMPLETE / HOLDINGS EXTRACTION IN PROGRESS  
 **Date:** 2026-09-06  
 **Parent protocol:** `research/capital_intelligence/2026-09-06_LINGOTTO_DISCLOSURE_BACKTEST_PROTOCOL.md`
 
@@ -13,82 +13,90 @@ Build the observable public-disclosure matrix for Lingotto without treating the 
 - `VISIBLE_13F_WEIGHT != TOTAL_PORTFOLIO_WEIGHT`
 - `LONG_13F_POSITION != NET_EXPOSURE`
 - `POSITION_DATE != PUBLICATION_DATE`
-- Backtests start at `PUBLICATION_DATE`.
+- Backtests start at the information-availability date.
 
 ## Directionality warning
-SEC Form D records identify `Lingotto Offshore Long/Short US Fund LP`, with Lingotto Investment Management LLP as investment manager. Therefore at least one Lingotto-managed vehicle is explicitly long/short. A 13F long cannot be interpreted as net directional conviction without hedge/short disclosure.
+At least one Lingotto-managed vehicle is explicitly long/short. A 13F long cannot be interpreted as net directional conviction without hedge/short disclosure.
 
 ## Legal continuity vs skill
-SEC filing headers show the filer history:
-`Exor Investments (UK) LLP -> Exor Capital LLP -> Lingotto Investment Management LLP`.
-This supports legal/organizational continuity only. It does not validate investment skill.
+Filer history: `Exor Investments (UK) LLP -> Exor Capital LLP -> Lingotto Investment Management LLP`. This supports legal/organizational continuity only. It does not validate investment skill.
 
-## 13F filing timeline — primary SEC pinned where verified
+## 13F filing timeline — complete primary-accession map for study window
 | Period end | Filing/publication date | Accession | State |
 |---|---|---|---|
-| 2023-06-30 | 2023-08-11 | `0001732768-23-000006` | VERIFIED SEC |
-| 2023-09-30 | OPEN | OPEN | DATA_GAP — primary accession not yet pinned |
-| 2023-12-31 | OPEN | OPEN | DATA_GAP — primary accession not yet pinned |
-| 2024-03-31 | OPEN | OPEN | DATA_GAP — secondary history suggests filing existed; primary accession not yet pinned |
-| 2024-06-30 | 2024-08-12 | `0001732768-24-000005` | VERIFIED SEC |
-| 2024-09-30 | 2024-11-13 | `0001172661-24-004632` | VERIFIED SEC |
-| 2024-12-31 | 2025-02-04 | `0001172661-25-000491` | VERIFIED SEC |
-| 2025-03-31 | 2025-05-15 | `0001172661-25-002046` | VERIFIED SEC |
-| 2025-06-30 | 2025-08-13 | `0001172661-25-003216` | VERIFIED SEC |
-| 2025-09-30 | 2025-11-12 original | `0001172661-25-004702` | VERIFIED SEC ORIGINAL |
-| 2025-09-30 | 2025-11-13 amendment | `0001172661-25-004755` | VERIFIED SEC AMENDMENT |
-| 2025-12-31 | 2026-02-10 | `0001172661-26-000570` | VERIFIED SEC |
-| 2026-03-31 | 2026-05-14 | `0001172661-26-001922` | VERIFIED SEC |
-| 2026-06-30 | OPEN | OPEN | DATA_GAP — do not use secondary date until primary accession pinned |
+| 2023-06-30 | 2023-08-11 | `0001732768-23-000006` | VERIFIED |
+| 2023-09-30 | 2023-11-13 | `0001732768-23-000007` | VERIFIED |
+| 2023-12-31 | 2024-02-13 | `0001732768-24-000001` | VERIFIED |
+| 2024-03-31 | 2024-05-15 | `0001732768-24-000003` | VERIFIED |
+| 2024-06-30 | 2024-08-12 | `0001732768-24-000005` | VERIFIED |
+| 2024-09-30 | 2024-11-13 | `0001172661-24-004632` | VERIFIED |
+| 2024-12-31 | 2025-02-04 | `0001172661-25-000491` | VERIFIED |
+| 2025-03-31 | 2025-05-15 | `0001172661-25-002046` | VERIFIED |
+| 2025-06-30 | 2025-08-13 | `0001172661-25-003216` | VERIFIED |
+| 2025-09-30 | 2025-11-12 original | `0001172661-25-004702` | VERIFIED ORIGINAL |
+| 2025-09-30 | 2025-11-13 amendment | `0001172661-25-004755` | VERIFIED AMENDMENT |
+| 2025-12-31 | 2026-02-10 | `0001172661-26-000570` | VERIFIED |
+| 2026-03-31 | 2026-05-14 | `0001172661-26-001922` | VERIFIED |
+| 2026-06-30 | 2026-07-29 | `0001172661-26-002907` | VERIFIED SEC PRIMARY |
+
+### Gap closure
+The four prior accession gaps are now closed: Q3-2023, Q4-2023, Q1-2024 and Q2-2026. The study window therefore has a complete quarter-level accession map. This does **not** mean the holdings matrix is complete.
 
 ## Amendment law Ω
 A 13F amendment creates two distinct public-information states:
 1. `ORIGINAL_PUBLICATION_DATE` — what a public follower could first observe;
 2. `AMENDED_PUBLICATION_DATE` — corrected information available later.
 
-For amended quarters store both versions. The base backtest must use the information actually available on each date rather than silently replacing the original with hindsight. A sensitivity test may rerun the quarter using only the amended filing, but it must be labeled `AMENDMENT_CORRECTED`.
+For amended quarters store both versions. The base backtest uses the information actually available on each date rather than silently replacing the original with hindsight. A sensitivity run may use the amended filing only, labeled `AMENDMENT_CORRECTED`.
 
-Q3-2025 is the first confirmed example in this dataset: original filed 2025-11-12 and amendment filed 2025-11-13.
+Q3-2025: original filed 2025-11-12 (`0001172661-25-004702`); amendment filed 2025-11-13 (`0001172661-25-004755`).
 
-## Visible-book snapshots already verified
-- Q2 2023: 33 lines; approximately $1.548bn visible 13F value.
-- Q2 2024: 50 lines; approximately $2.976bn visible 13F value.
-- Q4 2024: 53 lines; approximately $3.728bn visible 13F value.
-- Q4 2025: 39 lines; approximately $5.738bn visible 13F value.
-- Q1 2026: 35 lines; approximately $5.064bn visible 13F value.
+## Portfolio-level checkpoints
+| Period | Lines | Visible 13F value | State |
+|---|---:|---:|---|
+| Q2-2023 | 33 | $1.547548bn | checkpoint |
+| Q3-2023 | 33 | $1.864840bn | checkpoint |
+| Q4-2023 | 34 | $2.077573bn | checkpoint |
+| Q1-2024 | 47 | $2.387978bn | checkpoint |
+| Q2-2024 | 50 | $2.976475bn | checkpoint |
+| Q3-2024 | 46 | $3.468084bn | checkpoint |
+| Q4-2024 | 53 | $3.727561bn | checkpoint |
+| Q1-2025 | 45 | $3.828596bn | checkpoint |
+| Q2-2025 | 45 | $4.704515bn | SEC summary |
+| Q3-2025 original | 35 | $5.411144bn | SEC summary; amendment must be diffed |
+| Q4-2025 | 39 | $5.738292bn | checkpoint |
+| Q1-2026 | 35 | $5.064156bn | checkpoint |
+| Q2-2026 | 32 | $4.665510bn | primary accession pinned |
 
-These are visible 13F totals only, not AUM or total portfolio NAV.
+Values are visible 13F totals only, not AUM/NAV.
 
-## Position-history samples — for pipeline validation only
-These examples are not the backtest sample and must not be cherry-picked into conclusions.
+## Extraction order Ω
+The next stage is deterministic, not narrative:
+1. download/read each SEC `infotable.xml`;
+2. normalize issuer, CUSIP, class, shares/principal amount and reported value;
+3. preserve puts/calls and discretion fields rather than collapsing them;
+4. diff consecutive quarters by CUSIP + class;
+5. map ticker only after security identity is stable;
+6. normalize splits/corporate actions before `SHARE_QOQ`;
+7. calculate visible-book weights from each filing's own denominator;
+8. classify events only under pre-locked rules;
+9. calculate returns only after the event table is frozen.
 
-### TSM
-Secondary history indicates additions over time. Do not promote any quoted Q1-2024 or Q2-2026 event to VERIFIED until the matching primary filing is pinned.
-
-### NOW
-Secondary history indicates material changes, but corporate actions/splits must be normalized before interpreting share acceleration.
-
-### CVNA
-Known winner and therefore mandatory anti-cherry-picking control. Historical disclosed-share path must be reconstructed from primary filings before narrative classification.
-
-### RRC
-Historical disclosed-share path must be reconstructed from primary filings before calling persistence or acceleration.
-
-### VEON
-Historical disclosed-share path must be reconstructed from primary filings before calling gradual accumulation.
-
-### PONY
-Mandatory negative-control style case. Secondary history suggests large additions followed by large reductions; all quarter values must be replaced by primary data before return testing.
+## Anti-hindsight controls
+- No return data may alter event thresholds.
+- No winner-specific case may be promoted into the sample definition.
+- CVNA and PONY remain mandatory narrative-bias controls.
+- Q3-2025 original/amendment difference must be preserved.
+- Missing ticker mappings remain `UNMAPPED`; they are not guessed.
+- Options are not treated as ordinary common-share longs.
 
 ## Data model
-Each row in the final matrix must contain:
-`PERIOD_END | ORIGINAL_PUBLICATION_DATE | AMENDED_PUBLICATION_DATE | ACCESSION_ORIGINAL | ACCESSION_AMENDED | CUSIP | TICKER | ISSUER | SHARES | VALUE_USD | VISIBLE_13F_WEIGHT | SHARE_QOQ | VALUE_QOQ | PRICE_EFFECT | EVENT_CLASS | SOURCE_TYPE | AMENDMENT_STATE | SPLIT_ADJUSTED | SECTOR_BENCHMARK | NOTES`
+`PERIOD_END | ORIGINAL_PUBLICATION_DATE | AMENDED_PUBLICATION_DATE | ACCESSION_ORIGINAL | ACCESSION_AMENDED | CUSIP | TICKER | ISSUER | CLASS | SHARES_OR_PRINCIPAL | VALUE_USD | PUT_CALL | INVESTMENT_DISCRETION | VISIBLE_13F_WEIGHT | SHARE_QOQ | VALUE_QOQ | PRICE_EFFECT | EVENT_CLASS | SOURCE_TYPE | AMENDMENT_STATE | SPLIT_ADJUSTED | SECTOR_BENCHMARK | NOTES`
 
-Additional portfolio-level fields:
+Portfolio fields:
 `VISIBLE_BOOK_VALUE | LINE_COUNT | DENOMINATOR_STATE | LONG_SHORT_KNOWN | TOTAL_AUM_KNOWN | COVERAGE_NOTES`
 
 ## Event rules — ex ante
-Do not infer conviction from target ownership alone.
 Candidate research events:
 - `NEW_VISIBLE_POSITION`
 - `SHARE_ADD_25`
@@ -99,30 +107,14 @@ Candidate research events:
 - `PERSIST_3Q`
 - `EXIT_VISIBLE_BOOK`
 
-Thresholds must be locked before return analysis. If multiple thresholds are tested, report the full sensitivity grid and multiple-testing risk.
+Thresholds are frozen before return analysis. Any threshold sensitivity must disclose the full grid and multiple-testing risk.
 
 ## Backtest outputs
-From the information-availability date applicable to each row:
-- 6M / 12M / 24M absolute return
-- excess vs broad market
-- excess vs sector benchmark
-- hit rate
-- median alpha
-- mean alpha
-- bootstrap confidence interval where sample permits
-- MFE / MAE
-- drawdown
+From the applicable information-availability date: 6M/12M/24M absolute return, broad-market excess, sector excess, hit rate, median/mean alpha, bootstrap CI where sample permits, MFE, MAE and drawdown.
 
-Run separately for:
-1. new visible positions,
-2. material share increases,
-3. persistence,
-4. exits/reductions,
-5. 13D/G events,
-6. visible-book-weight buckets,
-7. amended-filing sensitivity.
+Run separately for new positions, material increases, persistence, exits/reductions, 13D/G events, visible-weight buckets and amendment sensitivity.
 
 ## Current status
-`LINGOTTO_SKILL_STATE = A1_SAMPLE_INCOMPLETE`
+`LINGOTTO_SKILL_STATE = A2_TIMELINE_COMPLETE_HOLDINGS_INCOMPLETE`
 
-No alpha claim is authorized yet. Missing primary accessions remain `DATA_GAP`; they are not backfilled from secondary aggregators when the filing date itself is part of the test.
+No alpha claim is authorized. The filing timeline is complete; the security-level primary matrix is not.
