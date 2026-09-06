@@ -1,0 +1,54 @@
+{
+  "run_id": "ATLAS_STRATEGY_FACTORY_NULL_ARM_2026-09-06",
+  "instrument": "QQQ",
+  "data_start": "2005-01-03",
+  "data_end": "2026-08-31",
+  "train_end": "2018-12-31",
+  "validation_end": "2022-12-31",
+  "sealed_oos_end": "2026-08-31",
+  "candidate_count": 32,
+  "null_replications": 500,
+  "one_way_cost_bps": 2.0,
+  "winner": "MOM_120",
+  "real_metrics": {
+    "train": {
+      "sharpe": 0.8738225000610158,
+      "cagr": 0.11802317515977667,
+      "max_drawdown": -0.19376430180786697,
+      "total_return": 3.757184098156965,
+      "benchmark_total_return": 3.381436080794016,
+      "excess_total_return": 0.37574801736294905,
+      "turnover_events": 92
+    },
+    "validation": {
+      "sharpe": 0.41852152421225564,
+      "cagr": 0.06502179727222157,
+      "max_drawdown": -0.39748899800544824,
+      "total_return": 0.28657167388563387,
+      "benchmark_total_return": 0.7717038795925586,
+      "excess_total_return": -0.4851322057069247,
+      "turnover_events": 26
+    },
+    "oos": {
+      "sharpe": 1.1758403918090528,
+      "cagr": 0.20294146642108202,
+      "max_drawdown": -0.19280235652961586,
+      "total_return": 0.9602850785707757,
+      "benchmark_total_return": 1.746755806720329,
+      "excess_total_return": -0.7864707281495533,
+      "turnover_events": 25
+    }
+  },
+  "null_validation_pass_rate": 0.1,
+  "null_sealed_oos_pass_rate": 0.02,
+  "validation_sharpe_empirical_p": 0.7385229540918163,
+  "oos_sharpe_empirical_p": 0.09780439121756487,
+  "calibration_state": "NULL_FALSE_POSITIVE_RATE_ACCEPTABLE",
+  "edge_state": "NO_EDGE_DETECTED_VS_NULL",
+  "limitations": [
+    "This is a finite frozen grammar, not the future 100k-candidate production search.",
+    "Circular-shift null breaks signal/return alignment while preserving the observed return path shape.",
+    "QQQ-only evidence cannot validate cross-asset or single-stock strategy families.",
+    "Passing this harness would justify further shadow research only, never broker execution."
+  ]
+}
