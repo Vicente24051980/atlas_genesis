@@ -1,0 +1,50 @@
+# CONVERGENCE COMPONENT EVENT REGISTRY Ω — Seed v0.1
+
+**Date:** 2026-09-06  
+**Schema:** `2026-09-06_CONVERGENCE_COMPONENT_EVENT_REGISTRY_SCHEMA_v0_1.md`  
+**State:** `DATA_SEEDED_V0_1 / PRIMARY_SEC_ONLY`  
+**Forward returns:** `LOCKED / NOT PRESENT`
+
+## Scope
+First primary-source seed of the frozen convergence registry. This file captures public component events and derives candidate pairs **without** opening any forward-return field.
+
+Time convention: SEC acceptance timestamps are U.S. Eastern Time. `executable_timestamp` is the first regular-session timestamp at or after public availability. For filings after 16:00 ET, the next regular session open is used.
+
+## Component events
+
+| component_event_id | issuer_name | cik | ticker_at_event | security_id | signal_family | event_subtype | actor_id | actor_affiliation_group | source_form | source_accession | economic_event_date | publication_timestamp_ET | after_regular_close | executable_timestamp_ET | direction | magnitude_raw | magnitude_unit | corporate_action_state | amendment_state | public_data_complete | family_label_frozen | source_url | notes_no_forward_return |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---:|---|---|---|---|---|---|---|
+| CE-2026-GME-S1-001 | GameStop Corp. | 0001326380 | GME | NA | S1 | FORM4_OPEN_MARKET_PURCHASE_P | RYAN_COHEN | ISSUER:GME_MANAGEMENT | Form 4 | 0000921895-26-000131 | 2026-01-20/21 | 2026-01-22 16:02:03 | true | 2026-01-23 09:30:00 | POSITIVE | 1000000 | shares | NONE | NONE | true | true | https://www.sec.gov/Archives/edgar/data/1326380/000092189526000131/0000921895-26-000131-index.htm | Two code-P purchases of 500,000 shares each; reported prices $21.1174 and $21.601. Aggregate disclosed-share cost approximately $21.3592m. Same actor, same filing = one component event. |
+| CE-2026-CHGG-S1-001 | Chegg, Inc. | 0001364954 | CHGG | NA | S1 | FORM4_OPEN_MARKET_PURCHASE_P | DANIEL_ROSENSWEIG | ISSUER:CHGG_MANAGEMENT | Form 4 | 0001364954-26-000017 | 2026-02-13 | 2026-02-18 06:30:27 | false | 2026-02-18 09:30:00 | POSITIVE | 100000 | shares | NONE | NONE | true | true | https://www.sec.gov/Archives/edgar/data/1364954/000136495426000017/0001364954-26-000017-index.htm | CEO/Executive Chairman open-market purchase, code P, weighted-average price $0.5636; filing states purchase followed company-policy pre-clearance. |
+| CE-2026-STIM-S2-001 | Neuronetics, Inc. | 0001227636 | STIM | 64131A105 | S2 | INITIAL_13D_INVESTMENT_ONLY_WITH_ENGAGEMENT_OPTIONALITY | JOREY_CHERNETT | ACTOR:JOREY_CHERNETT | Schedule 13D | 0000921895-26-000850 | 2026-03-31 | 2026-03-31 16:05:22 | true | 2026-04-01 09:30:00 | NA | 14.12 | percent_beneficial_ownership | NONE | ORIGINAL | true | true | https://www.sec.gov/Archives/edgar/data/1227636/000092189526000850/0000921895-26-000850-index.html | Initial 13D superseding prior 13G; 9,778,718 shares / 14.12%. Item 4 says undervaluation/investment and no present specific plan, while reserving possible engagement. |
+| CE-2026-STIM-S2-002 | Neuronetics, Inc. | 0001227636 | STIM | 64131A105 | S2 | STRATEGIC_REVIEW_OR_SALE_DEMAND | JOREY_CHERNETT | ACTOR:JOREY_CHERNETT | Schedule 13D/A | 0000921895-26-000945 | 2026-04-06 | 2026-04-08 09:17:04 | false | 2026-04-08 09:30:00 | NA | 0 | NA | NONE | AMENDED | true | true | https://www.sec.gov/Archives/edgar/data/1227636/000092189526000945/0000921895-26-000945-index.htm | Amendment reports letter to board calling for comprehensive strategic-alternatives review including potential sale of TMS business. Same campaign as CE-2026-STIM-S2-001; never an independent confirmation. |
+| CE-2026-STIM-S1-001 | Neuronetics, Inc. | 0001227636 | STIM | 64131A105 | S1 | FORM4_10PCT_OWNER_OPEN_MARKET_PURCHASE_P | JOREY_CHERNETT | ACTOR:JOREY_CHERNETT | Form 4 | 0000921895-26-001056 | 2026-04-20/21 | 2026-04-22 09:39:59 | false | 2026-04-22 09:39:59 | POSITIVE | 200000 | shares | NONE | NONE | true | true | https://www.sec.gov/Archives/edgar/data/1227636/000092189526001056/0000921895-26-001056-index.htm | 10% owner; two code-P purchases of 100,000 shares each at $1.58 and $1.51, total disclosed-share cost $309,000. Same economic actor as the 13D filer. |
+| CE-2026-CHGG-S3-001 | Chegg, Inc. | 0001364954 | CHGG | NA | S3 | DEBT_REDUCTION_EXECUTED | ISSUER_CHGG | ISSUER:CHGG | 10-Q | 0001364954-26-000048 | 2026-02-20 | 2026-05-11 16:16:23 | true | 2026-05-12 09:30:00 | NA | 20000000 | USD_principal_repaid | NONE | NONE | true | true | https://www.sec.gov/Archives/edgar/data/1364954/000136495426000048/0001364954-26-000048-index.htm | First primary filing in this registry confirming execution: $20.0m principal of 0% 2026 notes repurchased for $19.4m cash; principal fell from $53.86m at 2025-12-31 to $33.86m at 2026-03-31. Earlier 8-K only described expected closing and is not used as execution t0. |
+| CE-2026-WTW-S3-001 | Willis Towers Watson plc | 0001140536 | WTW | NA | S3 | BUYBACK_EXECUTED | ISSUER_WTW | ISSUER:WTW | 10-Q | 0001193125-26-195310 | 2026-03-31 | 2026-04-30 11:50:40 | false | 2026-04-30 11:50:40 | NA | 300000000 | USD_repurchase_cost | NONE | NONE | true | true | https://www.sec.gov/Archives/edgar/data/1140536/000119312526195310/0001193125-26-195310-index.htm | 1,014,334 shares repurchased during Q1 2026 at average $295.73; aggregate cost $300m. `NET_SHARE_SHRINKAGE` not yet assigned; SBC/share issuance reconciliation remains a separate feature. |
+| CE-2026-AAPL-S3-001 | Apple Inc. | 0000320193 | AAPL | NA | S3 | BUYBACK_EXECUTED | ISSUER_AAPL | ISSUER:AAPL | 10-Q | 0000320193-26-000020 | 2026-06-27 | 2026-07-31 06:01:02 | false | 2026-07-31 09:30:00 | NA | 61800000000 | USD_repurchase_cost | NONE | NONE | true | true | https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/0000320193-26-000020-index.htm | 215m shares repurchased for $61.8bn during the nine months ended 2026-06-27. Authorization itself is not the event. Net shrinkage/SBC treatment remains separate. |
+| CE-2026-VZ-S3-001 | Verizon Communications Inc. | 0000732712 | VZ | NA | S3 | BUYBACK_EXECUTED | ISSUER_VZ | ISSUER:VZ | 10-Q | 0000732712-26-000046 | 2026-06-30 | 2026-07-31 10:27:46 | false | 2026-07-31 10:27:46 | NA | 3500000000 | USD_repurchase_cost | NONE | NONE | true | true | https://www.sec.gov/Archives/edgar/data/732712/000073271226000046/0000732712-26-000046-index.htm | 72,047,466 shares repurchased for $3.5bn in H1 2026; filing also reports 9.6m treasury shares issued for employee/shareholder plans. This is exactly why BUYBACK_EXECUTED must remain distinct from NET_SHARE_SHRINKAGE. |
+| CE-2026-CHGG-S3-002 | Chegg, Inc. | 0001364954 | CHGG | NA | S3 | BUYBACK_EXECUTED | ISSUER_CHGG | ISSUER:CHGG | 10-Q | 0001364954-26-000088 | 2026-06-30 | 2026-08-06 16:17:12 | true | 2026-08-07 09:30:00 | NA | 1447000 | shares_repurchased | NONE | NONE | true | true | https://www.sec.gov/Archives/edgar/data/1364954/000136495426000088/0001364954-26-000088-index.htm | Q2 equity statement reports 1.447m common shares repurchased; disclosed equity impact about $1.721m. Separate ESPP/equity-award issuance means no automatic NET_SHARE_SHRINKAGE label. |
+
+## Derived candidate convergence pairs — no outcomes
+
+| convergence_event_id | issuer | component_event_ids | component_families | component_order | calendar_gap_days | window_class | independence_state | shared_cause_candidate | dependence_rationale | convergence_t0_ET | executable_t0_ET | base_test_eligible | strongest_component_rule_id | returns_unlock_commit |
+|---|---|---|---|---|---:|---|---|---|---|---|---|---|---|---|
+| CV-CHGG-2026-001 | CHGG | CE-2026-CHGG-S1-001 + CE-2026-CHGG-S3-001 | S1+S3 | insider purchase -> confirmed debt reduction | 82 | W90 | I1_COMMON_CAUSE_LIKELY | true | Rosensweig was CEO/Executive Chairman; issuer capital-allocation execution and management insider purchase are not informationally independent. | 2026-05-11 16:16:23 | 2026-05-12 09:30:00 | false | STRONGEST_COMPONENT_REANCHORED_COMMON_T0 | NULL |
+| CV-CHGG-2026-002 | CHGG | CE-2026-CHGG-S1-001 + CE-2026-CHGG-S3-002 | S1+S3 | insider purchase -> executed common-stock buyback | 169 | W180 | I1_COMMON_CAUSE_LIKELY | true | Same issuer-management information system; eligible only for dependent-confirmation sensitivity, never clean I3 convergence. | 2026-08-06 16:17:12 | 2026-08-07 09:30:00 | false | STRONGEST_COMPONENT_REANCHORED_COMMON_T0 | NULL |
+| CV-STIM-2026-001 | STIM | CE-2026-STIM-S2-001 + CE-2026-STIM-S1-001 | S2+S1 | initial 13D -> additional Form4 purchase | 22 | W30 | I1_COMMON_CAUSE_LIKELY | true | Exact same actor, Jorey Chernett, generated both signals. Additional buying may intensify the same thesis but is not an independent public channel. | 2026-04-22 09:39:59 | 2026-04-22 09:39:59 | false | STRONGEST_COMPONENT_REANCHORED_COMMON_T0 | NULL |
+| CV-STIM-2026-002 | STIM | CE-2026-STIM-S2-002 + CE-2026-STIM-S1-001 | S2+S1 | strategic-review demand -> additional Form4 purchase | 14 | W30 | I1_COMMON_CAUSE_LIKELY | true | Same activist/10% owner and same campaign; do not count as external confirmation. | 2026-04-22 09:39:59 | 2026-04-22 09:39:59 | false | STRONGEST_COMPONENT_REANCHORED_COMMON_T0 | NULL |
+
+## De-duplication notes
+- `CE-2026-STIM-S2-001` and `CE-2026-STIM-S2-002` are two public states of one 13D campaign. They are retained for chronology but **must not** be counted as independent signals.
+- `CE-2026-GME-S1-001` aggregates the two code-P purchase rows in one Form 4 into a single public component event.
+- Executed buyback rows do not receive `NET_SHARE_SHRINKAGE` until SBC, employee issuance, M&A issuance and corporate actions are reconciled.
+- No event in this file has a forward return, price outcome, alpha label, hit/miss field or post-event narrative.
+
+## Seed audit
+`COMPONENT_ROWS = 10`  
+`ISSUERS = 6`  
+`DERIVED_PAIR_ROWS = 4`  
+`I3_BASE_ELIGIBLE_PAIRS = 0`  
+`RETURNS_ACCESS = LOCKED`
+
+The fact that the first four candidate pairs all fail I3 is **not** a reason to relax the gate. It is evidence that naive signal-counting would overstate independent confirmation.
