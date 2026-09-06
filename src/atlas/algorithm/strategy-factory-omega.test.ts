@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_STRATEGY_FACTORY_POLICY,
+  STRATEGY_FACTORY_CALIBRATION,
   STRATEGY_FACTORY_OMEGA,
   type StrategyFactoryCandidate,
   evaluateStrategyFactoryCandidate,
@@ -75,10 +76,13 @@ function validCandidate(): StrategyFactoryCandidate {
   };
 }
 
-describe('Strategy Factory Omega', () => {
-  it('has zero structural score weight and no execution authority', () => {
+describe('Strategy Factory Omega falsification freeze', () => {
+  it('is frozen, zero-weight and has no execution authority', () => {
+    expect(STRATEGY_FACTORY_OMEGA.status).toBe('FROZEN_SPECIFICATION_ONLY');
     expect(STRATEGY_FACTORY_OMEGA.structuralScoreWeight).toBe(0);
     expect(STRATEGY_FACTORY_OMEGA.brokerExecutionAuthority).toBe(false);
+    expect(STRATEGY_FACTORY_CALIBRATION.nullArmExecuted).toBe(false);
+    expect(STRATEGY_FACTORY_CALIBRATION.endToEndGeneratorBacktesterRunnable).toBe(false);
   });
 
   it('rejects invalid data even with attractive performance', () => {
@@ -101,7 +105,7 @@ describe('Strategy Factory Omega', () => {
     expect(result.rejectCodes).toContain('REJECT_PARAMETER_SPIKE');
   });
 
-  it('rejects failure after multiple-testing correction', () => {
+  it('rejects failure after candidate-level multiple-testing diagnostics', () => {
     const c = validCandidate();
     c.multipleTesting.fdrAdjustedPValue = 0.2;
 
@@ -110,17 +114,20 @@ describe('Strategy Factory Omega', () => {
     expect(result.rejectCodes).toContain('REJECT_MULTIPLE_TESTING');
   });
 
-  it('makes a robust sealed-OOS candidate shadow eligible but never executable', () => {
+  it('does not promote an apparently robust candidate before factory-level falsification', () => {
     const result = evaluateStrategyFactoryCandidate(validCandidate(), DEFAULT_STRATEGY_FACTORY_POLICY);
 
-    expect(result.passed).toBe(true);
+    expect(result.passed).toBe(false);
     expect(result.stage).toBe('PORTFOLIO_ELIGIBLE');
-    expect(result.shadowEligible).toBe(true);
+    expect(result.rejectCodes).toContain('REJECT_FACTORY_NOT_EMPIRICALLY_CALIBRATED');
+    expect(result.notes).toContain('NULL_ARM_NOT_EXECUTED');
+    expect(result.notes).toContain('FULL_FAMILY_MULTIPLICITY_NOT_CALIBRATED');
+    expect(result.shadowEligible).toBe(false);
     expect(result.structuralScoreWeight).toBe(0);
     expect(result.brokerExecutionAuthority).toBe(false);
   });
 
-  it('accepts valid pre-timestamped live shadow evidence without granting broker authority', () => {
+  it('does not let nominal live-shadow evidence bypass the global freeze', () => {
     const c = validCandidate();
     c.liveShadow = {
       timestampedBeforeOutcome: true,
@@ -131,8 +138,10 @@ describe('Strategy Factory Omega', () => {
     };
 
     const result = evaluateStrategyFactoryCandidate(c);
-    expect(result.passed).toBe(true);
+    expect(result.passed).toBe(false);
     expect(result.stage).toBe('LIVE_SHADOW');
+    expect(result.rejectCodes).toContain('REJECT_FACTORY_NOT_EMPIRICALLY_CALIBRATED');
+    expect(result.shadowEligible).toBe(false);
     expect(result.brokerExecutionAuthority).toBe(false);
   });
 });

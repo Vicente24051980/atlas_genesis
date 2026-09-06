@@ -1,0 +1,28 @@
+name: Strategy Factory Omega Freeze CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/strategy-factory-omega.ts'
+      - 'src/atlas/algorithm/strategy-factory-omega.test.ts'
+      - 'src/atlas/algorithm/quant-lab-engine-hierarchy.ts'
+      - 'CURRENT_CANON/2026-09-06_ATLAS_QUANT_LAB_STRATEGY_FACTORY_OMEGA_V1.md'
+      - '.github/workflows/strategy-factory-omega-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/atlas/algorithm/strategy-factory-omega.ts'
+      - 'src/atlas/algorithm/strategy-factory-omega.test.ts'
+      - 'src/atlas/algorithm/quant-lab-engine-hierarchy.ts'
+      - 'CURRENT_CANON/2026-09-06_ATLAS_QUANT_LAB_STRATEGY_FACTORY_OMEGA_V1.md'
+      - '.github/workflows/strategy-factory-omega-ci.yml'
+
+jobs:
+  fail-closed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Strategy Factory falsification-freeze tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/strategy-factory-omega.test.ts

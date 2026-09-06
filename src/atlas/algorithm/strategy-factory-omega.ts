@@ -1,9 +1,9 @@
-export const STRATEGY_FACTORY_OMEGA_VERSION = '2026-09-06-v1.0.0' as const;
+export const STRATEGY_FACTORY_OMEGA_VERSION = '2026-09-06-v1.1.0' as const;
 
 export const STRATEGY_FACTORY_OMEGA = {
   id: 'ATLAS_QUANT_LAB_STRATEGY_FACTORY_OMEGA_V1',
   version: STRATEGY_FACTORY_OMEGA_VERSION,
-  status: 'RESEARCH_SHADOW_ONLY',
+  status: 'FROZEN_SPECIFICATION_ONLY',
   structuralScoreWeight: 0,
   brokerExecutionAuthority: false,
   feeds: [
@@ -15,6 +15,20 @@ export const STRATEGY_FACTORY_OMEGA = {
     'PORTFOLIO_RISK_UTILITY_RESEARCH_OMEGA_V1',
     'MODEL_LEARNING_GOVERNANCE_OMEGA_V1',
   ] as const,
+} as const;
+
+/**
+ * Global calibration state. These are factory-level preconditions, not
+ * candidate-level metrics. No candidate may become shadow/portfolio eligible
+ * while any mandatory precondition is false.
+ */
+export const STRATEGY_FACTORY_CALIBRATION = {
+  endToEndGeneratorBacktesterRunnable: false,
+  economicMechanismPriorEnforced: false,
+  frictionStage0Pinned: false,
+  fullCandidateLedgerAvailable: false,
+  nullArmExecuted: false,
+  fullFamilyMultiplicityCalibrated: false,
 } as const;
 
 export type StrategyFactoryStage =
@@ -48,7 +62,8 @@ export type StrategyFactoryRejectCode =
   | 'REJECT_REALITY_CHECK'
   | 'REJECT_SEALED_OOS'
   | 'REJECT_REDUNDANT_PORTFOLIO'
-  | 'REJECT_LIVE_SHADOW';
+  | 'REJECT_LIVE_SHADOW'
+  | 'REJECT_FACTORY_NOT_EMPIRICALLY_CALIBRATED';
 
 export type DiagnosticState = 'PASS' | 'FAIL' | 'NOT_COMPUTED' | 'NOT_APPLICABLE';
 
@@ -236,6 +251,8 @@ export function evaluateStrategyFactoryCandidate(
   if (rejectCodes.length) return rejected(c, stage, rejectCodes, notes);
   stage = 'ROBUSTNESS_PASS';
 
+  // Candidate-level values are diagnostic only while the complete generated
+  // family/search history is unavailable. The factory remains globally frozen.
   if (c.multipleTesting.fdrAdjustedPValue === null || c.multipleTesting.fdrAdjustedPValue > p.maxFdrAdjustedPValue) {
     rejectCodes.push('REJECT_MULTIPLE_TESTING');
   }
@@ -292,17 +309,19 @@ export function evaluateStrategyFactoryCandidate(
     stage = 'LIVE_SHADOW';
   }
 
-  return {
-    candidateId: c.candidateId,
-    version: c.candidateVersion,
-    stage,
-    passed: true,
-    rejectCodes: [],
-    notes,
-    structuralScoreWeight: 0,
-    brokerExecutionAuthority: false,
-    shadowEligible: stage === 'PORTFOLIO_ELIGIBLE' || stage === 'LIVE_SHADOW',
-  };
+  // Freeze is deliberately applied only after diagnostic evaluation so tests
+  // can still identify local failure modes, while no apparently good candidate
+  // can be promoted before factory-level falsification is complete.
+  rejectCodes.push('REJECT_FACTORY_NOT_EMPIRICALLY_CALIBRATED');
+  notes.push(
+    'END_TO_END_GENERATOR_BACKTESTER_NOT_RUNNABLE',
+    'ECONOMIC_MECHANISM_PRIOR_NOT_ENFORCED',
+    'FRICTION_STAGE_0_NOT_PINNED',
+    'FULL_CANDIDATE_LEDGER_NOT_AVAILABLE',
+    'NULL_ARM_NOT_EXECUTED',
+    'FULL_FAMILY_MULTIPLICITY_NOT_CALIBRATED',
+  );
+  return rejected(c, stage, rejectCodes, notes);
 }
 
 function rejected(
