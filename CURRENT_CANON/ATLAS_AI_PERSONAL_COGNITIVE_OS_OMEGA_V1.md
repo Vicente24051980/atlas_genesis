@@ -1,6 +1,6 @@
 # ATLAS AI — Personal Cognitive OS Ω v1.0
 
-**Status:** CANONICAL — ARCHITECTURE FROZEN / NEW IMPLEMENTATION PAUSED  
+**Status:** CANONICAL — TARGET ARCHITECTURE FROZEN / FEATURE EXPANSION PAUSED / RELIABILITY REMEDIATION ALLOWED  
 **Date:** 2026-09-06  
 **Persistent knowledge infrastructure:** GitHub + Notion only
 
@@ -12,15 +12,43 @@ ATLAS must not become another inbox Vicente has to maintain.
 
 ## Current implementation decision — 2026-09-06
 
-The target architecture is preserved, but **new implementation work is paused before further expansion**. The existing experimental Memory Foundation work must not be promoted merely because it exists.
+The target architecture is preserved, but **new feature/module expansion is paused**. Existing experimental work must not be promoted merely because it exists or because its CI is green.
 
-When the next model generation Vicente intends to evaluate is actually available with verifiable capabilities, ATLAS will run a capability audit before resuming implementation:
+A narrow exception exists for **reliability remediation of already-declared MVP capabilities**. Remediation may proceed only when it fixes a measured failure without expanding the product surface. Examples include continuity retrieval, provenance integrity, fail-closed routing, regression tests and runtime binding required to make an already-specified capability actually work.
+
+Therefore:
+
+`FEATURE EXPANSION = PAUSED`
+
+`MEASURED RELIABILITY FIX = ALLOWED`
+
+`PROMOTION = TEST-GATED`
+
+When a future model generation Vicente intends to evaluate is actually available with verifiable capabilities, ATLAS will run a capability audit before resuming feature expansion:
 
 `REAL CAPABILITIES → GAP ANALYSIS AGAINST ATLAS OS → ARCHITECTURE REVIEW → CANON UPDATE → TESTS → IMPLEMENTATION → MERGE`
 
 No architecture will be designed around unverified or assumed future-model capabilities.
 
-Existing experimental PR/work should remain experimental until tests and architectural review justify promotion.
+## ATLAS LAW — CONTINUITY FIRST Ω
+
+Until the first functional continuity acceptance test passes in the real ATLAS runtime, no new cognitive module may enter active implementation merely because it is architecturally attractive.
+
+Allowed before continuity PASS:
+- bug fixes;
+- retrieval/runtime binding;
+- provenance and epistemic-safety fixes;
+- fail-closed behavior;
+- tests, observability and diagnostics required to validate the existing MVP.
+
+Blocked before continuity PASS:
+- Digital Twin prediction runtime;
+- Decision Prediction runtime;
+- World Model runtime;
+- autonomous policy learning;
+- new cognitive engines not required to repair the measured continuity failure.
+
+This law supersedes architectural enthusiasm. **Tested continuity is the current bottleneck.**
 
 ## ATLAS LAW — ZERO-INBOX Ω
 
@@ -37,6 +65,8 @@ Every captured unit should resolve, except explicit exceptions, to one of:
 ## ATLAS LAW — MVP SMALL, ARCHITECTURE LARGE Ω
 
 Implement the smallest useful slice first, while schemas and interfaces remain compatible with the target architecture. Early shortcuts must not destroy provenance, temporal validity, relationships, open loops, decision history, permissions, or future model/tool portability.
+
+A large target architecture does **not** authorize concurrent implementation of all target modules.
 
 ## ATLAS LAW — COGNITIVE SOVEREIGNTY Ω
 
@@ -88,6 +118,8 @@ External systems are sources/tools, not additional master memories.
 26. `ATLAS Daily Brief Ω`
 27. `Live Response Ω`
 
+**Module presence in the target architecture is not equivalent to implementation authorization.**
+
 ## Agent Harness Ω
 
 Agent execution is governed as an iterative harness rather than an unconstrained prompt loop:
@@ -130,6 +162,14 @@ Canonical training trace:
 
 `situation → information available → relevant preferences → constraints → alternatives considered → Vicente actual decision → outcome → learning`
 
+Candidate traits, book-derived ideas and self-description may generate hypotheses, but do not become predictive weights without behavioral evidence.
+
+`SELF_RECOGNIZED != BEHAVIORALLY_OBSERVED != PREDICTIVE`
+
+## Decision Prediction Ω — frozen gate
+
+Decision Prediction remains non-operative until a minimum decision/outcome dataset is defined **before inspecting the available count** and then actually populated with genuine decisions and outcomes. If the dataset is too sparse, the correct conclusion may be that reliable decision prediction is not yet feasible.
+
 ## Two-speed cognition
 
 - **LIVE:** time-sensitive inputs, immediate responses, urgent open loops and authorized alerts.
@@ -147,18 +187,24 @@ Reasoning is separate from authority. Minimum capability classes include `READ`,
 
 `CAPTURE → STRUCTURE → CONTEXT ROUTING → MEMORY RETRIEVAL → UNDERSTANDING → REASONING → VICENTE MODEL → PREDICTION → EXECUTIVE → AGENT HARNESS → MODEL/TOOL SELECTION → PERMISSION CHECK → ACTION/RESPONSE → RESULT VALIDATION → LEARNING → CONSOLIDATION`
 
-## Construction order after capability audit
+Target extensions such as World Model Ω may define future capabilities without altering this active implementation sequence until their activation gates pass.
 
+## Construction order after capability audit and prerequisite gates
+
+0. **Continuity must already PASS in the real runtime.**
 1. **Memory Foundation** — Capture, schemas, Parser, Context Router, provenance and epistemic layer.
 2. **Operational Memory** — Memory Retrieval, Open Loops, Actions, Zero-Inbox and Daily Brief.
 3. **Personal Graph** — People/Relationships, projects, decisions and transversal graph.
-4. **Digital Twin** — Vicente Model, longitudinal decisions, temporal preferences, outcomes and learning.
-5. **Cognitive Intelligence** — Contradiction Detection and Decision Prediction.
+4. **Digital Twin** — only after sufficient behavioral decision/outcome evidence exists.
+5. **Cognitive Intelligence** — Contradiction Detection and Decision Prediction only after their data gates pass.
 6. **Atlas Executive & Execution** — Executive, Agent Harness, Model Router, Tool Router, Permission & Containment, Personal Data Gateway and Result Validator.
+7. **Optional target extensions** — e.g. World Model, only after their own explicit activation gates.
 
 ## First functional acceptance test
 
 Atlas passes the first meaningful MVP test when Vicente can end a multi-day research conversation, return later and say only `Sigue`, and Atlas reliably recovers the correct project/thread, established evidence, remaining hypotheses, unresolved open loop, evidence standard, next best action and provenance.
+
+The locked continuity thresholds remain the controlling gate until superseded by a new preregistered test **before** observing its outputs.
 
 ## Durable moat
 
@@ -168,4 +214,4 @@ ATLAS's durable advantage is not a particular LLM. It is:
 
 ---
 
-**Canonical target:** ATLAS AI is a persistent Personal Cognitive OS, not a chatbot with memory and not a note-taking application. Architecture preserved; new implementation remains paused until the planned next-model capability audit.
+**Canonical target:** ATLAS AI is a persistent Personal Cognitive OS, not a chatbot with memory and not a note-taking application. Target architecture remains preserved. Feature expansion is paused; measured reliability remediation is allowed; promotion remains test-gated.
