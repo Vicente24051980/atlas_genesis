@@ -1,0 +1,12 @@
+{
+  "name": "OmniRoute",
+  "upstreamRepository": "https://github.com/artzy/OmniRoute",
+  "inspectedBranch": "release/v3.8.49",
+  "pinnedCommit": "45ca8ead4108d36b4f7179cd1606c4cff53d5f5a",
+  "packageVersion": "3.8.49",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2026 diegosouzapw",
+  "integrationMode": "reference-and-atlas-owned-adaptation",
+  "copiedSourceFiles": [],
+  "canonicalAuthority": false
+}
