@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
+from runtime.agentic_omega.correctability import CorrectionReceipt, CorrectionStage, CorrectabilityTracker
 from runtime.agentic_omega.governance_firewall import (
     AuthorityMode,
     Capability,
@@ -108,3 +111,75 @@ def test_runtime_shutdown_verification_is_ledgered() -> None:
     assert status is TerminationStatus.NOT_TERMINATED
     assert ledger.events[-1]["event_type"] == "SHUTDOWN_VERIFICATION"
     assert ledger.events[-1]["payload"]["residue"] == {"retry_queue_count": 1}
+
+
+def test_correctability_is_ordered_and_preserves_the_original_failure() -> None:
+    ledger = AppendOnlyEventLedger()
+    tracker = CorrectabilityTracker(ledger)
+    common = {"task_id": "task-audit-1", "error_id": "ERR-HORIZON-1"}
+
+    tracker.record(CorrectionReceipt(
+        **common,
+        stage=CorrectionStage.DETECTED,
+        detail="CI exposed a horizon-mismatch assertion failure",
+        evidence_refs=("ci:34063302948",),
+    ))
+    tracker.record(CorrectionReceipt(
+        **common,
+        stage=CorrectionStage.CONTAINED,
+        detail="PR remained draft and main was not modified",
+        evidence_refs=("pr:169", "main:1bd56a13"),
+    ))
+    tracker.record(CorrectionReceipt(
+        **common,
+        stage=CorrectionStage.CORRECTED,
+        detail="removed the arbitrary 20x ratio and enforced an explicit transmission bridge",
+        evidence_refs=("commit:8209c3d7",),
+        rollback_ref="main:1bd56a13",
+    ))
+    tracker.record(CorrectionReceipt(
+        **common,
+        stage=CorrectionStage.VALIDATED,
+        detail="focused CI passed after correction",
+        evidence_refs=("ci:34063435956",),
+    ))
+    tracker.record(CorrectionReceipt(
+        **common,
+        stage=CorrectionStage.LEARNING_RECORDED,
+        detail="arbitrary horizon ratios must not substitute for a causal transmission requirement",
+        evidence_refs=("report:ASTRA_MASTER_AUDIT_GUARDRAILS_OMEGA",),
+    ))
+
+    status = tracker.status("ERR-HORIZON-1")
+    assert status.complete is True
+    assert status.last_stage is CorrectionStage.LEARNING_RECORDED
+    assert status.missing_stages == ()
+    stages = [event["payload"]["stage"] for event in ledger.events]
+    assert stages == [stage.value for stage in CorrectionStage]
+    assert ledger.verify() is True
+
+
+def test_correctability_refuses_silent_history_rewrite_or_stage_skipping() -> None:
+    ledger = AppendOnlyEventLedger()
+    tracker = CorrectabilityTracker(ledger)
+    with pytest.raises(RuntimeError, match="expected DETECTED"):
+        tracker.record(CorrectionReceipt(
+            task_id="task-audit-1",
+            error_id="ERR-1",
+            stage=CorrectionStage.CORRECTED,
+            detail="attempted silent correction",
+            evidence_refs=("commit:x",),
+            rollback_ref="commit:before",
+        ))
+    assert ledger.events == ()
+
+
+def test_correction_requires_explicit_rollback_or_non_applicability_reason() -> None:
+    with pytest.raises(ValueError, match="rollback_ref"):
+        CorrectionReceipt(
+            task_id="task-audit-1",
+            error_id="ERR-2",
+            stage=CorrectionStage.CORRECTED,
+            detail="patch applied",
+            evidence_refs=("commit:x",),
+        )
