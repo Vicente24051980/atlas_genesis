@@ -1,9 +1,13 @@
-export const CAPITAL_BLIND_PORTFOLIO_SELECTION_OMEGA_VERSION = '2026-09-05-v1.0.0' as const;
-export const MIN_PORTFOLIO_POSITIONS = 20 as const;
-export const MAX_PORTFOLIO_POSITIONS = 35 as const;
+export const CAPITAL_BLIND_PORTFOLIO_SELECTION_OMEGA_VERSION = '2026-09-06-v2.0.0' as const;
+
+// Legacy compatibility exports only. They are deliberately non-binding.
+// Canonical selection has no ex-ante cardinality floor or ceiling.
+export const MIN_PORTFOLIO_POSITIONS = 0 as const;
+export const MAX_PORTFOLIO_POSITIONS = Number.POSITIVE_INFINITY;
 
 export type CapitalBlindCandidate = {
   ticker: string;
+  canonicalEntityId?: string;
   hardGatesPassed: boolean;
   expectedCompoundReturnPct: number;
   permanentLossRiskPct: number;
@@ -23,8 +27,11 @@ export type CapitalBlindCandidate = {
 };
 
 export type CapitalBlindSelectionPolicy = {
+  /** @deprecated Fixed-N bounds are forbidden by the 2026-09-06 master canon. */
   minPositions?: number;
+  /** @deprecated Fixed-N bounds are forbidden by the 2026-09-06 master canon. */
   maxPositions?: number;
+  marginalUtilityThreshold?: number;
   pairwiseRedundancyPenaltyPct?: Record<string, number>;
 };
 
@@ -83,6 +90,51 @@ function pairKey(a: string, b: string): string {
   return [a.toUpperCase(), b.toUpperCase()].sort().join('::');
 }
 
+function entityKey(c: CapitalBlindCandidate): string {
+  return (c.canonicalEntityId?.trim() || c.ticker.trim()).toUpperCase();
+}
+
+function deduplicateEntities(candidates: CapitalBlindCandidate[]): CapitalBlindCandidate[] | null {
+  const byEntity = new Map<string, CapitalBlindCandidate>();
+
+  for (const candidate of candidates) {
+    const key = entityKey(candidate);
+    const existing = byEntity.get(key);
+    if (!existing) {
+      byEntity.set(key, candidate);
+      continue;
+    }
+
+    // Duplicate raw appearances must not create extra opportunities. If the
+    // normalized evidence differs, fail closed rather than cherry-picking the
+    // more favorable duplicate.
+    const comparableExisting = JSON.stringify({
+      hardGatesPassed: existing.hardGatesPassed,
+      expectedCompoundReturnPct: existing.expectedCompoundReturnPct,
+      permanentLossRiskPct: existing.permanentLossRiskPct,
+      fragilityPenaltyPct: existing.fragilityPenaltyPct,
+      robustnessBenefitPct: existing.robustnessBenefitPct ?? 0,
+      causalDiversificationBenefitPct: existing.causalDiversificationBenefitPct ?? 0,
+      complexityPenaltyPct: existing.complexityPenaltyPct ?? 0,
+      causalDrivers: [...(existing.causalDrivers ?? [])].sort(),
+    });
+    const comparableCandidate = JSON.stringify({
+      hardGatesPassed: candidate.hardGatesPassed,
+      expectedCompoundReturnPct: candidate.expectedCompoundReturnPct,
+      permanentLossRiskPct: candidate.permanentLossRiskPct,
+      fragilityPenaltyPct: candidate.fragilityPenaltyPct,
+      robustnessBenefitPct: candidate.robustnessBenefitPct ?? 0,
+      causalDiversificationBenefitPct: candidate.causalDiversificationBenefitPct ?? 0,
+      complexityPenaltyPct: candidate.complexityPenaltyPct ?? 0,
+      causalDrivers: [...(candidate.causalDrivers ?? [])].sort(),
+    });
+
+    if (comparableExisting !== comparableCandidate) return null;
+  }
+
+  return [...byEntity.values()];
+}
+
 function redundancyPenalty(
   candidate: CapitalBlindCandidate,
   selected: CapitalBlindCandidate[],
@@ -115,12 +167,8 @@ export function selectCapitalBlindPortfolioOmega(
   candidates: CapitalBlindCandidate[],
   policy: CapitalBlindSelectionPolicy = {},
 ): CapitalBlindSelectionResult {
-  const minPositions = policy.minPositions ?? MIN_PORTFOLIO_POSITIONS;
-  const maxPositions = policy.maxPositions ?? MAX_PORTFOLIO_POSITIONS;
-
-  if (!Number.isInteger(minPositions) || !Number.isInteger(maxPositions) ||
-      minPositions < MIN_PORTFOLIO_POSITIONS || maxPositions > MAX_PORTFOLIO_POSITIONS ||
-      minPositions > maxPositions) {
+  // A caller may not smuggle a fixed cardinality target into clean selection.
+  if (policy.minPositions !== undefined || policy.maxPositions !== undefined) {
     return {
       status: 'EVIDENCE_PENDING', selectedTickers: [], optimalN: null,
       marginalUtilityByTicker: {}, ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
@@ -128,7 +176,9 @@ export function selectCapitalBlindPortfolioOmega(
     };
   }
 
-  if (candidates.some(c => !validateCandidate(c))) {
+  const marginalUtilityThreshold = policy.marginalUtilityThreshold ?? 0;
+  if (!finite(marginalUtilityThreshold) || marginalUtilityThreshold < 0 ||
+      candidates.some(c => !validateCandidate(c))) {
     return {
       status: 'EVIDENCE_PENDING', selectedTickers: [], optimalN: null,
       marginalUtilityByTicker: {}, ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
@@ -136,10 +186,19 @@ export function selectCapitalBlindPortfolioOmega(
     };
   }
 
-  const eligible = candidates.filter(c => c.hardGatesPassed);
-  if (eligible.length < minPositions) {
+  const deduplicated = deduplicateEntities(candidates);
+  if (!deduplicated) {
     return {
-      status: 'INSUFFICIENT_ELIGIBLE_CANDIDATES', selectedTickers: [], optimalN: null,
+      status: 'EVIDENCE_PENDING', selectedTickers: [], optimalN: null,
+      marginalUtilityByTicker: {}, ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
+      emitsTargetWeights: false, emitsEntryTiming: false,
+    };
+  }
+
+  const eligible = deduplicated.filter(c => c.hardGatesPassed);
+  if (eligible.length === 0) {
+    return {
+      status: 'INSUFFICIENT_ELIGIBLE_CANDIDATES', selectedTickers: [], optimalN: 0,
       marginalUtilityByTicker: {}, ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
       emitsTargetWeights: false, emitsEntryTiming: false,
     };
@@ -149,21 +208,20 @@ export function selectCapitalBlindPortfolioOmega(
   const selected: CapitalBlindCandidate[] = [];
   const marginalUtilityByTicker: Record<string, number> = {};
 
-  while (selected.length < maxPositions && remaining.length > 0) {
+  // Point Zero: begin with an empty portfolio. At every step all remaining
+  // entities compete for the next scarce slot. Expansion stops immediately
+  // when even the best available addition fails the marginal-utility test.
+  while (remaining.length > 0) {
     const ranked = remaining
       .map(c => ({ c, marginal: calculateMarginalPortfolioContribution(c, selected, policy) }))
       .sort((a, b) => b.marginal - a.marginal || a.c.ticker.localeCompare(b.c.ticker));
 
     const best = ranked[0];
-    if (!best) break;
-
-    // The cardinality floor is a portfolio-design constraint. Above the floor,
-    // an additional ticker must improve the portfolio on a marginal basis.
-    if (selected.length >= minPositions && best.marginal <= 0) break;
+    if (!best || best.marginal <= marginalUtilityThreshold) break;
 
     selected.push(best.c);
     marginalUtilityByTicker[best.c.ticker] = best.marginal;
-    const index = remaining.findIndex(c => c.ticker === best.c.ticker);
+    const index = remaining.findIndex(c => entityKey(c) === entityKey(best.c));
     remaining.splice(index, 1);
   }
 
