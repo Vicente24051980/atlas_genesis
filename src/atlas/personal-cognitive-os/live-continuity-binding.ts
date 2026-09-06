@@ -141,10 +141,45 @@ function scoreConversationEvidence(
   return Math.round(score * 100) / 100;
 }
 
+function explicitProjectIdsInLocalContext(
+  input: LiveContinuityBindingInput,
+  records: ContinuityRegistryRecord[],
+): Set<string> {
+  const ids = new Set<string>();
+  for (const turn of input.recentTurns.slice(-8)) {
+    for (const record of records) {
+      if (containsIdentityPhrase(turn.content, record)) ids.add(record.projectId);
+    }
+  }
+  return ids;
+}
+
+function explicitProjectIdsInTitle(
+  input: LiveContinuityBindingInput,
+  records: ContinuityRegistryRecord[],
+): Set<string> {
+  const ids = new Set<string>();
+  if (!input.conversationTitle) return ids;
+  for (const record of records) {
+    if (containsIdentityPhrase(input.conversationTitle, record)) ids.add(record.projectId);
+  }
+  return ids;
+}
+
 function inferProjectFromLocalConversation(
   input: LiveContinuityBindingInput,
   records: ContinuityRegistryRecord[],
 ): { projectId: string | null; ambiguous: boolean; bestScore: number; secondScore: number } {
+  const titleExplicit = explicitProjectIdsInTitle(input, records);
+  const turnExplicit = explicitProjectIdsInLocalContext(input, records);
+
+  // Safety gate: when local turns explicitly name multiple projects, a generic title
+  // must not let the scoring model silently choose one. A single explicit title project
+  // is allowed to disambiguate because it is local conversation metadata.
+  if (turnExplicit.size > 1 && titleExplicit.size !== 1) {
+    return { projectId: null, ambiguous: true, bestScore: 0, secondScore: 0 };
+  }
+
   const ranked = records
     .map((record) => ({ record, score: scoreConversationEvidence(input, record) }))
     .sort((a, b) => b.score - a.score);
