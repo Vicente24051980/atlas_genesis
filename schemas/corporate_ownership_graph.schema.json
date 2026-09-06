@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.local/schemas/corporate_ownership_graph.schema.json",
+  "title": "ATLAS CAPITAL / OWNERSHIP Ω — Corporate Regime",
+  "description": "Modern corporate ownership/control graph. Evidence and confidence are physically separated from DINASTÍA HISTÓRICA Ω.",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/entity" },
+    { "$ref": "#/$defs/relation" }
+  ],
+  "$defs": {
+    "entityType": {"enum":["person","surname","family","company","holding","corporate_group","fund","foundation","bank","trust","institution","vehicle","security","filing","source"]},
+    "status": {"enum":["accepted","provisional","disputed","rejected","unresolved"]},
+    "relationType": {"enum":["owns","controls","holds_stake_in","subsidiary_of","parent_company_of","managed_by","founded_by","director_of","executive_of","beneficiary_of","trustee_of","member_of_group","brand_of","votes_for","beneficial_owner_of","ultimate_parent_of","associated_with"]},
+    "entity": {
+      "type":"object",
+      "required":["record_type","id","entity_type","name","status"],
+      "properties": {
+        "record_type":{"const":"entity"},
+        "epistemic_domain":{"const":"corporate"},
+        "id":{"type":"string","minLength":3},
+        "entity_type":{"$ref":"#/$defs/entityType"},
+        "name":{"type":"string","minLength":1},
+        "status":{"$ref":"#/$defs/status"},
+        "jurisdiction":{"type":["string","null"]},
+        "identifier":{"type":["string","null"]},
+        "notes":{"type":"string","default":""}
+      },
+      "additionalProperties":true
+    },
+    "relation": {
+      "type":"object",
+      "required":["record_type","id","source_id","target_id","relation_type","evidence_basis","source_ids","confidence","status"],
+      "properties": {
+        "record_type":{"const":"relation"},
+        "epistemic_domain":{"const":"corporate"},
+        "id":{"type":"string","minLength":3},
+        "source_id":{"type":"string"},
+        "target_id":{"type":"string"},
+        "relation_type":{"$ref":"#/$defs/relationType"},
+        "evidence_basis":{"enum":["corporate_filing","official_registry","ownership_disclosure","regulatory_filing","audited_report","company_disclosure","court_record","credible_secondary","inference"]},
+        "source_ids":{"type":"array","minItems":1,"items":{"type":"string"}},
+        "date_min":{"type":["integer","null"]},
+        "date_max":{"type":["integer","null"]},
+        "confidence":{"type":"number","minimum":0,"maximum":1},
+        "status":{"$ref":"#/$defs/status"},
+        "notes":{"type":"string","default":""}
+      },
+      "additionalProperties":true
+    }
+  }
+}
