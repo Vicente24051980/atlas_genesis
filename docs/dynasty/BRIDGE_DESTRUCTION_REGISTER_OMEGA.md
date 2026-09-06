@@ -13,13 +13,14 @@ A bridge survives only if at least one argument connects the endpoints without u
 - `CONTRADICTED` — positive evidence is incompatible with the frozen claim.
 - `DEPENDENCY LOOP` — apparent corroboration ultimately returns to the same evidentiary root/reconstruction.
 - `CLOSED-UNRESOLVED` — Stop Rule met; do not reopen for another derivative repetition.
+- `CLOSED-PARTIAL` — the broad claim survives only in a narrower, explicitly delimited form; stronger subclaims are closed.
 
 ## Stop Rule Ω
-A bridge may move to `CLOSED-UNRESOLVED` after:
+A bridge may move to a closed state after:
 1. relevant known primary evidence has been audited;
 2. at least two materially independent secondary arguments have been checked where available;
 3. bibliographic dependency has been traced to ultimate evidentiary roots;
-4. no surviving line supplies the required bridge; and
+4. the surviving and failing layers of the claim are explicit; and
 5. no concrete class of pending evidence is identified.
 
 Reopen only for new primary evidence, a new critical edition, new epigraphic/numismatic/sigillographic evidence, or a genuinely independent new argument.
@@ -30,7 +31,7 @@ Reopen only for new primary evidence, a new critical edition, new epigraphic/num
 |---|---|---|---|---|
 | BD-01 | Orontids / Sophene → Artsruni genealogical descent | No recoverable genealogy; Mithrobuzanes→late-antique Artsruni spans ~400+ years and ~11–21 plausible generations without a continuous pedigree | `CLOSED-UNRESOLVED / DOCUMENTARY GAP` | Remove as hard genealogical edge; retain only historiographical reconstruction metadata |
 | BD-02 | Orontids → Bagratuni genealogical descent | No independent recoverable bridge. Bagratuni history from Late Antiquity and the VI c. onward remains intact | `CLOSED-UNRESOLVED / DOCUMENTARY GAP` | Remove as hard remote-descent edge; retain as historiographical hypothesis |
-| BD-03 | Kāren-Pahlav → Kamsarakan historical/genealogical derivation | Independent evidence confirms Kāren as a real Sasanian/Parthian great house and Kamsarakan tradition of Kāren origin, but the personal bridge through Pērōzmat is only in Khorenatsi and parts of his Kāren narrative conflict with contemporary inscriptions | `PARTIAL` — pending final close | No complete pedigree edge; possible house-origin/tradition edge only |
+| BD-03 | Kāren-Pahlav → Kamsarakan historical/genealogical derivation | Kāren exists independently as a major Iranian house and Kamsarakan preserves a durable Kāren-Pahlav origin tradition; however the named Pērōzmat bridge is only in Khorenatsi and his single-survivor narrative conflicts with contemporary Sasanian inscriptional evidence | `CLOSED-PARTIAL` | Allow `claims_descent_from` and disputed `historiographically_derived_from`; prohibit a continuous Kāren→Pērōzmat→Kamsarakan pedigree edge |
 | BD-04 | Caspian/Median aristocratic stratum → Amatuni | Origin claim, not necessarily a father→son pedigree | `PENDING` | None yet |
 | BD-05A | Armenian Bagratuni ↔ Georgian Bagrationi dynastic relationship | `PENDING` | `PENDING` | None yet |
 | BD-05B | Vasak, brother of Smbat VII → founder of Georgian branch | `PENDING` | `PENDING` | None yet |
@@ -48,4 +49,4 @@ Reopen only for new primary evidence, a new critical edition, new epigraphic/num
 - Post-775 transfers of territory, office and patrimony among surviving houses.
 
 ## Macromap rule
-Only `SURVIVES` claims may become hard bridge edges. `PARTIAL` must be decomposed into the exact layers that survive. `DOCUMENTARY GAP` and `CLOSED-UNRESOLVED` stay outside the hard macromap.
+Only `SURVIVES` claims may become hard bridge edges. `PARTIAL/CLOSED-PARTIAL` must be decomposed into the exact layers that survive. `DOCUMENTARY GAP` and `CLOSED-UNRESOLVED` stay outside the hard macromap.
