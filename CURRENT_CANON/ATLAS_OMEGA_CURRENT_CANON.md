@@ -1,182 +1,146 @@
 # ATLAS Ω — CURRENT CANON
 
-**Status:** SOLE_CANON / ACTIVE  
-**Effective date:** 2026-08-28  
-**Canonical source:** `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`  
-**Canonical version:** **ATLAS Ω ENTERPRISE — PROMPT MAESTRO MINI v4.0**
+**Status:** `SOLE_CANON / ACTIVE`  
+**Effective:** `2026-09-06`  
+**Universe:** `ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06`
 
-## Authority rule
+## 1. Autoridad única
 
-Desde 16-ago-2026, **PROMPT MAESTRO MINI v3.1 es la única autoridad operativa canónica de ATLAS Ω ENTERPRISE**.
+La única autoridad vigente para reconstrucción, ranking, membership, replacement y cardinalidad de cartera es:
 
-v3.1 conserva el núcleo de v3.0 y añade por instrucción explícita del usuario la arquitectura sistémica desarrollada el 16-ago-2026: Successor Detection, Winner Preservation, AI Financial Fragility, AI Credit Transmission, Systemic Cascade, Sovereign Liquidity Plumbing, EU Fiscal Stress, China Industrial Displacement, Institutional Convergence, Speculative Liquidity Canary, Optionality Reserve, Capital Safety/Leverage Discipline y las tesis de semiconductor sovereignty/agentic compute y machine economy.
+`docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`
 
-El 16-ago-2026 se activa además **GLOBAL CAPEX CHAIN Ω v1.0** como módulo canónico compatible bajo v3.1 para mapear la posición económica de cada empresa en el próximo ciclo mundial de CAPEX. Introduce **Economic Dependency Distance Ω (EDD), CAPEX Position Ω, Economic Proof E0–E4, CAPEX Convergence Ω, Bottleneck Persistence Ω y CAPEX Fragility Ω**. Su canon operativo está en `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md` y no modifica por sí solo cartera, valoración ni señales de otros motores.
+Nombre canónico: **ATLAS Ω — MASTER UNIVERSE PROMPT**.
 
-Desde 17-ago-2026 se activan además **CAPITAL FUNDING QUALITY Ω v1.0** y **FINANCED DEMAND Ω v1.0** como módulos canónicos compatibles con v3.1/v3.1.1. Separan obligatoriamente **Demand Proof Ω**, **Economic Payback Ω** y **Funding Sustainability Ω**, y distinguen demanda orgánica de demanda apoyada/interdependiente/reflexiva. Su canon está en `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`.
+Toda autoridad anterior de selección queda `SUPERSEDED_AS_SELECTION_AUTHORITY`, incluyendo prompts maestros previos, amendments, tesis de cartera, Top 10/20/25/30/32/35/37, snapshots, listas incumbentes, reglas de protección de nombres y cualquier otro “mundo” operativo incompatible.
 
-Desde 17-ago-2026 se activa también **FUTURE IPO GATE Ω v1.0** para todo candidato privado/Future que pretenda migrar a cartera pública. Impide convertir un listing, una valoración privada, un sponsor famoso o una subida de primera sesión en señal de compra. Su canon está en `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md` y su implementación técnica en `src/atlas/algorithm/future-ipo-gate-omega.ts`.
+Los documentos previos pueden permanecer en el repositorio como **HISTORICAL / PROVENANCE / RESEARCH ONLY**. No pueden influir por sí mismos en ranking, membership, score, replacement ni `OPTIMAL_N`.
 
-Desde 17-ago-2026 queda fijada además la **FUTURE WATCHLIST Ω** listada y separada estrictamente de cartera. El universo bruto entregado contiene 71 identificadores; tras normalización y exclusión de 19 posiciones ya presentes en Portfolio 36, el universo Future canónico activo contiene **52 tickers**. Fuente: `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`; datos ejecutables: `src/atlas/data/future-watchlist-omega.ts`; auditoría: `docs/atlas/research/2026-08-17_FUTURE_52_DEEP_AUDIT_V311_CFQ_FD.md`.
+## 2. Point Zero / clean rebuild
 
-Desde 17-ago-2026 se incorpora por referencia **CAPITAL DESTINATION ENGINE SUITE Ω v1.0** para responder de forma sector-agnostic a la pregunta `¿dónde está yendo el dinero y quién lo convierte en caja?`. Activa **Destination of Money Ω, Memory Scarcity Ω, Capital Migration Ω, False AI Disruption Ω, Liquidity Survival Ω, Crowding Risk Ω, Forced Liquidation Dislocation Ω, Macro Options Liquidity Ω, Home Builders Asymmetry Ω, Buffett Quality Audit Ω y CAPEX Capture Elasticity Ω**. Su canon está en `CURRENT_CANON/CAPITAL_DESTINATION_ENGINE_SUITE_OMEGA.md`. La suite no crea BUY automáticos y mantiene separados destino de capital, captura económica, financiación, crowding, valoración y construcción de cartera.
+Las **487 entidades económicas canónicas** parten con ventaja previa igual a cero.
 
-Desde 19-ago-2026 se incorpora por referencia **AGENT INFRASTRUCTURE Ω + AI VIDEO ECONOMIC PROOF Ω + HUMANOID PROOF LADDER Ω**. El módulo introduce **Autonomous Task Economic Yield Ω (ATEY)**, una pila obligatoria de runtime/persistencia/permisos/memoria/sandbox/monitorización, estados `A0–A5` para productividad agentic, estados `V0–V5` para AI video y estados `H0–H5` para humanoides. Añade además el coste de seguridad/containment como variable explícita de AI CAPEX Productivity y una capa de Push Learning/Proactive Knowledge Delivery para ATLAS. Su canon está en `CURRENT_CANON/AGENT_INFRA_AI_VIDEO_HUMANOID_PROOF_OMEGA.md`. No crea BUY automáticos ni modifica cartera por sí solo.
+Prohibido utilizar como input de selección limpia:
 
-Todo canon anterior queda histórico/no autoritativo donde contradiga o sea reemplazado por v3.1 y sus módulos canónicos incorporados por referencia.
+- pertenencia a la cartera actual;
+- capital personal invertido;
+- peso actual;
+- precio medio;
+- P/L;
+- decisiones anteriores;
+- fama o familiaridad;
+- market cap como premio;
+- pertenencia a Nasdaq/S&P;
+- cobertura mediática;
+- mayor disponibilidad de datos.
 
-## Pipeline activo
+Las 650 apariciones raw deben deduplicarse antes de puntuar: cada entidad económica obtiene exactamente **una oportunidad de competir**.
 
-**Input → Evidence Integrity Ω → Source Authenticity Ω → Quantitative Integrity Ω → Temporal Normalization Ω → Global Discovery Ω → Leadership Bias Control Ω → motores independientes → Cross-Engine Synthesis Ω → Portfolio Construction Ω → Decision Safety Gate Ω → Execution Ω → Monitoring + Falsification Ω → Decision Log Ω → GitHub + Notion.**
+## 3. Objetivo
 
-## Leyes centrales
+Horizonte: **3–6 años**.
 
-- **EVIDENCE > NARRATIVE.**
-- **PRICE ≠ FUNDAMENTAL EVIDENCE.**
-- **MARKET_CAP_CHANGE ≠ CAPITAL_FLOW.**
-- **POSITION DISCLOSURE ≠ REAL-TIME FLOW.**
-- **TECHNOLOGY REVOLUTION ≠ GOOD INVESTMENT AT ANY PRICE.**
-- **CAPEX GROWTH ≠ CAPEX PRODUCTIVITY.**
-- **GLOBAL CAPEX EXPOSURE ≠ BUY SIGNAL.**
-- **EDD-0 PAYBACK ≠ SUPPLIER CAPTURE.**
-- **CAPEX POSITION ≠ CAPEX FRAGILITY.**
-- **DEMAND PROOF ≠ ECONOMIC PAYBACK ≠ FUNDING SUSTAINABILITY.**
-- **FINANCED DEMAND ≠ FAKE DEMAND.**
-- **STRATEGIC INVESTOR/SUPPLIER ≠ INDEPENDENT END DEMAND.**
-- **BACKLOG ≠ CASH FLOW without contract-quality analysis.**
-- **IPO EVENT ≠ BUY SIGNAL.**
-- **PRIVATE VALUATION ≠ PUBLIC FAIR VALUE.**
-- **RUN-RATE REVENUE ≠ AUDITED REVENUE.**
-- **ACTIVE_PORTFOLIO ∩ FUTURE_WATCHLIST = ∅.**
-- **COLLATERAL VALUE ≠ CASH FLOW.**
-- **LIQUIDITY SOURCE ≠ LIQUIDITY DESTINATION.**
-- **FOLLOW THE DOLLAR, NOT THE SECTOR LABEL.**
-- **RELATIVE STRENGTH ≠ VERIFIED FUND FLOW.**
-- **PRIVATE CAPITAL SIGNAL ≠ PUBLIC FLOW CONFIRMATION.**
-- **SCARCITY ≠ PERMANENT MOAT.**
-- **CROWDING ≠ FUNDAMENTAL FALSIFIER.**
-- **TECHNICAL LIQUIDATION ≠ FUNDAMENTAL BREAK.**
-- **BEST CAPEX CAPTOR ≠ BEST STOCK AT CURRENT PRICE.**
-- **MULTIPLE TICKERS CAN BE ONE FUNDING POOL.**
-- **AGENT CAPABILITY ≠ ECONOMIC PRODUCTIVITY.**
-- **ROBOT DEMO ≠ DEPLOYMENT PROOF.**
-- **CAPABILITY PROOF ≠ ECONOMIC PROOF.**
-- **AI VIDEO ADOPTION ≠ DURABLE MARGIN.**
+Objetivo: **máxima rentabilidad esperada ajustada por riesgo con baja volatilidad estructural**.
 
-## Active engine families
+La pregunta decisiva no es «¿es buena empresa?», sino:
 
-### Core / selection
-Principal Ω; Good Companies Cheap Ω; Historical Dislocation/Burry Ω; Money Rotation Ω; Institutional Capital Rotation Ω; Leadership Bias Control Ω; Successor Detection Ω; Future Watchlist Ω; **Destination of Money Ω**.
+> **¿Merece esta empresa uno de los escasos slots de capital frente a todas las alternativas disponibles?**
 
-### Systemic / specialized
-**Global CAPEX Chain Ω**; CAPEX Hunters Ω; **CAPEX Capture Elasticity Ω**; AI CAPEX Payback Ω; **Agent Infrastructure Ω**; **AI Video Economic Proof Ω**; **Humanoid Proof Ladder Ω**; **Capital Funding Quality Ω**; **Financed Demand Ω**; **Memory Scarcity Ω**; **Capital Migration Ω**; **False AI Disruption Ω**; **Liquidity Survival Ω**; **Crowding Risk Ω**; **Forced Liquidation Dislocation Ω**; **Macro Options Liquidity Ω**; **Home Builders Asymmetry Ω**; AI Financial Fragility Ω; AI Credit Transmission Ω; Systemic Cascade Ω; Energy Rotation Ω; Global Liquidity Transmission Ω; Sovereign Liquidity Plumbing Ω; European Fragmentation & Energy Security Ω; EU Fiscal Stress Ω; China Industrial Displacement Ω; Hard Assets/Gold Ω; Speculative Liquidity Canary Ω; Tokenization/Digital Infrastructure Ω; Market Bottom Ω; Market Top Risk Ω; Entry Timing Ω; Event Pricing Ω.
+## 4. OPTIMAL_N
 
-### Auxiliary governance layers
-Institutional Convergence Ω; Winner Preservation Ω; Optionality Reserve Ω; Capital Safety & Leverage Discipline Ω; **Buffett Quality Audit Ω**; **Future IPO Gate Ω**; **Push Learning / Proactive Knowledge Delivery Ω**; Special Situations Ω.
+`OPTIMAL_N = FULLY_ENDOGENOUS`
 
-## Global CAPEX Chain Ω — mandatory structural fields
+No existe target, floor ni ceiling canónico de 20, 25, 30, 32, 35, 37, 50 ni de ningún otro número arbitrario.
 
-Cuando el objeto sea una empresa cotizada, Discovery/Research debe poder registrar sin contaminar otros motores:
+La cartera comienza desde Point Zero y se expande únicamente mientras la siguiente incorporación mejora materialmente la utilidad retorno/riesgo de la cartera completa. Cuando la siguiente incorporación no mejora esa utilidad, la expansión se detiene.
 
-**EDD → Economic Mode → CAPEX Rivers → Independent Funding Pools → CAPEX Position Ω → Economic Proof E0–E4 → CAPEX Convergence Ω → Bottleneck Persistence Ω → Structural Opportunity Ω → CAPEX Fragility Ω → Falsifiers.**
+Las restricciones de cardinalidad sólo pueden existir como límites técnicos transitorios de una implementación y deben declararse `NON_CANONICAL_IMPLEMENTATION_LIMIT`; nunca pueden decidir el `OPTIMAL_N` económico.
 
-EDD-0 se evalúa por `PAYBACK`; EDD-1 a EDD-5 por `CAPTURE`; EDD-6 por `DOWNSTREAM_PRODUCTIVITY`. Sólo E2+ con evidencia trazable puede recibir estado estructural confirmado.
+## 5. Pipeline canónico de selección
 
-## Capital Funding Quality Ω + Financed Demand Ω — mandatory structural fields
+1. **Entity normalization + deduplication** — 650 raw → 490 tickers únicos → 487 entidades económicas.
+2. **Point Zero** — cero ventaja previa para toda entidad.
+3. **T0 — Anti-Megacap Discovery Gate Ω**.
+4. **Screening amplio** del universo.
+5. **Shortlist** basada en evidencia comparable.
+6. Evaluación de calidad fundamental, durabilidad, crecimiento/revisiones, valoración, Expected Return, FCF, márgenes, ROIC, balance, moat y disrupción.
+7. Aplicación condicional de **AI Value Migration Ω**, **AI Capital Formation Ω** y otros motores especializados sólo cuando corresponda.
+8. **Expectation Gap Ω**.
+9. **Tape/RS** exclusivamente como señal complementaria.
+10. Riesgo macro, regulatorio, geopolítico, financiación, tail risk y correlaciones económicas reales.
+11. **Falsifiers Ω**.
+12. Duelos entre empresas económicamente comparables.
+13. **Competition for Capital Ω** mediante duelos cross-sector.
+14. Selección portfolio-level y determinación endógena de `OPTIMAL_N`.
+15. Auditoría de frontera, concentración oculta, escenarios bull/base/bear y sesgos.
 
-Para empresas intensivas en CAPEX, AI, infraestructura o crecimiento financiado, registrar obligatoriamente:
+## 6. Rol de los motores GitHub / Notion
 
-**DEMAND_PROOF_STATE → PAYBACK_STATE → CFQ_STATE → FD_STATE → FUNDING_SOURCES → RECOURSE → DEBT/LEASE MATURITIES → EQUITY/DILUTION → CUSTOMER PREPAYMENTS → VENDOR/BUYER_FINANCING → GUARANTEES/BACKSTOPS → RELATED_PARTY_OVERLAP → BACKLOG_QUALITY → REFINANCING_DEPENDENCY → FALSIFIERS.**
+Los motores de `src/atlas/algorithm/` y las capas de Notion son **subordinados al MASTER UNIVERSE PROMPT**.
 
-Estados CFQ: `CFQ0_SELF_FUNDED / CFQ1_AUGMENTED_ROBUST / CFQ2_DEPENDENT / CFQ3_FRAGILE / CFQ4_REFLEXIVE_CASCADE`.
+Pueden:
 
-Estados FD: `FD0_ORGANIC / FD1_SUPPORTED / FD2_INTERDEPENDENT / FD3_REFLEXIVE / FD4_SYNTHETIC_FRAGILITY`.
+- descubrir candidatos;
+- normalizar evidencia;
+- medir factores, riesgo y Expected Return;
+- aportar señales especializadas;
+- producir falsificadores y escenarios;
+- ayudar a ejecutar duelos y portfolio utility.
 
-No existen umbrales universales de CAPEX/OCF, deuda, commitments o financiación hasta calibración empírica. Comparar contra historia propia, peers y estructura contractual.
+No pueden:
 
-## Capital Destination Engine Suite Ω — mandatory capital-routing fields
+- proteger incumbentes;
+- introducir una ventaja por fama/tamaño;
+- fijar un Top‑N;
+- imponer cuotas estéticas sectoriales/geográficas/capitalización;
+- convertir una señal especializada en entrada automática;
+- mantener una tesis sólo porque ya era canónica;
+- contradecir el rebuild desde Point Zero.
 
-Cuando el análisis pregunte por destino del dinero, registrar:
+`EXTERNAL_CHALLENGERS` sólo pueden entrar al universo competitivo mediante discovery documentado, nominación explícita, Capital Intelligence Ω, Trader Intelligence Ω u otra fuente ATLAS autorizada. Ser externo otorga **0 puntos**.
 
-**CAPITAL_SOURCE → DESTINATION_POOL → PUBLIC_FLOW → PRIVATE_CAPITAL → CORPORATE_CAPEX → SOVEREIGN/FISCAL → CREDIT/PROJECT_FINANCE → ORDERS/BACKLOG → REVENUE/MARGIN/FCF → REVISIONS → RELATIVE_STRENGTH_CONFIRMATION → CROWDING → FUNDING_FRAGILITY → VALUATION_EXPECTATION_RISK → R1–R6 STATE.**
+## 7. Concentración y diversificación
 
-Para captadores concretos añadir **CAPEX Capture Elasticity Ω** y leakage por own-CAPEX/dilución. Para memoria añadir Memory Scarcity Ω. Para software deprimido añadir Capital Migration Ω + False AI Disruption Ω. Para eventos de desapalancamiento añadir Liquidity Survival Ω + Forced Liquidation Dislocation Ω. Para ventanas JPY/yields/VIX/OpEx añadir Macro Options Liquidity Ω.
+No existen cuotas estéticas.
 
-## Agent Infrastructure / AI Video / Humanoid Proof — mandatory fields
+Sí deben modelarse concentraciones reales y riesgos correlacionados: AI/semiconductores, hyperscalers, data centers, tipos, crédito, energía, China/Taiwán, defensa, healthcare/regulación y cualquier otro factor económico material.
 
-Para sistemas agentic registrar:
+Diversificación sólo tiene valor cuando mejora la utilidad retorno/riesgo real de la cartera; no por apariencia.
 
-**AGENT_RUNTIME_STATE → PERSISTENCE_STATE → TOOL_ACCESS → IDENTITY_PERMISSION_MODEL → MEMORY_STATE → SANDBOX_STATE → MONITORING_STATE → HUMAN_ESCALATION_RATE → TASK_SUCCESS_RATE → ERROR/REWORK_RATE → INFERENCE_COST → SUPERVISION_COST → SECURITY_COST → ECONOMIC_VALUE_CREATED → ATEY → FALSIFIERS.**
+## 8. Evidencia, UNKNOWN y falsación
 
-Para AI video registrar:
+No se inventan variables ausentes. Toda variable no verificada se marca `UNKNOWN` y reduce la confianza correspondiente.
 
-**VIDEO_USER_BASE → PAID_USERS → ENTERPRISE_CUSTOMERS → ENTERPRISE_REVENUE_MIX → RUN_RATE_REVENUE → AUDITED_REVENUE → GROSS_MARGIN → COMPUTE_INTENSITY → RETENTION → OCF → FCF → FUNDING_STATE → ECONOMIC_PROOF → FALSIFIERS.**
+Para cada finalista debe existir:
 
-Para humanoides registrar:
+`tesis → evidencia → valoración → expected return → catalizadores → riesgos → falsificador → competidor que podría quitarle el puesto`
 
-**ROBOT_STAGE → CAPABILITY_METRICS → MTBF → UPTIME → BATTERY/AUTONOMY → MAINTENANCE → DEPLOYED_UNITS → PAYING_CUSTOMERS → HOURS_WORKED → TASK_ECONOMICS → ROBOT_ASP → SERVICE_COST → PAYBACK → MANUFACTURING_SCALE → SUPPLY_CHAIN_RISK → FALSIFIERS.**
+Una tesis no falsable no puede recibir máxima convicción.
 
-## Future IPO Gate Ω — mandatory lifecycle
+## 9. Auditoría anti-sesgo obligatoria
 
-Todo candidato privado o Future debe registrar:
+Comprobar explícitamente:
 
-`F0_PRIVATE_DISCOVERY → F1_CONFIDENTIAL_FILING_REPORTED → F2_PUBLIC_S1_AVAILABLE → F3_PRICED → F4_LISTED_PRICE_DISCOVERY → F5_LOCKUP_SUPPLY_DISCOVERY → F6_NORMALIZED_PUBLIC_COMPANY`.
+- incumbency bias;
+- megacap bias;
+- familiarity bias;
+- recency bias;
+- AI narrative bias;
+- falsa diversificación.
 
-Antes de una entrada pública revisar obligatoriamente:
+## 10. Regla final
 
-**audited financials → revenue quality → gross margin → OCF → FCF/share → CAPEX/compute commitments → CFQ → Financed Demand → debt/leases/recourse → dilution → governance/minority rights → related-party transactions → customer concentration → reverse valuation → primary/secondary offering mix → float/lockups → Entry Timing Ω.**
+> **No intentes justificar la cartera que ya tenemos. Intenta derrotarla.**
 
-Estados: `IPO_READY_PASS / IPO_READY_CONDITIONAL / IPO_DATA_INCOMPLETE / IPO_EXPECTATION_DENSE / IPO_SUPPLY_DISTORTED / IPO_NO_PASS`.
+Si una reconstrucción independiente produce la misma cartera, eso es evidencia a favor. Si encuentra una cartera superior, la anterior debe ceder.
 
-No hay BUY automático por primer día, oversubscription, baja float, index inclusion, sponsor, escasez o rally de debut.
+## 11. Campos de salida obligatorios
 
-## Future Watchlist Ω — governance
-
-Canon: `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`.
-
-- Raw supplied universe: **71** unique identifiers.
-- Active-portfolio overlaps removed: **19**.
-- Strict Future universe: **52**.
-- Portfolio↔Future duplicates are a canonical violation.
-- `BITF` is normalized to `KEEL`; `EXENS` to `EXENS.PA`.
-- `TERA` stays DATA_FAIL until issuer identity is verified.
-- `FUFU` is `WATCHLIST_PRIORITARIA / EARNINGS_INFLECTION`, never an automatic BUY.
-- `DATA_FAIL ≠ NO_BUY`; `CATEGORY_MISMATCH ≠ BUSINESS_FAILURE`; `NO_PASS_OPERATING_SHELL` is distinct from a weak operating company.
-- Power-to-AI candidates must pass CFQ + FD + contract quality + project-finance recourse + commissioned-capacity/cash-conversion gates.
-- If a Future ticker enters the active portfolio, it is removed from Future in the same reconciliation.
-
-## AI VALUE DISTRIBUTION Ω — 2026-08-28
-
-**Estado:** CANONICAL / ACTIVE / TRANSVERSAL  
-**MCR:** `docs/canon/MCR-2026-08-28-AI-DISTRIBUTION.md`  
-**Modulo:** `CURRENT_CANON/AI_VALUE_DISTRIBUTION_OMEGA.md`
-
-ATLAS amplía el análisis IA desde el CAPEX y el compute hacia el profit pool, la interfaz, el system of record y la distribución al usuario. **AAPL** queda como `C19 TECH CONSUMPTION / AI DISTRIBUTION / CORE CANDIDATE`, clasificada como `DEVICE_OS_ECOSYSTEM` y comparada con GOOG, MSFT, META y AMZN mediante Competition for Capital.
-
-Cadena obligatoria: `CAPABILITY -> ADOPTION -> USAGE -> CUSTOMER ACCEPTANCE -> REVENUE -> MARGIN -> FCF/SHARE -> INCREMENTAL ROIC`.
-
-Nuevos motores: AI Value Migration, AI Cost per Intelligence, AI Stack Control, Enterprise Agentic Interface, Apple Distribution Gate, NVIDIA Demand Quality, Custom Silicon Risk y Newsletter Evidence Filter.
-
-**Limites:** ninguna de estas capas crea BUY/SELL, cambia la cartera, promueve una capa C1-C19, infiere flujos desde precio o supera Falsifier Veto, Valuation, Competition for Capital o Decision Safety Gate. Claims privados, benchmarks y anuncios no verificados permanecen `DISCOVERY / HYPOTHESIS / UNKNOWN`.
-
-## Portfolio rule
-
-**Structural portfolio ≠ tactical/systemic engines.** La implementación v3.1 y sus módulos canónicos no modifican la cartera por sí solos. La cartera se audita de forma separada tras completar evidencia y síntesis entre motores.
-
-## Mandatory output ending
-
-**Hechos nuevos → Cambio estructural/ruido → Motor afectado → Estado Ω → candidatos → riesgos/falsificadores → acción permitida.**
-
-## Final law
-
-**ATLAS no existe para defender las empresas que ya conoce. Existe para mantener las mejores mientras sigan siendo las mejores, descubrir sucesoras antes del consenso, detectar cuándo la financiación/liquidez convierte una buena tecnología en una mala estructura de capital y localizar los peajes económicos por los que debe atravesar el próximo CAPEX mundial.**
-
-**Quality × Growth × Forward Asymmetry × Capital Rotation × Global CAPEX Position × Evidence Integrity × Financial Robustness > Familiarity.**
-
-**Real demand can coexist with bad capital allocation. Good payback can coexist with fragile funding. External funding can coexist with excellent economics. ATLAS must identify which combination actually exists.**
-
-**Capital can migrate before public price confirms it. Scarcity can be real and still be over-owned. A forced seller can create price dislocation without changing intrinsic value. ATLAS must separate these states.**
-
-**A capable agent can still destroy economic value. A spectacular robot can still fail reliability and deployment gates. AI video can grow rapidly while margins remain structurally poor. ATLAS must measure economic output after compute, supervision, security and capital costs.**
-
-Para el texto autoritativo completo usar `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`; para Global CAPEX Chain Ω usar además `CURRENT_CANON/GLOBAL_CAPEX_CHAIN_OMEGA.md`; para Funding/Financed Demand usar `CURRENT_CANON/CAPITAL_FUNDING_QUALITY_FINANCED_DEMAND_OMEGA.md`; para Future list usar `CURRENT_CANON/FUTURE_WATCHLIST_OMEGA.md`; para Future/IPO usar `CURRENT_CANON/FUTURE_IPO_GATE_OMEGA.md`; para destino de capital usar `CURRENT_CANON/CAPITAL_DESTINATION_ENGINE_SUITE_OMEGA.md`; y para agentes, AI video y humanoides usar `CURRENT_CANON/AGENT_INFRA_AI_VIDEO_HUMANOID_PROOF_OMEGA.md` como módulos canónicos compatibles incorporados por referencia.
+`UNIVERSE_VERSION`  
+`OPTIMAL_N`  
+`SELECTED_PORTFOLIO`  
+`FIRST_10_CHALLENGERS`  
+`DECISIVE_REPLACEMENTS`  
+`PORTFOLIO_FALSIFIERS`  
+`CONFIDENCE`  
+`DATA_CUTOFF`
