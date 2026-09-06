@@ -1,4 +1,4 @@
-# LINGOTTO VISIBLE BOOK MATRIX Ω v0.1
+# LINGOTTO VISIBLE BOOK MATRIX Ω v0.2
 
 **Status:** RESEARCH / PARTIAL / NON-CANONICAL DATASET  
 **Date:** 2026-09-06  
@@ -23,20 +23,32 @@ SEC filing headers show the filer history:
 `Exor Investments (UK) LLP -> Exor Capital LLP -> Lingotto Investment Management LLP`.
 This supports legal/organizational continuity only. It does not validate investment skill.
 
-## 13F filing timeline — verified / working
-| Period end | Filing / publication date | Status |
-|---|---|---|
-| 2023-06-30 | 2023-08-11 | verified SEC; first Lingotto-name 13F located |
-| 2024-03-31 | 2024-05-15 | working/secondary history; exact SEC accession still to pin |
-| 2024-06-30 | 2024-08-12 | verified SEC |
-| 2024-09-30 | 2024-11-13 | verified SEC |
-| 2024-12-31 | 2025-02-04 | working/secondary history; exact SEC accession to pin |
-| 2025-03-31 | 2025-05-15 | verified SEC |
-| 2025-06-30 | 2025-08-13 | filing date from secondary holdings history; primary accession to pin |
-| 2025-09-30 | 2025-11-12/13 | original + amendment; amendment verified SEC 2025-11-13 |
-| 2025-12-31 | 2026-02-10 | verified SEC |
-| 2026-03-31 | 2026-05-14 | verified SEC |
-| 2026-06-30 | 2026-07-29 | working from secondary history; primary accession to pin |
+## 13F filing timeline — primary SEC pinned where verified
+| Period end | Filing/publication date | Accession | State |
+|---|---|---|---|
+| 2023-06-30 | 2023-08-11 | `0001732768-23-000006` | VERIFIED SEC |
+| 2023-09-30 | OPEN | OPEN | DATA_GAP — primary accession not yet pinned |
+| 2023-12-31 | OPEN | OPEN | DATA_GAP — primary accession not yet pinned |
+| 2024-03-31 | OPEN | OPEN | DATA_GAP — secondary history suggests filing existed; primary accession not yet pinned |
+| 2024-06-30 | 2024-08-12 | `0001732768-24-000005` | VERIFIED SEC |
+| 2024-09-30 | 2024-11-13 | `0001172661-24-004632` | VERIFIED SEC |
+| 2024-12-31 | 2025-02-04 | `0001172661-25-000491` | VERIFIED SEC |
+| 2025-03-31 | 2025-05-15 | `0001172661-25-002046` | VERIFIED SEC |
+| 2025-06-30 | 2025-08-13 | `0001172661-25-003216` | VERIFIED SEC |
+| 2025-09-30 | 2025-11-12 original | `0001172661-25-004702` | VERIFIED SEC ORIGINAL |
+| 2025-09-30 | 2025-11-13 amendment | `0001172661-25-004755` | VERIFIED SEC AMENDMENT |
+| 2025-12-31 | 2026-02-10 | `0001172661-26-000570` | VERIFIED SEC |
+| 2026-03-31 | 2026-05-14 | `0001172661-26-001922` | VERIFIED SEC |
+| 2026-06-30 | OPEN | OPEN | DATA_GAP — do not use secondary date until primary accession pinned |
+
+## Amendment law Ω
+A 13F amendment creates two distinct public-information states:
+1. `ORIGINAL_PUBLICATION_DATE` — what a public follower could first observe;
+2. `AMENDED_PUBLICATION_DATE` — corrected information available later.
+
+For amended quarters store both versions. The base backtest must use the information actually available on each date rather than silently replacing the original with hindsight. A sensitivity test may rerun the quarter using only the amended filing, but it must be labeled `AMENDMENT_CORRECTED`.
+
+Q3-2025 is the first confirmed example in this dataset: original filed 2025-11-12 and amendment filed 2025-11-13.
 
 ## Visible-book snapshots already verified
 - Q2 2023: 33 lines; approximately $1.548bn visible 13F value.
@@ -51,55 +63,26 @@ These are visible 13F totals only, not AUM or total portfolio NAV.
 These examples are not the backtest sample and must not be cherry-picked into conclusions.
 
 ### TSM
-Secondary history indicates:
-- Q1 2024 initiation: 135,000 shares; filed 2024-05-15.
-- Q2 2024: 185,000; +37.0%; filed 2024-08-12.
-- Q4 2025: 274,878; +34.1%; filed 2026-02-10.
-- Q1 2026: 277,227; +0.9%; filed 2026-05-14.
-- Q2 2026: 308,743; +11.4%; filed 2026-07-29.
+Secondary history indicates additions over time. Do not promote any quoted Q1-2024 or Q2-2026 event to VERIFIED until the matching primary filing is pinned.
 
 ### NOW
-Secondary history indicates:
-- Q1 2024: 36,104 after +19.9%; filed 2024-05-15.
-- Q2/Q3/Q4 2024: unchanged.
-- Q2 2025: +27.7%.
-- Q4 2025: +518.9% share increase, but corporate-action/split normalization must be checked before interpreting.
-- Q1 2026: +36.6%.
+Secondary history indicates material changes, but corporate actions/splits must be normalized before interpreting share acceleration.
 
 ### CVNA
-Secondary history indicates:
-- Q1 2024: -19.5% shares; filed 2024-05-15.
-- Q2 2024: +1.4%.
-- Q3 2024: +4.1%.
-- Q4 2024: +1.5%.
-
-This is useful because it shows a known winner did not simply have monotonically rising disclosed shares; retrospective narrative must not rewrite this path.
+Known winner and therefore mandatory anti-cherry-picking control. Historical disclosed-share path must be reconstructed from primary filings before narrative classification.
 
 ### RRC
-Secondary history indicates:
-- Q1 2024: unchanged.
-- Q2 2024: +1.5%.
-- Q3 2024: +3.8%.
-- Q4 2024: +2.5%.
+Historical disclosed-share path must be reconstructed from primary filings before calling persistence or acceleration.
 
 ### VEON
-Secondary history indicates gradual additions through 2024:
-+0.5%, +1.0%, +3.6%, +2.9% shares quarter-on-quarter.
+Historical disclosed-share path must be reconstructed from primary filings before calling gradual accumulation.
 
 ### PONY
-Secondary history provides a negative-control style case:
-- Q4 2024 initiated.
-- Q1 2025 +27.5%.
-- Q2 2025 +55.6%.
-- Q4 2025 +72.6%.
-- Q1 2026 -19.1%.
-- Q2 2026 -45.3%.
-
-This must be included in the full sample; it is exactly the sort of path that prevents survivorship/cherry-picking.
+Mandatory negative-control style case. Secondary history suggests large additions followed by large reductions; all quarter values must be replaced by primary data before return testing.
 
 ## Data model
 Each row in the final matrix must contain:
-`PERIOD_END | PUBLICATION_DATE | ACCESSION | CUSIP | TICKER | ISSUER | SHARES | VALUE_USD | VISIBLE_13F_WEIGHT | SHARE_QOQ | VALUE_QOQ | PRICE_EFFECT | EVENT_CLASS | SOURCE_TYPE | AMENDMENT_STATE | SPLIT_ADJUSTED | SECTOR_BENCHMARK | NOTES`
+`PERIOD_END | ORIGINAL_PUBLICATION_DATE | AMENDED_PUBLICATION_DATE | ACCESSION_ORIGINAL | ACCESSION_AMENDED | CUSIP | TICKER | ISSUER | SHARES | VALUE_USD | VISIBLE_13F_WEIGHT | SHARE_QOQ | VALUE_QOQ | PRICE_EFFECT | EVENT_CLASS | SOURCE_TYPE | AMENDMENT_STATE | SPLIT_ADJUSTED | SECTOR_BENCHMARK | NOTES`
 
 Additional portfolio-level fields:
 `VISIBLE_BOOK_VALUE | LINE_COUNT | DENOMINATOR_STATE | LONG_SHORT_KNOWN | TOTAL_AUM_KNOWN | COVERAGE_NOTES`
@@ -119,7 +102,7 @@ Candidate research events:
 Thresholds must be locked before return analysis. If multiple thresholds are tested, report the full sensitivity grid and multiple-testing risk.
 
 ## Backtest outputs
-From publication date:
+From the information-availability date applicable to each row:
 - 6M / 12M / 24M absolute return
 - excess vs broad market
 - excess vs sector benchmark
@@ -136,9 +119,10 @@ Run separately for:
 3. persistence,
 4. exits/reductions,
 5. 13D/G events,
-6. visible-book-weight buckets.
+6. visible-book-weight buckets,
+7. amended-filing sensitivity.
 
 ## Current status
 `LINGOTTO_SKILL_STATE = A1_SAMPLE_INCOMPLETE`
 
-No alpha claim is authorized yet.
+No alpha claim is authorized yet. Missing primary accessions remain `DATA_GAP`; they are not backfilled from secondary aggregators when the filing date itself is part of the test.
