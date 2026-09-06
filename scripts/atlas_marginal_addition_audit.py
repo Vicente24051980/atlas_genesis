@@ -6,6 +6,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from legacy_fixed_portfolio_guard import require_explicit_legacy_opt_in
 from atlas_quant_portfolio_audit import (
     TARGET_31,
     BENCHMARK,
@@ -13,7 +14,7 @@ from atlas_quant_portfolio_audit import (
     download_prices,
 )
 
-# Open tournament. No sector slots and no preferred challenger.
+# LEGACY_FIXED_PORTFOLIO_DIAGNOSTIC — historical N31 only; zero current authority.
 CHALLENGERS_32 = [
     "CME", "CB", "MEDP", "CBOE", "RSG", "LMB", "WMS", "SEIC",
     "RGLD", "PUK", "EME", "STRL",
@@ -21,6 +22,7 @@ CHALLENGERS_32 = [
 
 
 def main() -> None:
+    require_explicit_legacy_opt_in("scripts/atlas_marginal_addition_audit.py")
     ap = argparse.ArgumentParser()
     ap.add_argument("--start", default="2023-09-05")
     ap.add_argument("--end", default="2026-09-05")
@@ -54,14 +56,15 @@ def main() -> None:
     rows.sort(key=lambda x: x["delta_u_proxy_vs_n31"], reverse=True)
     threshold = 0.0025
     payload = {
-        "status": "DIAGNOSTIC_ONLY_EXPECTED_RETURN_EVIDENCE_PENDING",
-        "warning": "Historical return is not Expected Return Ω and cannot by itself promote N=32.",
+        "status": "LEGACY_FIXED_PORTFOLIO_DIAGNOSTIC_ONLY",
+        "warning": "Historical N31 diagnostic only. Historical return is not Expected Return Ω; current portfolio authority is NONE.",
         "base_n31": asdict(base),
         "materiality_threshold_proxy": threshold,
         "challengers": rows,
         "empirical_winner": rows[0]["ticker"],
         "empirical_winner_passes_proxy_threshold": rows[0]["delta_u_proxy_vs_n31"] >= threshold,
-        "canonical_n32_state": "NOT_PROVEN_FORWARD_STRUCTURAL_INPUTS_REQUIRED",
+        "canonical_n32_state": "NOT_APPLICABLE_TO_CURRENT_ATLAS",
+        "current_portfolio_authority": "NONE",
     }
 
     outdir = Path(args.outdir)
@@ -69,11 +72,11 @@ def main() -> None:
     (outdir / "marginal_addition_audit.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     lines = [
-        "# ATLAS Ω Marginal Addition Audit — N31 → N32",
+        "# ATLAS Ω Marginal Addition Audit — LEGACY N31 → N32",
         "",
-        "> DIAGNOSTIC_ONLY. Historical return is not Expected Return Ω and cannot by itself promote a challenger.",
+        "> LEGACY_FIXED_PORTFOLIO_DIAGNOSTIC_ONLY. ZERO current portfolio authority.",
         "",
-        f"Base N31: CAGR {base.cagr:.2%} | Vol {base.annualized_vol:.2%} | MaxDD {base.max_drawdown:.2%} | U_proxy {base.empirical_utility_proxy:.4f}",
+        f"Historical base N31: CAGR {base.cagr:.2%} | Vol {base.annualized_vol:.2%} | MaxDD {base.max_drawdown:.2%} | U_proxy {base.empirical_utility_proxy:.4f}",
         "",
         "| Rank | Challenger | ΔU proxy | CAGR | Vol | MaxDD |",
         "|---:|---|---:|---:|---:|---:|",
@@ -84,9 +87,9 @@ def main() -> None:
         )
     lines += [
         "",
-        f"Empirical winner: **{rows[0]['ticker']}**.",
+        f"Historical empirical winner: **{rows[0]['ticker']}**.",
         f"Proxy materiality threshold: {threshold:.4f}.",
-        "Canonical N32: **NOT_PROVEN — forward structural inputs required**.",
+        "Current ATLAS authority: **NONE**.",
     ]
     report = "\n".join(lines)
     (outdir / "marginal_addition_audit.md").write_text(report, encoding="utf-8")
