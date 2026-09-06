@@ -14,10 +14,14 @@ from .governance_firewall import (
     ExternalStateWrite,
     InterAgentDecision,
     InterAgentExchange,
+    ReassessmentAction,
+    ReassessmentObservation,
     ReconciliationSnapshot,
     ShutdownSnapshot,
+    TaskContract,
     TerminationStatus,
     decide_authority,
+    reassess,
     reconcile_shutdown,
     validate_external_state,
     validate_inter_agent_exchange,
@@ -37,6 +41,48 @@ class GovernanceFirewall:
 
     def __init__(self, ledger: AppendOnlyEventLedger) -> None:
         self.ledger = ledger
+
+    def register_task_contract(
+        self,
+        *,
+        task_id: str,
+        consequence: ConsequenceClass,
+        contract: TaskContract,
+    ) -> None:
+        if not task_id.strip():
+            raise ValueError("task_id is required")
+        contract.validate(consequence)
+        self.ledger.append(
+            "TASK_CONTRACT_REGISTERED",
+            {
+                "task_id": task_id,
+                "consequence": consequence.value,
+                "contract": asdict(contract),
+            },
+        )
+
+    def checkpoint(
+        self,
+        *,
+        task_id: str,
+        checkpoint_id: str,
+        observation: ReassessmentObservation,
+        detail: str = "",
+    ) -> ReassessmentAction:
+        if not task_id.strip() or not checkpoint_id.strip():
+            raise ValueError("task_id and checkpoint_id are required")
+        action = reassess(observation)
+        self.ledger.append(
+            "TASK_REASSESSMENT",
+            {
+                "task_id": task_id,
+                "checkpoint_id": checkpoint_id,
+                "observation": asdict(observation),
+                "action": action.value,
+                "detail": detail,
+            },
+        )
+        return action
 
     def register_lease(self, lease: CapabilityLease) -> None:
         if not lease.owner_authorized:
