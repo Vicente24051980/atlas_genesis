@@ -21,9 +21,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Run ATLAS AI continuity, live-binding and epistemic-safety tests
+      - name: Run ATLAS AI continuity, live-binding, runtime and epistemic-safety tests
         run: >-
           npx --yes vitest@3.2.4 run --globals
           src/atlas/personal-cognitive-os/engine.test.ts
           src/atlas/personal-cognitive-os/continuity-registry.test.ts
           src/atlas/personal-cognitive-os/live-continuity-binding.test.ts
+          src/atlas/personal-cognitive-os/continuity-runtime.test.ts
