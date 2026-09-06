@@ -1,4 +1,4 @@
-# LINGOTTO VISIBLE BOOK MATRIX Ω v0.6
+# LINGOTTO VISIBLE BOOK MATRIX Ω v0.7
 
 **Status:** RESEARCH / PRIMARY-FILING TIMELINE COMPLETE / HOLDINGS EXTRACTION IN PROGRESS  
 **Date:** 2026-09-06  
@@ -13,13 +13,24 @@ Build the observable public-disclosure matrix for Lingotto without treating the 
 - `VISIBLE_13F_WEIGHT != TOTAL_PORTFOLIO_WEIGHT`
 - `LONG_13F_POSITION != NET_EXPOSURE`
 - `POSITION_DATE != PUBLICATION_DATE`
+- `SAME_CIK != SAME_INVESTMENT_PROCESS`
 - Backtests start at the information-availability date.
 
 ## Directionality warning
 At least one Lingotto-managed vehicle is explicitly long/short. A 13F long cannot be interpreted as net directional conviction without hedge/short disclosure.
 
-## Legal continuity vs skill
-Filer history: `Exor Investments (UK) LLP -> Exor Capital LLP -> Lingotto Investment Management LLP`. This supports legal/organizational continuity only. It does not validate investment skill.
+## PRESTIGE TRANSFER + PROCESS REGIME GATE Ω
+CIK `0001732768` has 13F history going back years under predecessor names `Exor Investments (UK) LLP` and `Exor Capital LLP`, before the current Lingotto process. Therefore legal-entity continuity does **not** authorize pooling all historical 13Fs into one skill sample.
+
+Mandatory variables:
+`LEGAL_ENTITY_CONTINUITY` and `INVESTMENT_PROCESS_CONTINUITY` are separate.
+
+Rule:
+- a filing belongs to the Lingotto skill backtest only if the relevant investment-process regime is independently anchored;
+- pre-regime filings remain useful for entity history but are excluded from manager-skill attribution unless process continuity is demonstrated;
+- `SAME_CIK != SAME_INVESTMENT_PROCESS`.
+
+Current study window remains Q2-2023→Q2-2026 pending a separate regime-boundary audit. This window choice is provisional, not proof that Q2-2023 is the true process start.
 
 ## 13F filing timeline — complete primary-accession map for study window
 | Period end | Filing/publication date | Accession | State |
@@ -59,19 +70,19 @@ Handling:
 | Period | Lines | Visible 13F value | State |
 |---|---:|---:|---|
 | Q2-2023 | 33 | $1.547548bn | checkpoint |
-| Q3-2023 | 33 | $1.864840bn | checkpoint |
-| Q4-2023 | 34 | $2.077573bn | checkpoint |
-| Q1-2024 | 47 | $2.387978bn | checkpoint |
-| Q2-2024 | 50 | $2.976475bn | checkpoint |
-| Q3-2024 | 46 | $3.468084bn | checkpoint |
-| Q4-2024 | 53 | $3.727561bn | checkpoint |
-| Q1-2025 | 45 | $3.828596bn | checkpoint |
-| Q2-2025 | 45 | $4.704515bn | SEC summary |
+| Q3-2023 | 33 | $1.864841bn | SEC primary |
+| Q4-2023 | 34 | $2.077573bn | SEC primary |
+| Q1-2024 | 47 | $2.387979bn | SEC primary |
+| Q2-2024 | 50 | $2.976475bn | SEC primary |
+| Q3-2024 | 46 | $3.468085bn | SEC primary |
+| Q4-2024 | 53 | $3.727562bn | SEC primary |
+| Q1-2025 | 45 | $3.828596bn | SEC primary |
+| Q2-2025 | 45 | $4.704515bn | SEC primary |
 | Q3-2025 original | 35 | $5.411144bn | original information state |
 | Q3-2025 amendment | 36 | $5.411144bn | amended information state; not additive mechanically |
 | Q4-2025 | 39 | $5.738293bn | SEC primary |
 | Q1-2026 | 35 | $5.064157bn | SEC primary |
-| Q2-2026 | 32 | $4.665510bn | primary accession pinned |
+| Q2-2026 | 32 | $4.665510bn | SEC primary |
 
 Values are visible 13F totals only, not AUM/NAV.
 
@@ -80,21 +91,24 @@ Dedicated primary-filing audits now include:
 - `research/capital_intelligence/2026-09-06_LINGOTTO_Q2_Q3_2025_PRIMARY_DIFF_AUDIT.md`
 - `research/capital_intelligence/2026-09-06_LINGOTTO_Q4_2025_Q1_2026_PRIMARY_DIFF_AUDIT.md`
 
-### Q4-2025 → Q1-2026 material common-share events
-- Cloudflare `+70.8%` → `SHARE_ADD_50`
-- Harmony Gold `-96.7%` → `SHARE_CUT_50`
-- Microsoft `-85.9%` → `SHARE_CUT_50`
-- Moderna `+53.2%` → `SHARE_ADD_50`
-- Rocket Companies `-40.6%` → `SHARE_CUT_25`
-- ServiceNow `+36.6%` → `SHARE_ADD_25`
-- Sibanye Stillwater `-31.1%` → `SHARE_CUT_25`
-- SLB common `+30.0%` → `SHARE_ADD_25`
-- SLB call `-77.2%` → `OPTION_CUT_50`, kept separate from common.
+Additional pairwise extraction already verified from SEC primary tables:
+- Q1→Q2 2025 event set;
+- Q2→Q3 2025 event set;
+- Q4 2025→Q1 2026 event set.
 
-New/re-entry candidates: Blue Owl, KKR re-entry, Nebius.  
-Exit candidates pending identity/corporate-action review: CRH, Energy Fuels, Ginkgo Bioworks, Hyatt Hotels, Primo Brands, Sunrun, Vertiv.
+## Full-freeze manifest
+The following consecutive pairs still require row-level event-table freeze before returns unlock:
+- Q2→Q3 2023
+- Q3→Q4 2023
+- Q4 2023→Q1 2024
+- Q1→Q2 2024
+- Q2→Q3 2024
+- Q3→Q4 2024
+- Q4 2024→Q1 2025
+- Q3→Q4 2025
+- Q1→Q2 2026
 
-Near-20% moves such as Aurora, Duolingo, Joby, MercadoLibre, NVIDIA, PONY AI and Recursion remain **none** under the frozen 25% gate. They cannot be promoted after returns are observed.
+The pair is not considered frozen merely because both quarter filings are known. Each requires CUSIP/class/put-call matching plus corporate-action review.
 
 ## Extraction order Ω
 1. read each SEC information table;
@@ -118,9 +132,10 @@ Near-20% moves such as Aurora, Duolingo, Joby, MercadoLibre, NVIDIA, PONY AI and
 - Options are not ordinary common-share longs.
 - Corporate-action ambiguity blocks event classification.
 - Sub-threshold changes remain none even if later returns are extreme.
+- Pre-Lingotto/pre-regime filings cannot be used to inflate the current manager's track record without process-continuity evidence.
 
 ## Data model
-`PERIOD_END | ORIGINAL_PUBLICATION_DATE | AMENDED_PUBLICATION_DATE | ACCESSION_ORIGINAL | ACCESSION_AMENDED | CUSIP | TICKER | ISSUER | CLASS | SHARES_OR_PRINCIPAL | VALUE_USD | PUT_CALL | INVESTMENT_DISCRETION | VISIBLE_13F_WEIGHT | SHARE_QOQ | VALUE_QOQ | PRICE_EFFECT | EVENT_CLASS | SOURCE_TYPE | AMENDMENT_STATE | AMENDMENT_SENSITIVE | SPLIT_ADJUSTED | SECTOR_BENCHMARK | NOTES`
+`PERIOD_END | ORIGINAL_PUBLICATION_DATE | AMENDED_PUBLICATION_DATE | ACCESSION_ORIGINAL | ACCESSION_AMENDED | PROCESS_REGIME | CUSIP | TICKER | ISSUER | CLASS | SHARES_OR_PRINCIPAL | VALUE_USD | PUT_CALL | INVESTMENT_DISCRETION | VISIBLE_13F_WEIGHT | SHARE_QOQ | VALUE_QOQ | PRICE_EFFECT | EVENT_CLASS | SOURCE_TYPE | AMENDMENT_STATE | AMENDMENT_SENSITIVE | SPLIT_ADJUSTED | SECTOR_BENCHMARK | NOTES`
 
 Portfolio fields:
 `VISIBLE_BOOK_VALUE | LINE_COUNT | DENOMINATOR_STATE | LONG_SHORT_KNOWN | TOTAL_AUM_KNOWN | COVERAGE_NOTES`
@@ -137,12 +152,13 @@ Portfolio fields:
 
 Option events are stored in a separate event family and never pooled mechanically with common-share adds/cuts.
 
-## Backtest outputs — still locked
+## Backtest outputs — locked
 From applicable information-availability date: 6M/12M/24M absolute return, broad-market excess, sector excess, hit rate, median/mean alpha, bootstrap CI where sample permits, MFE, MAE and drawdown.
 
 Run separately for new positions, material increases, persistence, exits/reductions, 13D/G events, visible-weight buckets, options and amendment sensitivity.
 
 ## Current status
 `LINGOTTO_SKILL_STATE = A2_TIMELINE_COMPLETE_HOLDINGS_EXTRACTION_IN_PROGRESS`
+`PROCESS_REGIME_STATE = OPEN`
 
-No alpha claim is authorized. Returns remain locked until all consecutive-quarter event tables in the study window are frozen.
+No alpha claim is authorized. Returns remain locked until all consecutive-quarter event tables in the study window are frozen and the process-regime boundary is resolved.
