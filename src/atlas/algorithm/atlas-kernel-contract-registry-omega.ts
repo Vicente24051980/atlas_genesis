@@ -1,4 +1,4 @@
-export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-06-v2.1.0' as const;
+export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-06-v2.2.0' as const;
 
 export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
   governanceStatus: 'ACTIVE_CANONICAL_PENDING_PR_MERGE',
@@ -18,6 +18,12 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
       runtimeAuthority: 'CORROBORATIVE_EVIDENCE_ONLY',
       directScoreWeight: 0,
     },
+    traderIntelligence: {
+      id: 'TRADER_INTELLIGENCE_OMEGA_V1',
+      runtimeAuthority: 'RESEARCH_PRIORITY_AND_FALSIFICATION_ONLY',
+      directScoreWeight: 0,
+      portfolioOrderAuthority: false,
+    },
   },
   boundaries: {
     deltaCannotConclude: true,
@@ -32,6 +38,14 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     revealedCapitalCannotBypassFundamentals: true,
     revealedCapitalCannotBypassValuation: true,
     revealedCapitalCannotBypassFalsifierVeto: true,
+    traderIdentityCannotCreateDirectScore: true,
+    traderIntelligenceCannotBuySell: true,
+    traderIntelligenceCannotSetWeight: true,
+    traderIntelligenceCannotBypassFundamentals: true,
+    traderIntelligenceCannotBypassValuation: true,
+    traderIntelligenceCannotBypassCompetitionForCapital: true,
+    traderIntelligenceCannotBypassFalsifierVeto: true,
+    traderDerivedRulesRequireAuthorRemovalTest: true,
     durableRevisionGapRequiresIndependentFundamentalEvidence: true,
     falsifierVetoIndependent: true,
     decisionSafetyIndependent: true,
