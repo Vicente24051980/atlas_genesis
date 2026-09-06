@@ -144,6 +144,52 @@ The former RRC/MOH scores are retained as historical research snapshots only. As
 - MOH target ownership percentage cannot be called portfolio conviction without a valid denominator.
 - Both must be routed through the applicable economic engines and common ATLAS gates independently of Lingotto.
 
+## Retroactive Epistemic Gate Audit Ω — Progeny / ELITE CAPITAL SIGNAL
+This audit exists to prove that the universal gates change old conclusions rather than merely documenting good intentions.
+
+### SOURCE INDEPENDENCE GATE — result
+Historic Progeny/Elite-capital reasoning over-counted repeated evidence that originated from the same disclosure/ownership/governance chain. Repetition across notes, derived graphs or secondary commentary is **not independent confirmation**.
+
+**Canonical consequence:** allocator/family identity, prestige, network centrality and repeated coverage contribute **0 direct company score**. They can create a research lead only.
+
+### PROVENANCE / ADVERSARIAL EVIDENCE GATE — result
+Every capital signal must distinguish:
+- SEC/regulatory filing;
+- issuer disclosure;
+- vehicle/governance record;
+- secondary interpretation;
+- inferred informational advantage.
+
+Evidence sharing the same origin cannot be stacked as separate support.
+
+### RIVAL HYPOTHESIS GATE — result
+Any apparent success of Progeny-derived ideas must compete against:
+- factor/sector momentum;
+- ordinary quality/growth exposure;
+- market beta;
+- selection/survivorship effects;
+- ex-post case selection;
+- publication-lag effects.
+
+`elite allocator skill` is not the default explanation.
+
+### FALSIFIER REQUIRED — result
+The investable-alpha thesis fails if a complete, point-in-time cohort does not produce repeatable out-of-sample excess information after:
+- benchmark and sector adjustment;
+- publication lag;
+- transaction costs;
+- survivorship controls where possible;
+- multiple-testing controls;
+- predeclared event definitions.
+
+### Material backward reclassification
+Older prestige-transfer, allocator-conviction or network-derived company scores are **deprecated** unless reconstructed from independent point-in-time evidence. This is a real downgrade, not a wording change.
+
+`ELITE CAPITAL DIRECT SCORE CONTRIBUTION = 0`
+
+The surviving role is:
+`DISCOVERY / RESEARCH PRIORITY SENSOR → INDEPENDENT ECONOMIC DUE DILIGENCE`
+
 ## Experimental portfolios
 Any `CAPITAL SNIPER Ω` universe is research-only and must be treated as a forward-test sample, never as a validated core until the backtest reaches A4/A5.
 
