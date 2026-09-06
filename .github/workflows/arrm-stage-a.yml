@@ -1,0 +1,59 @@
+name: ARRM Ω Stage-A falsifier
+
+on:
+  push:
+    branches:
+      - experiment/acceleration-relative-rank-migration
+    paths:
+      - experiments/quant/acceleration_relative_rank_migration_v1.py
+      - CURRENT_CANON/experiments/ACCELERATION_RELATIVE_RANK_MIGRATION_PREREGISTRATION_2026-09-06.md
+      - .github/workflows/arrm-stage-a.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  falsification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas==2.3.2 numpy==2.3.2 yfinance==0.2.65 requests==2.32.5
+
+      - name: Execute frozen Stage-A falsifier
+        env:
+          ARRM_NULL_REPS: '1000'
+          ARRM_SHARE_WORKERS: '8'
+        run: python experiments/quant/acceleration_relative_rank_migration_v1.py
+
+      - name: Commit evidence to experiment branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add artifacts/arrm_omega_v1 || true
+          if git diff --cached --quiet; then
+            echo "No evidence files to commit."
+          else
+            git commit -m "research(atlas): record ARRM Stage-A execution evidence [skip ci]"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
+
+      - name: Upload evidence bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: arrm-omega-v1-evidence
+          path: artifacts/arrm_omega_v1/
+          if-no-files-found: warn
