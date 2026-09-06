@@ -1,0 +1,148 @@
+{
+  "experiment_id": "ARRM_OMEGA_V1_2026-09-06",
+  "historical_symbol_count": 663,
+  "panel_rows": 16003,
+  "market_cap_proxy_coverage": 0.9095169655689558,
+  "mature_6m_outcome_coverage": 0.9152033993626195,
+  "null_reps": 1000,
+  "primary": {
+    "6m": {
+      "train": {
+        "n_quarters": 16,
+        "mean": -0.013805771885819,
+        "median": -0.015607117133871681,
+        "positive_share": 0.4375
+      },
+      "validation": {
+        "n_quarters": 8,
+        "mean": -0.01207076284164154,
+        "median": -0.006635176034647969,
+        "positive_share": 0.5
+      },
+      "oos": {
+        "n_quarters": 8,
+        "mean": 0.030465760858005272,
+        "median": 0.029127612048069976,
+        "positive_share": 0.75
+      }
+    },
+    "12m": {
+      "train": {
+        "n_quarters": 16,
+        "mean": -0.02823536988982482,
+        "median": -0.04743833950957545,
+        "positive_share": 0.375
+      },
+      "validation": {
+        "n_quarters": 8,
+        "mean": -0.017738407394199816,
+        "median": -0.005734286977427146,
+        "positive_share": 0.5
+      },
+      "oos": {
+        "n_quarters": 6,
+        "mean": 0.028487338026671208,
+        "median": 0.019674840986252492,
+        "positive_share": 0.5
+      }
+    }
+  },
+  "secondary": {
+    "6m": {
+      "train": {
+        "n_quarters": 16,
+        "mean": 0.008971618593496865,
+        "median": 0.0074832381486304896,
+        "positive_share": 0.5
+      },
+      "validation": {
+        "n_quarters": 8,
+        "mean": -0.004221737984162545,
+        "median": 0.014052076173303087,
+        "positive_share": 0.625
+      },
+      "oos": {
+        "n_quarters": 8,
+        "mean": 0.031387249857051415,
+        "median": 0.03331587137158897,
+        "positive_share": 0.625
+      }
+    },
+    "12m": {
+      "train": {
+        "n_quarters": 16,
+        "mean": 0.009876846428786477,
+        "median": 0.005388212521352703,
+        "positive_share": 0.5
+      },
+      "validation": {
+        "n_quarters": 8,
+        "mean": -0.01891233644087462,
+        "median": -0.015101131694150208,
+        "positive_share": 0.5
+      },
+      "oos": {
+        "n_quarters": 6,
+        "mean": 0.017324491310013974,
+        "median": 0.012720906741809293,
+        "positive_share": 0.6666666666666666
+      }
+    }
+  },
+  "momentum_benchmark": {
+    "6m": {
+      "train": {
+        "n_quarters": 16,
+        "mean": -0.010790657258159227,
+        "median": -0.0019758831815082237,
+        "positive_share": 0.4375
+      },
+      "validation": {
+        "n_quarters": 8,
+        "mean": 0.010304738027620202,
+        "median": 0.01823360362942745,
+        "positive_share": 0.625
+      },
+      "oos": {
+        "n_quarters": 8,
+        "mean": 0.062189161570840416,
+        "median": 0.030197673722024795,
+        "positive_share": 0.875
+      }
+    },
+    "12m": {
+      "train": {
+        "n_quarters": 16,
+        "mean": -0.023003581528783963,
+        "median": -0.008794289436775186,
+        "positive_share": 0.4375
+      },
+      "validation": {
+        "n_quarters": 8,
+        "mean": 0.010083841353368393,
+        "median": 0.03428455009092779,
+        "positive_share": 0.625
+      },
+      "oos": {
+        "n_quarters": 6,
+        "mean": 0.07193786087659791,
+        "median": 0.07029809146860128,
+        "positive_share": 0.8333333333333334
+      }
+    }
+  },
+  "primary_oos_6m_null": {
+    "n_quarters": 8,
+    "mean": 0.030465760858005272,
+    "median": 0.029127612048069976,
+    "positive_share": 0.75,
+    "observed_mean_spread": 0.030465760858005272,
+    "permuted_rank_empirical_p_one_sided": 0.000999000999000999,
+    "random_count_empirical_p_one_sided": 0.001998001998001998,
+    "permuted_null_mean": -0.0005689205900999754,
+    "random_null_mean": 0.0002539066531896213
+  },
+  "verdict": "SURVIVES_STAGE_A",
+  "stage_b_authority": "ALLOWED_TO_PREREGISTER",
+  "runtime_seconds": 1290.56374502182
+}
