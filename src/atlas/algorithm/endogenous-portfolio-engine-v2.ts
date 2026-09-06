@@ -1,6 +1,6 @@
-export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-05-v2.0.0' as const;
-export const MIN_PORTFOLIO_POSITIONS_V2 = 20 as const;
-export const MAX_PORTFOLIO_POSITIONS_V2 = 35 as const;
+export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-06-v2.1.0' as const;
+export const MIN_PORTFOLIO_POSITIONS_V2 = 1 as const;
+export const MAX_PORTFOLIO_POSITIONS_V2 = 50 as const;
 
 export const CANONICAL_SCENARIOS = [
   'AI_CAPEX_MINUS_30',
@@ -44,7 +44,7 @@ export type PortfolioCandidateV2 = {
   convexity: number;
   confidence: number; // 0..1, reported separately; never folded into Expected Return.
   individualScore: number;
-  causalDrivers: Record<string, number>; // signed exposure/intensity, typically -1..1
+  causalDrivers: Record<string, number>; // diagnostic exposure map; never a sector/driver quota.
   fundingSources: string[];
   scenarios: Record<ScenarioId, number>; // impact -5..+5
 
@@ -60,14 +60,19 @@ export type PortfolioEnginePolicyV2 = {
   minPositions?: number;
   maxPositions?: number;
   marginalUtilityThreshold?: number;
+
+  // Legacy compatibility fields. Canonical v2.1 fails closed if callers try to
+  // give diversification, causal redundancy or required-driver coverage
+  // independent selection authority.
   missingDriverRobustnessThreshold?: number;
   requiredStructuralDrivers?: string[];
   alphaDiversification?: number;
+  rhoCausalRedundancy?: number;
+
   betaRobustness?: number;
   gammaConvexity?: number;
   lambdaPermanentLoss?: number;
   phiFragility?: number;
-  rhoCausalRedundancy?: number;
   etaFinancingCorrelation?: number;
   tauTailRisk?: number;
   kappaComplexity?: number;
@@ -87,8 +92,8 @@ export type PortfolioMetricsV2 = {
   volatilityRisk: number;
   fragility: number;
   convexity: number;
-  causalDiversification: number;
-  causalRedundancy: number;
+  causalDiversification: number; // diagnostic only in canonical v2.1
+  causalRedundancy: number; // diagnostic only in canonical v2.1
   financingCorrelation: number;
   robustness: number;
   worstScenarioImpact: number;
@@ -97,7 +102,7 @@ export type PortfolioMetricsV2 = {
   complexity: number;
   meanConfidence: number;
   utility: number;
-  driverCoverage: string[];
+  driverCoverage: string[]; // diagnostic only; never a coverage target.
 };
 
 export type PortfolioFrontierPointV2 = {
@@ -124,19 +129,27 @@ const DEFAULT_POLICY: Required<Omit<PortfolioEnginePolicyV2, 'requiredStructural
   minPositions: MIN_PORTFOLIO_POSITIONS_V2,
   maxPositions: MAX_PORTFOLIO_POSITIONS_V2,
   marginalUtilityThreshold: 0.10,
-  missingDriverRobustnessThreshold: 0.15,
+  missingDriverRobustnessThreshold: 0,
   requiredStructuralDrivers: [],
-  alphaDiversification: 1.0,
+
+  // INVIOLABLE: diversification/sector/driver variety has zero standalone utility.
+  alphaDiversification: 0,
+  rhoCausalRedundancy: 0,
+
+  // Robustness remains admissible only because it is a risk property, not
+  // because it makes the portfolio look diversified.
   betaRobustness: 1.0,
   gammaConvexity: 0.35,
   lambdaPermanentLoss: 1.0,
   phiFragility: 0.75,
-  rhoCausalRedundancy: 0.80,
   etaFinancingCorrelation: 0.80,
-  tauTailRisk: 0.70,
+  tauTailRisk: 0,
   kappaComplexity: 0.03,
   uncertaintyPenalty: 0.30,
-  riskWeights: { permanentLoss: 0.65, tailRisk: 0.20, volatility: 0.15 },
+
+  // Versioned policy: expected return + low volatility/permanent-loss risk.
+  // These are operating weights, not universal constants.
+  riskWeights: { permanentLoss: 0.40, tailRisk: 0.20, volatility: 0.40 },
   replacementThreshold: { GREEN: 0.30, ORANGE: 0.15, RED: 0.01 },
   maxLocalSearchIterations: 6,
 };
@@ -174,8 +187,13 @@ function normalizePolicy(policy: PortfolioEnginePolicyV2): typeof DEFAULT_POLICY
     requiredStructuralDrivers: policy.requiredStructuralDrivers ?? [],
   };
   const rw = p.riskWeights;
-  if (!Number.isInteger(p.minPositions) || !Number.isInteger(p.maxPositions) || p.minPositions < 20 || p.maxPositions > 35 || p.minPositions > p.maxPositions) return null;
+  if (!Number.isInteger(p.minPositions) || !Number.isInteger(p.maxPositions) || p.minPositions < 1 || p.maxPositions > 100 || p.minPositions > p.maxPositions) return null;
   if (Math.abs(rw.permanentLoss + rw.tailRisk + rw.volatility - 1) > 1e-9) return null;
+
+  // INVIOLABLE MAX RETURN / LOW VOL LAW: no caller may reintroduce a
+  // diversification reward, a causal-redundancy penalty, or mandatory driver
+  // coverage as an independent route into the portfolio.
+  if (p.alphaDiversification !== 0 || p.rhoCausalRedundancy !== 0 || p.requiredStructuralDrivers.length > 0) return null;
   return p;
 }
 
@@ -217,8 +235,14 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
   const weightedRisk = p.riskWeights.permanentLoss * permanentLoss + p.riskWeights.tailRisk * tailRisk + p.riskWeights.volatility * volatilityRisk;
   const fragility = mean(candidates.map(c => c.fragility));
   const convexity = mean(candidates.map(c => c.convexity));
+
+  // Diagnostics retained for auditability; neither receives independent
+  // membership authority under canonical v2.1.
   const causalRedundancy = averagePairwise(candidates, (a, b) => cosineAbs(a.causalDrivers, b.causalDrivers));
   const causalDiversification = 1 - causalRedundancy;
+
+  // Financing correlation remains a risk input because the same financed
+  // dollar can create common fragility even across different sectors.
   const financingCorrelation = averagePairwise(candidates, (a, b) => jaccard(a.fundingSources, b.fundingSources));
 
   const scenarioMeans = CANONICAL_SCENARIOS.map(s => mean(candidates.map(c => c.scenarios[s])));
@@ -229,7 +253,7 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
     const pos = candidates.filter(c => c.scenarios[s] > 0).reduce((sum, c) => sum + c.scenarios[s], 0);
     return neg === 0 ? (pos > 0 ? 1 : 0) : clamp(pos / neg, 0, 1);
   }));
-  // More negative worst scenario and broader simultaneous damage reduce robustness; offset capacity improves it.
+  // Robustness has authority only as modeled risk reduction.
   const robustness = worstScenarioImpact + offsetCapacity - simultaneousAffectedMax / n;
   const complexity = Math.max(0, n - p.minPositions);
   const meanConfidence = mean(candidates.map(c => c.confidence));
@@ -237,12 +261,10 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
   const driverCoverage = [...new Set(candidates.flatMap(c => Object.entries(c.causalDrivers).filter(([, v]) => Math.abs(v) > 0.25).map(([k]) => k)))].sort();
 
   const utility = er
-    + p.alphaDiversification * causalDiversification
     + p.betaRobustness * robustness
     + p.gammaConvexity * convexity
     - p.lambdaPermanentLoss * weightedRisk
     - p.phiFragility * fragility
-    - p.rhoCausalRedundancy * causalRedundancy
     - p.etaFinancingCorrelation * financingCorrelation
     - p.tauTailRisk * tailRisk
     - p.kappaComplexity * complexity
@@ -253,9 +275,17 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
     offsetCapacity, complexity, meanConfidence, utility, driverCoverage };
 }
 
-function standaloneOpportunity(c: PortfolioCandidateV2, p: PortfolioEnginePolicyV2): number {
-  // Confidence is deliberately excluded from ER and used only as an uncertainty cost in set utility.
-  return expectedReturnPct(c) - c.permanentLossRisk - c.fragility - c.tailRisk + 0.25 * c.convexity;
+function standaloneOpportunity(c: PortfolioCandidateV2, policy: PortfolioEnginePolicyV2): number {
+  const p = normalizePolicy(policy);
+  if (!p) return Number.NEGATIVE_INFINITY;
+  const weightedRisk = p.riskWeights.permanentLoss * c.permanentLossRisk
+    + p.riskWeights.tailRisk * c.tailRisk
+    + p.riskWeights.volatility * c.volatilityRisk;
+  return expectedReturnPct(c)
+    + p.gammaConvexity * c.convexity
+    - p.lambdaPermanentLoss * weightedRisk
+    - p.phiFragility * c.fragility
+    - p.uncertaintyPenalty * (1 - c.confidence);
 }
 
 function localBestForN(eligible: PortfolioCandidateV2[], n: number, policy: PortfolioEnginePolicyV2): PortfolioCandidateV2[] {
@@ -279,11 +309,6 @@ function localBestForN(eligible: PortfolioCandidateV2[], n: number, policy: Port
     set = bestSet; current += bestGain;
   }
   return set.sort((a, b) => a.ticker.localeCompare(b.ticker));
-}
-
-function addsMissingRequiredDriver(a: PortfolioMetricsV2, b: PortfolioMetricsV2, required: string[]): boolean {
-  const before = new Set(a.driverCoverage);
-  return required.some(d => !before.has(d) && b.driverCoverage.includes(d));
 }
 
 function classifyUniverse(selected: PortfolioCandidateV2[], eligible: PortfolioCandidateV2[], all: PortfolioCandidateV2[], policy: PortfolioEnginePolicyV2): Record<string, PortfolioClass> {
@@ -325,14 +350,13 @@ export function runEndogenousPortfolioEngineV2(candidates: PortfolioCandidateV2[
   }
 
   let chosenIndex = frontier.length - 1;
-  let reason = 'Reached maximum eligible/canonical cardinality.';
+  let reason = 'Reached maximum eligible/canonical search cardinality.';
   for (let i = 0; i < frontier.length - 1; i++) {
     const a = frontier[i], b = frontier[i + 1];
     const delta = b.metrics.utility - a.metrics.utility;
-    const driverException = addsMissingRequiredDriver(a.metrics, b.metrics, p.requiredStructuralDrivers) && (b.metrics.robustness - a.metrics.robustness) >= p.missingDriverRobustnessThreshold;
-    if (delta < p.marginalUtilityThreshold && !driverException) {
+    if (delta < p.marginalUtilityThreshold) {
       chosenIndex = i;
-      reason = `N=${a.n} selected because ΔU to N+1=${delta.toFixed(4)} is below material threshold ${p.marginalUtilityThreshold.toFixed(4)} and no missing-driver robustness exception applies.`;
+      reason = `N=${a.n} selected because ΔU to N+1=${delta.toFixed(4)} is below material threshold ${p.marginalUtilityThreshold.toFixed(4)}. No sector, diversification or missing-driver exception is permitted.`;
       break;
     }
   }
@@ -364,5 +388,5 @@ export function evaluateReplacementV2(
   const delta = after - before;
   const threshold = p.replacementThreshold[incumbentState] ?? DEFAULT_POLICY.replacementThreshold[incumbentState]!;
   return { allowed: delta >= threshold, deltaPortfolioUtility: delta, threshold,
-    reason: delta >= threshold ? 'Replacement materially improves whole-portfolio utility.' : 'Replacement improvement is below hysteresis threshold.' };
+    reason: delta >= threshold ? 'Replacement materially improves return/risk portfolio utility.' : 'Replacement improvement is below hysteresis threshold.' };
 }
