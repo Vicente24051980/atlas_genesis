@@ -1,16 +1,19 @@
-name: Marginal Addition Audit CI
+name: Legacy Marginal Addition Audit CI
 
 on:
   pull_request:
     paths:
       - 'scripts/atlas_marginal_addition_audit.py'
       - 'scripts/atlas_quant_portfolio_audit.py'
+      - 'scripts/legacy_fixed_portfolio_guard.py'
       - '.github/workflows/marginal-addition-audit-ci.yml'
   workflow_dispatch:
 
 jobs:
   audit:
     runs-on: ubuntu-24.04
+    env:
+      ATLAS_ALLOW_LEGACY_FIXED_PORTFOLIO: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,9 +21,9 @@ jobs:
           python-version: '3.12'
       - name: Install dependencies
         run: pip install --disable-pip-version-check numpy pandas yfinance
-      - name: Run marginal N31 to N32 audit
+      - name: Reproduce LEGACY N31 to N32 marginal audit — no current portfolio authority
         run: python scripts/atlas_marginal_addition_audit.py --start 2023-09-05 --end 2026-09-05 --outdir artifacts/marginal-addition-audit
       - uses: actions/upload-artifact@v4
         with:
-          name: atlas-marginal-addition-audit
+          name: atlas-legacy-marginal-addition-audit
           path: artifacts/marginal-addition-audit
