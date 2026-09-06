@@ -1,4 +1,4 @@
-export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-06-v3.0.0' as const;
+export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-06-v3.1.0' as const;
 
 export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
   governanceStatus: 'ACTIVE_CANONICAL',
@@ -23,6 +23,29 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
       id: 'DURABLE_REVISION_GAP_OMEGA_V1',
       runtimeAuthority: 'SUBORDINATE_SELECTION_INPUT',
       scoreAuthority: 'ECONOMIC_EVIDENCE_COMPONENT_ONLY',
+    },
+    ownerEconomicsRotationSpecialized: {
+      id: 'OWNER_ECONOMICS_ROTATION_SPECIALIZED_OMEGA',
+      runtimeAuthority: 'SUBORDINATE_EVIDENCE_NORMALIZATION_AND_RISK_INPUTS_ONLY',
+      incumbentPreferenceAuthority: false,
+    },
+    investmentDisciplineCompounding: {
+      id: 'INVESTMENT_DISCIPLINE_COMPOUNDING_OMEGA_V1',
+      runtimeAuthority: 'SUBORDINATE_FUNDAMENTAL_DIAGNOSTICS_ONLY',
+      antiChurnReplacementHurdleAuthority: 'EXECUTION_ONLY_LEGACY_COMPATIBILITY',
+      activeVsIndexAuthority: 'DIAGNOSTIC_ONLY',
+      incumbentPreferenceAuthority: false,
+    },
+    leadershipBiasControl: {
+      id: 'LEADERSHIP_BIAS_CONTROL_OMEGA',
+      runtimeAuthority: 'DISCOVERY_AND_COMPARISON_ONLY',
+      incumbentLabelAuthority: false,
+      portfolioMembershipAuthority: false,
+    },
+    propicksChallengerReplacementAlpha: {
+      id: 'PROPICKS_CHALLENGER_REPLACEMENT_ALPHA_OMEGA',
+      runtimeAuthority: 'RESEARCH_AND_EXECUTION_TEST_ONLY',
+      cleanSelectionAuthority: false,
     },
     revealedCapitalIntelligence: {
       id: 'REVEALED_CAPITAL_INTELLIGENCE_OMEGA_V1',
@@ -52,6 +75,10 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     duplicateRawRowsCannotCreateExtraSelectionOpportunities: true,
     fixedNTargetsForbidden: true,
     incumbentProtectionForbiddenDuringCleanRebuild: true,
+    incumbentTieBreakForbiddenDuringCleanRebuild: true,
+    legacyReplacementHurdlesCannotChangePointZeroWinner: true,
+    activeVsIndexCannotVetoMembershipUnlessMasterPromptExplicitlyAddsIt: true,
+    leadershipIncumbentLabelsCannotCreateSelectionAdvantage: true,
     marketCapBonusForbidden: true,
     fameFamiliarityBonusForbidden: true,
     indexMembershipBonusForbidden: true,
@@ -113,6 +140,13 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     'HIDDEN_FACTOR_CONCENTRATION_AUDIT',
     'BULL_BASE_BEAR_SENSITIVITY',
     'ANTI_BIAS_AUDIT',
+  ],
+  executionOnlySequence: [
+    'TAX_AND_TRANSACTION_FRICTION',
+    'LEGACY_ANTI_CHURN_REPLACEMENT_HURDLES_IF_USED',
+    'REPLACEMENT_HYSTERESIS',
+    'POSITION_SIZING',
+    'ENTRY_TIMING',
   ],
   aiCapexPreScoreSequence: [
     'T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA',
