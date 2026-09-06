@@ -1,248 +1,213 @@
-# ATLAS Ω — QUANT LAB / STRATEGY FACTORY Ω v1.0
+# ATLAS Ω — QUANT LAB / STRATEGY FACTORY Ω v1.1
 
-**Status:** ACTIVE · RESEARCH / SHADOW ONLY  
+**Status:** FROZEN · SPECIFICATION / RESEARCH ONLY · NOT EMPIRICALLY VALIDATED  
 **Effective:** 2026-09-06  
-**Issue:** #151  
+**Supersedes:** v1.0 ordering and promotion semantics  
 **Structural ATLAS score weight:** 0  
 **Broker execution authority:** NONE  
-**Promotion authority:** MODEL LEARNING GOVERNANCE Ω v1
+**Current promotion authority:** NONE until freeze-release conditions pass
+
+## Correction record
+
+v1.0 overstated implementation maturity. The repository contains a candidate evaluator and governance specification, but **not yet an end-to-end mass generator + backtester capable of producing and testing a complete strategy population**. Therefore Strategy Factory is not currently an empirically validated factory.
+
+No candidate may be called `PORTFOLIO_ELIGIBLE`, `SHADOW_ELIGIBLE`, or operationally useful merely because it passes candidate-level metrics. The TypeScript evaluator is diagnostic only while this freeze is active.
 
 ## Mission
 
-Build a reusable, clean-room strategy-discovery factory that answers a question orthogonal to Structural ATLAS:
+Quant Lab remains orthogonal to Structural ATLAS:
 
-- **Stock Selection Ω:** what business deserves ownership over 3–6 years?
-- **Quant Lab / Strategy Factory Ω:** when, under which regime, and under which rule-set is exposure statistically better or worse?
-- **Portfolio Ω:** how much capital should be allocated?
-- **Execution Ω:** how should an approved decision be executed safely?
+- **Stock Selection Ω:** what business deserves ownership?
+- **Quant Lab Ω:** whether a predeclared timing/regime rule has incremental net value.
+- **Portfolio Ω:** how much capital to allocate.
+- **Execution Ω:** how to execute an already-authorized decision.
 
-Strategy Factory never converts a technical rule into fundamental quality and never alters a structural BUY/HOLD/WATCH/REJECT by itself.
+Technical evidence never creates fundamental quality.
 
-## Architectural rule
+## Stage 0 — mandatory before strategy search
 
-Strategy Factory is an upstream discovery layer for the quantitative validation stack already active in ATLAS. It must reuse rather than duplicate:
+### 0A. Economic Mechanism Prior Ω
 
-- `FACTOR_FORGE_OMEGA_V1`
-- `STATISTICAL_BACKTEST_FIREWALL_OMEGA_V1`
-- `MARKET_CONTEXT_ROUTER_OMEGA_V1`
-- `DRIFT_GUARD_OMEGA_V1`
-- `TAIL_RISK_DIAGNOSTICS_OMEGA_V1`
-- `PORTFOLIO_RISK_UTILITY_RESEARCH_OMEGA_V1`
-- `MODEL_LEARNING_GOVERNANCE_OMEGA_V1`
+No mechanism, no search. Every strategy family must be preregistered before candidate generation with:
 
-Canonical flow:
+- `MECHANISM`: e.g. risk premium, behavioral under/overreaction, liquidity provision, structural flow, rebalance friction;
+- `COUNTERPARTY_OR_SOURCE`: who/what economically supplies the edge;
+- `EXPECTED_REGIME`;
+- `EXPECTED_DECAY`;
+- `FALSIFIER`;
+- `PREREGISTRATION_TIMESTAMP`;
+- permitted observables and rule grammar.
 
-`Universe -> Strategy Grammar -> Candidate Generation -> Integrity Gate -> Costed Backtest -> Purged/Embargoed Validation -> Walk Forward -> Monte Carlo -> Parameter Stability -> Regime Stress -> Multiple-Testing Firewall -> Sealed OOS -> Portfolio Redundancy Test -> Paper -> Live Shadow -> Governance Review -> Optional Eligibility`
+A family consisting only of arbitrary indicator combinations has insufficient prior probability and cannot enter the search population.
 
-No stage may be skipped.
+### 0B. Friction Viability Ω
 
-## Clean-room boundary
+Before building a serious grammar, pin the actual instrument/broker cost model. Required inputs:
 
-ATLAS may study the observable methodology of third-party quantitative systems, public documentation, lawfully supplied strategy files, and user-provided EAs as specimens. ATLAS must not copy proprietary source code, bypass access controls, reconstruct protected code from binaries, or treat vendor marketing results as evidence.
-
-The reusable idea is the factory: generate many bounded rule candidates, falsify aggressively, preserve provenance, and retain only strategies that survive independent validation.
-
-## Strategy grammar
-
-Candidate generation must be bounded by an explicit, versioned grammar. Permitted families may include:
-
-- trend / moving-average state;
-- breakout / channel state;
-- momentum / relative strength;
-- mean reversion;
-- volatility / ATR state;
-- volume / liquidity state;
-- breadth / market context;
-- calendar / session filters;
-- regime filters;
-- stop, trailing-stop and time-stop policies;
-- position-sizing hypotheses for research only.
-
-Every generated candidate receives a deterministic `candidateId`, grammar version, parameter vector, source/provenance record, universe, timeframe, benchmark, cost model and generation seed.
-
-Free-form strategies with unknown provenance are not promotable.
-
-## Search discipline
-
-Mass generation is allowed; mass significance is not.
-
-A candidate cannot gain credibility because it was the best of a large search. Search breadth increases the multiple-testing burden.
-
-Required search records:
-
-- number of formulas/rules tested;
-- number of parameter combinations tested;
-- objective used during search;
-- data period visible to the generator;
-- random/evolutionary seed where applicable;
-- rejected candidates and rejection reasons;
-- family-level discovery count for false-discovery control.
-
-## Data integrity gate
-
-Hard fail unless all applicable checks pass:
-
-- point-in-time inputs;
-- no look-ahead leakage;
-- survivorship-safe universe where cross-sectional claims are made;
-- corporate-action normalization;
-- timestamp/timezone consistency;
-- same-instrument identity continuity;
-- realistic tradability assumptions;
-- reproducible data snapshot or version identifier.
-
-A strategy with an excellent equity curve and failed data integrity is `REJECT_DATA_INVALID`.
-
-## Costed backtest gate
-
-Before a candidate is called profitable, results must include an explicit cost model appropriate to the instrument and horizon:
-
-- spread;
+- round-trip spread;
 - commissions/fees;
-- slippage;
-- turnover;
-- financing/borrow where applicable;
-- latency/execution assumptions where material.
+- slippage assumption;
+- expected round trips/year;
+- overnight financing rate and expected financed days;
+- borrow/other costs where applicable;
+- capital and leverage assumptions.
 
-Gross alpha is never net alpha.
+Minimum calculation:
 
-## Temporal validation
+`C_ann = round_trips_per_year × round_trip_execution_cost + financed_days × financing_cost_per_day + other_costs`
 
-Random train/test shuffles are prohibited when they violate time dependence.
+`gross_alpha_break_even = C_ann`
 
-Required where applicable:
+Approximate break-even gross Sharpe, under a declared annualized volatility assumption:
 
-- chronological train/validation/test separation;
-- purging when labels or holding periods overlap;
-- embargo around adjacent folds when leakage is possible;
-- rolling or expanding walk-forward validation;
-- sealed holdout not consulted during candidate generation or tuning.
+`Sharpe_gross_BE ≈ C_ann / sigma_ann`
 
-The sealed OOS block can be opened once per frozen candidate version. A modified candidate receives a new version and cannot reuse the prior holdout as if unseen.
+For the proposed retail Nasdaq CFD use case, the numeric result is currently **NOT_COMPUTED** because the exact broker/instrument spread and overnight-financing inputs have not been pinned in the research record. ATLAS must not invent them. If realistic friction makes the required gross edge implausible, the project stops here.
 
-## Robustness stack
+### 0C. Search-Family Preregistration Ω
 
-### Monte Carlo / path stress
+Before outcomes are inspected, freeze:
 
-Research must test whether the result depends on a lucky ordering or narrow execution path. Permitted stresses include trade-order reshuffling where logically valid, return/block bootstrap, slippage shocks, missed trades and start-date perturbation.
+- family definition and economic mechanism;
+- grammar version;
+- parameter ranges;
+- objective function;
+- train/validation/OOS dates;
+- benchmark;
+- cost model;
+- total intended search budget;
+- random/evolutionary seeds where applicable;
+- null-control protocol.
+
+Adaptive redesign after seeing results creates a new experiment family and must remain in the multiplicity ledger.
+
+## Correct statistical order
+
+The former v1.0 cascade placed the Multiple-Testing Firewall after repeated survivor filtering. That ordering is superseded.
+
+Canonical research flow is now:
+
+`Economic Prior -> Friction Stage 0 -> Family Preregistration -> Strategy Grammar -> Complete Candidate Generation -> Complete Candidate Ledger -> Null Calibration on identical pipeline -> Full-Family Multiple-Testing / Data-Snooping Diagnostics -> Candidate-Level Integrity/Temporal/Robustness Tests -> Sealed OOS -> Portfolio Utility -> Paper -> Prospective Shadow -> Governance`
+
+The multiplicity universe cannot silently shrink from all tried hypotheses to the final survivors.
+
+## Full-family multiplicity law
+
+White's Reality Check and Hansen SPA, when used, must be applied with the relevant **complete preregistered strategy family/search population** represented, not only the finalists surviving prior filters on the same data.
+
+Benjamini-Hochberg/FDR accounting likewise belongs to the declared family/search scope. Survivor-only adjusted p-values do not certify control of the search process.
+
+### Deflated Sharpe Ratio
+
+DSR may be reported only when the effective number/distribution of trials is defensibly estimated and the method plus assumptions are recorded. Highly correlated parameter variants do not make the raw candidate count an independent-trial count.
+
+If adaptive grammar decisions or correlation structure make effective trials non-identifiable, use:
+
+`DSR = NOT_COMPUTED`
+
+A missing/undefendable DSR cannot be converted into certification.
+
+## Null-Arm Calibration Ω
+
+Before any strategy family can earn promotion authority, the **same frozen pipeline** must be run on controls:
+
+1. `PERMUTED_RETURNS` — destroys temporal signal.
+2. `BLOCK_BOOTSTRAP_RETURNS` — preserves local dependence/volatility clustering according to a preregistered block procedure.
+3. `CALIBRATED_GBM` — synthetic geometric Brownian motion calibrated to declared Nasdaq moments.
+
+For real data and every null family, record:
+
+- total generated candidates;
+- survivor count at every stage;
+- best and distributional performance statistics;
+- family-wide Reality Check/SPA/FDR diagnostics where applicable;
+- sealed-OOS survivor count;
+- final survivor count.
+
+Primary falsifier:
+
+If the real-data pipeline does not materially discriminate itself from the null survivor distribution, mark `FAIL_NULL_DISCRIMINATION` and halt the strategy family.
+
+A sophisticated pipeline that produces similar survivors on noise is a noise detector.
+
+## Candidate-level validation after family calibration
+
+Only after the family-level requirements above are satisfied may individual candidates proceed through:
+
+`Data Integrity -> Costed Backtest -> Purged/Embargoed Temporal Validation -> Walk Forward -> Monte Carlo/Path Stress -> Parameter Stability -> Regime Stress -> Sealed OOS -> Portfolio Redundancy/Utility -> Paper -> Live Shadow`
 
 ### Parameter Stability Ω
 
-A candidate must be tested in a neighborhood around the selected parameter vector.
+Prefer broad performance plateaus to sharp optima. Record neighborhood definition, neighbor count, pass rate, median performance and center-to-neighborhood degradation. Isolated optima remain `REJECT_PARAMETER_SPIKE`.
 
-ATLAS prefers a **performance plateau** to a single sharp optimum. Required outputs include:
+### Sealed OOS
 
-- neighbor parameter count;
-- neighbor pass rate;
-- median neighbor performance;
-- degradation from center to neighborhood;
-- fragility flag.
+A sealed holdout is opened once per frozen candidate version. Any tuning after inspection creates a new version and the old holdout is no longer unseen.
 
-A strategy that works only at an isolated parameter point is `REJECT_PARAMETER_SPIKE`.
+## Overlay contract — exact current authority
 
-### Regime Stress Ω
+Until incremental-return validation exists, **the overlay has no portfolio or execution authority**.
 
-At minimum, evaluate available evidence across materially different market states such as:
+The first permitted research lever, once unfrozen, is deliberately narrow:
 
-- bull / bear;
-- high / low volatility;
-- rising / falling rates or liquidity where relevant;
-- high / low breadth;
-- trend / chop.
+`ENTRY_TIMING_ONLY`
 
-A regime filter may legitimately specialize a strategy, but specialization must be declared ex ante and validated OOS. Failure outside an explicitly excluded regime is not hidden.
+It may compare execution timing **only for a structural BUY/add that has already been independently approved**. It may not:
 
-## Multiple-testing and overfitting firewall
+- create a BUY;
+- cancel or force a structural SELL;
+- change the structural target weight;
+- change company score;
+- send a broker order.
 
-Strategy Factory inherits the existing Benjamini-Hochberg FDR requirement and adds hooks for stronger diagnostics when statistically applicable:
+The entry window and maximum delay must be preregistered per experiment; no live numeric delay is canonized yet. The overlay must be benchmarked against `FIRST_ADMISSIBLE_EXECUTION` and judged on **incremental net return after costs**, drawdown and missed-opportunity cost. If it adds no robust OOS value, it is removed rather than retained as a dashboard.
 
-- **Deflated Sharpe Ratio (DSR)**;
-- **Probability of Backtest Overfitting (PBO)** using CSCV or a documented equivalent;
-- **White's Reality Check** and/or **Hansen SPA** for data-snooping-aware benchmark comparison;
-- family-level false-discovery accounting;
-- effective number of trials when estimable.
+No sizing band is authorized in v1.1.
 
-These are evidence diagnostics, not decorative metrics. If a diagnostic is unavailable, the state is `NOT_COMPUTED`, never a fabricated pass.
+## Current implementation state
 
-## Portfolio construction gate
+Implemented:
 
-Surviving strategies are evaluated together, not only individually.
+- deterministic candidate evaluator;
+- local failure diagnostics;
+- explicit structural weight = 0;
+- explicit broker authority = none;
+- global empirical-calibration freeze;
+- test suite encoding the freeze.
 
-Required portfolio diagnostics include:
+Not implemented / not executed:
 
-- return and drawdown correlation;
-- signal/exposure overlap;
-- common regime dependence;
-- turnover interaction;
-- concentration by instrument/factor/regime;
-- marginal contribution to risk and expected utility.
+- end-to-end strategy generator/backtester;
+- complete search ledger;
+- economic-mechanism contract enforcement;
+- numeric retail-CFD friction viability;
+- three-arm null calibration;
+- valid full-family data-snooping correction;
+- prospective live-shadow evidence.
 
-Two near-identical strategies do not become diversification because they have different names or parameters.
+Therefore the correct current empirical result is:
 
-QuantAnalyzer/portfolio-builder style diversification is adopted as a concept only: ATLAS implements its own portfolio logic and evidence rules.
+`STRATEGY_FACTORY_NULL_ARM = NOT_RUNNABLE`
 
-## Promotion ladder
+This is a failed precondition, not evidence for or against the strategy concept.
 
-`IDEA -> GENERATED -> DATA_VALID -> COSTED_BACKTEST_PASS -> TEMPORAL_VALIDATION_PASS -> ROBUSTNESS_PASS -> MULTIPLE_TESTING_PASS -> SEALED_OOS_PASS -> PORTFOLIO_ELIGIBLE -> PAPER -> LIVE_SHADOW -> REPEATED_OOS -> MODEL_LEARNING_REVIEW -> OPTIONAL_ELIGIBLE`
+## Freeze-release conditions
 
-Failure states are terminal for the frozen candidate version unless a new version is created with an explicit reason.
+No grammar expansion, new strategy family, sizing authority or promotion work until all are true:
 
-## Live shadow rule
+1. one fixed, mechanism-backed strategy family is preregistered;
+2. actual broker/instrument friction Stage 0 is pinned and passes viability;
+3. an end-to-end generator/backtester produces a complete reproducible ledger;
+4. the exact pipeline runs on real + permuted + block-bootstrap + GBM controls;
+5. real-data discrimination from null is reported before tuning;
+6. full-family multiplicity/data-snooping diagnostics are correctly scoped;
+7. focused CI executes and is green;
+8. only then may sealed OOS/paper/shadow begin.
 
-`LIVE_SHADOW` means observe real-time signals and hypothetical fills without broker authority.
+## Clean-room boundary
 
-Required live-shadow record:
+Public methodology and lawfully supplied strategy files may be studied. Proprietary source code is not copied, access controls are not bypassed and opaque binaries are not decompiled. `OBSERVED / INFERRED / RECONSTRUCTED` remains the required evidence separation.
 
-- timestamped signal before outcome;
-- intended order type and price logic;
-- observed spread/slippage proxy;
-- hypothetical fill rule;
-- realized forward result;
-- divergence from backtest expectation;
-- drift metrics.
+## Priority freeze
 
-No backfilled shadow trades are permitted.
-
-## Overlay contract for the 37-stock portfolio
-
-The current structural portfolio is not replaced or rescored by this module.
-
-For a structurally eligible holding such as AVGO, Quant Lab may emit an overlay packet such as:
-
-`trend=POSITIVE | momentum=POSITIVE | volatilityRegime=NEUTRAL | breadth=POSITIVE | entryQuality=82 | strategyEvidence=SHADOW_ONLY`
-
-This packet may inform timing/research. It cannot create a structural BUY, force a SELL, or authorize an order.
-
-## Anti-overfitting laws
-
-1. Best-in-search is not evidence by itself.
-2. In-sample alpha is never promotable.
-3. Search count must be recorded.
-4. A sealed holdout cannot be reused after tuning.
-5. Costs and slippage are mandatory before calling alpha positive.
-6. Parameter spikes are presumed fragile until falsified.
-7. Multiple-testing correction is mandatory for generated families.
-8. Regime specialization must be declared and validated, not discovered after failure.
-9. Portfolio diversification must be measured, not inferred from strategy labels.
-10. Live shadow observations must be timestamped before outcomes.
-11. No third-party reputation, backtest screenshot or marketing claim has direct score weight.
-12. Every candidate, rejection, promotion and retirement is versioned and reproducible.
-
-## Decision authority
-
-- Structural ATLAS remains supreme on what deserves ownership.
-- Falsifier Veto remains independent and absolute.
-- Strategy Factory structural score weight remains exactly zero.
-- Strategy Factory has no broker execution authority.
-- Entry Timing / Portfolio / Execution may consume only validated outputs allowed by their own gates.
-- `NO ROBUST STRATEGY` is a valid and desirable output when evidence is insufficient.
-
-## Implementation
-
-- `src/atlas/algorithm/strategy-factory-omega.ts`
-- `src/atlas/algorithm/strategy-factory-omega.test.ts`
-- clean-room methodology note in `atlas-reverse-engineering`
-
-## Result
-
-ATLAS now formalizes automated strategy discovery as a **generator + falsifier**, not as a price-prediction oracle. The objective is not to find the prettiest historical equity curve; it is to discover rule families that remain economically and statistically credible after realistic friction, temporal separation, repeated perturbation, multiple-testing correction, sealed OOS and live shadow.
+ATLAS is under a construction freeze for this line of work. The next valuable output is not another framework. It is falsification evidence: first the Quant Lab preconditions/null arm when runnable, and separately the already-preregistered Elite Capital/Lingotto post-publication return experiment.
