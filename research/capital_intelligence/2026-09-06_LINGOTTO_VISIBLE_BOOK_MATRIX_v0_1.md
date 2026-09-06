@@ -1,11 +1,11 @@
-# LINGOTTO VISIBLE BOOK MATRIX Ω v0.7
+# LINGOTTO VISIBLE BOOK MATRIX Ω v0.8
 
 **Status:** RESEARCH / PRIMARY-FILING TIMELINE COMPLETE / HOLDINGS EXTRACTION IN PROGRESS  
 **Date:** 2026-09-06  
 **Parent protocol:** `research/capital_intelligence/2026-09-06_LINGOTTO_DISCLOSURE_BACKTEST_PROTOCOL.md`
 
 ## Purpose
-Build the observable public-disclosure matrix for Lingotto without treating the 13F as the total portfolio.
+Build the observable public-disclosure matrix for Lingotto without treating the 13F as the total portfolio or a single-strategy book.
 
 ## Mandatory interpretation
 - `13F_VISIBLE_BOOK != TOTAL_PORTFOLIO`
@@ -14,25 +14,86 @@ Build the observable public-disclosure matrix for Lingotto without treating the 
 - `LONG_13F_POSITION != NET_EXPOSURE`
 - `POSITION_DATE != PUBLICATION_DATE`
 - `SAME_CIK != SAME_INVESTMENT_PROCESS`
+- `LINGOTTO_13F != INTERSECTION_PORTFOLIO`
 - Backtests start at the information-availability date.
 
 ## Directionality warning
 At least one Lingotto-managed vehicle is explicitly long/short. A 13F long cannot be interpreted as net directional conviction without hedge/short disclosure.
 
 ## PRESTIGE TRANSFER + PROCESS REGIME GATE Ω
-CIK `0001732768` has 13F history going back years under predecessor names `Exor Investments (UK) LLP` and `Exor Capital LLP`, before the current Lingotto process. Therefore legal-entity continuity does **not** authorize pooling all historical 13Fs into one skill sample.
+CIK `0001732768` spans predecessor names `Exor Investments (UK) LLP`, `Exor Capital LLP` and current `Lingotto Investment Management LLP`. Legal continuity is not investment-process continuity.
 
-Mandatory variables:
-`LEGAL_ENTITY_CONTINUITY` and `INVESTMENT_PROCESS_CONTINUITY` are separate.
+Primary-source regime evidence now resolves much of the boundary:
+- Matteo Scolari joined Exor in 2015;
+- Lingotto's official bio says he founded the strategy later called Intersection the following year (~2016);
+- Exor 2021 Annual Report states March 2022 was the 5th anniversary of its public-equities investment activity steered by Scolari/team, implying reported live track-record inception around March 2017;
+- Exor reorganized the Scolari public-markets and Srinivasan private-markets activities under the Lingotto name in November 2022;
+- Exor states Lingotto was officially established in May 2023.
 
-Rule:
-- a filing belongs to the Lingotto skill backtest only if the relevant investment-process regime is independently anchored;
-- pre-regime filings remain useful for entity history but are excluded from manager-skill attribution unless process continuity is demonstrated;
-- `SAME_CIK != SAME_INVESTMENT_PROCESS`.
+Therefore distinguish:
+- `STRATEGY_FORMATION ~ 2016`
+- `REPORTED_LIVE_PUBLIC_EQUITIES_INCEPTION ~ 2017-03`
+- `LINGOTTO_REORGANIZATION = 2022-11`
+- `LINGOTTO_OFFICIAL_ESTABLISHMENT = 2023-05`
 
-Current study window remains Q2-2023→Q2-2026 pending a separate regime-boundary audit. This window choice is provisional, not proof that Q2-2023 is the true process start.
+Dedicated audit:
+`research/capital_intelligence/2026-09-06_LINGOTTO_PROCESS_REGIME_STRATEGY_ATTRIBUTION_AUDIT.md`
 
-## 13F filing timeline — complete primary-accession map for study window
+## Manager-specific skill evidence — not prestige transfer
+Exor reports the Scolari/team public-equities track record directly:
+- 2020 shareholder letter: `174.4%` cumulative gross USD / `28.5%` annualized over four years, no down years attributed to hedging; MSCI World Total Return `64.3%` / `13.1%` annualized;
+- 2021 Annual Report: `207.1%` cumulative gross USD / `24.7%` annualized since inception, no down years; comparator `81.5%` / `12.5%`;
+- 2022 Annual Report: `191.9%` cumulative gross USD / `19.3%` annualized, no down years; comparator `68.8%` / `9.0%`.
+
+State:
+`SCOLARI_SKILL_EVIDENCE = PRIMARY_SELF_REPORTED_GROSS`
+
+This is real manager-specific evidence but it is not independently replicated and does not answer whether a public follower can earn post-disclosure alpha.
+
+## STRATEGY ATTRIBUTION GATE Ω
+Current Lingotto is multi-strategy. Exor 2025 Annual Report identifies at least:
+- Intersection — Matteo Scolari;
+- Horizon — Nikhil Srinivasan;
+- Innovation — James Anderson;
+- Mosaic — Pam Chan.
+
+The report explicitly attributes examples:
+- Intersection: precious-metals mining, Carvana, Paramount-Skydance, increased Schlumberger;
+- Innovation: Tempus AI and Aurora Innovation.
+
+Because Tempus and Aurora also appear in the same Lingotto 13F reporting manager, the current 13F cannot be treated as a pure Intersection/Scolari book.
+
+Per-row fields are now mandatory:
+`MANAGER | STRATEGY | STRATEGY_ATTRIBUTION_SOURCE | STRATEGY_ATTRIBUTION_CONFIDENCE`
+
+Default:
+`STRATEGY = UNKNOWN`
+
+Do not infer strategy from sector/style alone.
+
+## Backtest regimes
+### S0 — Scolari / Exor public-equities regime
+Approximate reported live inception: `2017-03`.
+
+Historical SEC rows may be used for strategy-level testing only where the attribution chain is defensible. Historical 2019/2020 13F composition (uranium, PGMs/gold, VEON, Range Resources, Schlumberger) aligns with themes Exor explicitly described as Matteo's public-equity activity, which supports but does not prove row-level attribution.
+
+### L1 — Lingotto manager-level multi-strategy regime
+Start: `2023-05` official establishment; Q2-2023 is the first verified current-window filing under the Lingotto name.
+
+Interpretation:
+- manager-level test = all Lingotto-visible rows;
+- Intersection test = only rows independently attributed to Intersection;
+- Innovation test = only rows independently attributed to Innovation;
+- UNKNOWN rows remain in manager-level test only.
+
+## Separate hypotheses
+`H-SCOLARI`: public securities attributable to Scolari/Intersection retain post-publication alpha.
+
+`H-LINGOTTO`: aggregate Lingotto manager public-disclosure events retain post-publication alpha.
+
+Never pool these silently.
+
+## 13F filing timeline — complete primary-accession map for current L1 study window
 | Period end | Filing/publication date | Accession | State |
 |---|---|---|---|
 | 2023-06-30 | 2023-08-11 | `0001732768-23-000006` | VERIFIED |
@@ -50,11 +111,8 @@ Current study window remains Q2-2023→Q2-2026 pending a separate regime-boundar
 | 2026-03-31 | 2026-05-14 | `0001172661-26-001922` | VERIFIED |
 | 2026-06-30 | 2026-07-29 | `0001172661-26-002907` | VERIFIED SEC PRIMARY |
 
-### Gap closure
-The study window has a complete quarter-level accession map. This does **not** mean the security-level event matrix is complete.
-
 ## Amendment law Ω — conflict-aware
-Q3-2025 amendment no. 1 is formally marked `adds new holdings entries`, but its information table repeats nearly all original rows and reclassifies SLB from one common row into common + call while preserving total units. Therefore:
+Q3-2025 amendment no. 1 is formally marked `adds new holdings entries`, but its information table repeats nearly all original rows and reclassifies SLB from one common row into common + call while preserving total units.
 
 `AMENDMENT_SEMANTICS_CONFLICT = TRUE`
 
@@ -87,17 +145,17 @@ Handling:
 Values are visible 13F totals only, not AUM/NAV.
 
 ## Frozen pairwise audits
-Dedicated primary-filing audits now include:
+Dedicated primary-filing audits include:
 - `research/capital_intelligence/2026-09-06_LINGOTTO_Q2_Q3_2025_PRIMARY_DIFF_AUDIT.md`
 - `research/capital_intelligence/2026-09-06_LINGOTTO_Q4_2025_Q1_2026_PRIMARY_DIFF_AUDIT.md`
 
-Additional pairwise extraction already verified from SEC primary tables:
+Additional extraction already verified:
 - Q1→Q2 2025 event set;
 - Q2→Q3 2025 event set;
 - Q4 2025→Q1 2026 event set.
 
 ## Full-freeze manifest
-The following consecutive pairs still require row-level event-table freeze before returns unlock:
+Still requiring row-level event-table freeze before returns unlock:
 - Q2→Q3 2023
 - Q3→Q4 2023
 - Q4 2023→Q1 2024
@@ -108,8 +166,6 @@ The following consecutive pairs still require row-level event-table freeze befor
 - Q3→Q4 2025
 - Q1→Q2 2026
 
-The pair is not considered frozen merely because both quarter filings are known. Each requires CUSIP/class/put-call matching plus corporate-action review.
-
 ## Extraction order Ω
 1. read each SEC information table;
 2. normalize issuer, CUSIP, class, shares/principal amount and reported value;
@@ -118,27 +174,26 @@ The pair is not considered frozen merely because both quarter filings are known.
 5. map ticker only after security identity is stable;
 6. normalize splits/corporate actions before `SHARE_QOQ`;
 7. calculate visible-book weights from each filing's own denominator;
-8. classify events only under pre-locked rules;
-9. freeze/commit the event table;
-10. calculate returns only after the event table is frozen.
+8. assign `STRATEGY` only with evidence;
+9. classify events only under pre-locked rules;
+10. freeze/commit event table;
+11. calculate returns only after freeze.
 
 ## Anti-hindsight controls
 - No return data may alter event thresholds.
 - No winner-specific case may be promoted into the sample definition.
 - CVNA and PONY remain mandatory narrative-bias controls.
-- Q3-2025 original/amendment remain two public-information states.
-- Amendment-sensitive rows receive an explicit flag.
+- Q3-2025 original/amendment remain two information states.
+- Amendment-sensitive rows receive a flag.
 - Missing ticker mappings remain `UNMAPPED`.
+- Unknown strategy remains `UNKNOWN`.
 - Options are not ordinary common-share longs.
 - Corporate-action ambiguity blocks event classification.
 - Sub-threshold changes remain none even if later returns are extreme.
-- Pre-Lingotto/pre-regime filings cannot be used to inflate the current manager's track record without process-continuity evidence.
+- Manager-level and strategy-level tests are never silently pooled.
 
 ## Data model
-`PERIOD_END | ORIGINAL_PUBLICATION_DATE | AMENDED_PUBLICATION_DATE | ACCESSION_ORIGINAL | ACCESSION_AMENDED | PROCESS_REGIME | CUSIP | TICKER | ISSUER | CLASS | SHARES_OR_PRINCIPAL | VALUE_USD | PUT_CALL | INVESTMENT_DISCRETION | VISIBLE_13F_WEIGHT | SHARE_QOQ | VALUE_QOQ | PRICE_EFFECT | EVENT_CLASS | SOURCE_TYPE | AMENDMENT_STATE | AMENDMENT_SENSITIVE | SPLIT_ADJUSTED | SECTOR_BENCHMARK | NOTES`
-
-Portfolio fields:
-`VISIBLE_BOOK_VALUE | LINE_COUNT | DENOMINATOR_STATE | LONG_SHORT_KNOWN | TOTAL_AUM_KNOWN | COVERAGE_NOTES`
+`PERIOD_END | ORIGINAL_PUBLICATION_DATE | AMENDED_PUBLICATION_DATE | ACCESSION_ORIGINAL | ACCESSION_AMENDED | PROCESS_REGIME | MANAGER | STRATEGY | STRATEGY_ATTRIBUTION_SOURCE | STRATEGY_ATTRIBUTION_CONFIDENCE | CUSIP | TICKER | ISSUER | CLASS | SHARES_OR_PRINCIPAL | VALUE_USD | PUT_CALL | INVESTMENT_DISCRETION | VISIBLE_13F_WEIGHT | SHARE_QOQ | VALUE_QOQ | PRICE_EFFECT | EVENT_CLASS | SOURCE_TYPE | AMENDMENT_STATE | AMENDMENT_SENSITIVE | SPLIT_ADJUSTED | SECTOR_BENCHMARK | NOTES`
 
 ## Event rules — frozen ex ante
 - `NEW_VISIBLE_POSITION`
@@ -150,15 +205,28 @@ Portfolio fields:
 - `PERSIST_3Q`
 - `EXIT_VISIBLE_BOOK`
 
-Option events are stored in a separate event family and never pooled mechanically with common-share adds/cuts.
+Option events remain separate.
 
 ## Backtest outputs — locked
 From applicable information-availability date: 6M/12M/24M absolute return, broad-market excess, sector excess, hit rate, median/mean alpha, bootstrap CI where sample permits, MFE, MAE and drawdown.
 
-Run separately for new positions, material increases, persistence, exits/reductions, 13D/G events, visible-weight buckets, options and amendment sensitivity.
+Run separately for:
+- Lingotto aggregate manager events;
+- documented Intersection events;
+- documented Innovation events where sample permits;
+- new positions;
+- material increases;
+- persistence;
+- exits/reductions;
+- 13D/G events;
+- visible-weight buckets;
+- options;
+- amendment sensitivity.
 
 ## Current status
 `LINGOTTO_SKILL_STATE = A2_TIMELINE_COMPLETE_HOLDINGS_EXTRACTION_IN_PROGRESS`
-`PROCESS_REGIME_STATE = OPEN`
+`PROCESS_REGIME_STATE = PARTIALLY_RESOLVED`
+`STRATEGY_ATTRIBUTION_STATE = OPEN`
+`RETURNS_GATE = LOCKED`
 
-No alpha claim is authorized. Returns remain locked until all consecutive-quarter event tables in the study window are frozen and the process-regime boundary is resolved.
+No post-publication alpha claim is authorized.
