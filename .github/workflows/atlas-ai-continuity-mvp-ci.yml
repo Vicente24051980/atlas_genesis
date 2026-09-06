@@ -1,0 +1,27 @@
+name: ATLAS AI Continuity MVP CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/personal-cognitive-os/**'
+      - '.github/workflows/atlas-ai-continuity-mvp-ci.yml'
+  push:
+    branches:
+      - atlas-ai-memory-foundation-v1
+    paths:
+      - 'src/atlas/personal-cognitive-os/**'
+      - '.github/workflows/atlas-ai-continuity-mvp-ci.yml'
+
+jobs:
+  continuity-mvp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run ATLAS AI continuity and epistemic-safety tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/personal-cognitive-os/engine.test.ts
+          src/atlas/personal-cognitive-os/continuity-registry.test.ts
