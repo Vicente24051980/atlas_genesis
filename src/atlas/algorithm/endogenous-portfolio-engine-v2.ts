@@ -1,6 +1,9 @@
-export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-06-v2.1.0' as const;
-export const MIN_PORTFOLIO_POSITIONS_V2 = 1 as const;
-export const MAX_PORTFOLIO_POSITIONS_V2 = 50 as const;
+export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-06-v2.2.0' as const;
+
+// Compatibility exports only. They are non-binding sentinels, not portfolio
+// design constraints. Canonical clean selection has no ex-ante floor/ceiling.
+export const MIN_PORTFOLIO_POSITIONS_V2 = 0 as const;
+export const MAX_PORTFOLIO_POSITIONS_V2 = Number.POSITIVE_INFINITY;
 
 export const CANONICAL_SCENARIOS = [
   'AI_CAPEX_MINUS_30',
@@ -34,6 +37,7 @@ export type ExpectedReturnBridge = {
 
 export type PortfolioCandidateV2 = {
   ticker: string;
+  canonicalEntityId?: string;
   hardGatesPassed: boolean;
   falsifierVetoPassed: boolean;
   expectedReturn: ExpectedReturnBridge;
@@ -57,11 +61,13 @@ export type PortfolioCandidateV2 = {
 };
 
 export type PortfolioEnginePolicyV2 = {
+  /** @deprecated Forbidden by MASTER UNIVERSE PROMPT during clean selection. */
   minPositions?: number;
+  /** @deprecated Forbidden by MASTER UNIVERSE PROMPT during clean selection. */
   maxPositions?: number;
   marginalUtilityThreshold?: number;
 
-  // Legacy compatibility fields. Canonical v2.1 fails closed if callers try to
+  // Legacy compatibility fields. Canonical v2.2 fails closed if callers try to
   // give diversification, causal redundancy or required-driver coverage
   // independent selection authority.
   missingDriverRobustnessThreshold?: number;
@@ -92,8 +98,8 @@ export type PortfolioMetricsV2 = {
   volatilityRisk: number;
   fragility: number;
   convexity: number;
-  causalDiversification: number; // diagnostic only in canonical v2.1
-  causalRedundancy: number; // diagnostic only in canonical v2.1
+  causalDiversification: number; // diagnostic only in canonical v2.2
+  causalRedundancy: number; // diagnostic only in canonical v2.2
   financingCorrelation: number;
   robustness: number;
   worstScenarioImpact: number;
@@ -125,10 +131,10 @@ export type PortfolioEngineResultV2 = {
   emitsEntryTiming: false;
 };
 
-const DEFAULT_POLICY: Required<Omit<PortfolioEnginePolicyV2, 'requiredStructuralDrivers'>> & { requiredStructuralDrivers: string[] } = {
-  minPositions: MIN_PORTFOLIO_POSITIONS_V2,
-  maxPositions: MAX_PORTFOLIO_POSITIONS_V2,
-  marginalUtilityThreshold: 0.10,
+type NormalizedPolicyV2 = Required<Omit<PortfolioEnginePolicyV2, 'minPositions' | 'maxPositions'>>;
+
+const DEFAULT_POLICY: NormalizedPolicyV2 = {
+  marginalUtilityThreshold: 0,
   missingDriverRobustnessThreshold: 0,
   requiredStructuralDrivers: [],
 
@@ -178,16 +184,20 @@ function validateCandidate(c: PortfolioCandidateV2): boolean {
   return Object.values(c.causalDrivers ?? {}).every(finite);
 }
 
-function normalizePolicy(policy: PortfolioEnginePolicyV2): typeof DEFAULT_POLICY | null {
-  const p = {
+function normalizePolicy(policy: PortfolioEnginePolicyV2): NormalizedPolicyV2 | null {
+  // Fixed cardinality bounds are an invalid input under the 2026-09-06 master canon.
+  if (policy.minPositions !== undefined || policy.maxPositions !== undefined) return null;
+
+  const { minPositions: _min, maxPositions: _max, ...unboundedPolicy } = policy;
+  const p: NormalizedPolicyV2 = {
     ...DEFAULT_POLICY,
-    ...policy,
+    ...unboundedPolicy,
     riskWeights: { ...DEFAULT_POLICY.riskWeights, ...(policy.riskWeights ?? {}) },
     replacementThreshold: { ...DEFAULT_POLICY.replacementThreshold, ...(policy.replacementThreshold ?? {}) },
     requiredStructuralDrivers: policy.requiredStructuralDrivers ?? [],
   };
   const rw = p.riskWeights;
-  if (!Number.isInteger(p.minPositions) || !Number.isInteger(p.maxPositions) || p.minPositions < 1 || p.maxPositions > 100 || p.minPositions > p.maxPositions) return null;
+  if (!finite(p.marginalUtilityThreshold) || p.marginalUtilityThreshold < 0) return null;
   if (Math.abs(rw.permanentLoss + rw.tailRisk + rw.volatility - 1) > 1e-9) return null;
 
   // INVIOLABLE MAX RETURN / LOW VOL LAW: no caller may reintroduce a
@@ -195,6 +205,42 @@ function normalizePolicy(policy: PortfolioEnginePolicyV2): typeof DEFAULT_POLICY
   // coverage as an independent route into the portfolio.
   if (p.alphaDiversification !== 0 || p.rhoCausalRedundancy !== 0 || p.requiredStructuralDrivers.length > 0) return null;
   return p;
+}
+
+function entityKey(c: PortfolioCandidateV2): string {
+  return (c.canonicalEntityId?.trim() || c.ticker.trim()).toUpperCase();
+}
+
+function normalizedEvidenceFingerprint(c: PortfolioCandidateV2): string {
+  return JSON.stringify({
+    hardGatesPassed: c.hardGatesPassed,
+    falsifierVetoPassed: c.falsifierVetoPassed,
+    expectedReturn: c.expectedReturn,
+    permanentLossRisk: c.permanentLossRisk,
+    tailRisk: c.tailRisk,
+    volatilityRisk: c.volatilityRisk,
+    fragility: c.fragility,
+    convexity: c.convexity,
+    confidence: c.confidence,
+    individualScore: c.individualScore,
+    causalDrivers: Object.entries(c.causalDrivers ?? {}).sort(([a], [b]) => a.localeCompare(b)),
+    fundingSources: [...(c.fundingSources ?? [])].sort(),
+    scenarios: c.scenarios,
+  });
+}
+
+function deduplicateEntities(candidates: PortfolioCandidateV2[]): PortfolioCandidateV2[] | null {
+  const byEntity = new Map<string, PortfolioCandidateV2>();
+  for (const candidate of candidates) {
+    const key = entityKey(candidate);
+    const existing = byEntity.get(key);
+    if (!existing) {
+      byEntity.set(key, candidate);
+      continue;
+    }
+    if (normalizedEvidenceFingerprint(existing) !== normalizedEvidenceFingerprint(candidate)) return null;
+  }
+  return [...byEntity.values()];
 }
 
 function cosineAbs(a: Record<string, number>, b: Record<string, number>): number {
@@ -236,8 +282,7 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
   const fragility = mean(candidates.map(c => c.fragility));
   const convexity = mean(candidates.map(c => c.convexity));
 
-  // Diagnostics retained for auditability; neither receives independent
-  // membership authority under canonical v2.1.
+  // Diagnostics retained for auditability; neither receives independent membership authority.
   const causalRedundancy = averagePairwise(candidates, (a, b) => cosineAbs(a.causalDrivers, b.causalDrivers));
   const causalDiversification = 1 - causalRedundancy;
 
@@ -255,7 +300,7 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
   }));
   // Robustness has authority only as modeled risk reduction.
   const robustness = worstScenarioImpact + offsetCapacity - simultaneousAffectedMax / n;
-  const complexity = Math.max(0, n - p.minPositions);
+  const complexity = Math.max(0, n - 1);
   const meanConfidence = mean(candidates.map(c => c.confidence));
   const uncertainty = 1 - meanConfidence;
   const driverCoverage = [...new Set(candidates.flatMap(c => Object.entries(c.causalDrivers).filter(([, v]) => Math.abs(v) > 0.25).map(([k]) => k)))].sort();
@@ -295,8 +340,8 @@ function localBestForN(eligible: PortfolioCandidateV2[], n: number, policy: Port
   for (let iter = 0; iter < p.maxLocalSearchIterations; iter++) {
     let bestGain = 0;
     let bestSet: PortfolioCandidateV2[] | null = null;
-    const selected = new Set(set.map(c => c.ticker));
-    const outsiders = eligible.filter(c => !selected.has(c.ticker));
+    const selected = new Set(set.map(c => entityKey(c)));
+    const outsiders = eligible.filter(c => !selected.has(entityKey(c)));
     for (let i = 0; i < set.length; i++) {
       for (const out of outsiders) {
         const trial = [...set]; trial[i] = out;
@@ -313,16 +358,21 @@ function localBestForN(eligible: PortfolioCandidateV2[], n: number, policy: Port
 
 function classifyUniverse(selected: PortfolioCandidateV2[], eligible: PortfolioCandidateV2[], all: PortfolioCandidateV2[], policy: PortfolioEnginePolicyV2): Record<string, PortfolioClass> {
   const out: Record<string, PortfolioClass> = {};
+  if (selected.length === 0) {
+    for (const c of all) out[c.ticker] = (!c.hardGatesPassed || !c.falsifierVetoPassed) ? 'REJECTED' : 'BORDERLINE';
+    return out;
+  }
+
   const base = evaluatePortfolioSetV2(selected, policy);
   const erMedian = [...selected.map(expectedReturnPct)].sort((a,b)=>a-b)[Math.floor(selected.length/2)] ?? 0;
   for (const c of all) {
     if (!c.hardGatesPassed || !c.falsifierVetoPassed) { out[c.ticker] = 'REJECTED'; continue; }
-    if (!selected.some(x => x.ticker === c.ticker)) {
+    if (!selected.some(x => entityKey(x) === entityKey(c))) {
       out[c.ticker] = standaloneOpportunity(c, policy) > erMedian ? 'REDUNDANT' : 'BORDERLINE';
       continue;
     }
     if (selected.length <= 1) { out[c.ticker] = 'CORE_ALPHA'; continue; }
-    const without = selected.filter(x => x.ticker !== c.ticker);
+    const without = selected.filter(x => entityKey(x) !== entityKey(c));
     const m = evaluatePortfolioSetV2(without, policy);
     const removalUtilityLoss = base.utility - m.utility;
     const robustnessLoss = base.robustness - m.robustness;
@@ -339,32 +389,74 @@ export function runEndogenousPortfolioEngineV2(candidates: PortfolioCandidateV2[
   const empty: PortfolioEngineResultV2 = { status: 'EVIDENCE_PENDING', selectedTickers: [], optimalN: null, frontier: [], classifications: {}, reasonNPlusOne: null,
     searchMode: 'DETERMINISTIC_LOCAL_SEARCH', globalOptimalityProven: false, emitsTargetWeights: false, emitsEntryTiming: false };
   if (!p || candidates.some(c => !validateCandidate(c))) return empty;
-  const eligible = candidates.filter(c => c.hardGatesPassed && c.falsifierVetoPassed);
-  if (eligible.length < p.minPositions) return { ...empty, status: 'INSUFFICIENT_ELIGIBLE_CANDIDATES', classifications: Object.fromEntries(candidates.map(c => [c.ticker, (!c.hardGatesPassed || !c.falsifierVetoPassed) ? 'REJECTED' : 'BORDERLINE'])) as Record<string, PortfolioClass> };
 
-  const upper = Math.min(p.maxPositions, eligible.length);
+  const deduplicated = deduplicateEntities(candidates);
+  if (!deduplicated) return empty;
+
+  const eligible = deduplicated.filter(c => c.hardGatesPassed && c.falsifierVetoPassed);
+  if (eligible.length === 0) return {
+    ...empty,
+    status: 'INSUFFICIENT_ELIGIBLE_CANDIDATES',
+    optimalN: 0,
+    classifications: Object.fromEntries(candidates.map(c => [c.ticker, (!c.hardGatesPassed || !c.falsifierVetoPassed) ? 'REJECTED' : 'BORDERLINE'])) as Record<string, PortfolioClass>,
+    reasonNPlusOne: 'No eligible canonical entity passed hard gates and falsifier veto.',
+  };
+
   const frontier: PortfolioFrontierPointV2[] = [];
-  for (let n = p.minPositions; n <= upper; n++) {
-    const set = localBestForN(eligible, n, p);
-    frontier.push({ n, tickers: set.map(c => c.ticker), metrics: evaluatePortfolioSetV2(set, p), searchMode: 'DETERMINISTIC_LOCAL_SEARCH' });
-  }
+  let chosen: PortfolioFrontierPointV2 | null = null;
+  let previousUtility = 0; // Point Zero empty-portfolio baseline.
+  let reason = 'Every eligible addition improved utility; OPTIMAL_N equals the eligible canonical-entity count, not a preset ceiling.';
 
-  let chosenIndex = frontier.length - 1;
-  let reason = 'Reached maximum eligible/canonical search cardinality.';
-  for (let i = 0; i < frontier.length - 1; i++) {
-    const a = frontier[i], b = frontier[i + 1];
-    const delta = b.metrics.utility - a.metrics.utility;
-    if (delta < p.marginalUtilityThreshold) {
-      chosenIndex = i;
-      reason = `N=${a.n} selected because ΔU to N+1=${delta.toFixed(4)} is below material threshold ${p.marginalUtilityThreshold.toFixed(4)}. No sector, diversification or missing-driver exception is permitted.`;
+  for (let n = 1; n <= eligible.length; n++) {
+    const set = localBestForN(eligible, n, p);
+    const point: PortfolioFrontierPointV2 = {
+      n,
+      tickers: set.map(c => c.ticker),
+      metrics: evaluatePortfolioSetV2(set, p),
+      searchMode: 'DETERMINISTIC_LOCAL_SEARCH',
+    };
+    frontier.push(point);
+
+    const delta = point.metrics.utility - previousUtility;
+    if (delta <= p.marginalUtilityThreshold) {
+      reason = n === 1
+        ? `OPTIMAL_N=0 because the best singleton ΔU=${delta.toFixed(4)} does not exceed threshold ${p.marginalUtilityThreshold.toFixed(4)}.`
+        : `N=${n - 1} selected because ΔU to N+1=${delta.toFixed(4)} does not exceed threshold ${p.marginalUtilityThreshold.toFixed(4)}. No fixed-N, sector, diversification or missing-driver exception is permitted.`;
       break;
     }
+
+    chosen = point;
+    previousUtility = point.metrics.utility;
   }
-  const chosen = frontier[chosenIndex];
+
+  if (!chosen) {
+    return {
+      status: 'SELECTED',
+      selectedTickers: [],
+      optimalN: 0,
+      frontier,
+      classifications: classifyUniverse([], eligible, candidates, p),
+      reasonNPlusOne: reason,
+      searchMode: 'DETERMINISTIC_LOCAL_SEARCH',
+      globalOptimalityProven: false,
+      emitsTargetWeights: false,
+      emitsEntryTiming: false,
+    };
+  }
+
   const selected = chosen.tickers.map(t => eligible.find(c => c.ticker === t)!).filter(Boolean);
-  return { status: 'SELECTED', selectedTickers: chosen.tickers, optimalN: chosen.n, frontier,
-    classifications: classifyUniverse(selected, eligible, candidates, p), reasonNPlusOne: reason,
-    searchMode: 'DETERMINISTIC_LOCAL_SEARCH', globalOptimalityProven: false, emitsTargetWeights: false, emitsEntryTiming: false };
+  return {
+    status: 'SELECTED',
+    selectedTickers: chosen.tickers,
+    optimalN: chosen.n,
+    frontier,
+    classifications: classifyUniverse(selected, eligible, candidates, p),
+    reasonNPlusOne: reason,
+    searchMode: 'DETERMINISTIC_LOCAL_SEARCH',
+    globalOptimalityProven: false,
+    emitsTargetWeights: false,
+    emitsEntryTiming: false,
+  };
 }
 
 export type ReplacementDecisionV2 = {
@@ -374,6 +466,8 @@ export type ReplacementDecisionV2 = {
   reason: string;
 };
 
+// This is execution hysteresis only. It must never be used to bias the clean
+// Point-Zero rebuild toward an incumbent.
 export function evaluateReplacementV2(
   portfolio: PortfolioCandidateV2[], incumbentTicker: string, challenger: PortfolioCandidateV2,
   incumbentState: IncumbentState, policy: PortfolioEnginePolicyV2 = {},
@@ -388,5 +482,5 @@ export function evaluateReplacementV2(
   const delta = after - before;
   const threshold = p.replacementThreshold[incumbentState] ?? DEFAULT_POLICY.replacementThreshold[incumbentState]!;
   return { allowed: delta >= threshold, deltaPortfolioUtility: delta, threshold,
-    reason: delta >= threshold ? 'Replacement materially improves return/risk portfolio utility.' : 'Replacement improvement is below hysteresis threshold.' };
+    reason: delta >= threshold ? 'Replacement materially improves return/risk portfolio utility.' : 'Replacement improvement is below execution hysteresis threshold.' };
 }
