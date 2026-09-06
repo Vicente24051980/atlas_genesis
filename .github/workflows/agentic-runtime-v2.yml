@@ -59,6 +59,8 @@ jobs:
           runtime/agentic_omega/test_ai_demand_engines.py
           runtime/agentic_omega/test_market_structure_engines.py
           runtime/agentic_omega/test_investment_discipline.py
+          runtime/agentic_omega/test_master_audit_guardrails.py
+          runtime/agentic_omega/test_governance_runtime.py
           api/test_agentic_omega_v2.py
           api/test_agentic_evidence_bridge.py
           api/test_agentic_governance.py
