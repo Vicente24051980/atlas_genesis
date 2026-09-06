@@ -218,8 +218,10 @@ def evaluate_flow_case(case: TransmissionCase) -> FlowEvaluation:
     if not case.falsifiers:
         reasons.append("no preregistered falsifier")
 
-    horizon_ratio = case.decision_horizon_days / case.signal_horizon_days
-    if horizon_ratio >= 20 and not case.transmission_mechanism.strip():
+    # Any signal with a shorter horizon than the decision it is meant to influence
+    # needs an explicit bridge explaining why the information persists. Avoid an
+    # arbitrary N-times ratio: horizon compatibility is a structural requirement.
+    if case.signal_horizon_days < case.decision_horizon_days and not case.transmission_mechanism.strip():
         reasons.append("short-horizon signal cannot control a long-horizon decision without a transmission bridge")
 
     quantitative_packet = (
