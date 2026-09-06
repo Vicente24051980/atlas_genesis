@@ -8,8 +8,13 @@ import {
   resolveStructuralUniverseAuthority,
   type StructuralUniverseAuthorityVersion,
 } from './structural-universe-authority-omega';
+import {
+  STRUCTURAL_SIZING_AUTHORITY,
+  isCanonicalSizingAttestationValid,
+  type StructuralSizingAttestation,
+} from './structural-sizing-authority-omega';
 
-export const STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_VERSION = '2026-09-06-v1.1.0' as const;
+export const STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_VERSION = '2026-09-06-v1.2.0' as const;
 
 export type StructuralPublicationState =
   | 'CANONICAL_READY'
@@ -20,7 +25,8 @@ export type StructuralPublicationState =
   | 'BLOCKED_ENGINE_PENDING'
   | 'FAIL_NON_DETERMINISTIC_PORTFOLIO_SELECTION'
   | 'BLOCKED_SIZING_NOT_IMPLEMENTED'
-  | 'BLOCKED_INVALID_SIZING';
+  | 'BLOCKED_INVALID_SIZING'
+  | 'BLOCKED_SIZING_POLICY_UNVALIDATED';
 
 export type MarginalRow = {
   ticker: string;
@@ -35,6 +41,7 @@ export type StructuralSizingEvidence = {
   method: 'COVARIANCE_AWARE';
   portfolioVolatilityModelHash: string;
   weights: Record<string, number>;
+  attestation?: StructuralSizingAttestation;
 };
 
 /**
@@ -151,6 +158,12 @@ function validateSizing(selected: string[], sizing?: StructuralSizingEvidence): 
   if (entries.some(([t, w]) => !selectedSet.has(t) || !finite(w) || w < 0)) return 'BLOCKED_INVALID_SIZING';
   const sum = entries.reduce((a, [, w]) => a + w, 0);
   if (Math.abs(sum - 1) > 1e-8) return 'BLOCKED_INVALID_SIZING';
+  return null;
+}
+
+export function canonicalSizingAttestationState(sizing?: StructuralSizingEvidence): StructuralPublicationState | null {
+  if (!sizing) return 'BLOCKED_SIZING_NOT_IMPLEMENTED';
+  if (!isCanonicalSizingAttestationValid(sizing.attestation)) return 'BLOCKED_SIZING_POLICY_UNVALIDATED';
   return null;
 }
 
@@ -272,7 +285,7 @@ export function runStructuralPortfolioPublicationGateUnsafe(req: StructuralPortf
 
   return {
     publicationState: 'CANONICAL_READY',
-    reason: 'Universe, PIT snapshot, deterministic selection, marginal ledger and covariance-aware sizing gates passed.',
+    reason: 'Low-level mechanics passed. This unsafe primitive has zero canonical publication authority.',
     selectedTickers: result.selectedTickers,
     optimalN: result.optimalN,
     portfolioHash: firstHash,
@@ -288,10 +301,11 @@ export function runStructuralPortfolioPublicationGateUnsafe(req: StructuralPortf
  * SOLE CANONICAL PUBLICATION API.
  * Universe whitelist, entity count, source and normalized hash are resolved
  * from the versioned ATLAS authority registry and cannot be caller supplied.
+ * Sizing is separately attested by the versioned sizing authority.
  */
 export function runStructuralPortfolioPublicationGate(req: CanonicalStructuralPortfolioRunRequest): StructuralPortfolioRun {
   const authority = resolveStructuralUniverseAuthority(req.universeVersion);
-  return runStructuralPortfolioPublicationGateUnsafe({
+  const result = runStructuralPortfolioPublicationGateUnsafe({
     rawUniverseSource: authority.rawUniverseSource,
     normalizedUniverseHash: authority.normalizedUniverseHash,
     snapshotHash: req.snapshotHash,
@@ -303,6 +317,22 @@ export function runStructuralPortfolioPublicationGate(req: CanonicalStructuralPo
     reproducibilityRuns: req.reproducibilityRuns,
     sizing: req.sizing,
   });
+
+  if (result.publicationState !== 'CANONICAL_READY') return result;
+
+  const attestationState = canonicalSizingAttestationState(req.sizing);
+  if (attestationState) return {
+    ...result,
+    publicationState: attestationState,
+    reason: `Mechanical sizing shape passed, but canonical sizing authority is ${STRUCTURAL_SIZING_AUTHORITY.status}. A caller label/hash cannot self-certify structural weights.`,
+    weights: null,
+  };
+
+  return {
+    ...result,
+    publicationState: 'CANONICAL_READY',
+    reason: 'Universe, PIT snapshot, deterministic selection, marginal ledger and canonically attested covariance-aware sizing gates passed.',
+  };
 }
 
 export function buildFourSessionEqualWeightExperiment(
