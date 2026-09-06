@@ -1,9 +1,10 @@
-name: Quantitative Portfolio Audit CI
+name: Legacy Quantitative Portfolio Audit CI
 
 on:
   pull_request:
     paths:
       - 'scripts/atlas_quant_portfolio_audit.py'
+      - 'scripts/legacy_fixed_portfolio_guard.py'
       - 'scripts/test_atlas_quant_portfolio_audit.py'
       - '.github/workflows/quantitative-portfolio-audit-ci.yml'
   workflow_dispatch:
@@ -11,6 +12,8 @@ on:
 jobs:
   test-and-audit:
     runs-on: ubuntu-latest
+    env:
+      ATLAS_ALLOW_LEGACY_FIXED_PORTFOLIO: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,10 +24,10 @@ jobs:
       - name: Unit tests
         working-directory: scripts
         run: pytest -q test_atlas_quant_portfolio_audit.py
-      - name: Run live quantitative audit
+      - name: Reproduce LEGACY N31 quantitative audit — no current portfolio authority
         run: python scripts/atlas_quant_portfolio_audit.py --start 2023-09-05 --end 2026-09-05 --outdir artifacts/quant-portfolio-audit
-      - name: Upload audit artifact
+      - name: Upload legacy audit artifact
         uses: actions/upload-artifact@v4
         with:
-          name: atlas-quant-portfolio-audit
+          name: atlas-legacy-quant-portfolio-audit
           path: artifacts/quant-portfolio-audit
