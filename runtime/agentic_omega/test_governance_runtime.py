@@ -7,7 +7,10 @@ from runtime.agentic_omega.governance_firewall import (
     Capability,
     CapabilityLease,
     ConsequenceClass,
+    ReassessmentAction,
+    ReassessmentObservation,
     ShutdownSnapshot,
+    TaskContract,
     TerminationStatus,
     capabilities,
 )
@@ -69,6 +72,33 @@ def test_runtime_computes_lease_permission_and_audits_decision() -> None:
     event_types = [event["event_type"] for event in ledger.events]
     assert event_types == ["CAPABILITY_LEASE_REGISTERED", "AUTHORITY_DECISION", "AUTHORITY_DECISION"]
     assert ledger.events[-1]["payload"]["lease_permits_action"] is False
+
+
+def test_runtime_task_contract_and_checkpoint_are_ledgered() -> None:
+    ledger = AppendOnlyEventLedger()
+    firewall = GovernanceFirewall(ledger)
+    contract = TaskContract(
+        objective="patch a material runtime guardrail",
+        assumptions=("main SHA is known",),
+        limits=("no destructive changes",),
+        success_criteria=("focused CI passes",),
+        checkpoints=("after implementation", "after CI"),
+        abort_criteria=("contradiction with constitutional authority",),
+    )
+    firewall.register_task_contract(
+        task_id="task-audit-1",
+        consequence=ConsequenceClass.C1_MATERIAL,
+        contract=contract,
+    )
+    action = firewall.checkpoint(
+        task_id="task-audit-1",
+        checkpoint_id="after-implementation",
+        observation=ReassessmentObservation(material_contradiction=True),
+        detail="new evidence conflicts with an authority assumption",
+    )
+    assert action is ReassessmentAction.ESCALATE
+    assert [event["event_type"] for event in ledger.events] == ["TASK_CONTRACT_REGISTERED", "TASK_REASSESSMENT"]
+    assert ledger.events[-1]["payload"]["action"] == "ESCALATE"
 
 
 def test_runtime_shutdown_verification_is_ledgered() -> None:
