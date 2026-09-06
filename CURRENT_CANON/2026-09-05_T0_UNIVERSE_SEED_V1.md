@@ -1,9 +1,15 @@
 # ATLAS Ω — T0 Universe Seed v1
 
 Date: 2026-09-05
-Status: ACTIVE_CANONICAL once merged
+Status: ACTIVE_CANONICAL
 Issue: #130
 Authority: discovery-universe construction only. Direct score contribution = 0. No BUY/SELL, no portfolio membership, no sizing, no timing.
+
+## 2026-09-06 user-ratified universe semantics
+
+Canonical authority record: `CURRENT_CANON/2026-09-06_ATLAS_UNIVERSE_AUTHORITY.md`.
+
+The 650 user-supplied rows are now explicitly the **ATLAS CORE SCREENING UNIVERSE**. The prospective expansion described below remains an `EXTERNAL_CHALLENGER / DISCOVERY EXTENSION`; it does not silently mutate the user-ratified core set. Core version: `ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06`.
 
 ## Input
 
@@ -11,7 +17,7 @@ User supplied 650 listed rows assembled from Nasdaq-100 plus an expanded/adjuste
 
 `data/t0-universe-user-seed-2026-09-05.txt`
 
-The raw index-derived list is a SEED, not a T0-clean discovery universe. Index membership has zero discovery merit and zero score authority.
+The raw index-derived list is a user-ratified core screening universe, not a source of scoring merit. Index membership has zero discovery merit and zero score authority.
 
 ## Economic-entity deduplication
 
@@ -21,17 +27,24 @@ Before any company analysis:
 - canonical alias examples: GOOG/GOOGL -> GOOGL, FOX/FOXA -> FOXA, NWS/NWSA -> NWSA, BRK.A/BRK.B -> BRK.B;
 - raw occurrence counts and aliases remain auditable.
 
+Current deterministic counts for the supplied 650 rows:
+- 650 raw occurrences;
+- 490 unique ticker symbols after exact-ticker deduplication;
+- 487 canonical economic entities after the current GOOG/GOOGL, FOX/FOXA and NWS/NWSA collapses.
+
+Canonical normalized file: `data/atlas-core-universe-economic-entities-2026-09-06.txt`.
+
 This prevents a company from receiving multiple discovery chances simply because it appears in more than one index block or has multiple listed share classes.
 
 ## Prospective T0 expansion
 
-The index seed is supplemented prospectively before scoring. The first expansion file is:
+The core index universe may be supplemented prospectively for **challenger discovery**, without changing core-universe membership. The first expansion file is:
 
 `data/t0-universe-prospective-expansion-2026-09-05.csv`
 
 It contains 50 discovery candidates from broad, factor, current-index-cross-section and ATLAS challenger sources, deliberately including sub-$10B names and names outside the original Nasdaq/S&P ordering.
 
-No candidate receives score for appearing in any screen. A source only establishes discovery provenance.
+These rows are tagged conceptually as `EXTERNAL_CHALLENGER` until evaluated. No candidate receives score for appearing in any screen. A source only establishes discovery provenance.
 
 ## Auditable first tranche
 
@@ -59,25 +72,28 @@ These sources are discovery evidence only. They do not create an ATLAS score and
 
 ## Critical rules
 
-1. `USER_INDEX_SEED` cannot authorize downstream scoring by itself.
-2. The merged universe must contain prospectively auditable broad/off-index discovery.
+1. `USER_INDEX_CORE` cannot authorize downstream scoring by itself.
+2. The user-ratified core universe is fixed by version; off-index discovery remains separately versioned challenger provenance.
 3. Market cap is assigned after candidate discovery rank is frozen.
 4. Market cap, index membership, analyst coverage, fame and data convenience contribute exactly zero points.
 5. A megacap may ultimately rank first if economic evidence wins after T0.
 6. Unknown later-row market caps remain UNKNOWN; they are never silently inferred.
-7. The 50-row expansion is the first prospective tranche, not a claim that discovery is globally complete.
+7. The 50-row expansion is the first prospective challenger tranche, not a claim that discovery is globally complete.
 8. Portfolio selection remains downstream: T0 constructs who is allowed to compete, not who wins.
+9. A Decision Frame must record both the core-universe version and any external-challenger set used.
 
 ## Pipeline
 
-`RAW USER SEED -> ECONOMIC ENTITY DEDUP -> PROSPECTIVE OFF-INDEX EXPANSION -> T0 AUDIT -> downstream evidence/Hard Gates -> Endogenous Portfolio Engine v2`
+`RAW USER CORE 650 -> ECONOMIC ENTITY DEDUP -> CORE 487 -> optional EXTERNAL CHALLENGER DISCOVERY -> T0 AUDIT -> downstream evidence/Hard Gates -> Endogenous Portfolio Engine v2`
 
 ## Implementation
 
+- `CURRENT_CANON/2026-09-06_ATLAS_UNIVERSE_AUTHORITY.md`
 - `src/atlas/algorithm/t0-universe-seed-builder.ts`
 - `src/atlas/algorithm/t0-universe-seed-builder.test.ts`
 - `.github/workflows/t0-universe-seed-ci.yml`
 - `data/t0-universe-user-seed-2026-09-05.txt`
+- `data/atlas-core-universe-economic-entities-2026-09-06.txt`
 - `data/t0-universe-prospective-expansion-2026-09-05.csv`
 
 ## Boundary
