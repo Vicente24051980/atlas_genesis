@@ -6,11 +6,15 @@ import json
 import math
 from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Dict, List, Sequence, Tuple
+from typing import List, Sequence, Tuple
 
-import numpy as np
 import pandas as pd
 
+from legacy_fixed_portfolio_guard import require_explicit_legacy_opt_in
+
+# LEGACY_FIXED_PORTFOLIO_DIAGNOSTIC.
+# Preserved only to reproduce the historical 2026-09-05 N31 replacement audit.
+# ZERO current selection / sizing / trade authority.
 TARGET_31 = [
     "AVGO","REGN","ROP","INTU","V","ICE","IBKR","META","HWM","VRTX","SPGI","MELI","CW","PH","NVDA","MCK","BRK-B","RGA","DELL","GLW","CAH","VEEV","EHC","ASML","WAB","MLI","APG","AIZ","DE","CEG","VMI"
 ]
@@ -112,6 +116,7 @@ def additions(returns: pd.DataFrame, spy: pd.Series, base: Metrics) -> List[Tupl
 
 
 def main() -> None:
+    require_explicit_legacy_opt_in("scripts/atlas_replacement_value_audit.py")
     ap=argparse.ArgumentParser(); ap.add_argument("--start",default="2023-09-05"); ap.add_argument("--end",default="2026-09-05"); ap.add_argument("--outdir",default="artifacts/replacement-value-audit"); args=ap.parse_args()
     universe=list(dict.fromkeys(TARGET_31+CHALLENGERS+[BENCHMARK]))
     prices=download_prices(universe,args.start,args.end)
@@ -121,7 +126,8 @@ def main() -> None:
     adds=additions(stocks,spy,base)
     outdir=Path(args.outdir); outdir.mkdir(parents=True,exist_ok=True)
     payload={
-      "status":"DIAGNOSTIC_ONLY_FORWARD_STRUCTURAL_REVIEW_REQUIRED",
+      "status":"LEGACY_FIXED_PORTFOLIO_DIAGNOSTIC_ONLY",
+      "current_portfolio_authority":"NONE",
       "materiality_threshold":MATERIALITY,
       "historical_return_is_expected_return":False,
       "base":asdict(base),
@@ -130,12 +136,13 @@ def main() -> None:
       "additions":[{"challenger":c,"metrics":asdict(m),"delta_u_proxy":d} for c,m,d in adds],
     }
     (outdir/"replacement_value_audit.json").write_text(json.dumps(payload,indent=2),encoding="utf-8")
-    lines=["# ATLAS Ω Replacement Value Audit — exhaustive P31-i+X","","> DIAGNOSTIC_ONLY. Historical return is not Expected Return Ω. Any canonical replacement requires structural review.","",f"Base: CAGR {base.cagr:.2%} | Vol {base.annualized_vol:.2%} | MaxDD {base.max_drawdown:.2%} | U_proxy {base.empirical_utility_proxy:.4f}","",f"Materiality threshold: {MATERIALITY:.4f}","","## Top 25 swaps","| Rank | OUT | IN | ΔU proxy | CAGR | Vol | MaxDD |","|---:|---|---|---:|---:|---:|---:|"]
+    lines=["# ATLAS Ω Replacement Value Audit — LEGACY P31-i+X","","> LEGACY_FIXED_PORTFOLIO_DIAGNOSTIC_ONLY. Historical return is not Expected Return Ω. ZERO current portfolio authority.","",f"Historical base: CAGR {base.cagr:.2%} | Vol {base.annualized_vol:.2%} | MaxDD {base.max_drawdown:.2%} | U_proxy {base.empirical_utility_proxy:.4f}","",f"Materiality threshold: {MATERIALITY:.4f}","","## Top 25 historical swaps","| Rank | OUT | IN | ΔU proxy | CAGR | Vol | MaxDD |","|---:|---|---|---:|---:|---:|---:|"]
     for i,x in enumerate(swaps[:25],1):
         lines.append(f"| {i} | {x.incumbent_out} | {x.challenger_in} | {x.delta_u_proxy:+.4f} | {x.cagr:.2%} | {x.annualized_vol:.2%} | {x.max_drawdown:.2%} |")
-    lines += ["","## N31→N32 additions","| Rank | Challenger | ΔU proxy | CAGR | Vol | MaxDD |","|---:|---|---:|---:|---:|---:|"]
+    lines += ["","## Historical N31→N32 additions","| Rank | Challenger | ΔU proxy | CAGR | Vol | MaxDD |","|---:|---|---:|---:|---:|---:|"]
     for i,(c,m,d) in enumerate(adds,1):
         lines.append(f"| {i} | {c} | {d:+.4f} | {m.cagr:.2%} | {m.annualized_vol:.2%} | {m.max_drawdown:.2%} |")
+    lines += ["", "Current ATLAS portfolio authority: **NONE**."]
     (outdir/"replacement_value_audit.md").write_text("\n".join(lines),encoding="utf-8")
     print((outdir/"replacement_value_audit.md").read_text(encoding="utf-8"))
 
