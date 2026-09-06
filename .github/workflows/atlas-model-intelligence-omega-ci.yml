@@ -22,3 +22,6 @@ jobs:
           npx --yes vitest@3.2.4 run --globals
           src/atlas/model-intelligence/scoring.test.ts
           src/atlas/model-intelligence/router.test.ts
+          src/atlas/model-intelligence/provider-registry.test.ts
+          src/atlas/model-intelligence/execution.test.ts
+          src/atlas/model-intelligence/learning.test.ts
