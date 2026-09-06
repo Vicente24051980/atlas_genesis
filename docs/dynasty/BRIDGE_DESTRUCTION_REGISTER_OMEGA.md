@@ -14,6 +14,7 @@ A bridge survives only if at least one argument connects the endpoints without u
 - `DEPENDENCY LOOP` — apparent corroboration ultimately returns to the same evidentiary root/reconstruction.
 - `CLOSED-UNRESOLVED` — Stop Rule met; do not reopen for another derivative repetition.
 - `CLOSED-PARTIAL` — the broad claim survives only in a narrower, explicitly delimited form; stronger subclaims are closed.
+- `CLOSED-SURVIVES` — the frozen claim survives the destructive test, while stronger unstated claims remain prohibited.
 
 ## Stop Rule Ω
 A bridge may move to a closed state after:
@@ -33,8 +34,8 @@ Reopen only for new primary evidence, a new critical edition, new epigraphic/num
 | BD-02 | Orontids → Bagratuni genealogical descent | No independent recoverable bridge. Bagratuni history from Late Antiquity and the VI c. onward remains intact | `CLOSED-UNRESOLVED / DOCUMENTARY GAP` | Remove as hard remote-descent edge; retain as historiographical hypothesis |
 | BD-03 | Kāren-Pahlav → Kamsarakan historical/genealogical derivation | Kāren exists independently as a major Iranian house and Kamsarakan preserves a durable Kāren-Pahlav origin tradition; however the named Pērōzmat bridge is only in Khorenatsi and his single-survivor narrative conflicts with contemporary Sasanian inscriptional evidence | `CLOSED-PARTIAL` | Allow `claims_descent_from` and disputed `historiographically_derived_from`; prohibit a continuous Kāren→Pērōzmat→Kamsarakan pedigree edge |
 | BD-04 | Caspio-Median / Matianian-Mannaean aristocratic stratum → Amatuni | Historical house survives; Xorenacʿi preserves an eastern/Iranian origin setting but overlays it with a legendary Jewish genealogy. Caspio-Median/Mannaean derivation has a wider historiographical pedigree than Toumanoff but no audited ancient named-person bridge | `CLOSED-PARTIAL` | Allow B2 `historiographically_derived_from` and explicit tradition nodes; prohibit `descends_from` hard edge |
-| BD-05A | Armenian Bagratuni ↔ Georgian Bagrationi dynastic relationship | `PENDING` | `PENDING` | None yet |
-| BD-05B | Vasak, brother of Smbat VII → founder of Georgian branch | `PENDING` | `PENDING` | None yet |
+| BD-05A | Armenian Bagratuni ↔ Georgian Bagrationi dynastic relationship | Independent Georgian and Armenian traditions, plus pre-Toumanoff scholarship, support a historical Bagratid relationship between the houses. This does not by itself prove the exact founder pedigree | `CLOSED-SURVIVES` | Allow a source-qualified hard dynastic-relationship edge; do not infer specific parentage |
+| BD-05B | Vasak, brother of Smbat VII → founder of Georgian branch through Atrnerseh/Adarnase | Vardan preserves Vasak→Atrnerseh and Markwart used it before Toumanoff, but Vardan is late, Georgian sources do not name Vasak as Adarnase's father, and the identification of 'Adarnase the Blind' with Ashot the Blind is reconstructive | `CLOSED-PARTIAL` | Allow source-qualified historiographical parentage claim only; prohibit unqualified hard `parent_of` |
 
 ## Narrative Capture rule
 `claims_descent_from ≠ descends_from` applies to the aggregated macromap as well as to individual edges. A source that assigns unusually deep prestigious ancestry to its patron house is evidence about dynastic memory/legitimation until independent support establishes genealogy.
@@ -47,6 +48,7 @@ Reopen only for new primary evidence, a new critical edition, new epigraphic/num
 - Smbat `Khosrov Shum` → Varaz-Tirots → Smbat.
 - Gregorid → Mamikonean patrimonial transmission by marriage/inheritance where independently established.
 - Post-775 transfers of territory, office and patrimony among surviving houses.
+- Bagratuni ↔ Bagrationi broad dynastic relationship, without importing the disputed Vasak founder pedigree.
 
 ## Macromap rule
-Only `SURVIVES` claims may become hard bridge edges. `PARTIAL/CLOSED-PARTIAL` must be decomposed into the exact layers that survive. `DOCUMENTARY GAP` and `CLOSED-UNRESOLVED` stay outside the hard macromap.
+Only `SURVIVES/CLOSED-SURVIVES` claims may become hard bridge edges, and only at the exact granularity frozen in the tested claim. `PARTIAL/CLOSED-PARTIAL` must be decomposed into the exact layers that survive. `DOCUMENTARY GAP` and `CLOSED-UNRESOLVED` stay outside the hard macromap.
