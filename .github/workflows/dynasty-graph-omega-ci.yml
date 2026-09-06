@@ -1,0 +1,26 @@
+name: Dynasty Graph Omega CI
+
+on:
+  pull_request:
+    paths:
+      - 'data/dynasty/**'
+      - 'schemas/dynasty_graph.schema.json'
+      - 'scripts/validate_dynasty_graph.py'
+      - '.github/workflows/dynasty-graph-omega-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'data/dynasty/**'
+      - 'schemas/dynasty_graph.schema.json'
+      - 'scripts/validate_dynasty_graph.py'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate ATLAS Dynasty Graph Ω
+        run: python scripts/validate_dynasty_graph.py

@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.local/schemas/dynasty_graph.schema.json",
+  "title": "ATLAS Dynasty / Prosopography Ω",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/entity" },
+    { "$ref": "#/$defs/relation" }
+  ],
+  "$defs": {
+    "entityType": {
+      "enum": ["person","surname","family","dynasty","branch","company","holding","corporate_group","fund","foundation","bank","institution","territory","title","event","source"]
+    },
+    "grade": { "enum": ["A1","A2","B1","B2","C","X"] },
+    "status": { "enum": ["accepted","provisional","disputed","rejected","unresolved"] },
+    "relationType": {
+      "enum": [
+        "parent_of","child_of","sibling_of","spouse_of","grandparent_of","maternal_line_of","paternal_line_of","adopted_by",
+        "member_of","head_of","branch_of","successor_of","predecessor_of","claims_descent_from","historiographically_derived_from","same_tohm_as","associated_with","allied_with","possible_same_as","same_as",
+        "owns","controls","holds_stake_in","subsidiary_of","parent_company_of","managed_by","founded_by","director_of","executive_of","beneficiary_of","trustee_of","member_of_group","brand_of",
+        "rules","holds_title","based_in","controls_territory","served_under","participated_in","inherited_from"
+      ]
+    },
+    "entity": {
+      "type": "object",
+      "required": ["record_type","id","entity_type","name","status"],
+      "properties": {
+        "record_type": { "const": "entity" },
+        "id": { "type": "string", "minLength": 3 },
+        "entity_type": { "$ref": "#/$defs/entityType" },
+        "name": { "type": "string", "minLength": 1 },
+        "aliases": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "house_id": { "type": ["string","null"] },
+        "surname_id": { "type": ["string","null"] },
+        "date_min": { "type": ["integer","null"] },
+        "date_max": { "type": ["integer","null"] },
+        "date_precision": { "enum": ["exact","year","approximate","range","unknown"] },
+        "territory_ids": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "title_ids": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "status": { "$ref": "#/$defs/status" },
+        "notes": { "type": "string", "default": "" },
+        "provenance": { "type": "array", "items": { "type": "string" }, "default": [] }
+      },
+      "additionalProperties": true
+    },
+    "relation": {
+      "type": "object",
+      "required": ["record_type","id","source_id","target_id","relation_type","evidence_grade","relation_basis","source_ids","confidence","status"],
+      "properties": {
+        "record_type": { "const": "relation" },
+        "id": { "type": "string", "minLength": 3 },
+        "source_id": { "type": "string" },
+        "target_id": { "type": "string" },
+        "relation_type": { "$ref": "#/$defs/relationType" },
+        "evidence_grade": { "$ref": "#/$defs/grade" },
+        "relation_basis": { "enum": ["explicit_primary","explicit_near_primary","later_tradition","modern_reconstruction","membership_only","corporate_filing","official_registry","ownership_disclosure","inference","rejected_identification"] },
+        "source_ids": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "date_min": { "type": ["integer","null"] },
+        "date_max": { "type": ["integer","null"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "status": { "$ref": "#/$defs/status" },
+        "notes": { "type": "string", "default": "" }
+      },
+      "additionalProperties": true
+    }
+  }
+}
