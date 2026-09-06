@@ -70,6 +70,8 @@ _PRODUCTIVE_CHAIN_STAGES = frozenset(
 _FISCAL_ECONOMIC_STAGES = frozenset({FlowStage.APPROPRIATION, FlowStage.CONTRACT, FlowStage.REVENUE})
 _FISCAL_REVENUE_STAGES = frozenset({FlowStage.REVENUE})
 _CAPITAL_RETURN_EXECUTION_STAGES = frozenset({FlowStage.EXECUTED})
+_ASSET_ALLOCATION_EXECUTION_STAGES = frozenset({FlowStage.DEPLOYED, FlowStage.EXECUTED, FlowStage.MONETIZED})
+_CONSUMPTION_ECONOMIC_STAGES = frozenset({FlowStage.DEPLOYED, FlowStage.EXECUTED, FlowStage.MONETIZED, FlowStage.REVENUE})
 
 
 @dataclass(frozen=True)
@@ -107,6 +109,20 @@ class CapitalFlowObservation:
             return self.stage in _FISCAL_REVENUE_STAGES
         if self.flow_type is FlowType.PRODUCTIVE_CAPITAL_FORMATION:
             return self.stage is FlowStage.MONETIZED
+        return False
+
+    @property
+    def stage_mature_for_promotion(self) -> bool:
+        if self.flow_type is FlowType.PRODUCTIVE_CAPITAL_FORMATION:
+            return self.stage in _PRODUCTIVE_CHAIN_STAGES
+        if self.flow_type is FlowType.FISCAL_PROCUREMENT:
+            return self.stage in _FISCAL_ECONOMIC_STAGES
+        if self.flow_type is FlowType.CAPITAL_RETURN:
+            return self.stage in _CAPITAL_RETURN_EXECUTION_STAGES
+        if self.flow_type is FlowType.ASSET_ALLOCATION:
+            return self.stage in _ASSET_ALLOCATION_EXECUTION_STAGES
+        if self.flow_type is FlowType.CONSUMPTION:
+            return self.stage in _CONSUMPTION_ECONOMIC_STAGES
         return False
 
 
@@ -186,6 +202,9 @@ def evaluate_flow_case(case: TransmissionCase) -> FlowEvaluation:
     elif not capex_allowed:
         reasons.append("productive-capital observation is too early for the financed/deployed/ordered/monetized chain")
 
+    if not observation.stage_mature_for_promotion:
+        reasons.append("flow stage is too early for production research promotion")
+
     if observation.pit_status is PITStatus.NOT_PIT:
         reasons.append("non-PIT evidence cannot be promoted")
         return FlowEvaluation(SignalLifecycle.DISCOVERY, 0.0, False, capex_allowed, tuple(reasons))
@@ -215,6 +234,7 @@ def evaluate_flow_case(case: TransmissionCase) -> FlowEvaluation:
 
     evidence_packet_complete = bool(
         observation.pit_status is PITStatus.CONFIRMED
+        and observation.stage_mature_for_promotion
         and case.transmission_mechanism.strip()
         and case.investable_security
         and case.falsifiers
