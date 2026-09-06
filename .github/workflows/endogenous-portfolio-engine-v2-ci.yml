@@ -7,6 +7,8 @@ on:
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts'
       - 'src/atlas/algorithm/structural-universe-authority-omega.ts'
+      - 'src/atlas/algorithm/structural-risk-unit-authority-omega.ts'
+      - 'src/atlas/algorithm/structural-risk-unit-authority-omega.test.ts'
       - 'src/atlas/algorithm/structural-sizing-authority-omega.ts'
       - 'src/atlas/algorithm/structural-sizing-authority-omega.test.ts'
       - 'src/atlas/algorithm/structural-portfolio-publication-gate-omega.ts'
@@ -21,6 +23,8 @@ on:
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts'
       - 'src/atlas/algorithm/structural-universe-authority-omega.ts'
+      - 'src/atlas/algorithm/structural-risk-unit-authority-omega.ts'
+      - 'src/atlas/algorithm/structural-risk-unit-authority-omega.test.ts'
       - 'src/atlas/algorithm/structural-sizing-authority-omega.ts'
       - 'src/atlas/algorithm/structural-sizing-authority-omega.test.ts'
       - 'src/atlas/algorithm/structural-portfolio-publication-gate-omega.ts'
@@ -35,5 +39,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Run Endogenous Portfolio Engine v2 + universe/sizing/publication-gate tests
-        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts src/atlas/algorithm/structural-portfolio-publication-gate-omega.test.ts src/atlas/algorithm/structural-sizing-authority-omega.test.ts
+      - name: Run Endogenous Portfolio Engine v2 + universe/risk-unit/sizing/publication-gate tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts src/atlas/algorithm/structural-portfolio-publication-gate-omega.test.ts src/atlas/algorithm/structural-risk-unit-authority-omega.test.ts src/atlas/algorithm/structural-sizing-authority-omega.test.ts
