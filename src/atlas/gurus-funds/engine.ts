@@ -21,11 +21,20 @@ export type GuruStyle =
 
 export type GuruAction = 'NEW' | 'INCREASE' | 'HOLD' | 'REDUCE' | 'EXIT' | 'UNKNOWN';
 
+export type DenominatorState = 'TOTAL_PORTFOLIO_VALID' | 'VISIBLE_DISCLOSURE_ONLY' | 'UNKNOWN';
+export type HedgeVisibility = 'FULL' | 'PARTIAL' | 'NONE' | 'UNKNOWN';
+
 export type GuruPositionObservation = {
   manager: string;
   style: GuruStyle;
   action: GuruAction;
+  /**
+   * May be used as conviction evidence only when denominatorState is TOTAL_PORTFOLIO_VALID.
+   * A 13F-visible weight is not a total-portfolio weight.
+   */
   portfolioWeightPct?: number | null;
+  denominatorState?: DenominatorState;
+  hedgeVisibility?: HedgeVisibility;
   positionChangePct?: number | null;
   quartersHeld?: number | null;
   sourceQuality: number;
@@ -52,7 +61,11 @@ export type GuruSignalState =
 
 export type GurusFundsResult = {
   ticker: string;
+  /** Research-priority score only. Never a company quality / expected-return score. */
   score: number;
+  scoreSemantics: 'RESEARCH_PRIORITY_ONLY';
+  directCompanyScoreContribution: 0;
+  portfolioOrderAuthority: false;
   rawState: GuruSignalState;
   state: GuruSignalState;
   factors: GurusFundsFactorScores;
@@ -78,24 +91,32 @@ export type GurusFundsResult = {
 };
 
 export const GURUS_FUNDS_OMEGA_MANIFEST = {
-  id: 'GURUS_FUNDS_OMEGA_V1_0',
-  version: '1.0.0',
+  id: 'GURUS_FUNDS_OMEGA_V1_1',
+  version: '1.1.0',
   status: 'canonical',
   deterministic: true,
   pure: true,
   idempotent: true,
+  runtimeAuthority: 'RESEARCH_PRIORITY_ONLY',
+  directCompanyScoreWeight: 0,
+  portfolioOrderAuthority: false,
   mission:
-    'Detect high-information capital allocation by differentiated elite investors and funds, emphasizing conviction, new positions, accumulation, cross-style convergence and divergence without treating guru ownership as a BUY signal.',
+    'Detect point-in-time public manager disclosures, accumulation, distribution, convergence and divergence as research observations without transferring trader prestige or disclosure-derived scores into company economics.',
   invariants: [
+    'TRADER_IDENTITY_IS_NOT_INVESTMENT_EVIDENCE',
+    'GURU_RESEARCH_SCORE_IS_NOT_COMPANY_SCORE',
     'GURU_SIGNAL_IS_NOT_BUY',
     'THIRTEEN_F_IS_DELAYED_AND_INCOMPLETE',
-    'CONCENTRATION_MATTERS_MORE_THAN_RAW_HOLDER_COUNT',
+    'VISIBLE_DISCLOSURE_WEIGHT_IS_NOT_TOTAL_PORTFOLIO_WEIGHT',
+    'CONVICTION_REQUIRES_VALID_TOTAL_PORTFOLIO_DENOMINATOR',
+    'OPTION_NOTIONAL_IS_NOT_OPTION_PREMIUM',
     'CROSS_STYLE_CONVERGENCE_MATTERS_MORE_THAN_CORRELATED_MANAGER_COUNT',
     'SINGLE_MANAGER_SIGNAL_CANNOT_BE_SMART_MONEY_CONVERGENCE',
     'DIVERGENCE_MUST_REMAIN_VISIBLE',
     'ESTIMATED_ENTRY_PRICE_IS_NOT_EXACT_COST_BASIS',
     'NO_PORTFOLIO_ORDER_EMITTED_BY_ENGINE',
-    'CANDIDATES_REQUIRE_ECONOMIC_PROOF_QUALITY_VALUATION_EXPECTED_RETURN_AND_FALSIFIERS',
+    'AUTHOR_REMOVAL_TEST_REQUIRED_DOWNSTREAM',
+    'CANDIDATES_REQUIRE_ECONOMIC_PROOF_QUALITY_VALUATION_EXPECTED_RETURN_COMPETITION_FOR_CAPITAL_AND_FALSIFIERS',
     'PRINCIPAL_GOOD_COMPANIES_CHEAP_HISTORICAL_DISLOCATION_AND_MONEY_ROTATION_REMAIN_INDEPENDENT',
   ] as const,
 } as const;
@@ -115,7 +136,9 @@ function average(values: number[], fallback = 50): number {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function convictionFromWeight(weightPct?: number | null): number | null {
+function convictionFromObservation(observation: GuruPositionObservation): number | null {
+  if (observation.denominatorState !== 'TOTAL_PORTFOLIO_VALID') return null;
+  const weightPct = observation.portfolioWeightPct;
   if (weightPct == null || !Number.isFinite(weightPct) || weightPct < 0) return null;
   return Math.min(100, (weightPct / 15) * 100);
 }
@@ -155,10 +178,12 @@ function freshnessEvidence(observation: GuruPositionObservation): number {
 function deriveExceptionality(observations: GuruPositionObservation[]): number {
   if (observations.length === 0) return 0;
   const scores = observations.map((observation) => {
-    const weight = observation.portfolioWeightPct ?? 0;
+    const validWeight = observation.denominatorState === 'TOTAL_PORTFOLIO_VALID'
+      ? (observation.portfolioWeightPct ?? 0)
+      : 0;
     const change = observation.positionChangePct ?? 0;
-    if (observation.action === 'NEW' && weight >= 10) return 100;
-    if (observation.action === 'NEW' && weight >= 4) return 90;
+    if (observation.action === 'NEW' && validWeight >= 10) return 100;
+    if (observation.action === 'NEW' && validWeight >= 4) return 90;
     if (observation.action === 'NEW') return 75;
     if (observation.action === 'INCREASE' && change >= 100) return 100;
     if (observation.action === 'INCREASE' && change >= 50) return 90;
@@ -219,7 +244,7 @@ export function assessGurusFundsCandidate(input: GurusFundsCandidateInput): Guru
   const exits = input.observations.filter((observation) => observation.action === 'EXIT').length;
 
   const convictionValues = input.observations
-    .map((observation) => convictionFromWeight(observation.portfolioWeightPct))
+    .map(convictionFromObservation)
     .filter((value): value is number => value != null)
     .sort((a, b) => b - a)
     .slice(0, 3);
@@ -234,7 +259,7 @@ export function assessGurusFundsCandidate(input: GurusFundsCandidateInput): Guru
   assertScore('exceptionalityOverride', exceptionality);
 
   const factors: GurusFundsFactorScores = {
-    conviction: round2(average(convictionValues, 40)),
+    conviction: round2(average(convictionValues, 0)),
     accumulation: round2(average(input.observations.map(accumulationFromObservation), 0)),
     convergence: round2(deriveConvergence(managers.size, styles.size)),
     persistence: round2(average(persistenceValues, 50)),
@@ -251,6 +276,16 @@ export function assessGurusFundsCandidate(input: GurusFundsCandidateInput): Guru
 
   if (evidenceIds.length < managers.size) {
     reasons.push('not_every_manager_has_unique_traceable_evidence');
+  }
+
+  const invalidDenominatorWeightCount = input.observations.filter(
+    (observation) => observation.portfolioWeightPct != null && observation.denominatorState !== 'TOTAL_PORTFOLIO_VALID',
+  ).length;
+  if (invalidDenominatorWeightCount > 0) {
+    reasons.push('visible_disclosure_weights_ignored_for_conviction_without_valid_total_portfolio_denominator');
+  }
+  if (convictionValues.length === 0) {
+    reasons.push('conviction_factor_zero_without_valid_total_portfolio_denominator');
   }
 
   if (managers.size < 2 && stateRank(state) > stateRank('ACCUMULATION')) {
@@ -291,11 +326,16 @@ export function assessGurusFundsCandidate(input: GurusFundsCandidateInput): Guru
   else if (state === 'DISCOVERY' || state === 'ACCUMULATION') action = 'RESEARCH';
   else if (state === 'SMART_MONEY_CONVERGENCE' || state === 'STRONG_GURU_CONVICTION') action = 'HANDOFF_TO_ATLAS_GATES';
 
-  reasons.push('guru_signal_requires_economic_proof_quality_valuation_expected_return_and_falsifiers_before_portfolio_action');
+  reasons.push('research_priority_score_has_zero_direct_company_score_contribution');
+  reasons.push('author_removal_test_required_before_methodological_use');
+  reasons.push('guru_signal_requires_economic_proof_quality_valuation_expected_return_competition_for_capital_and_falsifiers_before_portfolio_action');
 
   return {
     ticker: input.ticker.toUpperCase(),
     score,
+    scoreSemantics: 'RESEARCH_PRIORITY_ONLY',
+    directCompanyScoreContribution: 0,
+    portfolioOrderAuthority: false,
     rawState,
     state,
     factors,
