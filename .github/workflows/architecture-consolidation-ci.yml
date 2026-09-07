@@ -52,6 +52,8 @@ jobs:
 
   python-boundaries:
     runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -61,7 +63,7 @@ jobs:
         run: pip install -r api/requirements.txt
       - name: Run public-boundary and broker-authority tests
         run: >-
-          pytest -q
+          python -m pytest -q
           api/test_atlas_consolidated_boundary.py
           api/test_broker_mount_authority.py
           api/test_trading212_v2.py
