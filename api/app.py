@@ -10,7 +10,7 @@ from api.agentic_evidence_bridge import router as agentic_evidence_bridge_router
 from api.agentic_governance import router as agentic_governance_router
 from api.agentic_omega import router as agentic_omega_router
 from api.agentic_omega_v2 import router as agentic_omega_v2_router
-from api.atlas_core import router as atlas_router
+from api.atlas_core_consolidated import router as atlas_router
 from api.bottom_score import router as bottom_score_router
 from api.document_ingestion import router as document_ingestion_router
 from api.evidence import router as evidence_router
