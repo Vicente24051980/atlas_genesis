@@ -114,6 +114,7 @@ Las restricciones de cardinalidad sólo pueden existir como límites técnicos t
 13. **Competition for Capital** mediante duelos cross-sector.
 14. Selección portfolio-level y determinación endógena de `OPTIMAL_N`.
 15. Auditoría de frontera, concentración oculta, escenarios bull/base/bear y sesgos.
+16. Aplicación de controles de sizing y riesgo, incluido `AI EXPOSURE CONTROL Ω`, sin retrocontaminar el ranking Point Zero.
 
 ## 6. Rol de los componentes GitHub / Notion
 
@@ -125,11 +126,35 @@ No pueden proteger incumbentes, introducir ventaja por fama/tamaño, fijar Top-N
 
 `EXTERNAL_CHALLENGERS` sólo pueden entrar mediante discovery documentado, nominación explícita u otra fuente ATLAS autorizada. Ser externo otorga **0 puntos**.
 
-## 7. Concentración y diversificación
+## 7. Concentración, diversificación y exposición IA
 
 No existen cuotas estéticas. Sí deben modelarse concentraciones reales y riesgos correlacionados: AI/semiconductores, hyperscalers, data centers, tipos, crédito, energía, China/Taiwán, defensa, healthcare/regulación y cualquier otro factor económico material.
 
 Diversificación sólo tiene valor cuando mejora la utilidad retorno/riesgo real; no por apariencia.
+
+### 7.1 AI Exposure Control Ω
+
+Autoridad específica:
+
+`CURRENT_CANON/2026-09-07_ATLAS_AI_EXPOSURE_CONTROL_OMEGA.md`
+
+Regla vigente:
+
+`AI_CORE_BASE_CEILING = 30%`
+
+El 30% es el **techo operativo por defecto** para `AI_CORE`, no una cuota de selección, no una penalización automática de score y no una orden automática de venta.
+
+`AI_CORE` exige evidencia verificada de que más del 50% de ingresos, beneficio bruto o tesis económica dominante depende directamente de AI compute / AI infrastructure. Si la clasificación no puede verificarse, se marca `AI_CLASSIFICATION_UNKNOWN`.
+
+La sensibilidad amplia se reporta como `AI_TIER2_SENSITIVITY` y se incorpora a concentración oculta/correlated downside, pero no consume automáticamente el 30% salvo que cumpla el test `AI_CORE`.
+
+ATLAS puede superar 30% únicamente con `AI_MOMENTUM_OVERRIDE = ACTIVE`, que requiere simultáneamente momentum/Tape-RS persistente, fundamentales sanos, revisiones/Economic Proof favorables, valoración/Expected Return competitivo, Expectation Gap aceptable, stress correlacionado tolerable y aprobación humana para aumentar deliberadamente por encima del 30%.
+
+Momentum por sí solo no basta.
+
+Si la exposición supera 30% por apreciación de mercado, el estado es `AI_OVER_30_REVIEW`, no `AUTO_SELL`. Si el override se deteriora, se activa revisión de rebalanceo basada en portfolio utility; no liquidación mecánica.
+
+Esta política supersede cualquier hard cap previo de 14%, 20%, 25% u otro porcentaje histórico usado como política vigente.
 
 ## 8. Evidencia, UNKNOWN y falsación
 
@@ -169,5 +194,9 @@ Si una reconstrucción independiente produce la misma cartera, eso es evidencia 
 `FIRST_10_CHALLENGERS`  
 `DECISIVE_REPLACEMENTS`  
 `PORTFOLIO_FALSIFIERS`  
+`AI_CORE_WEIGHT`  
+`AI_CORE_MEMBERS`  
+`AI_TIER2_SENSITIVITY`  
+`AI_MOMENTUM_OVERRIDE`  
 `CONFIDENCE`  
 `DATA_CUTOFF`
