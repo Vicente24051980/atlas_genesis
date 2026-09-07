@@ -62,7 +62,7 @@ Permite `EXTERNAL_CHALLENGERS` solamente cuando procedan de discovery documentad
 
 No fijes de antemano 20, 25, 30, 32, 35 ni 37 posiciones.
 
-Determina **OPTIMAL_N endógenamente**.
+Determina **SELECTED_N endógenamente**.
 
 Una empresa entra únicamente cuando su contribución marginal mejora la utilidad retorno/riesgo de la cartera completa. Detén la expansión cuando añadir la siguiente empresa empeore esa utilidad.
 
@@ -105,7 +105,7 @@ Busca activamente evidencia que pueda destruir la tesis. Una tesis que no pueda 
 
 **1. Ranking completo de finalistas.** Ticker, empresa, sector/factor, score ATLAS, expected return, riesgo, confianza y estado.
 
-**2. Cartera óptima.** Ranking #1…#N y `OPTIMAL_N`.
+**2. Cartera seleccionada.** Ranking #1…#N y `SELECTED_N`.
 
 **3. Frontera de corte.** Incluye al menos los últimos 5 incumbentes y los primeros 10 challengers para poder observar exactamente dónde está el coste marginal de añadir una posición.
 
@@ -125,12 +125,14 @@ Busca activamente evidencia que pueda destruir la tesis. Una tesis que no pueda 
 
 **No intentes justificar la cartera que ya tenemos. Intenta derrotarla.**
 
-Si la reconstrucción independiente produce la misma cartera, eso constituye evidencia a favor de ella. Si encuentra una cartera superior, reemplázala.
+Si la reconstrucción independiente produce la misma cartera, eso constituye evidencia a favor de ella. Si encuentra una cartera superior, evalúa la transición después de clean selection. REPLACE sólo procede si NET ROTATION ADVANTAGE > 0 con costes, incertidumbre y realidad del broker reconciliada; de lo contrario, BLOCKED / WATCH.
 
 La salida debe terminar con:
 
 `UNIVERSE_VERSION`  
-`OPTIMAL_N`  
+`SELECTED_N`
+
+`GLOBAL_OPTIMALITY`
 `SELECTED_PORTFOLIO`  
 `FIRST_10_CHALLENGERS`  
 `DECISIVE_REPLACEMENTS`  
@@ -146,8 +148,16 @@ No inventes datos ausentes. Marca cualquier variable no verificada como `UNKNOWN
 
 ## Canonical precedence rule
 
-En cualquier conflicto entre este documento y un prompt, tesis, cartera, amendment, motor o snapshot anterior, **prevalece este documento** para discovery final, scoring comparable, ranking, portfolio membership, replacement y `OPTIMAL_N`.
+En cualquier conflicto entre este documento y un prompt, tesis, cartera, amendment, motor o snapshot anterior, **prevalece este documento** para discovery final, scoring comparable, ranking, portfolio membership, replacement y `SELECTED_N`.
 
 `CURRENT_CANON/2026-09-07_ATLAS_AI_EXPOSURE_CONTROL_OMEGA.md` gobierna específicamente el control operativo/sizing de exposición AI y supersede caps AI previos de 14%, 20%, 25% u otros valores históricos.
 
 Los motores sólo conservan autoridad en la medida en que implementen o suministren evidencia compatible con este contrato.
+
+## Corrección de auditoría autorizada · 7-sep-2026 · issue #184
+
+`ENDOGENOUS N ≠ PROVEN GLOBAL OPTIMUM`. La búsqueda heurística informa `SELECTED_N` y `GLOBAL_OPTIMALITY = NOT_PROVEN`. `OPTIMAL_N` queda reservado a una prueba o certificado suficiente de optimalidad global sobre un objetivo, universo y restricciones declarados. Los campos de compatibilidad `optimalN: null` no deben rellenarse con `selectedN`.
+
+La baja volatilidad sólo tiene valor cuando mejora la utilidad económica; no es un objetivo a cualquier precio. La selección no autoriza por sí sola reemplazo ni ejecución.
+
+Estado de implementación: los selectores ya separaban cardinalidad heurística y optimalidad antes de esta corrección documental. Las unidades de riesgo y el sizing estructural siguen `RESEARCH_PENDING`; tests de software no demuestran calibración económica ni rentabilidad.

@@ -1,4 +1,4 @@
-export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-07-v2.4.0' as const;
+export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-07-v2.4.1' as const;
 
 // Compatibility exports only. They are non-binding sentinels, not portfolio
 // design constraints. Canonical clean selection has no ex-ante floor/ceiling.
@@ -182,13 +182,18 @@ export function expectedReturnPct(c: PortfolioCandidateV2): number {
 }
 
 function validateCandidate(c: PortfolioCandidateV2): boolean {
-  if (!c.ticker?.trim()) return false;
+  if (!c || typeof c.ticker !== 'string' || !c.ticker.trim()) return false;
+  if (c.canonicalEntityId !== undefined && (typeof c.canonicalEntityId !== 'string' || !c.canonicalEntityId.trim())) return false;
+  if (typeof c.hardGatesPassed !== 'boolean' || typeof c.falsifierVetoPassed !== 'boolean') return false;
+  if (!c.expectedReturn || !c.scenarios || !c.causalDrivers || !Array.isArray(c.fundingSources)) return false;
+  if (!c.fundingSources.every(x => typeof x === 'string')) return false;
   const er = c.expectedReturn;
   const numbers = [
     er.fundamentalGrowthPct, er.cashYieldPct, er.capitalReturnsPct, er.multipleNormalizationPct,
     c.permanentLossRisk, c.tailRisk, c.volatilityRisk, c.fragility, c.convexity, c.confidence, c.individualScore,
   ];
   if (!numbers.every(finite)) return false;
+  if (!finite(expectedReturnPct(c))) return false;
   if (c.confidence < 0 || c.confidence > 1) return false;
   for (const s of CANONICAL_SCENARIOS) {
     if (!finite(c.scenarios?.[s]) || c.scenarios[s] < -5 || c.scenarios[s] > 5) return false;
@@ -209,6 +214,13 @@ function normalizePolicy(policy: PortfolioEnginePolicyV2): NormalizedPolicyV2 | 
     requiredStructuralDrivers: policy.requiredStructuralDrivers ?? [],
   };
   const rw = p.riskWeights;
+  // Numeric policy is an input boundary, not a trusted TypeScript assertion.
+  const nonnegative = [p.missingDriverRobustnessThreshold, p.betaRobustness,
+    p.gammaConvexity, p.lambdaPermanentLoss, p.phiFragility, p.tauTailRisk,
+    p.kappaComplexity, p.uncertaintyPenalty, rw.permanentLoss, rw.tailRisk,
+    rw.volatility, ...Object.values(p.replacementThreshold)];
+  if (!nonnegative.every(x => finite(x) && x >= 0)) return null;
+  if (!Number.isSafeInteger(p.maxLocalSearchIterations) || p.maxLocalSearchIterations < 0) return null;
   if (!finite(p.marginalUtilityThreshold) || p.marginalUtilityThreshold < 0) return null;
   if (Math.abs(rw.permanentLoss + rw.tailRisk + rw.volatility - 1) > 1e-9) return null;
 
@@ -249,8 +261,12 @@ function normalizedEvidenceFingerprint(c: PortfolioCandidateV2): string {
 
 function deduplicateEntities(candidates: PortfolioCandidateV2[]): PortfolioCandidateV2[] | null {
   const byEntity = new Map<string, PortfolioCandidateV2>();
+  const tickerEntities = new Map<string, string>();
   for (const candidate of candidates) {
     const key = entityKey(candidate);
+    const ticker = candidate.ticker.trim().toUpperCase();
+    if (tickerEntities.has(ticker) && tickerEntities.get(ticker) !== key) return null;
+    tickerEntities.set(ticker, key);
     const existing = byEntity.get(key);
     if (!existing) {
       byEntity.set(key, candidate);
@@ -289,7 +305,9 @@ function averagePairwise<T>(xs: T[], fn: (a: T, b: T) => number): number {
 
 export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], policy: PortfolioEnginePolicyV2 = {}): PortfolioMetricsV2 {
   const p = normalizePolicy(policy);
-  if (!p || candidates.length === 0) throw new Error('INVALID_PORTFOLIO_INPUT');
+  if (!p || candidates.length === 0 || candidates.some(c => !validateCandidate(c))) throw new Error('INVALID_PORTFOLIO_INPUT');
+  const unique = deduplicateEntities(candidates);
+  if (!unique || unique.length !== candidates.length) throw new Error('INVALID_PORTFOLIO_INPUT');
   const n = candidates.length;
   const w = 1 / n;
   const er = mean(candidates.map(expectedReturnPct));
@@ -512,7 +530,9 @@ export function evaluateReplacementV2(
   incumbentState: IncumbentState, policy: PortfolioEnginePolicyV2 = {},
 ): ReplacementDecisionV2 {
   const p = normalizePolicy(policy);
-  if (!p || !challenger.hardGatesPassed || !challenger.falsifierVetoPassed) return { allowed: false, deltaPortfolioUtility: Number.NEGATIVE_INFINITY, threshold: Infinity, reason: 'Challenger fails policy or hard gates.' };
+  if (!p || !validateCandidate(challenger) || portfolio.some(c => !validateCandidate(c)) || !challenger.hardGatesPassed || !challenger.falsifierVetoPassed || !['GREEN', 'ORANGE', 'RED'].includes(incumbentState)) return { allowed: false, deltaPortfolioUtility: Number.NEGATIVE_INFINITY, threshold: Infinity, reason: 'Challenger fails policy, evidence or hard gates.' };
+  const unique = deduplicateEntities(portfolio);
+  if (!unique || unique.length !== portfolio.length || portfolio.some(c => entityKey(c) === entityKey(challenger) || c.ticker.trim().toUpperCase() === challenger.ticker.trim().toUpperCase())) return { allowed: false, deltaPortfolioUtility: Number.NEGATIVE_INFINITY, threshold: Infinity, reason: 'Duplicate or conflicting portfolio/challenger identity.' };
   const idx = portfolio.findIndex(c => c.ticker === incumbentTicker);
   if (idx < 0) return { allowed: false, deltaPortfolioUtility: Number.NEGATIVE_INFINITY, threshold: Infinity, reason: 'Incumbent not found.' };
   const before = evaluatePortfolioSetV2(portfolio, p).utility;

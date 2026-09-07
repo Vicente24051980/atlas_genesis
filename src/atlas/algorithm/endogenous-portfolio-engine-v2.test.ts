@@ -20,6 +20,38 @@ function c(i:number, er=12, driver=`d${i}`, funding:string[]=[]): PortfolioCandi
   };
 }
 
+describe('Audit 184 — malformed inputs must fail closed', () => {
+  it.each([
+    { riskWeights: { permanentLoss: NaN, tailRisk: 0.2, volatility: 0.8 } },
+    { riskWeights: { permanentLoss: -1, tailRisk: 1, volatility: 1 } },
+    { betaRobustness: NaN }, { gammaConvexity: Infinity },
+    { uncertaintyPenalty: -1 }, { replacementThreshold: { GREEN: -100 } },
+    { maxLocalSearchIterations: Infinity }, { maxLocalSearchIterations: 1.5 },
+  ])('rejects invalid numeric policy %j', policy => {
+    expect(runEndogenousPortfolioEngineV2([c(1)], policy).status).toBe('EVIDENCE_PENDING');
+  });
+  it('rejects a truthy non-boolean gate', () => {
+    const candidate = { ...c(1), hardGatesPassed: 'false' } as unknown as PortfolioCandidateV2;
+    expect(runEndogenousPortfolioEngineV2([candidate]).status).toBe('EVIDENCE_PENDING');
+  });
+  it('does not throw on a missing return bridge', () => {
+    const candidate = { ...c(1), expectedReturn: undefined } as unknown as PortfolioCandidateV2;
+    expect(runEndogenousPortfolioEngineV2([candidate]).status).toBe('EVIDENCE_PENDING');
+  });
+  it('rejects one ticker assigned to different economic entities', () => {
+    expect(runEndogenousPortfolioEngineV2([c(1), { ...c(2), ticker: 'T1' }]).status).toBe('EVIDENCE_PENDING');
+  });
+  it('rejects invalid direct metric inputs', () => {
+    expect(() => evaluatePortfolioSetV2([{ ...c(1), confidence: NaN }])).toThrow('INVALID_PORTFOLIO_INPUT');
+  });
+  it('blocks replacing with an entity already held', () => {
+    expect(evaluateReplacementV2([c(1), c(2)], 'T1', c(2, 99), 'GREEN').allowed).toBe(false);
+  });
+  it('blocks malformed challenger evidence', () => {
+    expect(evaluateReplacementV2([c(1)], 'T1', { ...c(2, 99), confidence: 2 }, 'GREEN').allowed).toBe(false);
+  });
+});
+
 describe('Endogenous Portfolio Engine v2.4 — Point Zero / endogenous local selection',()=>{
   it('has no binding ex-ante cardinality floor or ceiling',()=>{
     expect(MIN_PORTFOLIO_POSITIONS_V2).toBe(0);
