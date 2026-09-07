@@ -1,0 +1,38 @@
+name: ATLAS E5-E6 Control Assurance CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/atlas/algorithm/e5-control-policy-omega.ts'
+      - 'src/atlas/algorithm/e5-control-policy-omega.test.ts'
+      - 'src/atlas/algorithm/e6-assurance-harness-policy-omega.ts'
+      - 'src/atlas/algorithm/e6-assurance-harness-policy-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-kernel-contract-registry-omega.ts'
+      - 'src/atlas/algorithm/atlas-architecture-consolidation-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-07_E5_E6_CONTROL_ASSURANCE_CONTRACTS.md'
+      - '.github/workflows/e5-e6-control-assurance-ci.yml'
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/e5-control-policy-omega.ts'
+      - 'src/atlas/algorithm/e5-control-policy-omega.test.ts'
+      - 'src/atlas/algorithm/e6-assurance-harness-policy-omega.ts'
+      - 'src/atlas/algorithm/e6-assurance-harness-policy-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-kernel-contract-registry-omega.ts'
+      - 'src/atlas/algorithm/atlas-architecture-consolidation-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-07_E5_E6_CONTROL_ASSURANCE_CONTRACTS.md'
+      - '.github/workflows/e5-e6-control-assurance-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  control-assurance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run E5/E6 and architecture invariants
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/e5-control-policy-omega.test.ts
+          src/atlas/algorithm/e6-assurance-harness-policy-omega.test.ts
+          src/atlas/algorithm/atlas-architecture-consolidation-omega.test.ts
