@@ -1,0 +1,31 @@
+name: ATLAS Omega Governance CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/governance/**'
+      - 'scripts/omega_repository_forensics.py'
+      - 'CURRENT_CANON/2026-09-07_OMEGA58_102_EXECUTION_CONTRACT.md'
+      - '.github/workflows/omega-governance-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/atlas/governance/**'
+      - 'scripts/omega_repository_forensics.py'
+
+jobs:
+  omega-governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run repository forensics
+        run: python scripts/omega_repository_forensics.py
+      - name: Run Omega governance tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/governance/omega-governance-core.test.ts
+      - name: Upload repository-forensics evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: omega-repository-forensics
+          path: reports/generated/omega_repository_forensics.json
