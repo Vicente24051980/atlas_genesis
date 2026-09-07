@@ -1,0 +1,49 @@
+name: ATLAS Point Zero E1 SEC Capture
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/point-zero-e1-sec-capture.yml'
+      - 'scripts/point_zero_sec_e1_capture.py'
+      - 'data/atlas-core-universe-economic-entities-2026-09-06.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-universe-e1-capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Capture SEC primary evidence for all 487 canonical entities
+        run: >-
+          python scripts/point_zero_sec_e1_capture.py
+          --output artifacts/point_zero_e1_sec_matrix.jsonl
+          --summary artifacts/point_zero_e1_sec_summary.json
+          --sleep 0.13
+      - name: Verify no ranking was emitted and row count is exact
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          rows = Path('artifacts/point_zero_e1_sec_matrix.jsonl').read_text(encoding='utf-8').splitlines()
+          summary = json.loads(Path('artifacts/point_zero_e1_sec_summary.json').read_text(encoding='utf-8'))
+          assert len(rows) == 487, len(rows)
+          assert summary['requestedCount'] == 487
+          assert summary['rankingAuthorized'] is False
+          assert summary['e2ReadyCount'] == 0
+          print(json.dumps(summary, sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: point-zero-e1-sec-487
+          path: |
+            artifacts/point_zero_e1_sec_matrix.jsonl
+            artifacts/point_zero_e1_sec_summary.json
+          retention-days: 30
