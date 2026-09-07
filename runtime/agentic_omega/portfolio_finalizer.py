@@ -1,12 +1,8 @@
 """ATLAS Ω portfolio finalizer.
 
-Converts audited universe candidates into durable GREEN tiers and executable
-replacement decisions. Fail-closed by design: stale/incomplete/event-gated
-candidates cannot displace an incumbent.
-
-Canonical replacement hurdle: >=50 ATLAS Ω points on the 0–1000 scale OR
->=3 percentage points of normalized Expected CAGR. FinalCandidate.omega_score is
-stored on the internal 0–100 scale, so 50 ATLAS points == 5 internal score points.
+Clean Point-Zero finalization never compares a challenger with an incumbent.
+Classification is based on current evidence only. Legacy replacement hysteresis
+is retained solely as an explicitly downstream execution diagnostic.
 """
 from dataclasses import dataclass
 from enum import Enum
@@ -14,8 +10,8 @@ from typing import Iterable, Optional
 
 ATLAS_SCORE_SCALE = 1000.0
 FINALIZER_SCORE_SCALE = 100.0
-DEFAULT_ATLAS_REPLACEMENT_HURDLE_POINTS = 50.0
-DEFAULT_EXPECTED_CAGR_HURDLE_PP = 3.0
+LEGACY_EXECUTION_ATLAS_HURDLE_POINTS = 50.0
+LEGACY_EXECUTION_EXPECTED_CAGR_HURDLE_PP = 3.0
 
 
 class GreenTier(str, Enum):
@@ -53,7 +49,7 @@ class FinalDecision:
 
 def classify(candidate: FinalCandidate) -> FinalDecision:
     if candidate.falsifier:
-        return FinalDecision(candidate.ticker, GreenTier.REJECT, True, "fundamental falsifier")
+        return FinalDecision(candidate.ticker, GreenTier.REJECT, False, "fundamental falsifier")
     if candidate.data_age_hours > 24:
         return FinalDecision(candidate.ticker, GreenTier.WATCH, False, "stale market data")
     if candidate.normalized_expected_cagr is None or candidate.valuation_confidence < 60:
@@ -72,26 +68,33 @@ def classify(candidate: FinalCandidate) -> FinalDecision:
 
 
 def replacement_allowed(incumbent: FinalCandidate, challenger: FinalCandidate) -> tuple[bool, str]:
+    """Compatibility API that deliberately has zero clean-selection authority."""
+    return False, "POINT_ZERO_CLEAN_SELECTION_FORBIDS_INCUMBENT_REPLACEMENT_HURDLE"
+
+
+def legacy_execution_replacement_diagnostic(
+    incumbent: FinalCandidate,
+    challenger: FinalCandidate,
+) -> tuple[bool, str]:
+    """Downstream transition diagnostic after clean desired portfolio is frozen."""
     c = classify(challenger)
     if incumbent.falsifier:
-        return c.executable, "incumbent falsified"
+        return c.executable, "incumbent falsified; execution diagnostic only"
     if not c.executable:
-        return False, f"challenger blocked: {c.reason}"
+        return False, f"challenger execution blocked: {c.reason}"
     if challenger.normalized_expected_cagr is None or incumbent.normalized_expected_cagr is None:
         return False, "missing normalized Expected CAGR"
 
     cagr_edge = challenger.normalized_expected_cagr - incumbent.normalized_expected_cagr
     internal_score_edge = challenger.omega_score - incumbent.omega_score
     atlas_score_edge_points = internal_score_edge * ATLAS_SCORE_SCALE / FINALIZER_SCORE_SCALE
-
-    if cagr_edge >= DEFAULT_EXPECTED_CAGR_HURDLE_PP or atlas_score_edge_points >= DEFAULT_ATLAS_REPLACEMENT_HURDLE_POINTS:
-        return True, (
-            f"replacement hurdle passed: CAGR edge {cagr_edge:.2f}pp, "
-            f"ATLAS edge {atlas_score_edge_points:.1f} points"
-        )
-    return False, (
-        f"replacement hurdle failed: CAGR edge {cagr_edge:.2f}pp, "
-        f"ATLAS edge {atlas_score_edge_points:.1f} points"
+    ok = (
+        cagr_edge >= LEGACY_EXECUTION_EXPECTED_CAGR_HURDLE_PP
+        or atlas_score_edge_points >= LEGACY_EXECUTION_ATLAS_HURDLE_POINTS
+    )
+    return ok, (
+        "EXECUTION_DIAGNOSTIC_ONLY: "
+        f"CAGR edge {cagr_edge:.2f}pp, ATLAS edge {atlas_score_edge_points:.1f} points"
     )
 
 
@@ -105,7 +108,7 @@ CANONICAL_FINALIZER_LAWS = (
     "PRICE MOMENTUM != CAPITAL CAUSALITY",
     "POSITIONING T-1 != CURRENT FLOW",
     "GREEN FUNDAMENTALS != EXECUTABLE BUY",
-    "CHALLENGER QUALITY != REPLACEMENT",
-    "REPLACEMENT REQUIRES >=50 ATLAS OMEGA POINTS OR ~3PP EXPECTED CAGR EDGE",
+    "INCUMBENCY HAS ZERO CLEAN-SELECTION AUTHORITY",
+    "LEGACY REPLACEMENT HURDLES ARE EXECUTION DIAGNOSTICS ONLY",
     "MISSING EVIDENCE => NO EXECUTION",
 )
