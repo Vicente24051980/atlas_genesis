@@ -2,16 +2,36 @@
 
 **Date:** 2026-09-07  
 **Classification:** `IMPLEMENTATION_EVIDENCE / NON_CANONICAL / NOT_LIVE`  
-**Issue:** #188  
-**PR:** #189  
-**Branch:** `feat/188-agentic-autonomy-verification`  
-**Base main at branch creation:** `c6b5c0ccc84b61b873feafd052e5a2f99bc126a5`
+**Original issue:** #188  
+**Implementation PR:** #189  
+**Post-merge reconciliation:** #192  
+**Merge commit:** `dd6da686a67a07ebbe1ad7d61586414a19a06e8e`
+
+## 0. Verified current state
+
+PR #189 is merged into `main`. Issue #188 is closed as completed.
+
+Verified post-merge state:
+
+- `main` commit: `dd6da686a67a07ebbe1ad7d61586414a19a06e8e`;
+- merged tree: `e3dd4821e751c3fede87ee39aa33970e6c229a93`;
+- `ATLAS P0 Integrity Gate` run `34138961629` — `SUCCESS`;
+- `ATLAS Architecture Consolidation CI` run `34138960104` — `SUCCESS`;
+- `Agentic Runtime Omega v2 CI` run `34138960100` — `SUCCESS`;
+- `ATLAS E5-E6 Control Assurance CI` run `34138960145` — `SUCCESS`;
+- `ATLAS Mobile + Agentic Live Backend Smoke` run `34138960067` — `SUCCESS`.
+
+Evidence-supported technical state:
+
+`MAIN / IMPLEMENTED / TESTED / CI_PASS / MERGED`
+
+This does **not** by itself prove that the new execution controller is deployed and exercised in production. `LIVE/PRODUCTION` therefore remains unclaimed for that exact route.
 
 ## 1. Point Zero result
 
 The architectural result is **not** to add an `ASTRA ENGINE` or make ATLAS a wrapper around one model.
 
-The current six-engine architecture remains the authority boundary:
+The six-engine authority boundary remains:
 
 `R0 RESEARCH → E1 EVIDENCE → E2 ASSESSMENT → E3 GATE → E4 DECISION → EXECUTION`
 
@@ -35,7 +55,7 @@ A replaceable foundation model may provide:
 
 ### ATLAS intelligence
 
-ATLAS must own and persist independently of the model:
+ATLAS owns and persists independently of the model:
 
 - authority hierarchy and latest-canon resolution;
 - epistemic labels and provenance;
@@ -56,9 +76,9 @@ Astra is therefore a candidate model/runtime capability provider underneath ATLA
 
 `INTENT → AUTHORITY RESOLUTION (CANON + MEMORY CLASS) → CONTEXT RETRIEVAL → EVIDENCE PACKET → E2 ASSESSMENT/REASONING → E3 GATES → E4 DECISION → ACTION PLAN → E5 CAPABILITY + AUTONOMY POLICY → TOOL EXECUTION → E6 POSTCONDITION VERIFICATION → E5 CLOSEOUT/CONTROL → AUDIT LEDGER → MEMORY PROPOSAL → PERSISTENCE GATE`
 
-Important correction to a naive linear agent pipeline: E5 must gate **before** execution, and E6 must independently verify the resulting post-state. Control is not merely a terminal step.
+E5 gates **before** execution. E6 independently verifies resulting post-state. Control is not merely a terminal step.
 
-## 4. Executable autonomy ladder added
+## 4. Executable autonomy ladder
 
 Subordinate to E5/E6, not a new engine:
 
@@ -81,7 +101,7 @@ Current conservative mandatory-L4 domains:
 
 ## 5. Evidence / Decision / Execution firewall
 
-New runtime: `runtime/agentic_omega/execution_control.py`.
+Runtime: `runtime/agentic_omega/execution_control.py`.
 
 State machine:
 
@@ -121,31 +141,29 @@ Invariants:
 | Prompt injection | external content remains evidence candidate only | no authority transfer from content | provenance + E1/E3 checks |
 | Memory contamination | canonical persistence separately gated | no automatic canon/memory promotion | dual persistence/provenance reconciliation |
 | GitHub/Notion contradiction | authority hierarchy + dual-persistence state | incomplete/contradictory state is not completion | reconcile exact identifiers |
-| Correct action, wrong decision | E1→E4 remain upstream of execution | execution controller cannot decide objectives | E6 outcome audit + human gate where material |
+| Correct action, wrong decision | E1→E4 remain upstream of execution | controller cannot decide objectives | E6 outcome audit + human gate where material |
 
 ## 7. Astra capability delta — evidence rule
 
-Public product claims and benchmark results are not treated as evidence that a capability is available on a particular ATLAS route.
+Public product claims and benchmark results are not evidence that a capability is available on a particular ATLAS route.
 
 A capability must be separated as:
 
 `ANNOUNCED / AVAILABLE_HERE / TESTED / RELIABLE / NOT_AVAILABLE / UNKNOWN`.
 
-As of 2026-09-07, official OpenAI material supports Astra improvements in coding, research, browsing/computer use, complex multi-step work and creation of documents/spreadsheets/presentations. Work supports longer multi-step deliverables and eligible scheduled/event-triggered work. Rollout is account/surface dependent.
-
-The current implementation therefore depends on **capability evidence for the exact route**, not on the model name. GitHub and Notion routes used in this implementation were actually exercised; generic Astra computer-use/subagent capability was not inferred from announcements.
+The implementation therefore depends on **capability evidence for the exact route**, not on the model name. GitHub and Notion routes used during implementation were exercised; generic Astra computer-use/subagent capability was not inferred from announcements.
 
 ## 8. External pattern extraction
 
-The useful pattern from CRM/messaging/automation systems is architectural, not vendor-specific:
+The useful external automation pattern is:
 
 `TRIGGER / INTENT → IDEMPOTENT COMMAND → ACKNOWLEDGED EXECUTION → ASYNCHRONOUS STATUS OR READBACK → VERIFIED POST-STATE → RECOVERY`
 
-This is superior to the unsafe pattern:
+This is superior to:
 
 `AGENT SAID DONE → MARK COMPLETE`.
 
-ATLAS should ingest external methods through:
+ATLAS ingests external methods through:
 
 `DISCOVER → VERIFY → EXTRACT PATTERN → GENERALIZE → COMPARE AGAINST ATLAS → IMPLEMENT IF SUPERIOR → TEST → MEASURE`.
 
@@ -153,27 +171,19 @@ No external tool receives architectural authority merely because it is new or po
 
 ## 9. Implementation ledger
 
-| Change | State |
+| Change | Verified state |
 |---|---|
-| Issue #188 | OPEN / authoritative work item |
-| Branch `feat/188-agentic-autonomy-verification` | IMPLEMENTED |
-| `runtime/agentic_omega/execution_control.py` | IMPLEMENTED_ON_BRANCH |
-| `runtime/agentic_omega/test_execution_control.py` | TESTED_ON_BRANCH |
-| `src/atlas/algorithm/e5-control-policy-omega.ts` v1.1.0 | IMPLEMENTED_ON_BRANCH |
-| `src/atlas/algorithm/e5-control-policy-omega.test.ts` | TESTED_ON_BRANCH |
-| Architecture Consolidation CI integration | IMPLEMENTED_ON_BRANCH |
-| Restart recovery + durable idempotency reconstruction | IMPLEMENTED_ON_BRANCH / TESTED |
-| PR #189 | OPEN / NOT_MERGED |
-| main | UNCHANGED BY THIS UPGRADE |
-| LIVE production/runtime promotion | NOT_CLAIMED |
-
-Latest CI evidence before this documentation commit, on head `b8aca7114df8d16484182b70f3ee7b5834d32205`:
-
-- `ATLAS Architecture Consolidation CI` run `34136594280` — `SUCCESS`;
-- `ATLAS E5-E6 Control Assurance CI` run `34136594328` — `SUCCESS`;
-- `Agentic Runtime Omega v2 CI` run `34136594345` — `SUCCESS`.
-
-Because this report is itself another PR commit, CI must be checked again on the final PR head before merge. Historical green runs must not be promoted to final-head evidence.
+| Issue #188 | `CLOSED / COMPLETED` |
+| PR #189 | `MERGED` |
+| Merge commit | `dd6da686a67a07ebbe1ad7d61586414a19a06e8e` |
+| `runtime/agentic_omega/execution_control.py` | `MAIN / IMPLEMENTED` |
+| `runtime/agentic_omega/test_execution_control.py` | `MAIN / TESTED` |
+| `src/atlas/algorithm/e5-control-policy-omega.ts` v1.1.0 | `MAIN / IMPLEMENTED` |
+| E5 contract tests | `MAIN / TESTED` |
+| Architecture Consolidation CI integration | `MAIN / IMPLEMENTED` |
+| Restart recovery + durable idempotency reconstruction | `MAIN / TESTED` |
+| Five post-merge workflows | `SUCCESS` |
+| New controller production deployment | `NOT_PROVEN / NOT_CLAIMED` |
 
 ## 10. Remaining gaps
 
@@ -183,27 +193,26 @@ Restart persistence is implemented, but simultaneous independent processes could
 
 ### B. Live Continuity Binding
 
-Notion records that PR #160 remains blocked because the GitHub repository lacks `NOTION_API_KEY`; the real 10-case Notion continuity smoke was not executed. Unit/runtime PASS is not live-memory evidence.
+The last verified continuity evidence recorded that the real Notion-backed smoke remained blocked by repository secret availability. Unit/runtime PASS is not live-memory evidence. This must be re-evaluated from current sources before any future claim because environment availability is not permanent canon.
 
-### C. Shutdown drill
+### C. Shutdown assurance
 
-S1–S8 are specified/tested, but the full live external scheduling shutdown drill remains `SPECIFIED_NOT_EXECUTED`.
+The new P0 remediation added an empirical controlled CI shutdown drill for S1–S8. That raises the evidence state to `CONTROLLED_CI_EMPIRICAL` for the harness, not `LIVE_ENVIRONMENT_EMPIRICAL`. A full deployed-environment shutdown observation remains `EVIDENCE_PENDING`.
 
 ### D. Generic Astra computer use / delegation
 
-Official product capability is not the same as exact-route ATLAS evidence. Generic GUI computer use and true model-level subagent delegation remain unverified in this implementation environment unless exercised on the exact route.
+Official product capability is not the same as exact-route ATLAS evidence. Generic GUI computer use and true model-level subagent delegation remain unverified for ATLAS unless exercised on the exact route.
 
-### E. Human-review gate
+### E. Production promotion
 
-PR #189 must still pass the repository contract: review → merge. CI success is not review authority and not production promotion.
+Merge and green CI prove repository integration. They do not prove deployment or real production use of `execution_control.py`. Production promotion requires route-specific deployment and post-deploy readback evidence.
 
 ## 11. Promotion rule
 
-Do not label this upgrade `MAIN`, `LIVE`, or `PRODUCTION` until:
+The repository upgrade may be labelled:
 
-1. final PR head has green required CI;
-2. human review is complete;
-3. PR #189 is merged according to repository governance;
-4. any runtime deployment has its own post-deploy verification evidence.
+`MAIN / IMPLEMENTED / TESTED / CI_PASS / MERGED`
+
+Do not label the new controller `LIVE` or `PRODUCTION` until its exact runtime route has deployment evidence plus verified post-deploy behaviour.
 
 > The model may execute work. ATLAS decides whether it was authorized, whether it actually happened, and whether the resulting state is acceptable.
