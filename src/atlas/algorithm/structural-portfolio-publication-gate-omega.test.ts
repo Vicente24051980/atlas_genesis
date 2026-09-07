@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildFourSessionEqualWeightExperiment,
+  canonicalFactorOwnershipState,
   runStructuralPortfolioPublicationGate,
   runStructuralPortfolioPublicationGateUnsafe,
 } from './structural-portfolio-publication-gate-omega';
@@ -31,7 +32,7 @@ function unsafeReq(candidates: PortfolioCandidateV2[]) {
   };
 }
 
-describe('Structural Portfolio Publication Gate Ω v1.1', () => {
+describe('Structural Portfolio Publication Gate Ω v1.3', () => {
   it('registry contains exactly 487 core entities and VRT only in the 488 extension', () => {
     const core = resolveStructuralUniverseAuthority(ATLAS_CORE_UNIVERSE_VERSION);
     const ext = resolveStructuralUniverseAuthority(ATLAS_CORE_PLUS_VRT_UNIVERSE_VERSION);
@@ -76,6 +77,10 @@ describe('Structural Portfolio Publication Gate Ω v1.1', () => {
     });
     expect(ext.publicationState).toBe('BLOCKED_INCOMPLETE_UNIVERSE_EVIDENCE');
     expect(ext.reason).toContain('488');
+  });
+
+  it('blocks canonical-ready promotion while Factor Ownership scorer mapping is unresolved', () => {
+    expect(canonicalFactorOwnershipState()).toBe('BLOCKED_FACTOR_OWNERSHIP_UNRESOLVED');
   });
 
   it('unsafe primitive blocks any ticker outside its explicitly supplied test whitelist', () => {
