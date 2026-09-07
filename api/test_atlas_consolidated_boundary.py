@@ -42,7 +42,7 @@ def test_legacy_buy_is_suppressed_at_public_boundary() -> None:
     assert "actionLabel" not in analysis
     assert "reasons" not in analysis
     assert analysis["assessmentState"] == "FAVORABLE_QUANT_ASSESSMENT"
-    assert analysis["decisionAuthority"] if "decisionAuthority" in analysis else True
+    assert analysis["assessmentAuthority"] == "E2_SUBORDINATE_SENSOR_ONLY"
     assert analysis["gateStatus"] == "NOT_EVALUATED_BY_E3"
     assert analysis["portfolioSelectionStatus"] == "NOT_EVALUATED"
     assert analysis["executionStatus"] == "NOT_AUTHORIZED"
