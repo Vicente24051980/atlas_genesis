@@ -1,0 +1,22 @@
+name: ATLAS Omega Governance CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/governance/**'
+      - 'CURRENT_CANON/2026-09-07_OMEGA58_102_EXECUTION_CONTRACT.md'
+      - '.github/workflows/omega-governance-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/atlas/governance/**'
+
+jobs:
+  omega-governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Omega governance tests
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/governance/omega-governance-core.test.ts
