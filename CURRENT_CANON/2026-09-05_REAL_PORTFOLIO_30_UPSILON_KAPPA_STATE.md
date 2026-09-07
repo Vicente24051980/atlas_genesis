@@ -54,10 +54,19 @@ The current weights are now known. They are no longer the blocker.
 
 This is a valid fail-closed execution state, not permission to backfill a return estimate.
 
-## AI hard-cap observation
-Under the narrow policy definition (>50% of revenue linked to AI infrastructure), NVDA is clearly inside the strict hard-cap perimeter in this snapshot at 4.96%. ALAB and COHR are not current holdings. The 14% hard cap is therefore non-binding on the presently verified narrow perimeter.
+## AI exposure observation — policy updated 7-Sep-2026
 
-Tier-2 AI CAPEX sensitivity remains monitored separately and non-binding.
+The former 14% AI hard-cap language in this snapshot is **superseded**.
+
+Current authority: `CURRENT_CANON/2026-09-07_ATLAS_AI_EXPOSURE_CONTROL_OMEGA.md`.
+
+`AI_CORE_BASE_CEILING = 30%`.
+
+Under the narrow verified policy definition (>50% of revenue, gross-profit generation or dominant economic thesis directly dependent on AI compute / AI infrastructure), NVDA is clearly inside the AI_CORE perimeter in this snapshot at 4.96%. ALAB and COHR are not current holdings in this 5-Sep snapshot.
+
+Tier-2 AI CAPEX sensitivity remains monitored separately and non-binding to the 30% AI_CORE calculation unless a company independently qualifies as AI_CORE.
+
+The 30% threshold is an operational sizing / correlated-risk control, not a Point Zero ranking quota. Exposure above 30% may be permitted under `AI_MOMENTUM_OVERRIDE = ACTIVE` when the canonical evidence stack is satisfied. Passive drift above 30% triggers review, not automatic sale.
 
 ## Κ — Calibration Ω bootstrap
 Production Kappa ledger remains intentionally empty.
