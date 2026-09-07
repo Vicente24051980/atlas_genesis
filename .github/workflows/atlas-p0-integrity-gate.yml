@@ -1,0 +1,42 @@
+name: ATLAS P0 Integrity Gate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  p0-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Repository authority and effect-surface audit
+        run: python tools/assurance/repo_integrity_audit.py | tee atlas-p0-integrity.json
+
+      - name: Controlled E5 shutdown drill S1-S8
+        run: python tools/assurance/shutdown_drill.py | tee atlas-shutdown-drill.json
+
+      - name: Install test runner
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Verify governed Python runtime suites
+        run: python -m pytest -q runtime/core00 runtime/agentic_omega
+
+      - name: Upload assurance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-p0-assurance-evidence
+          path: |
+            atlas-p0-integrity.json
+            atlas-shutdown-drill.json
+          if-no-files-found: warn
