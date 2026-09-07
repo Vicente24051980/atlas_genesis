@@ -25,7 +25,7 @@ Backward transitions are allowed on regression. Forward promotion requires evide
 |---|---|---|---|---|---:|---|---|---|
 | Live Continuity Binding / PR #160 | TESTED_PARTIAL_CI | ATLAS control plane | false | false | 0 | false | real-Notion preregistered cases PASS + epistemic promotion 0 + merge + runtime binding | PR #160; continuity-mvp green; real-notion gate blocked because NOTION_API_KEY absent |
 | Master Audit Guardrails / PR #169 | CODE_PRESENT_UNMERGED | ATLAS control plane | false | false | 0 | false | focused CI green + review + merge + runtime binding | PR #169 draft |
-| Point Zero selector correction / PR #172 | CODE_PRESENT_UNMERGED | ATLAS financial control plane | false | false | 0 | false | focused selector CI green + downstream compatibility + merge | PR #172 |
+| Point Zero selector correction / PR #172 | MERGED_RUNTIME_BINDING_UNVERIFIED | ATLAS financial control plane | false | false | 0 | false | verify active selection path/runtime binding; then promote authority explicitly | PR #172 merged at 971fc4f98e3ee815bbca50968735e5e852e9b621 |
 | Follow the Capital Ω | SHADOW | research | false | false | 0 | false | PIT historical OOS incremental-value validation | preregistration rule |
 | New research modules (default) | SHADOW | research | false | false | 0 | false | explicit promotion record with OOS evidence | constitutional default |
 | Vicente Model prediction | RESTRICTED_RESEARCH | Vicente Model | false | false | 0 | false | calibrated predictive baseline; representation-integrity enforcement | CAN_MODEL != CAN_REPRESENT |
