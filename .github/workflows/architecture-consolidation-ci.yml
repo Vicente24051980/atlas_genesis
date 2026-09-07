@@ -22,6 +22,9 @@ on:
       - 'api/trading212_controlled.py'
       - 'api/test_broker_mount_authority.py'
       - 'api/test_trading212_v2.py'
+      - 'data/t0-universe-user-seed-2026-09-05.txt'
+      - 'data/atlas-core-universe-economic-entities-2026-09-06.txt'
+      - 'tests/test_point_zero_universe_integrity.py'
   pull_request:
     paths:
       - '.github/workflows/architecture-consolidation-ci.yml'
@@ -31,6 +34,9 @@ on:
       - 'api/test_atlas_consolidated_boundary.py'
       - 'api/test_broker_mount_authority.py'
       - 'api/test_trading212_v2.py'
+      - 'data/t0-universe-user-seed-2026-09-05.txt'
+      - 'data/atlas-core-universe-economic-entities-2026-09-06.txt'
+      - 'tests/test_point_zero_universe_integrity.py'
 
 jobs:
   typescript-contracts:
@@ -61,9 +67,10 @@ jobs:
           python-version: '3.12'
       - name: Install API test dependencies
         run: pip install -r api/requirements.txt
-      - name: Run public-boundary and broker-authority tests
+      - name: Run public-boundary, broker-authority, and universe-identity tests
         run: >-
           python -m pytest -q
           api/test_atlas_consolidated_boundary.py
           api/test_broker_mount_authority.py
           api/test_trading212_v2.py
+          tests/test_point_zero_universe_integrity.py
