@@ -26,9 +26,11 @@ A component that is only CODE_PRESENT or TESTED is not active authority. A merge
 - The prior statement `NOT IMPLEMENTED` is superseded.
 
 ### Point Zero / PR #172
-- The repository contains a corrective PR for no-narrative-diversification semantics and honest N terminology.
+- PR #172 is MERGED.
+- It removes causal-driver overlap as an automatic diversification/redundancy penalty, keeps causal-diversification as diagnostic/provenance only, and stops the greedy helper from claiming global optimality.
 - Greedy selection must not publish `OPTIMAL_N` unless global optimality is proven or certified.
 - Mean-variance optimization is not imposed as a constitutional requirement; the optimizer remains methodology-agnostic subject to validated risk machinery and honest optimality claims.
+- Classification: MERGED; runtime/selection authority must still be read from the active control plane rather than inferred from merge alone.
 
 ### Memory duplication
 - Duplicate assistant-memory entries are a memory-hygiene/provenance concern.
@@ -52,7 +54,7 @@ A component that is only CODE_PRESENT or TESTED is not active authority. A merge
 1. Provision `NOTION_API_KEY` for the PR #160 real-Notion workflow using an integration authorized to read the ATLAS Continuity Registry.
 2. Rerun `real-notion-continuity`; require all preregistered real-registry cases to pass with epistemic-promotion rate 0.
 3. Audit PR #169 focused CI before merge; preserve its unmerged/non-authority state until then.
-4. Audit PR #172 focused CI and downstream compatibility before merge.
+4. Verify the merged Point Zero selector is actually bound to the active selection path before assigning `RUNTIME_BOUND` or `CANONICAL_AUTHORITY`.
 5. Enforce the authority-state taxonomy and factor-ownership ledger before further engine proliferation.
 
 ## Superseded claims from the declarative baseline
