@@ -75,7 +75,6 @@ This PR does **not** claim:
 - all runtime score owners are already known;
 - all legacy engines are removed;
 - Factor Ownership is wired into every live scorer;
-- PR #160 Continuity live Notion gate has passed;
-- OpenClaw is production-authorized.
+- PR #160 Continuity live Notion gate has passed.
 
 Those remain separate gates.
