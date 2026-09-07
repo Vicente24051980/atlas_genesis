@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   ATLAS_FACTOR_OWNERSHIP_LEDGER_OMEGA,
   getFactorOwnership,
+  getUnresolvedScoringOwnershipFactors,
+  isFactorOwnershipCanonicalPublicationReady,
   validateFactorClaim,
 } from './atlas-factor-ownership-ledger-omega';
 
@@ -41,6 +43,13 @@ describe('ATLAS Factor Ownership Ledger Ω', () => {
         reason: 'scoring_owner_unresolved_fail_closed',
       });
     }
+  });
+
+  it('blocks canonical publication while any high-risk scoring owner is unresolved', () => {
+    expect(getUnresolvedScoringOwnershipFactors()).toEqual([
+      'FREE_CASH_FLOW', 'ROIC', 'CAPEX', 'EXPECTATION_GAP', 'ORGANIC_GROWTH',
+    ]);
+    expect(isFactorOwnershipCanonicalPublicationReady()).toBe(false);
   });
 
   it('allows registered engines to consume normalized factors without creating new points', () => {
