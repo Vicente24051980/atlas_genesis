@@ -17,6 +17,11 @@ on:
       - 'src/atlas/algorithm/portfolio-selection-canon-omega.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
+      - 'runtime/agentic_omega/capital_competition.py'
+      - 'runtime/agentic_omega/universe_competition.py'
+      - 'runtime/agentic_omega/portfolio_finalizer.py'
+      - 'runtime/agentic_omega/test_universe_competition.py'
+      - 'runtime/agentic_omega/test_portfolio_finalizer.py'
       - 'api/atlas_core_consolidated.py'
       - 'api/test_atlas_consolidated_boundary.py'
       - 'api/trading212_controlled.py'
@@ -29,6 +34,7 @@ on:
     paths:
       - '.github/workflows/architecture-consolidation-ci.yml'
       - 'src/atlas/algorithm/**'
+      - 'runtime/agentic_omega/**'
       - 'api/atlas_core_consolidated.py'
       - 'api/trading212_controlled.py'
       - 'api/test_atlas_consolidated_boundary.py'
@@ -67,10 +73,12 @@ jobs:
           python-version: '3.12'
       - name: Install API test dependencies
         run: pip install -r api/requirements.txt
-      - name: Run public-boundary, broker-authority, and universe-identity tests
+      - name: Run public, broker, universe, and runtime Point Zero tests
         run: >-
           python -m pytest -q
           api/test_atlas_consolidated_boundary.py
           api/test_broker_mount_authority.py
           api/test_trading212_v2.py
           tests/test_point_zero_universe_integrity.py
+          runtime/agentic_omega/test_universe_competition.py
+          runtime/agentic_omega/test_portfolio_finalizer.py
