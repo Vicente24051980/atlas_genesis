@@ -2,7 +2,7 @@
 
 **Status:** `SOLE_CANON / ACTIVE`  
 **Effective:** `2026-09-07`  
-**Universe:** `ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06`
+**Financial authority:** `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md` — **ATLAS FINANCIERO Ω v2.1 HIGH ASYMMETRY**
 
 ## 0. Arquitectura consolidada — Point Zero aplicado a ATLAS
 
@@ -17,196 +17,254 @@ ATLAS reconoce exactamente seis motores canónicos:
 - `E5 CONTROL Ω`
 - `E6 ASSURANCE Ω`
 
-`R0 RESEARCH Ω` es sustrato de investigación, no motor de decisión. La investigación futura se organiza en `P-I DÓNDE VA EL CAPITAL`, `P-II QUIÉN CAPTURA EL VALOR` y `P-III CÓMO SE TRANSMITE EL RÉGIMEN`. `ECONOMIC ARCHAEOLOGY` es método de E6, no motor separado.
-
-Todo concepto previo debe clasificarse como motor E1–E6, research family, shadow signal, hard gate, stress test, evaluation test, hypothesis generator, documentation only, redundant o reject. Ningún nombre Ω conserva derecho arquitectónico por antigüedad o trabajo invertido.
-
-### 0.1 Pipeline, control y assurance
+`R0 DISCOVERY & RESEARCH Ω` es sustrato de investigación, no motor de decisión.
 
 El **pipeline decisorio** es:
 
-`R0 RESEARCH → E1 EVIDENCE → E2 ASSESSMENT → E3 GATE → E4 DECISION → EXECUTION`
+`R0 DISCOVERY & RESEARCH → E1 EVIDENCE → E2 ASSESSMENT → E3 GATE → E4 DECISION → EXECUTION`
 
-`E5 CONTROL Ω` es **transversal**: gobierna permisos, aprobación humana, capabilities, persistencia, scheduling, revocación, shutdown y condiciones de ejecución. E5 no genera la tesis ni la decisión de inversión.
+`E5 CONTROL Ω` opera transversalmente sobre riesgo, concentración causal, permisos y ejecución. `E6 ASSURANCE Ω` es independiente y adversarial: intenta destruir la tesis, detectar double counting, model risk, consensus traps y failure modes.
 
-`E6 ASSURANCE Ω` es un **plano independiente de evaluación**: audita E1–E5 y los resultados de ejecución mediante harness, pruebas PIT, backtesting y controles negativos. E6 no es una etapa final de decisión, no aprueba órdenes y no confiere autoridad BUY/SELL.
+Por cada objeto lógico puede existir exactamente **una** autoridad `CURRENT/FROZEN`. Todo predecesor incompatible pasa a `SUPERSEDED/HISTORICAL` conservando provenance.
 
-La cadena:
+## 1. Autoridad única financiera
 
-`RESEARCH → SIGNAL → SCORE → GATE → PORTFOLIO_SELECTION → EXECUTION`
-
-es una **regla de separación de tipos**, no un mapeo biunívoco de motores a fases.
-
-Prohibiciones estructurales: research no puntúa directamente; señales nuevas nacen shadow; un gate no puede convertirse en bonus; un stress test no es pronóstico; simulación no cuenta como evidencia real; Learning Ω sólo puede proponer hipótesis; ningún componente automático posee `MODIFY_CANON`; E5 no puede emitir decisiones de inversión; E6 no puede autorizar decisiones o ejecución.
-
-Por cada objeto lógico puede existir exactamente **una** autoridad `CURRENT/FROZEN`. Todo predecesor pasa a `SUPERSEDED/HISTORICAL` conservando provenance.
-
-## 1. Autoridad única de selección
-
-La única autoridad vigente para reconstrucción, ranking, membership, replacement y cardinalidad de cartera es:
+La única autoridad vigente para discovery, ranking, selección, membership, replacement, sizing lógico y timing lógico es:
 
 `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`
 
-Nombre canónico: **ATLAS Ω — MASTER UNIVERSE PROMPT**.
+Nombre canónico: **ATLAS FINANCIERO Ω — MASTER PROMPT OPERATIVO AUTOCONTENIDO v2.1 — HIGH ASYMMETRY / POINT ZERO / SIX-ENGINE CAPITAL ALLOCATION**.
 
-Toda autoridad anterior de selección queda `SUPERSEDED_AS_SELECTION_AUTHORITY`, incluyendo prompts maestros previos, amendments, tesis de cartera, Top 10/20/25/30/32/35/37, snapshots, listas incumbentes, reglas de protección de nombres y cualquier otro “mundo” operativo incompatible.
-
-Los documentos previos pueden permanecer en el repositorio como **HISTORICAL / PROVENANCE / RESEARCH ONLY**. No pueden influir por sí mismos en ranking, membership, score, replacement ni `SELECTED_N`.
+Toda autoridad anterior incompatible queda `SUPERSEDED_AS_SELECTION_AUTHORITY`.
 
 ## 2. Point Zero / clean rebuild
 
-Las **487 entidades económicas canónicas** parten con ventaja previa igual a cero.
+`PRIOR_ADVANTAGE = 0`
 
-Prohibido utilizar como input de selección limpia:
+La selección limpia ignora cartera actual, capital invertido, peso, precio medio, P/L, decisiones anteriores, fama, capitalización, índice, consenso y narrativa dominante.
 
-- pertenencia a la cartera actual;
-- capital personal invertido;
-- peso actual;
-- precio medio;
-- P/L;
-- decisiones anteriores;
-- fama o familiaridad;
-- market cap como premio;
-- pertenencia a Nasdaq/S&P;
-- cobertura mediática;
-- mayor disponibilidad de datos.
+Pregunta obligatoria:
 
-Las 650 apariciones raw deben deduplicarse antes de puntuar: cada entidad económica obtiene exactamente **una oportunidad de competir**.
+> **Si hoy tuviéramos 100% de liquidez y ninguna posición previa, ¿merecería este activo estar entre las mejores oportunidades disponibles para los próximos 3–6 años?**
 
-## 3. Objetivo
+La cartera actual sólo entra después, en transición, bajo:
 
-Horizonte oficial ratificado: **3–6 años**.
+`NET_ROTATION_ADVANTAGE > MATERIALITY_HURDLE`
 
-Objetivo: **máxima rentabilidad esperada ajustada por riesgo con baja volatilidad estructural**.
+Si la ventaja no es material después de downside, pérdida permanente, balance, concentración, evidencia, liquidez, fricción fiscal, spread, comisiones, timing y ruido:
 
-La pregunta decisiva no es «¿es buena empresa?», sino:
+`HOLD_INCUMBENT`
 
-> **¿Merece esta empresa uno de los escasos slots de capital frente a todas las alternativas disponibles?**
+`SELECTION ≠ SIZING ≠ TIMING ≠ EXECUTION`
 
-`Strategic Criticality` se reporta como eje separado; no se suma automáticamente a Quality/Point Zero ni otorga premio por escala sistémica.
+## 3. Objetivo económico
 
-`Breadth Rotation = 0%` en score/selección canónica. Es `SHADOW_SIGNAL / DISCOVERY_ONLY` hasta promoción formal validada.
+Horizonte oficial: **3–6 años**.
 
-## 4. SELECTED_N
+Objetivo:
 
-`SELECTED_N = FULLY_ENDOGENOUS`
+> **Maximizar el Expected IRR/CAGR real de la cartera, ponderado por probabilidad, pérdida permanente, fragilidad de tesis y concentración causal, buscando convexidad positiva sin comprometer la supervivencia del capital.**
 
-No existe target, floor ni ceiling canónico de 20, 25, 27, 29, 30, 32, 35, 37, 50 ni de ningún otro número arbitrario.
+Marco principal:
 
-La cartera comienza desde Point Zero y se expande únicamente mientras la siguiente incorporación mejora materialmente la utilidad retorno/riesgo de la cartera completa. Cuando la siguiente incorporación no mejora esa utilidad, la expansión se detiene.
+`PROBABILITY-WEIGHTED EXPECTED CAGR / PERMANENT-LOSS RISK`
 
-Las restricciones de cardinalidad sólo pueden existir como límites técnicos transitorios de una implementación y deben declararse `NON_CANONICAL_IMPLEMENTATION_LIMIT`; nunca pueden decidir el `SELECTED_N` económico.
+No maximizar Bull Case, CAGR central ni baja volatilidad aislada.
 
-## 5. Pipeline canónico de selección
+Principios:
 
-1. **Entity normalization + deduplication** — 650 raw → 490 tickers únicos → 487 entidades económicas.
-2. **Point Zero** — cero ventaja previa para toda entidad.
-3. **T0 — Anti-Megacap Discovery Gate Ω**.
-4. **Screening amplio** del universo.
-5. **Shortlist** basada en evidencia comparable.
-6. Evaluación de calidad fundamental, durabilidad, crecimiento/revisiones, valoración, Expected Return, FCF, márgenes, ROIC, balance, moat y disrupción.
-7. Aplicación condicional de señales/métodos especializados sólo cuando corresponda, siempre subordinados a E1–E6.
-8. **Expectation Gap Ω**.
-9. **Tape/RS** exclusivamente como señal complementaria.
-10. Riesgo macro, regulatorio, geopolítico, financiación, tail risk y correlaciones económicas reales.
-11. **Falsifiers** como reglas dentro de E3 · GATE Ω.
-12. Duelos entre empresas económicamente comparables.
-13. **Competition for Capital** mediante duelos cross-sector.
-14. Selección portfolio-level y determinación endógena de `SELECTED_N`.
-15. Auditoría de frontera, concentración oculta, escenarios bull/base/bear y sesgos.
-16. Aplicación de controles de sizing y riesgo, incluido `AI EXPOSURE CONTROL Ω`, sin retrocontaminar el ranking Point Zero.
+`GREAT COMPANY ≠ GREAT INVESTMENT`
 
-## 6. Rol de los componentes GitHub / Notion
+`HIGH GROWTH ≠ HIGH RETURN`
 
-Los componentes de `src/atlas/algorithm/` y las capas de Notion son subordinados a E1–E6 y al MASTER UNIVERSE PROMPT.
+`LOW VOLATILITY ≠ LOW RISK`
 
-Pueden descubrir candidatos, normalizar evidencia, medir factores/riesgo/Expected Return, producir señales especializadas, falsificadores, escenarios y portfolio utility.
+`HIGH UPSIDE ≠ POSITIVE ASYMMETRY`
 
-No pueden proteger incumbentes, introducir ventaja por fama/tamaño, fijar Top-N, imponer cuotas estéticas, convertir una señal especializada en entrada automática, mantener una tesis por antigüedad ni contradecir Point Zero.
+`CONSENSUS EXCELLENCE ≠ ALPHA`
 
-`EXTERNAL_CHALLENGERS` sólo pueden entrar mediante discovery documentado, nominación explícita u otra fuente ATLAS autorizada. Ser externo otorga **0 puntos**.
+## 4. Portfolio construction
 
-## 7. Concentración, diversificación y exposición IA
+Rango operativo vigente:
 
-No existen cuotas estéticas. Sí deben modelarse concentraciones reales y riesgos correlacionados: AI/semiconductores, hyperscalers, data centers, tipos, crédito, energía, China/Taiwán, defensa, healthcare/regulación y cualquier otro factor económico material.
+`25 ≤ N ≤ 35`
 
-Diversificación sólo tiene valor cuando mejora la utilidad retorno/riesgo real; no por apariencia.
+`N` es endógeno **dentro de ese rango operativo**. Ninguna posición se añade para rellenar cupo y cada posición debe ganar su capital.
 
-### 7.1 AI Exposure Control Ω
+`GLOBAL_OPTIMALITY = NOT_PROVEN` salvo certificado suficiente de optimalidad global sobre objetivo, universo y restricciones declarados.
 
-Autoridad específica:
+## 5. Discovery y Alpha Engines
 
-`CURRENT_CANON/2026-09-07_ATLAS_AI_EXPOSURE_CONTROL_OMEGA.md`
+R0 no queda encerrado en un universo cerrado. Debe buscar large caps, mid caps, small caps, mercados internacionales, spin-offs, post-restructuring, fallen angels, capital-cycle recoveries, compounders emergentes, dislocaciones post-resultados y cambios estructurales de industria.
 
-Regla vigente:
+Fuentes de asimetría prioritarias pero no exhaustivas:
 
-`AI_CORE_BASE_CEILING = 30%`
+1. Operating Leverage Inflection.
+2. High-ROIIC Reinvestment.
+3. Capital Cycle Dislocation.
+4. Capital Cannibals.
+5. Asymmetric Rerating.
+6. Network / Platform Economics.
+7. Mix Shift.
+8. Deleveraging Convexity.
+9. Hidden Optionality.
 
-El 30% es el **techo operativo por defecto** para `AI_CORE`, no una cuota de selección, no una penalización automática de score y no una orden automática de venta.
+El tamaño no constituye alpha.
 
-`AI_CORE` exige evidencia verificada de que más del 50% de ingresos, beneficio bruto o tesis económica dominante depende directamente de AI compute / AI infrastructure. Si la clasificación no puede verificarse, se marca `AI_CLASSIFICATION_UNKNOWN`.
+## 6. Evidence / Assessment / Scenario Engine
 
-La sensibilidad amplia se reporta como `AI_TIER2_SENSITIVITY` y se incorpora a concentración oculta/correlated downside, pero no consume automáticamente el 30% salvo que cumpla el test `AI_CORE`.
+Clasificación epistemológica obligatoria:
 
-ATLAS puede superar 30% únicamente con `AI_MOMENTUM_OVERRIDE = ACTIVE`, que requiere simultáneamente momentum/Tape-RS persistente, fundamentales sanos, revisiones/Economic Proof favorables, valoración/Expected Return competitivo, Expectation Gap aceptable, stress correlacionado tolerable y aprobación humana para aumentar deliberadamente por encima del 30%.
+`FACT / DERIVED FACT / INFERENCE / HYPOTHESIS / UNKNOWN`
 
-Momentum por sí solo no basta.
+Toda comunicación directiva corporativa empieza como `COMPANY CLAIM` hasta contraste material.
 
-Si la exposición supera 30% por apreciación de mercado, el estado es `AI_OVER_30_REVIEW`, no `AUTO_SELL`. Si el override se deteriora, se activa revisión de rebalanceo basada en portfolio utility; no liquidación mecánica.
+Nunca:
 
-Esta política supersede cualquier hard cap previo de 14%, 20%, 25% u otro porcentaje histórico usado como política vigente.
+`UNKNOWN → ASSUMPTION → FACT`
 
-## 8. Evidencia, UNKNOWN y falsación
+Modelo conceptual de Expected Return:
 
-No se inventan variables ausentes. Toda variable no verificada se marca `UNKNOWN` y reduce la confianza correspondiente; una variable crítica ausente puede bloquear publicación/acción.
+`EXPECTED RETURN = ORGANIC PER-SHARE GROWTH + CASH DISTRIBUTIONS + NET SHARE COUNT EFFECT +/- CAPITAL ALLOCATION EFFECT +/- BALANCE-SHEET EFFECT +/- MULTIPLE NORMALIZATION +/- OTHER SCENARIO EFFECTS`
 
-Antes de extracción material debe resolverse identidad de entidad. Antes de una acción material deben refrescarse supuestos `TIME_SENSITIVE`, `VOLATILE` y `UNKNOWN`, incluida reconciliación con el bróker real.
+El crecimiento relevante es `VALUE CREATION PER SHARE`.
 
-Para cada finalista debe existir:
+Para cada candidato material: Bear / Base / Bull, valor terminal/rango, cash distributions, share-count change y CAGR/IRR aproximado. Cuando sea defendible:
 
-`tesis → evidencia → valoración → expected return → catalizadores → riesgos → falsificador → competidor que podría quitarle el puesto`
+`EXPECTED CAGR = Σ (SCENARIO PROBABILITY × SCENARIO CAGR)`
 
-Una tesis no falsable no puede recibir máxima convicción.
+Si no puede modelarse con rigor:
 
-## 9. Auditoría anti-sesgo obligatoria
+`EXPECTED_RETURN = EVIDENCE_PENDING`
 
-Comprobar explícitamente incumbency bias, megacap bias, familiarity bias, recency bias, AI narrative bias y falsa diversificación.
+## 7. Expectation Gap / Economic Proof / Asymmetry
 
-## 10. Cartera operativa vs selección limpia
+Contrastar:
 
-El único objeto operativo actual ratificado es:
+`MARKET-IMPLIED EXPECTATIONS`
 
-`CURRENT_CANON/2026-09-06_ATLAS_CURRENT_OPERATIONAL_PORTFOLIO_27.md`
+vs.
 
-Su estado es operativo, no prior de selección. Antes de cualquier acción real se reconcilia con el bróker; si hay conflicto, `ACTION_BLOCKED_STALE_ASSUMPTION` hasta resolución humana.
+`EVIDENCE-WEIGHTED ATLAS EXPECTATIONS`
 
-## 11. Regla final
+Buscar `POSITIVE EXPECTATION GAP`.
 
-> **No intentes justificar la cartera que ya tenemos. Intenta derrotarla.**
+Toda narrativa debe recorrer:
 
-Si una reconstrucción independiente produce la misma cartera, eso es evidencia a favor. Si encuentra una cartera superior, la anterior debe ceder.
+`DRIVER → REVENUE → MARGIN → FCF → CAPITAL REQUIRED → VALUE PER SHARE → EXPECTED RETURN`
 
-## 12. Campos de salida obligatorios
+Si no puede completarse:
 
-`UNIVERSE_VERSION`  
-`SELECTED_N`
+`THESIS NOT ECONOMICALLY PROVEN`
 
-`GLOBAL_OPTIMALITY`
-`SELECTED_PORTFOLIO`  
-`FIRST_10_CHALLENGERS`  
-`DECISIVE_REPLACEMENTS`  
-`PORTFOLIO_FALSIFIERS`  
-`AI_CORE_WEIGHT`  
-`AI_CORE_MEMBERS`  
-`AI_TIER2_SENSITIVITY`  
-`AI_MOMENTUM_OVERRIDE`  
-`CONFIDENCE`  
-`DATA_CUTOFF`
+Asimetría conceptual:
 
-## Corrección de auditoría autorizada · 7-sep-2026 · issue #184
+`ASYMMETRY RATIO = PROBABILITY-WEIGHTED UPSIDE / PROBABILITY-WEIGHTED PERMANENT DOWNSIDE`
 
-`ENDOGENOUS N ≠ PROVEN GLOBAL OPTIMUM`. La búsqueda heurística informa `SELECTED_N` y `GLOBAL_OPTIMALITY = NOT_PROVEN`. `OPTIMAL_N` queda reservado a una prueba o certificado suficiente de optimalidad global sobre un objetivo, universo y restricciones declarados. Los campos de compatibilidad `optimalN: null` no deben rellenarse con `selectedN`.
+No usarla como cifra mecánica cuando la precisión no sea defendible.
 
-La baja volatilidad sólo tiene valor cuando mejora la utilidad económica; no es un objetivo a cualquier precio. La selección no autoriza por sí sola reemplazo ni ejecución.
+## 8. E3 GATE Ω
 
-Estado de implementación: los selectores ya separaban cardinalidad heurística y optimalidad antes de esta corrección documental. Las unidades de riesgo y el sizing estructural siguen `RESEARCH_PENDING`; tests de software no demuestran calibración económica ni rentabilidad.
+Bloquear o rechazar si existe, sin compensación suficiente: valoración que descuenta perfección, riesgo grave de refinanciación, balance frágil, covenants peligrosos, dilución estructural, SBC excesivo, tesis binaria, dependencia extrema de cliente/producto, obsolescencia, pérdida de moat, Expected Return insuficiente, riesgo geopolítico no compensado, concentración causal excesiva o evidencia insuficiente.
+
+Estados:
+
+`GATE PASS / GATE CONDITIONAL / GATE FAIL`
+
+## 9. E4 DECISION Ω / Kill Thesis
+
+Estados permitidos:
+
+`SELECT / HOLD / ADD / REDUCE / REPLACE / EXIT / WATCH / REJECT / EVIDENCE_PENDING`
+
+Toda posición seleccionada debe incluir: `THESIS`, `EXPECTATION GAP`, `RETURN ENGINE`, `CATALYSTS`, `KILL THESIS`, `MONITORING VARIABLES`.
+
+Si una Kill Thesis concreta y falsable se activa:
+
+`IMMEDIATE RE-UNDERWRITE`
+
+con presunción `EXIT`, salvo nueva evidencia que invalide la interpretación. No convertirlo en orden ciega de mercado.
+
+## 10. E5 CONTROL Ω — concentración y AI
+
+Mapear concentración causal:
+
+`FACTOR → POSITIONS → EXPOSURE → CORRELATION → FAILURE MODE`
+
+Factores relevantes incluyen AI compute, hyperscaler capex, datacenter construction, semiconductores, memoria, Taiwán, China, tipos reales, crédito, electricidad/red, energía, consumo, healthcare regulation, cybersecurity, industrial cycle y dólar.
+
+Clasificación AI:
+
+`AI_CORE / AI_TIER2_SENSITIVITY / AI_CLASSIFICATION_UNKNOWN`
+
+Ceiling base:
+
+`AI_CORE ≤ 30%`
+
+No es target, mínimo ni penalización de Point Zero. Puede superarse únicamente con evidencia excepcional simultánea de momentum persistente, fundamentales sólidos, revisiones favorables, Economic Proof, Expected Return superior, Expectation Gap favorable y concentración causal tolerable. Momentum por sí solo nunca basta.
+
+## 11. Anti-Megacap Discovery Control
+
+Referencia de control:
+
+`> $200B MARKET CAP EXPOSURE ≈ 20–25%`
+
+No es veto automático ni penalización por tamaño. Superarlo exige demostrar que las megacaps siguen superando challengers menores en Expected Return, downside, calidad, asimetría y concentración.
+
+## 12. E6 ASSURANCE Ω
+
+Para cada posición seria ejecutar:
+
+- PRE-MORTEM: asumir pérdida permanente del 50% en tres años y reconstruir la secuencia causal.
+- BEAR ADVERSARIAL: buscar evidencia que contradiga la tesis.
+- DOUBLE-COUNT AUDIT.
+- MODEL RISK.
+- CONSENSUS TRAP.
+
+## 13. Sizing / Timing / Competition for Capital
+
+Sizing sólo después de Selection y basado en Expected Return, asimetría, downside, balance, evidence density, moat, thesis fragility, correlation, liquidity, tail risk y model uncertainty.
+
+Timing sólo después de Selection y Sizing. Estados:
+
+`BUY NOW / SCALE IN / WAIT / LIMIT ENTRY / EVENT-GATED / DO NOT CHASE`
+
+Toda posición compite permanentemente contra alternativas. Para reemplazar:
+
+`NET ROTATION ADVANTAGE > MATERIAL`
+
+No realizar churn por optimizaciones marginales.
+
+## 14. Estados de incertidumbre
+
+Usar explícitamente:
+
+`EVIDENCE_PENDING / EXPECTED_RETURN_PENDING / RESEARCH_PENDING / TIMING_PENDING / SIZING_PENDING / REPLACEMENT_NOT_JUSTIFIED / UNKNOWN`
+
+No disfrazar ausencia de evidencia con falsa precisión.
+
+## 15. Test final de capital allocation
+
+Antes de cerrar una cartera, identificar peor Expected Return, peor asimetría, mayor riesgo de pérdida permanente, tesis con más supuestos, factor causal dominante, primer challenger capaz de desplazar un incumbente, posibles inercias, exceso de precio por certeza, riesgo excesivo por perseguir multibaggers y mejor Expected Return todavía no poseído.
+
+La cartera sólo está provisionalmente terminada cuando ningún challenger investigado demuestra:
+
+`NET_ROTATION_ADVANTAGE > MATERIALITY_HURDLE`
+
+Conclusión correcta:
+
+`BEST_PORTFOLIO_FOUND_UNDER_CURRENT_EVIDENCE`
+
+Nunca `GLOBAL_OPTIMUM_PROVEN` salvo demostración extraordinariamente fuerte.
+
+## 16. Regla final
+
+> **No buscamos las empresas que más pueden subir. Buscamos aquellas donde la distribución completa de resultados ofrece la mejor combinación de retorno compuesto, convexidad favorable y protección contra pérdida permanente.**
+
+`POINT ZERO → EVIDENCE → EXPECTATION GAP → EXPECTED RETURN → ASYMMETRY → CAPITAL COMPETITION → ASSURANCE`
+
+## 17. Precedencia
+
+`docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md` v2.1 es la autoridad financiera operativa más reciente. Cualquier cláusula anterior incompatible queda `SUPERSEDED/HISTORICAL`.
+
+La selección limpia no autoriza por sí sola reemplazo ni ejecución. Tests de software no demuestran calibración económica ni rentabilidad prospectiva.
