@@ -22,9 +22,11 @@ on:
       - 'runtime/agentic_omega/portfolio_finalizer.py'
       - 'runtime/agentic_omega/security_snapshot.py'
       - 'runtime/agentic_omega/point_zero_rebuild.py'
+      - 'runtime/agentic_omega/execution_control.py'
       - 'runtime/agentic_omega/test_universe_competition.py'
       - 'runtime/agentic_omega/test_portfolio_finalizer.py'
       - 'runtime/agentic_omega/test_point_zero_rebuild_pit.py'
+      - 'runtime/agentic_omega/test_execution_control.py'
       - 'api/atlas_core_consolidated.py'
       - 'api/test_atlas_consolidated_boundary.py'
       - 'api/trading212_controlled.py'
@@ -76,7 +78,7 @@ jobs:
           python-version: '3.12'
       - name: Install API test dependencies
         run: pip install -r api/requirements.txt
-      - name: Run public, broker, universe, and runtime Point Zero tests
+      - name: Run public, broker, universe, Point Zero, and execution-control tests
         run: >-
           python -m pytest -q
           api/test_atlas_consolidated_boundary.py
@@ -86,3 +88,4 @@ jobs:
           runtime/agentic_omega/test_universe_competition.py
           runtime/agentic_omega/test_portfolio_finalizer.py
           runtime/agentic_omega/test_point_zero_rebuild_pit.py
+          runtime/agentic_omega/test_execution_control.py
