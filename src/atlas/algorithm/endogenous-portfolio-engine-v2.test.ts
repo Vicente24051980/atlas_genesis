@@ -20,7 +20,7 @@ function c(i:number, er=12, driver=`d${i}`, funding:string[]=[]): PortfolioCandi
   };
 }
 
-describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local selection',()=>{
+describe('Endogenous Portfolio Engine v2.4 — Point Zero / endogenous local selection',()=>{
   it('has no binding ex-ante cardinality floor or ceiling',()=>{
     expect(MIN_PORTFOLIO_POSITIONS_V2).toBe(0);
     expect(MAX_PORTFOLIO_POSITIONS_V2).toBe(Number.POSITIVE_INFINITY);
@@ -67,9 +67,17 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local sel
     expect(runEndogenousPortfolioEngineV2(xs,{rhoCausalRedundancy:1}).status).toBe('EVIDENCE_PENDING');
   });
 
-  it('detects shared funding-source correlation as risk',()=>{
+  it('measures funding-source overlap diagnostically but gives raw Jaccard overlap zero membership authority',()=>{
     const a=c(1,12,'gpu',['neocloud-x']); const b=c(2,12,'servers',['neocloud-x']); const d=c(3,12,'health',['insurer-y']);
-    expect(evaluatePortfolioSetV2([a,b]).financingCorrelation).toBeGreaterThan(evaluatePortfolioSetV2([a,d]).financingCorrelation);
+    const shared=evaluatePortfolioSetV2([a,b]);
+    const distinct=evaluatePortfolioSetV2([a,d]);
+    expect(shared.financingCorrelation).toBeGreaterThan(distinct.financingCorrelation);
+    expect(shared.utility).toBeCloseTo(distinct.utility,12);
+  });
+
+  it('fails closed if a caller tries to give unvalidated funding-source overlap selection authority',()=>{
+    const xs=Array.from({length:5},(_,i)=>c(i+1,12,`d${i}`,['shared-funder']));
+    expect(runEndogenousPortfolioEngineV2(xs,{etaFinancingCorrelation:0.8}).status).toBe('EVIDENCE_PENDING');
   });
 
   it('rewards scenario offset capacity only through robustness risk reduction',()=>{

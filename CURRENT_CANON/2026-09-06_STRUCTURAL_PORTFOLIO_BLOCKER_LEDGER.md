@@ -40,6 +40,8 @@ No partial candidate set may be presented as a whole-universe structural result.
 
 `PortfolioCandidateV2` currently combines Expected Return percentage points with several untyped numeric risk/fragility/convexity terms.
 
+The same blocker now explicitly covers `fundingSources`: raw categorical funding labels may reveal a genuine common-financing dependency, but Jaccard overlap has no calibrated mapping to loss probability, volatility, drawdown, covariance or another economic risk unit. Therefore `financingCorrelation` remains diagnostic-only and has zero membership authority until the risk-unit contract validates a measured transform.
+
 Authority:
 `src/atlas/algorithm/structural-risk-unit-authority-omega.ts`
 
