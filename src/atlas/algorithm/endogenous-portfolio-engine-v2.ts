@@ -1,4 +1,4 @@
-export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-07-v2.3.0' as const;
+export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-07-v2.4.0' as const;
 
 // Compatibility exports only. They are non-binding sentinels, not portfolio
 // design constraints. Canonical clean selection has no ex-ante floor/ceiling.
@@ -49,7 +49,7 @@ export type PortfolioCandidateV2 = {
   confidence: number; // 0..1, reported separately; never folded into Expected Return.
   individualScore: number;
   causalDrivers: Record<string, number>; // diagnostic exposure map; never a sector/driver quota.
-  fundingSources: string[];
+  fundingSources: string[]; // diagnostic overlap map until B5 risk-unit authority is validated.
   scenarios: Record<ScenarioId, number>; // impact -5..+5
 
   // Personal/current-state fields are accepted only to prove non-authority.
@@ -67,9 +67,9 @@ export type PortfolioEnginePolicyV2 = {
   maxPositions?: number;
   marginalUtilityThreshold?: number;
 
-  // Legacy compatibility fields. Canonical v2.3 fails closed if callers try to
-  // give diversification, causal redundancy or required-driver coverage
-  // independent selection authority.
+  // Legacy compatibility fields. Canonical v2.4 fails closed if callers try to
+  // give diversification, causal redundancy, funding-source label overlap or
+  // required-driver coverage independent selection authority.
   missingDriverRobustnessThreshold?: number;
   requiredStructuralDrivers?: string[];
   alphaDiversification?: number;
@@ -98,9 +98,9 @@ export type PortfolioMetricsV2 = {
   volatilityRisk: number;
   fragility: number;
   convexity: number;
-  causalDiversification: number; // diagnostic only in canonical v2.3
-  causalRedundancy: number; // diagnostic only in canonical v2.3
-  financingCorrelation: number;
+  causalDiversification: number; // diagnostic only in canonical v2.4
+  causalRedundancy: number; // diagnostic only in canonical v2.4
+  financingCorrelation: number; // diagnostic only in canonical v2.4
   robustness: number;
   worstScenarioImpact: number;
   simultaneousAffectedMax: number;
@@ -152,7 +152,12 @@ const DEFAULT_POLICY: NormalizedPolicyV2 = {
   gammaConvexity: 0.35,
   lambdaPermanentLoss: 1.0,
   phiFragility: 0.75,
-  etaFinancingCorrelation: 0.80,
+
+  // B5 fail-closed: raw funding-source labels + Jaccard overlap have no validated
+  // economic/statistical unit yet. Preserve the diagnostic, but give it zero
+  // membership authority until Structural Risk Unit Authority promotes it.
+  etaFinancingCorrelation: 0,
+
   tauTailRisk: 0,
   kappaComplexity: 0.03,
   uncertaintyPenalty: 0.30,
@@ -208,9 +213,15 @@ function normalizePolicy(policy: PortfolioEnginePolicyV2): NormalizedPolicyV2 | 
   if (Math.abs(rw.permanentLoss + rw.tailRisk + rw.volatility - 1) > 1e-9) return null;
 
   // INVIOLABLE MAX RETURN / LOW VOL LAW: no caller may reintroduce a
-  // diversification reward, a causal-redundancy penalty, or mandatory driver
-  // coverage as an independent route into the portfolio.
-  if (p.alphaDiversification !== 0 || p.rhoCausalRedundancy !== 0 || p.requiredStructuralDrivers.length > 0) return null;
+  // diversification reward, causal-redundancy penalty, unvalidated
+  // funding-source-overlap penalty, or mandatory driver coverage as an
+  // independent route into the portfolio.
+  if (
+    p.alphaDiversification !== 0 ||
+    p.rhoCausalRedundancy !== 0 ||
+    p.etaFinancingCorrelation !== 0 ||
+    p.requiredStructuralDrivers.length > 0
+  ) return null;
   return p;
 }
 
@@ -293,9 +304,10 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
   const causalRedundancy = averagePairwise(candidates, (a, b) => cosineAbs(a.causalDrivers, b.causalDrivers));
   const causalDiversification = 1 - causalRedundancy;
 
-  // Financing correlation remains a research risk input because the same financed
-  // dollar can create common fragility even across different sectors. B5 remains
-  // open: its unit semantics/authority are not canonically validated yet.
+  // Diagnostic only while B5 is open. Shared funding sources can represent a
+  // genuine common fragility, but raw labels/Jaccard have no calibrated unit,
+  // magnitude or causal exposure semantics. They therefore cannot change
+  // selection until validated by Structural Risk Unit Authority.
   const financingCorrelation = averagePairwise(candidates, (a, b) => jaccard(a.fundingSources, b.fundingSources));
 
   const scenarioMeans = CANONICAL_SCENARIOS.map(s => mean(candidates.map(c => c.scenarios[s])));
@@ -319,7 +331,6 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
     + p.gammaConvexity * convexity
     - p.lambdaPermanentLoss * weightedRisk
     - p.phiFragility * fragility
-    - p.etaFinancingCorrelation * financingCorrelation
     - p.tauTailRisk * tailRisk
     - p.kappaComplexity * complexity
     - p.uncertaintyPenalty * uncertainty;
