@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA } from './atlas-kernel-contract-registry-omega';
 import { ATLAS_PERMISSIONS, E5_CONTROL_POLICY_OMEGA } from './e5-control-policy-omega';
 
 describe('E5 Control Ω policy', () => {
@@ -20,6 +21,18 @@ describe('E5 Control Ω policy', () => {
         expect(permissions).toHaveProperty(permission);
       }
     }
+  });
+
+  it('keeps the kernel permission registry identical to executable E5 policy', () => {
+    expect(ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA.permissionModel.permissions).toEqual(ATLAS_PERMISSIONS);
+    expect(ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA.permissionModel.sensitivePermissions).toEqual(
+      E5_CONTROL_POLICY_OMEGA.sensitivePermissions,
+    );
+    expect(ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA.permissionModel.standingSensitiveAuthorityAllowed).toBe(false);
+    expect(
+      ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA.permissionModel
+        .requestScopedSensitiveElevationRequiresExplicitHumanOwnerScope,
+    ).toBe(true);
   });
 
   it('does not let capability imply persistence, lifecycle, delegation, finance or identity', () => {
