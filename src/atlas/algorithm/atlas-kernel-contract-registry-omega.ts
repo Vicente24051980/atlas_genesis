@@ -1,4 +1,4 @@
-export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-07-v4.0.0' as const;
+export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-07-v4.1.0' as const;
 
 export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
   governanceStatus: 'ACTIVE_CANONICAL',
@@ -44,8 +44,15 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     frozenAuthorityRule: 'EXACTLY_ONE_CURRENT_FROZEN_AUTHORITY_PER_LOGICAL_OBJECT',
   },
   permissionModel: {
-    permissions: ['READ','WRITE','EXECUTE','COMMUNICATE','PERSIST','SCHEDULE','DELEGATE','MODIFY_CANON'],
+    permissions: [
+      'READ','WRITE','CREATE','MODIFY','DELETE','EXECUTE','COMMUNICATE',
+      'PURCHASE','FINANCIAL','LEGAL','IDENTITY','EXTERNAL_WEB','PERSONAL_DATA',
+      'PERSIST','SCHEDULE','DELEGATE','MODIFY_CANON',
+    ],
+    sensitivePermissions: ['PURCHASE','FINANCIAL','LEGAL','IDENTITY','PERSONAL_DATA','DELETE','MODIFY_CANON'],
     noPermissionIsImpliedByAnother: true,
+    standingSensitiveAuthorityAllowed: false,
+    requestScopedSensitiveElevationRequiresExplicitHumanOwnerScope: true,
     automaticModifyCanonAllowed: false,
     humanAuthority: 'FULL_AND_FINAL',
     predictiveAccuracyCannotExpandPermissions: true,
