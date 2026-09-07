@@ -20,8 +20,11 @@ on:
       - 'runtime/agentic_omega/capital_competition.py'
       - 'runtime/agentic_omega/universe_competition.py'
       - 'runtime/agentic_omega/portfolio_finalizer.py'
+      - 'runtime/agentic_omega/security_snapshot.py'
+      - 'runtime/agentic_omega/point_zero_rebuild.py'
       - 'runtime/agentic_omega/test_universe_competition.py'
       - 'runtime/agentic_omega/test_portfolio_finalizer.py'
+      - 'runtime/agentic_omega/test_point_zero_rebuild_pit.py'
       - 'api/atlas_core_consolidated.py'
       - 'api/test_atlas_consolidated_boundary.py'
       - 'api/trading212_controlled.py'
@@ -82,3 +85,4 @@ jobs:
           tests/test_point_zero_universe_integrity.py
           runtime/agentic_omega/test_universe_competition.py
           runtime/agentic_omega/test_portfolio_finalizer.py
+          runtime/agentic_omega/test_point_zero_rebuild_pit.py
