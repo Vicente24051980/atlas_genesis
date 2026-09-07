@@ -10,9 +10,11 @@ on:
       - "api/agentic_omega_v2.py"
       - "api/agentic_evidence_bridge.py"
       - "api/agentic_governance.py"
+      - "api/agent_infrastructure.py"
       - "api/test_agentic_omega_v2.py"
       - "api/test_agentic_evidence_bridge.py"
       - "api/test_agentic_governance.py"
+      - "api/test_agent_infrastructure_shadow_memory_firewall.py"
       - "api/test_deployment_contract.py"
       - "api/app.py"
       - "render.yaml"
@@ -25,9 +27,11 @@ on:
       - "api/agentic_omega_v2.py"
       - "api/agentic_evidence_bridge.py"
       - "api/agentic_governance.py"
+      - "api/agent_infrastructure.py"
       - "api/test_agentic_omega_v2.py"
       - "api/test_agentic_evidence_bridge.py"
       - "api/test_agentic_governance.py"
+      - "api/test_agent_infrastructure_shadow_memory_firewall.py"
       - "api/test_deployment_contract.py"
       - "api/app.py"
       - "render.yaml"
@@ -62,4 +66,5 @@ jobs:
           api/test_agentic_omega_v2.py
           api/test_agentic_evidence_bridge.py
           api/test_agentic_governance.py
+          api/test_agent_infrastructure_shadow_memory_firewall.py
           api/test_deployment_contract.py
