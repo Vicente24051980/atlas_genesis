@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.ts'
+      - 'src/atlas/algorithm/scenario-owner-return-omega.ts'
+      - 'src/atlas/algorithm/net-rotation-advantage-omega.ts'
+      - 'src/atlas/algorithm/e5-control-policy-omega.ts'
+      - 'src/atlas/algorithm/e6-assurance-harness-policy-omega.ts'
+      - 'src/atlas/algorithm/economic-contracts-omega.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts'
       - 'src/atlas/algorithm/structural-universe-authority-omega.ts'
@@ -20,6 +25,11 @@ on:
     branches: [main]
     paths:
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.ts'
+      - 'src/atlas/algorithm/scenario-owner-return-omega.ts'
+      - 'src/atlas/algorithm/net-rotation-advantage-omega.ts'
+      - 'src/atlas/algorithm/e5-control-policy-omega.ts'
+      - 'src/atlas/algorithm/e6-assurance-harness-policy-omega.ts'
+      - 'src/atlas/algorithm/economic-contracts-omega.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
       - 'src/atlas/algorithm/endogenous-portfolio-engine-v2-canon.ts'
       - 'src/atlas/algorithm/structural-universe-authority-omega.ts'
@@ -40,4 +50,6 @@ jobs:
         with:
           node-version: '20'
       - name: Run Endogenous Portfolio Engine v2 + universe/risk-unit/sizing/publication-gate tests
-        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts src/atlas/algorithm/structural-portfolio-publication-gate-omega.test.ts src/atlas/algorithm/structural-risk-unit-authority-omega.test.ts src/atlas/algorithm/structural-sizing-authority-omega.test.ts
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts src/atlas/algorithm/structural-portfolio-publication-gate-omega.test.ts src/atlas/algorithm/structural-risk-unit-authority-omega.test.ts src/atlas/algorithm/structural-sizing-authority-omega.test.ts src/atlas/algorithm/economic-contracts-omega.test.ts
+      - name: Typecheck economic contracts
+        run: npx --yes --package typescript@5.9.3 tsc --noEmit --target es2020 --module commonjs src/atlas/algorithm/scenario-owner-return-omega.ts src/atlas/algorithm/net-rotation-advantage-omega.ts src/atlas/algorithm/e5-control-policy-omega.ts src/atlas/algorithm/e6-assurance-harness-policy-omega.ts src/atlas/algorithm/structural-portfolio-publication-gate-omega.ts

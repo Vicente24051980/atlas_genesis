@@ -204,7 +204,7 @@ describe('Endogenous Portfolio Engine v2.4 — Point Zero / endogenous local sel
     expect(r.globalOptimalityProven).toBe(false);
   });
 
-  it('allows a lower-score challenger to win at execution when it materially improves return/risk utility',()=>{
+  it('keeps a lower-score challenger utility advantage but blocks execution without net rotation evidence',()=>{
     const p=Array.from({length:5},(_,i)=>c(i+1,12,'financials',['shared']));
     p[4].permanentLossRisk=8;
     p[4].volatilityRisk=10;
@@ -215,7 +215,8 @@ describe('Endogenous Portfolio Engine v2.4 — Point Zero / endogenous local sel
     challenger.volatilityRisk=0.5;
     challenger.fragility=0.5;
     const d=evaluateReplacementV2(p,'T5',challenger,'RED');
-    expect(d.allowed).toBe(true);
+    expect(d.allowed).toBe(false);
+    expect(d.reason).toBe('NET_ROTATION_EVIDENCE_PENDING');
     expect(d.deltaPortfolioUtility).toBeGreaterThan(0);
   });
 

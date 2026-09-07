@@ -161,3 +161,8 @@ Los motores sólo conservan autoridad en la medida en que implementen o suminist
 La baja volatilidad sólo tiene valor cuando mejora la utilidad económica; no es un objetivo a cualquier precio. La selección no autoriza por sí sola reemplazo ni ejecución.
 
 Estado de implementación: los selectores ya separaban cardinalidad heurística y optimalidad antes de esta corrección documental. Las unidades de riesgo y el sizing estructural siguen `RESEARCH_PENDING`; tests de software no demuestran calibración económica ni rentabilidad.
+
+
+## Implementación económica autorizada · 7-sep-2026
+
+`CURRENT_CANON/2026-09-07_ECONOMIC_CONTRACT_IMPLEMENTATION.md` define los contratos ejecutables de retorno por escenarios, ventaja neta de rotación, control IA y covarianza medida dentro de E1–E6. La publicación canónica exige modelos comparables por escenario; los bridges aditivos permanecen research/compatibilidad. El sizing por covarianza se implementa en SHADOW y el gap de búsqueda se mide con una referencia E6 acotada. Calibración económica y permiso de ejecución no se promueven por implementar o probar estas funciones.

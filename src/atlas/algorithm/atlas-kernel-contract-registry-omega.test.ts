@@ -6,7 +6,7 @@ import {
 
 describe('ATLAS Kernel Contract Registry Ω', () => {
   it('recognizes exactly six canonical engines plus R0 as substrate', () => {
-    expect(ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION).toBe('2026-09-07-v4.1.0');
+    expect(ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION).toBe('2026-09-07-v4.2.0');
     expect(ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA.architectureConsolidation.canonicalEngineCount).toBe(6);
     expect(ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA.canonicalArchitecture.R0.kind).toBe('RESEARCH_SUBSTRATE');
     expect(ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA.canonicalArchitecture.R0.rankingAuthority).toBe(false);

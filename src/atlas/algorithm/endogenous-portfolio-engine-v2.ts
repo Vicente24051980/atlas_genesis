@@ -1,4 +1,6 @@
-export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-07-v2.4.1' as const;
+import { calculateScenarioOwnerReturn, type ScenarioOwnerReturnInput } from './scenario-owner-return-omega';
+import { evaluateNetRotationAdvantage, type NetRotationContext } from './net-rotation-advantage-omega';
+export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-07-v2.5.0' as const;
 
 // Compatibility exports only. They are non-binding sentinels, not portfolio
 // design constraints. Canonical clean selection has no ex-ante floor/ceiling.
@@ -40,7 +42,9 @@ export type PortfolioCandidateV2 = {
   canonicalEntityId?: string;
   hardGatesPassed: boolean;
   falsifierVetoPassed: boolean;
+  /** Legacy research bridge; canonical underwriting uses scenarioReturn. */
   expectedReturn: ExpectedReturnBridge;
+  scenarioReturn?: ScenarioOwnerReturnInput;
   permanentLossRisk: number;
   tailRisk: number;
   volatilityRisk: number;
@@ -177,6 +181,10 @@ function mean(xs: number[]): number { return xs.length ? xs.reduce((a, b) => a +
 function clamp(x: number, lo: number, hi: number): number { return Math.max(lo, Math.min(hi, x)); }
 
 export function expectedReturnPct(c: PortfolioCandidateV2): number {
+  if (c.scenarioReturn) {
+    const result = calculateScenarioOwnerReturn(c.scenarioReturn);
+    return result.expectedCagrPct ?? Number.NaN;
+  }
   const x = c.expectedReturn;
   return x.fundamentalGrowthPct + x.cashYieldPct + x.capitalReturnsPct + x.multipleNormalizationPct;
 }
@@ -185,6 +193,7 @@ function validateCandidate(c: PortfolioCandidateV2): boolean {
   if (!c || typeof c.ticker !== 'string' || !c.ticker.trim()) return false;
   if (c.canonicalEntityId !== undefined && (typeof c.canonicalEntityId !== 'string' || !c.canonicalEntityId.trim())) return false;
   if (typeof c.hardGatesPassed !== 'boolean' || typeof c.falsifierVetoPassed !== 'boolean') return false;
+  if (c.scenarioReturn && c.scenarioReturn.entityId?.trim().toUpperCase() !== (c.canonicalEntityId || c.ticker).trim().toUpperCase()) return false;
   if (!c.expectedReturn || !c.scenarios || !c.causalDrivers || !Array.isArray(c.fundingSources)) return false;
   if (!c.fundingSources.every(x => typeof x === 'string')) return false;
   const er = c.expectedReturn;
@@ -246,6 +255,7 @@ function normalizedEvidenceFingerprint(c: PortfolioCandidateV2): string {
     hardGatesPassed: c.hardGatesPassed,
     falsifierVetoPassed: c.falsifierVetoPassed,
     expectedReturn: c.expectedReturn,
+    scenarioReturn: c.scenarioReturn,
     permanentLossRisk: c.permanentLossRisk,
     tailRisk: c.tailRisk,
     volatilityRisk: c.volatilityRisk,
@@ -527,7 +537,7 @@ export type ReplacementDecisionV2 = {
 // Point-Zero rebuild toward an incumbent.
 export function evaluateReplacementV2(
   portfolio: PortfolioCandidateV2[], incumbentTicker: string, challenger: PortfolioCandidateV2,
-  incumbentState: IncumbentState, policy: PortfolioEnginePolicyV2 = {},
+  incumbentState: IncumbentState, policy: PortfolioEnginePolicyV2 = {}, transition?: NetRotationContext,
 ): ReplacementDecisionV2 {
   const p = normalizePolicy(policy);
   if (!p || !validateCandidate(challenger) || portfolio.some(c => !validateCandidate(c)) || !challenger.hardGatesPassed || !challenger.falsifierVetoPassed || !['GREEN', 'ORANGE', 'RED'].includes(incumbentState)) return { allowed: false, deltaPortfolioUtility: Number.NEGATIVE_INFINITY, threshold: Infinity, reason: 'Challenger fails policy, evidence or hard gates.' };
@@ -540,6 +550,11 @@ export function evaluateReplacementV2(
   const after = evaluatePortfolioSetV2(afterSet, p).utility;
   const delta = after - before;
   const threshold = p.replacementThreshold[incumbentState] ?? DEFAULT_POLICY.replacementThreshold[incumbentState]!;
-  return { allowed: delta >= threshold, deltaPortfolioUtility: delta, threshold,
-    reason: delta >= threshold ? 'Replacement materially improves return/risk portfolio utility.' : 'Replacement improvement is below execution hysteresis threshold.' };
+  if (delta < threshold) return {allowed:false,deltaPortfolioUtility:delta,threshold,reason:'Replacement improvement is below execution hysteresis threshold.'};
+  if (!transition || !portfolio[idx].scenarioReturn || !challenger.scenarioReturn ||
+      JSON.stringify(transition.incumbent) !== JSON.stringify(portfolio[idx].scenarioReturn) ||
+      JSON.stringify(transition.challenger) !== JSON.stringify(challenger.scenarioReturn))
+    return {allowed:false,deltaPortfolioUtility:delta,threshold,reason:'NET_ROTATION_EVIDENCE_PENDING'};
+  const net = evaluateNetRotationAdvantage(transition);
+  return {allowed:net.allowed,deltaPortfolioUtility:delta,threshold,reason:net.reason};
 }

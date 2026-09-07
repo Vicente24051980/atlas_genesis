@@ -1,3 +1,6 @@
+import { calculateScenarioOwnerReturn } from './scenario-owner-return-omega';
+import { evaluateAiExposureControl, type AiControlRequest } from './e5-control-policy-omega';
+import { measuredPortfolioRisk, type MeasuredCovariance } from './structural-risk-unit-authority-omega';
 import {
   evaluatePortfolioSetV2,
   runEndogenousPortfolioEngineV2,
@@ -17,6 +20,8 @@ import {
 export const STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_VERSION = '2026-09-06-v1.2.0' as const;
 
 export type StructuralPublicationState =
+  | 'BLOCKED_SCENARIO_RETURN_EVIDENCE'
+  | 'BLOCKED_AI_CONTROL'
   | 'CANONICAL_READY'
   | 'BLOCKED_METADATA_MISSING'
   | 'BLOCKED_UNIVERSE_MISMATCH'
@@ -40,6 +45,7 @@ export type MarginalRow = {
 export type StructuralSizingEvidence = {
   method: 'COVARIANCE_AWARE';
   portfolioVolatilityModelHash: string;
+  measuredCovariance?: MeasuredCovariance;
   weights: Record<string, number>;
   attestation?: StructuralSizingAttestation;
 };
@@ -63,6 +69,8 @@ export type StructuralPortfolioRunRequestUnsafe = {
 };
 
 export type CanonicalStructuralPortfolioRunRequest = {
+  asOf?: string;
+  aiControl?: AiControlRequest;
   universeVersion: StructuralUniverseAuthorityVersion;
   snapshotHash: string;
   policyHash: string;
@@ -112,6 +120,7 @@ function evidenceFingerprint(c: PortfolioCandidateV2): string {
     hardGatesPassed: c.hardGatesPassed,
     falsifierVetoPassed: c.falsifierVetoPassed,
     expectedReturn: c.expectedReturn,
+    scenarioReturn: c.scenarioReturn,
     permanentLossRisk: c.permanentLossRisk,
     tailRisk: c.tailRisk,
     volatilityRisk: c.volatilityRisk,
@@ -318,7 +327,27 @@ export function runStructuralPortfolioPublicationGate(req: CanonicalStructuralPo
     sizing: req.sizing,
   });
 
+  // Structural mechanics may run on legacy fixtures, but canonical publication
+  // requires comparable underwritten models for the whole admitted universe.
+  if (!['CANONICAL_READY','BLOCKED_SIZING_NOT_IMPLEMENTED','BLOCKED_INVALID_SIZING'].includes(result.publicationState)) return result;
+  if (!req.asOf || req.candidates.some(c => !c.scenarioReturn || c.scenarioReturn.asOf !== req.asOf || calculateScenarioOwnerReturn(c.scenarioReturn).status !== 'CALCULATED') ||
+      new Set(req.candidates.map(c=>c.scenarioReturn?.currency)).size !== 1 ||
+      new Set(req.candidates.map(c=>c.scenarioReturn?.horizonYears)).size !== 1)
+    return {...result,publicationState:'BLOCKED_SCENARIO_RETURN_EVIDENCE',weights:null,reason:'Comparable PIT base/bull/bear owner-return models are required; legacy additive bridges are research only.'};
   if (result.publicationState !== 'CANONICAL_READY') return result;
+  const covariance=req.sizing?.measuredCovariance;
+  try {
+    if (!covariance || covariance.asOf!==req.asOf || covariance.entityIds.length!==result.selectedTickers.length || covariance.entityIds.some(id=>!(id in req.sizing!.weights))) throw new Error('COVARIANCE_IDENTITY_MISMATCH');
+    measuredPortfolioRisk(covariance,covariance.entityIds.map(id=>req.sizing!.weights[id]));
+  } catch {
+    return {...result,publicationState:'BLOCKED_INVALID_SIZING',weights:null,reason:'Explicit finite symmetric PSD covariance, PIT and exact weight mapping required.'};
+  }
+  const control=req.aiControl;
+  if (!control || control.asOf!==req.asOf || control.action!=='INCREASE' || control.cashWeight!==0 ||
+      control.positions.length!==result.selectedTickers.length ||
+      control.positions.some(p=>Math.abs(p.weight-(req.sizing!.weights[p.entityId] ?? NaN))>1e-8 || !(p.entityId in req.sizing!.weights)) ||
+      !evaluateAiExposureControl(control).allowsIncrease)
+    return {...result,publicationState:'BLOCKED_AI_CONTROL',weights:null,reason:'AI control must match the proposed sizing and have valid classification/override evidence.'};
 
   const attestationState = canonicalSizingAttestationState(req.sizing);
   if (attestationState) return {
