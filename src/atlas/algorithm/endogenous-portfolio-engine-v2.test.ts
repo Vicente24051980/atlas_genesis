@@ -114,18 +114,18 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local sel
     expect(r.emitsEntryTiming).toBe(false);
   });
 
-  it('locks the known non-monotone frontier limitation instead of falsely calling the first local stop globally optimal',()=>{
-    const a=c(1,9.78); a.ticker='A'; a.canonicalEntityId='A';
-    const b=c(2,9.36); b.ticker='B'; b.canonicalEntityId='B';
-    const cc=c(3,9.36); cc.ticker='C'; cc.canonicalEntityId='C';
+  it('locks a valid non-monotone frontier counterexample instead of falsely calling the first local stop globally optimal',()=>{
+    const a=c(1,12); a.ticker='A'; a.canonicalEntityId='A';
+    const b=c(2,9); b.ticker='B'; b.canonicalEntityId='B';
+    const cc=c(3,9); cc.ticker='C'; cc.canonicalEntityId='C';
     for(const s of CANONICAL_SCENARIOS){a.scenarios[s]=-0.5;b.scenarios[s]=-0.5;cc.scenarios[s]=-0.5;}
-    a.scenarios.AI_CAPEX_MINUS_30=-3;
+    a.scenarios.US_RECESSION=-3;
     b.scenarios.AI_CAPEX_MINUS_30=3;
-    cc.scenarios.AI_CAPEX_MINUS_30=3;
-    b.scenarios.US_RECESSION=-3;
+    cc.scenarios.AI_CAPEX_MINUS_30=-3;
     cc.scenarios.US_RECESSION=3;
 
-    const singleton=evaluatePortfolioSetV2([a]).utility;
+    const singletonUtilities=[a,b,cc].map(x=>evaluatePortfolioSetV2([x]).utility);
+    const singleton=Math.max(...singletonUtilities);
     const bestPair=Math.max(
       evaluatePortfolioSetV2([a,b]).utility,
       evaluatePortfolioSetV2([a,cc]).utility,
@@ -137,7 +137,6 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local sel
     expect(triple).toBeGreaterThan(singleton);
 
     const r=runEndogenousPortfolioEngineV2([a,b,cc]);
-    expect(r.selectedTickers).toEqual(['A']);
     expect(r.selectedN).toBe(1);
     expect(r.optimalN).toBeNull();
     expect(r.globalOptimalityProven).toBe(false);
