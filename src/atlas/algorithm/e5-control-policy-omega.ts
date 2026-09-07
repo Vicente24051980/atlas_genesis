@@ -1,4 +1,4 @@
-export const E5_CONTROL_POLICY_OMEGA_VERSION = '2026-09-07-v1.0.0' as const;
+export const E5_CONTROL_POLICY_OMEGA_VERSION = '2026-09-07-v1.1.0' as const;
 
 export const ATLAS_PERMISSIONS = [
   'READ',
@@ -27,6 +27,7 @@ export const E5_CONTROL_POLICY_OMEGA = {
     executeDoesNotImplySchedule: true,
     communicateDoesNotImplyDelegate: true,
     predictiveAccuracyCannotExpandPermissions: true,
+    autonomyLevelCannotExpandComponentPermissions: true,
     automaticCanonWriteForbidden: true,
     liveMaterialActionRequiresSpecificHumanApproval: true,
   },
@@ -70,6 +71,57 @@ export const E5_CONTROL_POLICY_OMEGA = {
     MONITOR: {
       READ: 'ALLOW', WRITE: 'ALLOW', EXECUTE: 'ALLOW', COMMUNICATE: 'ALLOW',
       PERSIST: 'ALLOW', SCHEDULE: 'DENY', DELEGATE: 'DENY', ...denyAutomaticCanonWrite,
+    },
+  },
+  agenticAutonomy: {
+    status: 'CONTROL_POLICY_DOES_NOT_AUTO_PROMOTE_RUNTIME_AUTONOMY',
+    runtimeReference: 'runtime/agentic_omega/execution_control.py',
+    levels: {
+      L0_READ_ONLY: {
+        authority: 'READ_ONLY',
+        externalMutation: false,
+        humanApproval: false,
+      },
+      L1_PROPOSE: {
+        authority: 'PREPARE_ACTION_NO_EXECUTION',
+        externalMutation: false,
+        humanApproval: false,
+      },
+      L2_SAFE_WRITE: {
+        authority: 'REVERSIBLE_LOW_IMPACT_WRITE',
+        externalMutation: true,
+        humanApproval: false,
+        requiresCompensationPlan: true,
+      },
+      L3_CONTROLLED_EXECUTION: {
+        authority: 'MATERIAL_EXECUTION_WITH_E5_GATES_AND_E6_VERIFICATION',
+        externalMutation: true,
+        humanApproval: 'POLICY_DEPENDENT',
+      },
+      L4_HUMAN_APPROVAL_REQUIRED: {
+        authority: 'HIGH_IMPACT_OR_SOVEREIGN_ACTION',
+        externalMutation: true,
+        humanApproval: true,
+      },
+    },
+    mandatoryL4Domains: [
+      'EXTERNAL',
+      'FINANCIAL',
+      'LEGAL',
+      'MEDICAL',
+      'CREDENTIAL',
+      'PRODUCTION',
+    ],
+    verification: {
+      executionClaimIsNotCompletionEvidence: true,
+      verifiedCompleteRequiresDeclaredPostconditions: true,
+      verifiedCompleteRequiresIndependentReadback: true,
+      modelSelfReportCannotVerifyCompletion: true,
+      writesRequireIdempotencyKey: true,
+      duplicateExecutionAttemptsFailClosed: true,
+      unknownPostStateNeverMeansComplete: true,
+      reversibleFailureRequiresRollbackState: true,
+      staleOrUnknownMaterialPreStateFailsClosed: true,
     },
   },
   protectedObjects: [
