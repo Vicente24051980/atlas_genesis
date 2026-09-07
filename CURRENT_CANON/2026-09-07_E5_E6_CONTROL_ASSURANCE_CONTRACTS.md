@@ -20,9 +20,21 @@ E5 owns permission boundaries, human approval requirements, persistence/scheduli
 
 E5 does **not** generate investment conclusions and is not the execution stage itself. It controls whether a proposed material action is permitted.
 
-Eight explicit permissions remain independent:
+Seventeen explicit permissions are independent:
 
-`READ | WRITE | EXECUTE | COMMUNICATE | PERSIST | SCHEDULE | DELEGATE | MODIFY_CANON`
+`READ | WRITE | CREATE | MODIFY | DELETE | EXECUTE | COMMUNICATE | PURCHASE | FINANCIAL | LEGAL | IDENTITY | EXTERNAL_WEB | PERSONAL_DATA | PERSIST | SCHEDULE | DELEGATE | MODIFY_CANON`
+
+No permission is implied by another. In particular:
+
+- `WRITE != CREATE/MODIFY/DELETE/PERSIST`;
+- `EXECUTE != FINANCIAL/SCHEDULE/DELEGATE`;
+- `COMMUNICATE != IDENTITY/PERSIST`;
+- `EXTERNAL_WEB != PERSONAL_DATA`;
+- ability to predict Vicente does not grant authority to represent Vicente.
+
+Standing automated authority is denied for sensitive permissions: `PURCHASE`, `FINANCIAL`, `LEGAL`, `IDENTITY`, `PERSONAL_DATA`, `DELETE`, and `MODIFY_CANON`. Any future elevation must be explicit, human-owner scoped, action-specific, non-transferable and incapable of being satisfied by predictive accuracy.
+
+Public-web access is explicitly granted only to named research/evidence/assurance/monitor roles. It grants no access to private personal data.
 
 No automatic component receives `MODIFY_CANON`.
 
@@ -38,6 +50,8 @@ Verified shutdown requires all eight conditions:
 8. `RESTART_PATH_DISABLED`
 
 `UNKNOWN` world state is treated as volatile; a failed required refresh produces `ACTION_BLOCKED_STALE_ASSUMPTION`.
+
+Runtime enforcement remains subject to callsite audit. Policy encoding is not, by itself, proof that every external adapter is wired correctly.
 
 ## E6 ASSURANCE Ω
 
