@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 """Fail-closed repository integrity checks for ATLAS P0 governance.
 
-The audit is intentionally dependency-free so it can run in GitHub Actions even when npm/pip registries are unavailable.
+The audit is dependency-free and distinguishes a textual reference to CURRENT_CANON
+from executable code that appears to write to a CURRENT_CANON path.
 """
 from __future__ import annotations
 
 import json
 import re
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 E5 = ROOT / "src/atlas/algorithm/e5-control-policy-omega.ts"
 LEDGER = ROOT / "src/atlas/algorithm/atlas-factor-ownership-ledger-omega.ts"
-CANON = ROOT / "CURRENT_CANON"
 EXECUTABLE_SUFFIXES = {".py", ".ts", ".tsx", ".js", ".mjs", ".cjs", ".sh"}
 
 REQUIRED_SHUTDOWN = [
@@ -34,6 +33,7 @@ EFFECT_PATTERNS = {
     "persist": re.compile(r"\b(persist|write_text|writeFile|create_file|update_file|commit|ledger)\b", re.I),
     "execute": re.compile(r"\b(execute|subprocess|Popen|spawn|exec\()", re.I),
 }
+WRITE_PATTERN = re.compile(r"\b(write_text|writeFile|writeFileSync|create_file|update_file)\b|open\([^\n]{0,180}['\"](?:w|a)[+b]?['\"]", re.I)
 
 
 def executable_files():
@@ -43,6 +43,16 @@ def executable_files():
         for p in base.rglob("*"):
             if p.is_file() and p.suffix in EXECUTABLE_SUFFIXES:
                 yield p
+
+
+def possible_current_canon_write(text: str) -> bool:
+    """Require CURRENT_CANON and write semantics to occur in the same local code window."""
+    for match in re.finditer(r"CURRENT_CANON", text):
+        start = max(0, match.start() - 300)
+        end = min(len(text), match.end() + 300)
+        if WRITE_PATTERN.search(text[start:end]):
+            return True
+    return False
 
 
 def main() -> int:
@@ -61,7 +71,6 @@ def main() -> int:
         r"factorId:\s*'([^']+)'[\s\S]{0,500}?scoringOwner:\s*'UNRESOLVED_RUNTIME_MAPPING'",
         ledger,
     )
-    # Existing unresolved mappings are permitted only because ADD_POINTS is fail-closed.
     if unresolved_factors and "scoring_owner_unresolved_fail_closed" not in ledger:
         failures.append("unresolved_factor_mapping_without_fail_closed_guard")
     if unresolved_factors:
@@ -72,9 +81,8 @@ def main() -> int:
     for p in executable_files():
         rel = p.relative_to(ROOT).as_posix()
         text = p.read_text(encoding="utf-8", errors="ignore")
-        if rel != "tools/assurance/repo_integrity_audit.py":
-            if "CURRENT_CANON" in text and re.search(r"(write_text|writeFile|open\([^\n]{0,160}['\"](?:w|a)|create_file|update_file)", text):
-                canon_write_candidates.append(rel)
+        if rel != "tools/assurance/repo_integrity_audit.py" and possible_current_canon_write(text):
+            canon_write_candidates.append(rel)
         for label, pattern in EFFECT_PATTERNS.items():
             if pattern.search(text):
                 effect_surface[label].append(rel)
