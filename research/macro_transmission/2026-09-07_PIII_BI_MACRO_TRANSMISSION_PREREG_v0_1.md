@@ -208,3 +208,35 @@ A first evidence-alignment pass was run immediately after preregistration. This 
 The report's principal macro anchors are substantially source-aligned. One precision correction matters: **CCC OAS = 10.53 pp is a verified intra-week observation (2 Sep), not the latest close shown by the series (10.51 on 3 Sep).** ATLAS therefore records timestamps per datum and does not collapse “weekly high/observation” into “Friday/latest close.”
 
 This is exactly the type of semantic/PIT distinction E1 must enforce before P-III interpretation.
+
+## 12. Reuters morning checkpoint — 2026-09-07
+
+This checkpoint is post-preregistration evidence. It does not rewrite the frozen hypotheses.
+
+Reuters reported on 7 Sep 2026:
+
+- Brent around `$97.5–97.6/bbl`, after rising almost 8% in the prior week;
+- WTI around `$92.6/bbl`;
+- diesel prices at record highs and roughly 90% above pre-war levels;
+- U.S.–Iran strikes on vessels and reduced traffic through the Strait of Hormuz, where roughly one-fifth of world oil supply historically transited;
+- markets pricing roughly a `58%` probability of a Fed hike at the 16 Sep meeting and about `70%` for October;
+- ECB expected to raise rates by 25 bp on 10 Sep;
+- Asian semiconductor equities rallied while broader global risk appetite remained mixed.
+
+### P-III interpretation
+
+`H2 = ACTIVE / NOT YET CONFIRMED`.
+
+Unlike a pure headline shock, this episode currently has observable transmission into crude prices, refined-product stress and shipping/flow constraints. That satisfies the minimum condition for continued observation under H2, but does **not** yet establish persistence into CPI, inflation expectations or the policy path.
+
+`H1 = TEST WINDOW OPEN`.
+
+The rise in market-implied Fed hike probability is directionally consistent with the preregistered chain, but the principal falsifier remains the 10–11 Sep inflation data and subsequent 2Y/Fed repricing.
+
+`PORTFOLIO_ACTION_ALLOWED = FALSE` remains unchanged.
+
+### Reuters references
+
+- Reuters, 2026-09-07 — Morning Bid: Diesel the real spoiler for US inflation doves.
+- Reuters, 2026-09-07 — Stocks rattled by inflation risk from rising oil, dicey geopolitics.
+- Reuters, 2026-09-07 — Oil extends gains after US and Iran exchange attacks on ships.
