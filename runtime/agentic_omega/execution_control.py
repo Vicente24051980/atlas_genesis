@@ -65,6 +65,9 @@ class ActionState(str, Enum):
 
 
 class EventLedger(Protocol):
+    @property
+    def events(self) -> tuple[dict, ...]: ...
+
     def append(self, event_type: str, payload: dict) -> dict: ...
 
 
@@ -184,6 +187,74 @@ class AgenticExecutionController:
         self._receipts: dict[str, ActionReceipt] = {}
         self._idempotency: dict[str, str] = {}
         self._execution_started: set[str] = set()
+        self._hydrate_from_ledger()
+
+    def _request_snapshot(self, request: ActionRequest) -> dict:
+        return {
+            "objective": request.objective,
+            "operation": request.operation.value,
+            "domain": request.domain.value,
+            "tool": request.tool,
+            "target": request.target,
+            "requested_level": int(request.requested_level),
+            "reversible": request.reversible,
+            "compensation_action": request.compensation_action,
+            "expected_postconditions": list(request.expected_postconditions),
+            "pre_state_class": request.pre_state_class.value,
+            "pre_state_verified": request.pre_state_verified,
+            "human_approval_present": bool(request.human_approval_id.strip()),
+            "decision_receipt_id": request.decision_receipt_id,
+        }
+
+    def _hydrate_from_ledger(self) -> None:
+        if self.ledger is None:
+            return
+        events = tuple(getattr(self.ledger, "events", ()) or ())
+        for event in events:
+            payload = event.get("payload", {})
+            action_id = payload.get("action_id")
+            receipt_data = payload.get("receipt")
+            request_data = payload.get("request")
+            if not action_id or not isinstance(receipt_data, dict):
+                continue
+
+            fp = str(receipt_data.get("idempotency_fingerprint", ""))
+            if event.get("event_type") == "ACTION_AUTHORIZED" and request_data and fp:
+                restored = ActionRequest(
+                    objective=str(request_data["objective"]),
+                    operation=ActionOperation(request_data["operation"]),
+                    domain=ActionDomain(request_data["domain"]),
+                    tool=str(request_data["tool"]),
+                    target=str(request_data["target"]),
+                    idempotency_key=f"RESTORED:{fp}",
+                    requested_level=AutonomyLevel(int(request_data["requested_level"])),
+                    reversible=bool(request_data["reversible"]),
+                    compensation_action=str(request_data.get("compensation_action", "")),
+                    expected_postconditions=tuple(request_data.get("expected_postconditions", ())),
+                    pre_state_class=WorldStateClass(request_data["pre_state_class"]),
+                    pre_state_verified=bool(request_data["pre_state_verified"]),
+                    human_approval_id="RESTORED_APPROVAL" if request_data.get("human_approval_present") else "",
+                    decision_receipt_id=str(request_data.get("decision_receipt_id", "")),
+                    action_id=str(action_id),
+                )
+                self._requests[str(action_id)] = restored
+                self._idempotency[fp] = str(action_id)
+
+            if str(action_id) not in self._requests:
+                continue
+            state = ActionState(receipt_data["state"])
+            restored_receipt = ActionReceipt(
+                action_id=str(action_id),
+                state=state,
+                required_level=AutonomyLevel(int(receipt_data["required_level"])),
+                reason=str(receipt_data.get("reason", "")),
+                idempotency_fingerprint=fp,
+                evidence_ids=tuple(receipt_data.get("evidence_ids", ())),
+                emitted_at=str(receipt_data.get("emitted_at", datetime.now(timezone.utc).isoformat())),
+            )
+            self._receipts[str(action_id)] = restored_receipt
+            if state is not ActionState.AUTHORIZED:
+                self._execution_started.add(str(action_id))
 
     def _emit(self, event_type: str, request: ActionRequest, receipt: ActionReceipt) -> ActionReceipt:
         self._receipts[request.action_id] = receipt
@@ -197,6 +268,7 @@ class AgenticExecutionController:
                     "tool": request.tool,
                     "target": request.target,
                     "decision_receipt_id": request.decision_receipt_id,
+                    "request": self._request_snapshot(request),
                     "receipt": {
                         **asdict(receipt),
                         "state": receipt.state.value,
