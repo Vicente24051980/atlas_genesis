@@ -1,0 +1,39 @@
+name: ATLAS P0 Integrity Gate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  p0-integrity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Repository authority and effect-surface audit
+        run: python tools/assurance/repo_integrity_audit.py | tee atlas-p0-integrity.json
+
+      - name: Controlled E5 shutdown drill S1-S8
+        run: python tools/assurance/shutdown_drill.py | tee atlas-shutdown-drill.json
+
+      - name: Verify core Python runtime suite
+        run: |
+          if [ -d runtime ]; then
+            python -m unittest discover -s runtime -p 'test_*.py' || python -m pytest runtime
+          fi
+
+      - name: Upload assurance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-p0-assurance-evidence
+          path: |
+            atlas-p0-integrity.json
+            atlas-shutdown-drill.json
+          if-no-files-found: warn
