@@ -78,6 +78,16 @@ def test_missing_required_binding_fails_closed():
     assert "MISSING_BINDING:estimates.normalized_expected_cagr_pct" in result.rejected[0]["reasons"]
 
 
+def test_raw_provider_dict_cannot_bypass_snapshot_contract():
+    result = run_point_zero_rebuild(
+        [{"ticker": "AAA", "expected_return": 999}],
+        as_of_timestamp="2026-09-07T08:00:00+00:00",
+    )
+    assert result.status == "EVIDENCE_PENDING"
+    assert result.accepted_snapshot_count == 0
+    assert result.rejected[0]["reasons"] == ("RAW_PROVIDER_OBJECT_FORBIDDEN",)
+
+
 def test_ranking_cannot_consume_current_holding_state():
     a = snapshot("AAA")
     b = snapshot("BBB")
