@@ -1,16 +1,20 @@
-# ATLAS Ω — CARTERA DEFINITIVA 35
+# HISTORICAL / SUPERSEDED — ATLAS Ω · CARTERA 35 · 2026-08-13
 
-Corte canónico: **2026-08-13**  
-Horizonte de congelación operativa: **hasta 2027**  
-Estado: **CANON ACTIVO / DUAL PERSISTENCE**
+**Historical cutoff:** `2026-08-13`  
+**Current authority:** `NONE`  
+**Status:** `HISTORICAL / PROVENANCE ONLY / SUPERSEDED_AS_CURRENT_PORTFOLIO_AND_SELECTION_AUTHORITY`
 
-## Regla de estabilidad
+> This file preserves the August 2026 35-position portfolio as decision history. It is **not** the current operational portfolio, not the selection universe, not a frozen portfolio authority, and not a Point-Zero prior.
 
-Esta composición queda fijada como universo de cartera ATLAS Ω de 35 posiciones. No se reconstruirá por ruido diario, titulares ni rotaciones de corto plazo. Lo dinámico es el momento y tamaño de entrada. Solo un falsificador fundamental o una decisión explícita posterior del usuario puede justificar revisar un componente.
+Current references:
 
-Cambio explícito del usuario en este corte: **ORCL sustituye a ADBE**, conservando el peso de **2,4%**. Es el único toque personal declarado por el usuario sobre esta versión.
+- Operational state: `CURRENT_CANON/2026-09-06_ATLAS_CURRENT_OPERATIONAL_PORTFOLIO_27.md`
+- Clean selection authority: `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`
+- Current architecture: `CURRENT_CANON/ATLAS_OMEGA_CURRENT_CANON.md`
 
-## Cartera definitiva 35
+Any historical wording below such as `CANON ACTIVO`, `definitiva`, `congelada`, `hasta 2027`, fixed thematic budgets, incumbent protections or reservations has **zero current operational authority**.
+
+## Historical snapshot — 35 positions
 
 | # | Ticker | Empresa | Peso | Función principal |
 |---:|---|---|---:|---|
@@ -51,23 +55,6 @@ Cambio explícito del usuario en este corte: **ORCL sustituye a ADBE**, conserva
 | 35 | CCEP | Coca-Cola Europacific Partners | 2,2% | Bebidas / defensivo |
 |  | **TOTAL** |  | **100,0%** | |
 
-## Control temático IA / digital
+## Historical notes
 
-Presupuesto máximo: **30%**. La sustitución ADBE → ORCL mantiene el peso de la posición #8 en 2,4%; por tanto no altera matemáticamente el peso agregado del bloque si ORCL se clasifica dentro del mismo presupuesto digital/IA.
-
-## Reservas declaradas
-
-- **LRCX** — primera reserva semicap.
-- **CB** — primera reserva de seguros.
-
-## Exclusiones explícitas de este corte
-
-NVDA, AVGO, AMZN, LRCX, VRT, SMCI, CRWV, NBIS, COHR, LITE, AMAT, PH, LLY, UNH, NVO y ADBE quedan fuera del núcleo de 35 en este corte. La exclusión no implica necesariamente tesis fundamental rota.
-
-## Persistencia canónica — DUAL PERSISTENCE LAW Ω
-
-Toda modificación canónica debe quedar registrada **en GitHub y en Notion en la misma iteración**.
-
-- GitHub = fuente técnica, versionada y auditable.
-- Notion = espejo operativo, documental y navegable.
-- Fuente de la ley: `CURRENT_CANON/DUAL_PERSISTENCE_LAW_OMEGA.md`.
+The original snapshot included a 30% AI/digital thematic budget, reserves such as LRCX and CB, and an operational freeze-until-2027 rule. Those are retained only as provenance. They are superseded by Point Zero, the 487-entity universe, fully endogenous `OPTIMAL_N`, and the current 27-position operational snapshot.
