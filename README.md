@@ -17,9 +17,22 @@ ATLAS has applied Point Zero to its own architecture.
 
 Exactly six canonical engines:
 
-`E1 EVIDENCE Ω` → `E2 ASSESSMENT Ω` → `E3 GATE Ω` → `E4 DECISION Ω` → `E5 CONTROL Ω` → `E6 ASSURANCE Ω`
+- `E1 EVIDENCE Ω`
+- `E2 ASSESSMENT Ω`
+- `E3 GATE Ω`
+- `E4 DECISION Ω`
+- `E5 CONTROL Ω`
+- `E6 ASSURANCE Ω`
 
 `R0 RESEARCH Ω` is a substrate, not a decision engine.
+
+The **decision pipeline** is:
+
+`R0 RESEARCH → E1 EVIDENCE → E2 ASSESSMENT → E3 GATE → E4 DECISION → EXECUTION`
+
+`E5 CONTROL Ω` is transversal: permissions, governance, approval, persistence, scheduling, revocation and shutdown.
+
+`E6 ASSURANCE Ω` is independent: it evaluates E1–E5 and execution outcomes; it is not a decision or execution stage.
 
 Research programs:
 
@@ -33,6 +46,8 @@ Economic Archaeology is an E6 validation method.
 
 `RESEARCH → SIGNAL → SCORE → GATE → PORTFOLIO_SELECTION → EXECUTION`
 
+This is a **type-separation invariant**, not a one-to-one mapping between engines and phases.
+
 - Research has zero direct ranking authority.
 - New signals default to shadow / weight 0.
 - Gates are boolean/conditional and never bonuses.
@@ -40,6 +55,8 @@ Economic Archaeology is an E6 validation method.
 - Synthetic cases never count as real evaluation evidence.
 - Learning Ω is a hypothesis generator, not a canon writer.
 - No automatic component has `MODIFY_CANON`.
+- E5 cannot generate an investment conclusion.
+- E6 cannot authorize a material action.
 
 ## Financial selection
 
