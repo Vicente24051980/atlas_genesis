@@ -1,4 +1,10 @@
-from .portfolio_finalizer import FinalCandidate, GreenTier, classify, replacement_allowed
+from .portfolio_finalizer import (
+    FinalCandidate,
+    GreenTier,
+    classify,
+    legacy_execution_replacement_diagnostic,
+    replacement_allowed,
+)
 
 
 def c(ticker="X", **kw):
@@ -29,15 +35,17 @@ def test_cyclical_requires_normalization_and_market_validation():
     assert r.tier == GreenTier.CYCLICAL and r.executable
 
 
-def test_replacement_hurdle_three_pp():
+def test_clean_replacement_api_is_fail_closed_regardless_of_edge():
+    incumbent = c("KO", normalized_expected_cagr=9.0, omega_score=70)
+    challenger = c("XPO", normalized_expected_cagr=20.0, omega_score=99)
+    ok, reason = replacement_allowed(incumbent, challenger)
+    assert not ok
+    assert "POINT_ZERO_CLEAN_SELECTION" in reason
+
+
+def test_legacy_hurdle_survives_only_as_execution_diagnostic():
     incumbent = c("KO", normalized_expected_cagr=9.0, omega_score=90)
     challenger = c("XPO", normalized_expected_cagr=12.2, omega_score=89)
-    ok, _ = replacement_allowed(incumbent, challenger)
+    ok, reason = legacy_execution_replacement_diagnostic(incumbent, challenger)
     assert ok
-
-
-def test_replacement_fails_without_edge():
-    incumbent = c("KO", normalized_expected_cagr=10.0, omega_score=90)
-    challenger = c("XPO", normalized_expected_cagr=11.0, omega_score=92)
-    ok, _ = replacement_allowed(incumbent, challenger)
-    assert not ok
+    assert reason.startswith("EXECUTION_DIAGNOSTIC_ONLY")
