@@ -1,10 +1,14 @@
 # ATLAS Ω — WATCHLIST MASTER
 
-Status: ACTIVE
-Date: 2026-08-17
-Rule: one company/ticker = one master record. Engine memberships are tags, never duplicate rows. Portfolio holdings may remain referenced for research but must be flagged PORTFOLIO to prevent accidental double allocation.
+Status: CURRENT_RESEARCH_QUEUE / NON_SELECTION_AUTHORITY
+Last governance reconciliation: 2026-09-07
+Historical list date: 2026-08-17
 
-## Current consolidated universe from this thread
+**Authority boundary:** this object is a research/discovery queue only. It is NOT the canonical security-selection universe, does NOT define portfolio membership, and confers zero score or incumbent/challenger advantage. Canonical clean selection uses `ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06` plus explicitly admitted/versioned external challengers under the MASTER UNIVERSE PROMPT.
+
+Rule: one company/ticker = one master research record. Engine memberships are tags, never duplicate rows. Portfolio holdings may remain referenced for research but must be flagged PORTFOLIO to prevent accidental double allocation.
+
+## Current consolidated research queue from the historical thread
 
 ### Future Leaders / Growth
 EXENS, ARGX, ADYEN, PLMR, RBRK, IOT, NBIS, CRDO, FIX, NXT, FTAI, SE, NU, WISE, MTSI, HALO, CRS, MTZ, GLNG, ON, WST, FN, UBER, AXON, TJX, AEM, GEV
@@ -46,13 +50,21 @@ FRVO, KODK, TERA, WYFI, AIIA
 - GEV, VRT, PWR: cycle-confirmation / Economic Proof sensors; not automatically early-stage Future Leaders.
 
 ## Canonical deduplication law
-All new tickers discovered in research are checked against this master universe before insertion. Existing tickers receive new tags/evidence/history rather than a duplicate record. A ticker can belong to multiple engines simultaneously.
+All new tickers discovered in research are checked against this research queue before insertion. Existing tickers receive new tags/evidence/history rather than a duplicate record. A ticker can belong to multiple research programs simultaneously.
+
+This deduplication is administrative only. It never replaces canonical economic-entity deduplication for the 487-entity selection universe.
 
 ## Epistemic law
 WATCHLIST != BUY.
+WATCHLIST != SELECTION UNIVERSE.
 PRICE ACTION != FUNDAMENTAL EVIDENCE.
-Secondary claims may open research but only primary evidence may upgrade Conviction Ω.
+Secondary claims may open research but only admitted evidence may upgrade a canonical assessment.
 Identity-pending symbols cannot receive a validated company score.
 
-## Next research program
-Winner Precursor Detection Ω: study what was observable before the major Jan-2025-to-Aug-2026 winners made their first 2x. Extract revenue acceleration, revisions, backlog, FCF inflection, incremental ROIC, CAPEX dependency, bottleneck position, institutional sponsorship, initial valuation and initial market capitalization. Apply the resulting precursor signature to current Watchlist companies that have not already undergone a 3x-10x repricing.
+## Research routing
+All future work from this queue must route through one of the three ratified programs:
+- `P-I — DÓNDE VA EL CAPITAL`
+- `P-II — QUIÉN CAPTURA EL VALOR`
+- `P-III — CÓMO SE TRANSMITE EL RÉGIMEN`
+
+Legacy named engines/programs may remain as tags or methods but do not create independent architectural authority.
