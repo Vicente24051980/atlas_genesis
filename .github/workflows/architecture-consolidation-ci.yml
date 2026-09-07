@@ -1,0 +1,67 @@
+name: ATLAS Architecture Consolidation CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/architecture-consolidation-ci.yml'
+      - 'src/atlas/algorithm/atlas-kernel-contract-registry-omega.ts'
+      - 'src/atlas/algorithm/atlas-kernel-contract-registry-omega.test.ts'
+      - 'src/atlas/algorithm/e5-control-policy-omega.ts'
+      - 'src/atlas/algorithm/e5-control-policy-omega.test.ts'
+      - 'src/atlas/algorithm/e6-assurance-harness-policy-omega.ts'
+      - 'src/atlas/algorithm/e6-assurance-harness-policy-omega.test.ts'
+      - 'src/atlas/algorithm/capital-blind-portfolio-selection-omega.ts'
+      - 'src/atlas/algorithm/capital-blind-portfolio-selection-omega.test.ts'
+      - 'src/atlas/algorithm/portfolio-selection-canon-omega.ts'
+      - 'src/atlas/algorithm/portfolio-selection-canon-omega.test.ts'
+      - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.ts'
+      - 'src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts'
+      - 'api/atlas_core_consolidated.py'
+      - 'api/test_atlas_consolidated_boundary.py'
+      - 'api/trading212_controlled.py'
+      - 'api/test_broker_mount_authority.py'
+      - 'api/test_trading212_v2.py'
+  pull_request:
+    paths:
+      - '.github/workflows/architecture-consolidation-ci.yml'
+      - 'src/atlas/algorithm/**'
+      - 'api/atlas_core_consolidated.py'
+      - 'api/trading212_controlled.py'
+      - 'api/test_atlas_consolidated_boundary.py'
+      - 'api/test_broker_mount_authority.py'
+      - 'api/test_trading212_v2.py'
+
+jobs:
+  typescript-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run E1-E6 and Point Zero contracts
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/atlas-kernel-contract-registry-omega.test.ts
+          src/atlas/algorithm/e5-control-policy-omega.test.ts
+          src/atlas/algorithm/e6-assurance-harness-policy-omega.test.ts
+          src/atlas/algorithm/capital-blind-portfolio-selection-omega.test.ts
+          src/atlas/algorithm/portfolio-selection-canon-omega.test.ts
+          src/atlas/algorithm/endogenous-portfolio-engine-v2.test.ts
+
+  python-boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install API test dependencies
+        run: pip install -r api/requirements.txt
+      - name: Run public-boundary and broker-authority tests
+        run: >-
+          pytest -q
+          api/test_atlas_consolidated_boundary.py
+          api/test_broker_mount_authority.py
+          api/test_trading212_v2.py
