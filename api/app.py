@@ -5,6 +5,7 @@ import os
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from api.agent_infrastructure import _control
 from api.agent_infrastructure import router as agent_infrastructure_router
 from api.agentic_evidence_bridge import router as agentic_evidence_bridge_router
 from api.agentic_governance import router as agentic_governance_router
@@ -39,6 +40,44 @@ app.include_router(agentic_governance_router)
 app.include_router(agent_infrastructure_router)
 app.include_router(document_ingestion_router)
 
+_AGENTIC_STATE_MUTATING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+_AGENTIC_PREFIX = "/v1/agentic-omega"
+
+
+@app.middleware("http")
+async def atlas_e5_agentic_control(request: Request, call_next):
+    """Fail closed before any agentic endpoint can mutate durable runtime state.
+
+    Agentic v1/v2 routes append runs, recovery snapshots, predictions, capability
+    evidence and sync receipts to the durable ledger. HTTP reachability is a
+    capability, not PERSIST authority, so every non-read method under the
+    agentic namespace requires the independent ATLAS agent-control token.
+
+    GET health/capability/provenance views stay observable without granting
+    mutation authority.
+    """
+    if (
+        request.method.upper() in _AGENTIC_STATE_MUTATING_METHODS
+        and request.url.path.startswith(_AGENTIC_PREFIX)
+    ):
+        try:
+            _control(request.headers.get("x-atlas-agent-token"))
+        except HTTPException as exc:
+            return JSONResponse(
+                status_code=exc.status_code,
+                content={
+                    "detail": exc.detail,
+                    "e5Control": {
+                        "code": "AGENTIC_PERSIST_AUTHORITY_REQUIRED",
+                        "namespace": _AGENTIC_PREFIX,
+                        "method": request.method.upper(),
+                        "architecture": "CAPABILITY != AUTHORITY; WRITE != PERSIST",
+                    },
+                },
+                headers=dict(exc.headers) if exc.headers else None,
+            )
+    return await call_next(request)
+
 
 @app.get("/v1/mobile/deployment", tags=["mobile-v2"])
 async def mobile_deployment_provenance() -> dict[str, object]:
@@ -48,15 +87,30 @@ async def mobile_deployment_provenance() -> dict[str, object]:
     commit = os.getenv("RENDER_GIT_COMMIT", "").strip()
     canonical_repo = "Vicente24051980/atlas_genesis"
     return {
-        "service": "atlas-mobile-deployment",
-        "runtime": "render" if os.getenv("RENDER", "").strip().lower() == "true" else "other",
-        "repoSlug": repo_slug or None,
-        "branch": branch or None,
-        "gitCommit": commit or None,
-        "externalHostname": os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip() or None,
-        "deployRevision": os.getenv("ATLAS_DEPLOY_REVISION", "").strip() or None,
-        "sourceMatchesCanonical": repo_slug.lower() == canonical_repo.lower() and branch == "main",
-        "secretsExposed": False,
+        "service": "ATLAS Ω API",
+        "status": "online",
+        "version": "0.4.0",
+        "finnhub_configured": bool(os.getenv("FINNHUB_TOKEN", "").strip()),
+        "broker": {
+            "provider": "Trading212",
+            "environment": os.getenv("TRADING212_ENV", "demo").strip().lower(),
+            "configured": bool(
+                os.getenv("TRADING212_API_KEY", "").strip()
+                and os.getenv("TRADING212_API_SECRET", "").strip()
+                and os.getenv("ATLAS_BROKER_CONTROL_TOKEN", "").strip()
+            ),
+        },
+        "deployment": {
+            "service": "atlas-mobile-deployment",
+            "runtime": "render" if os.getenv("RENDER", "").strip().lower() == "true" else "other",
+            "repoSlug": repo_slug or None,
+            "branch": branch or None,
+            "gitCommit": commit or None,
+            "externalHostname": os.getenv("RENDER_EXTERNAL_HOSTNAME", "").strip() or None,
+            "deployRevision": os.getenv("ATLAS_DEPLOY_REVISION", "").strip() or None,
+            "sourceMatchesCanonical": repo_slug.lower() == canonical_repo.lower() and branch == "main",
+            "secretsExposed": False,
+        },
     }
 
 
