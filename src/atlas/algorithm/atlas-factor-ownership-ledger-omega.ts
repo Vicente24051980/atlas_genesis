@@ -1,4 +1,4 @@
-export const ATLAS_FACTOR_OWNERSHIP_LEDGER_OMEGA_VERSION = '2026-09-07-v1.0.0' as const;
+export const ATLAS_FACTOR_OWNERSHIP_LEDGER_OMEGA_VERSION = '2026-09-07-v1.1.0' as const;
 
 export type FactorOwnershipRecord = {
   factorId: 'VALUATION' | 'FREE_CASH_FLOW' | 'ROIC' | 'BACKLOG' | 'CAPEX' | 'EXPECTATION_GAP' | 'ORGANIC_GROWTH';
@@ -102,6 +102,22 @@ export function getFactorOwnership(factorId: FactorOwnershipRecord['factorId']):
   const record = ATLAS_FACTOR_OWNERSHIP_LEDGER_OMEGA.find((item) => item.factorId === factorId);
   if (!record) throw new Error(`factor_not_registered:${factorId}`);
   return record;
+}
+
+export function getUnresolvedScoringOwnershipFactors(): FactorOwnershipRecord['factorId'][] {
+  return ATLAS_FACTOR_OWNERSHIP_LEDGER_OMEGA
+    .filter((record) => record.scoringOwner === 'UNRESOLVED_RUNTIME_MAPPING')
+    .map((record) => record.factorId);
+}
+
+/**
+ * Canonical portfolio publication is stricter than research/diagnostic execution.
+ * Until every high-risk factor either has one mapped scoring owner or explicitly has
+ * no raw-factor scoring authority, ATLAS must not promote a structural portfolio to
+ * CANONICAL_READY. This prevents an unmapped legacy scorer from bypassing the ledger.
+ */
+export function isFactorOwnershipCanonicalPublicationReady(): boolean {
+  return getUnresolvedScoringOwnershipFactors().length === 0;
 }
 
 export function validateFactorClaim(
