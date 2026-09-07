@@ -1,0 +1,25 @@
+name: Earnings Learning Omega v2.2 CI
+
+on:
+  pull_request:
+    paths:
+      - 'runtime/agentic_omega/earnings_learning_v2_2.py'
+      - 'runtime/agentic_omega/test_earnings_learning_v2_2.py'
+      - 'CURRENT_CANON/2026-09-06_EARNINGS_LEARNING_OMEGA_V2_2.md'
+      - '.github/workflows/earnings-learning-v2-2-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'runtime/agentic_omega/earnings_learning_v2_2.py'
+      - 'runtime/agentic_omega/test_earnings_learning_v2_2.py'
+
+jobs:
+  focused-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --upgrade pip pytest
+      - run: pytest -q runtime/agentic_omega/test_earnings_learning_v2_2.py
