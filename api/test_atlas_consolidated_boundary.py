@@ -45,6 +45,8 @@ def test_legacy_buy_is_suppressed_at_public_boundary() -> None:
     assert analysis["assessmentAuthority"] == "E2_SUBORDINATE_SENSOR_ONLY"
     assert analysis["gateStatus"] == "NOT_EVALUATED_BY_E3"
     assert analysis["portfolioSelectionStatus"] == "NOT_EVALUATED"
+    assert analysis["controlStatus"] == "NOT_AUTHORIZED_BY_E5"
+    assert analysis["assuranceStatus"] == "NOT_EVALUATED_BY_E6"
     assert analysis["executionStatus"] == "NOT_AUTHORIZED"
     assert result["decisionAuthority"] == "NONE"
     assert result["portfolioSelectionAuthority"] is False
@@ -57,7 +59,21 @@ async def test_engine_endpoint_exposes_only_six_canonical_engines() -> None:
     ids = [x["id"] for x in result["canonicalEngines"]]
     assert ids == ["E1", "E2", "E3", "E4", "E5", "E6"]
     assert result["researchSubstrate"]["decisionAuthority"] == "NONE"
-    assert "RESEARCH -> SIGNAL -> SCORE -> GATE -> PORTFOLIO_SELECTION -> EXECUTION" == result["planeSeparation"]
+    assert result["decisionPipeline"] == "R0_RESEARCH -> E1_EVIDENCE -> E2_ASSESSMENT -> E3_GATE -> E4_DECISION -> EXECUTION"
+    assert result["planeSeparation"] == "RESEARCH -> SIGNAL -> SCORE -> GATE -> PORTFOLIO_SELECTION -> EXECUTION"
+    assert result["controlModel"] == "E5_CONTROL_TRANSVERSAL_PERMISSIONS_GOVERNANCE_REVOCATION"
+    assert result["assuranceModel"] == "E6_ASSURANCE_INDEPENDENT_EVALUATION_NOT_DECISION_STAGE"
+
+
+def test_e6_is_not_part_of_decision_pipeline() -> None:
+    assert "E6" not in consolidated.DECISION_PIPELINE
+    assert "ASSURANCE" not in consolidated.DECISION_PIPELINE
+    assert consolidated.ASSURANCE_MODEL.endswith("NOT_DECISION_STAGE")
+
+
+def test_e5_is_control_not_execution_engine() -> None:
+    assert "CONTROL_TRANSVERSAL" in consolidated.CONTROL_MODEL
+    assert "EXECUTION" not in consolidated.CONTROL_MODEL
 
 
 @pytest.mark.asyncio
