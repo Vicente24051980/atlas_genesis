@@ -17,6 +17,20 @@ from runtime.agentic_omega.execution_control import (
 NOW = datetime.now(timezone.utc).isoformat()
 
 
+class MemoryLedger:
+    def __init__(self):
+        self._events = []
+
+    @property
+    def events(self):
+        return tuple(self._events)
+
+    def append(self, event_type, payload):
+        event = {"event_type": event_type, "payload": payload}
+        self._events.append(event)
+        return event
+
+
 def request(**overrides):
     base = dict(
         objective="update reversible internal state",
@@ -192,3 +206,29 @@ def test_modify_canon_never_self_authorizes_even_with_approval_id():
     receipt = controller.authorize(action)
     assert receipt.state is ActionState.BLOCKED
     assert "cannot self-authorize" in receipt.reason
+
+
+def test_executed_unverified_action_can_be_recovered_and_verified_after_restart():
+    ledger = MemoryLedger()
+    first_process = AgenticExecutionController(ledger)
+    action = request(idempotency_key="restart-continuity")
+    first_process.authorize(action)
+    first_process.mark_executed(action.action_id, execution_reference="tool-receipt-128")
+
+    restarted = AgenticExecutionController(ledger)
+    assert restarted.receipt(action.action_id).state is ActionState.EXECUTED_UNVERIFIED
+    verified = restarted.verify(action.action_id, [evidence()])
+    assert verified.state is ActionState.VERIFIED_COMPLETE
+
+
+def test_idempotency_binding_survives_controller_restart():
+    ledger = MemoryLedger()
+    first_process = AgenticExecutionController(ledger)
+    original = request(idempotency_key="restart-duplicate")
+    assert first_process.authorize(original).state is ActionState.AUTHORIZED
+
+    restarted = AgenticExecutionController(ledger)
+    duplicate = request(idempotency_key="restart-duplicate")
+    receipt = restarted.authorize(duplicate)
+    assert receipt.state is ActionState.BLOCKED
+    assert receipt.reason.startswith("DUPLICATE_ACTION")
