@@ -51,7 +51,7 @@ Nombre canónico: **ATLAS Ω — MASTER UNIVERSE PROMPT**.
 
 Toda autoridad anterior de selección queda `SUPERSEDED_AS_SELECTION_AUTHORITY`, incluyendo prompts maestros previos, amendments, tesis de cartera, Top 10/20/25/30/32/35/37, snapshots, listas incumbentes, reglas de protección de nombres y cualquier otro “mundo” operativo incompatible.
 
-Los documentos previos pueden permanecer en el repositorio como **HISTORICAL / PROVENANCE / RESEARCH ONLY**. No pueden influir por sí mismos en ranking, membership, score, replacement ni `OPTIMAL_N`.
+Los documentos previos pueden permanecer en el repositorio como **HISTORICAL / PROVENANCE / RESEARCH ONLY**. No pueden influir por sí mismos en ranking, membership, score, replacement ni `SELECTED_N`.
 
 ## 2. Point Zero / clean rebuild
 
@@ -87,15 +87,15 @@ La pregunta decisiva no es «¿es buena empresa?», sino:
 
 `Breadth Rotation = 0%` en score/selección canónica. Es `SHADOW_SIGNAL / DISCOVERY_ONLY` hasta promoción formal validada.
 
-## 4. OPTIMAL_N
+## 4. SELECTED_N
 
-`OPTIMAL_N = FULLY_ENDOGENOUS`
+`SELECTED_N = FULLY_ENDOGENOUS`
 
 No existe target, floor ni ceiling canónico de 20, 25, 27, 29, 30, 32, 35, 37, 50 ni de ningún otro número arbitrario.
 
 La cartera comienza desde Point Zero y se expande únicamente mientras la siguiente incorporación mejora materialmente la utilidad retorno/riesgo de la cartera completa. Cuando la siguiente incorporación no mejora esa utilidad, la expansión se detiene.
 
-Las restricciones de cardinalidad sólo pueden existir como límites técnicos transitorios de una implementación y deben declararse `NON_CANONICAL_IMPLEMENTATION_LIMIT`; nunca pueden decidir el `OPTIMAL_N` económico.
+Las restricciones de cardinalidad sólo pueden existir como límites técnicos transitorios de una implementación y deben declararse `NON_CANONICAL_IMPLEMENTATION_LIMIT`; nunca pueden decidir el `SELECTED_N` económico.
 
 ## 5. Pipeline canónico de selección
 
@@ -112,7 +112,7 @@ Las restricciones de cardinalidad sólo pueden existir como límites técnicos t
 11. **Falsifiers** como reglas dentro de E3 · GATE Ω.
 12. Duelos entre empresas económicamente comparables.
 13. **Competition for Capital** mediante duelos cross-sector.
-14. Selección portfolio-level y determinación endógena de `OPTIMAL_N`.
+14. Selección portfolio-level y determinación endógena de `SELECTED_N`.
 15. Auditoría de frontera, concentración oculta, escenarios bull/base/bear y sesgos.
 16. Aplicación de controles de sizing y riesgo, incluido `AI EXPOSURE CONTROL Ω`, sin retrocontaminar el ranking Point Zero.
 
@@ -189,7 +189,9 @@ Si una reconstrucción independiente produce la misma cartera, eso es evidencia 
 ## 12. Campos de salida obligatorios
 
 `UNIVERSE_VERSION`  
-`OPTIMAL_N`  
+`SELECTED_N`
+
+`GLOBAL_OPTIMALITY`
 `SELECTED_PORTFOLIO`  
 `FIRST_10_CHALLENGERS`  
 `DECISIVE_REPLACEMENTS`  
@@ -200,3 +202,11 @@ Si una reconstrucción independiente produce la misma cartera, eso es evidencia 
 `AI_MOMENTUM_OVERRIDE`  
 `CONFIDENCE`  
 `DATA_CUTOFF`
+
+## Corrección de auditoría autorizada · 7-sep-2026 · issue #184
+
+`ENDOGENOUS N ≠ PROVEN GLOBAL OPTIMUM`. La búsqueda heurística informa `SELECTED_N` y `GLOBAL_OPTIMALITY = NOT_PROVEN`. `OPTIMAL_N` queda reservado a una prueba o certificado suficiente de optimalidad global sobre un objetivo, universo y restricciones declarados. Los campos de compatibilidad `optimalN: null` no deben rellenarse con `selectedN`.
+
+La baja volatilidad sólo tiene valor cuando mejora la utilidad económica; no es un objetivo a cualquier precio. La selección no autoriza por sí sola reemplazo ni ejecución.
+
+Estado de implementación: los selectores ya separaban cardinalidad heurística y optimalidad antes de esta corrección documental. Las unidades de riesgo y el sizing estructural siguen `RESEARCH_PENDING`; tests de software no demuestran calibración económica ni rentabilidad.
