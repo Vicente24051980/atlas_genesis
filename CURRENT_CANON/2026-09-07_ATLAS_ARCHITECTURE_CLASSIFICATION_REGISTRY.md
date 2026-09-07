@@ -39,6 +39,23 @@ Every object must resolve to exactly one class:
 
 `R0 RESEARCH Ω` is a substrate, not an engine.
 
+## Decision pipeline vs. transversal control and assurance
+
+The canonical **decision pipeline** is:
+
+`R0 RESEARCH → E1 EVIDENCE → E2 ASSESSMENT → E3 GATE → E4 DECISION → EXECUTION`
+
+This does **not** mean that execution is an E5 engine stage.
+
+- `E5 CONTROL Ω` is transversal: it governs whether execution is permitted, by whom, under what capability, with what approval, persistence and revocation conditions. E5 does not generate the investment decision.
+- `E6 ASSURANCE Ω` is independent evaluation: it audits E1–E5 and execution outcomes. E6 is not the final link in the decision chain, does not approve an order, and does not create BUY/SELL authority.
+
+The conceptual type-separation chain:
+
+`RESEARCH → SIGNAL → SCORE → GATE → PORTFOLIO_SELECTION → EXECUTION`
+
+is a **type-system invariant**, not a one-to-one mapping between named engines and stages.
+
 ## Host-engine rule
 
 Legacy modules may remain executable, but they must be interpreted as **functions hosted by E1–E6**, never as seventh/eighth/etc. engines.
@@ -80,16 +97,15 @@ Every gate rule has at minimum:
 
 A gate is never a number and never adds points.
 
-## Research/signal/score separation
-
-`RESEARCH → SIGNAL → SCORE → GATE → PORTFOLIO_SELECTION → EXECUTION`
-
-Forbidden leaks:
+## Forbidden architectural leaks
 
 1. Research changing score without a promoted versioned signal.
 2. Gate becoming a bonus/partial score.
 3. Stress test presented as forecast or ranking input.
 4. Synthetic/simulated case counted as real evidence.
+5. E5 emitting investment conclusions rather than controlling permission.
+6. E6 granting decision, execution or canon-write authority.
+7. Any public sensor emitting BUY/SELL directly without E3/E4 and E5-controlled human authorization.
 
 ## Synthetic evaluation namespace
 
@@ -103,7 +119,7 @@ For each logical object, exactly one authority may be `CURRENT/FROZEN`.
 
 Current known authorities:
 
-- architecture → this registry + ratification document + kernel registry v4.0.0
+- architecture → this registry + ratification document + kernel registry (effective source version)
 - financial selection prompt → `docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md`
 - selection universe → `ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06`
 - operational portfolio snapshot → `CURRENT_CANON/2026-09-06_ATLAS_CURRENT_OPERATIONAL_PORTFOLIO_27.md`
@@ -111,6 +127,10 @@ Current known authorities:
 - official investment horizon → `3–6 years`
 
 All incompatible predecessors are `HISTORICAL/SUPERSEDED` even if their original text still contains decorative words such as current/canonical/frozen/sealed.
+
+## Domain numbering rule
+
+Domain numbers are resolved from the actual ATLAS OS index. Missing-looking numbers are never invented as placeholders. Existing domains `03` and `11` retain their real identities; architectural cleanup cannot repurpose them merely to make a sequence look contiguous.
 
 ## Expansion test
 
