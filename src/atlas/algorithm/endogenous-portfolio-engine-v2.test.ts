@@ -20,7 +20,7 @@ function c(i:number, er=12, driver=`d${i}`, funding:string[]=[]): PortfolioCandi
   };
 }
 
-describe('Endogenous Portfolio Engine v2.2 — Point Zero / fully endogenous N',()=>{
+describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local selection',()=>{
   it('has no binding ex-ante cardinality floor or ceiling',()=>{
     expect(MIN_PORTFOLIO_POSITIONS_V2).toBe(0);
     expect(MAX_PORTFOLIO_POSITIONS_V2).toBe(Number.POSITIVE_INFINITY);
@@ -102,15 +102,45 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / fully endogenous N',
     expect(r.classifications.T100).toBe('REJECTED');
   });
 
-  it('builds the frontier from Point Zero and stops at the first non-improving N+1',()=>{
+  it('reports its cardinality as local/heuristic and never as globally proven OPTIMAL_N',()=>{
     const xs=Array.from({length:35},(_,i)=>c(i+1,16-i*0.4));
     const r=runEndogenousPortfolioEngineV2(xs);
     expect(r.frontier[0].n).toBe(1);
-    expect(r.optimalN).toBeGreaterThanOrEqual(0);
-    expect(r.optimalN).toBeLessThanOrEqual(xs.length);
-    expect(r.frontier.at(-1)!.n).toBeGreaterThanOrEqual(r.optimalN ?? 0);
+    expect(r.selectedN).toBeGreaterThanOrEqual(0);
+    expect(r.selectedN).toBeLessThanOrEqual(xs.length);
+    expect(r.optimalN).toBeNull();
+    expect(r.globalOptimalityProven).toBe(false);
     expect(r.emitsTargetWeights).toBe(false);
     expect(r.emitsEntryTiming).toBe(false);
+  });
+
+  it('locks a valid non-monotone frontier counterexample instead of falsely calling the first local stop globally optimal',()=>{
+    const a=c(1,12); a.ticker='A'; a.canonicalEntityId='A';
+    const b=c(2,9); b.ticker='B'; b.canonicalEntityId='B';
+    const cc=c(3,9); cc.ticker='C'; cc.canonicalEntityId='C';
+    for(const s of CANONICAL_SCENARIOS){a.scenarios[s]=-0.5;b.scenarios[s]=-0.5;cc.scenarios[s]=-0.5;}
+    a.scenarios.US_RECESSION=-3;
+    b.scenarios.AI_CAPEX_MINUS_30=3;
+    cc.scenarios.AI_CAPEX_MINUS_30=-3;
+    cc.scenarios.US_RECESSION=3;
+
+    const singletonUtilities=[a,b,cc].map(x=>evaluatePortfolioSetV2([x]).utility);
+    const singleton=Math.max(...singletonUtilities);
+    const bestPair=Math.max(
+      evaluatePortfolioSetV2([a,b]).utility,
+      evaluatePortfolioSetV2([a,cc]).utility,
+      evaluatePortfolioSetV2([b,cc]).utility,
+    );
+    const triple=evaluatePortfolioSetV2([a,b,cc]).utility;
+
+    expect(bestPair).toBeLessThan(singleton);
+    expect(triple).toBeGreaterThan(singleton);
+
+    const r=runEndogenousPortfolioEngineV2([a,b,cc]);
+    expect(r.selectedN).toBe(1);
+    expect(r.optimalN).toBeNull();
+    expect(r.globalOptimalityProven).toBe(false);
+    expect(r.searchNeighborhood).toBe('ONE_ADD_FIXED_N_ONE_SWAP');
   });
 
   it('deduplicates canonical economic entities before portfolio competition',()=>{

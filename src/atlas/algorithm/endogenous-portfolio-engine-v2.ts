@@ -1,4 +1,4 @@
-export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-06-v2.2.0' as const;
+export const ENDOGENOUS_PORTFOLIO_ENGINE_V2_VERSION = '2026-09-07-v2.3.0' as const;
 
 // Compatibility exports only. They are non-binding sentinels, not portfolio
 // design constraints. Canonical clean selection has no ex-ante floor/ceiling.
@@ -67,7 +67,7 @@ export type PortfolioEnginePolicyV2 = {
   maxPositions?: number;
   marginalUtilityThreshold?: number;
 
-  // Legacy compatibility fields. Canonical v2.2 fails closed if callers try to
+  // Legacy compatibility fields. Canonical v2.3 fails closed if callers try to
   // give diversification, causal redundancy or required-driver coverage
   // independent selection authority.
   missingDriverRobustnessThreshold?: number;
@@ -98,8 +98,8 @@ export type PortfolioMetricsV2 = {
   volatilityRisk: number;
   fragility: number;
   convexity: number;
-  causalDiversification: number; // diagnostic only in canonical v2.2
-  causalRedundancy: number; // diagnostic only in canonical v2.2
+  causalDiversification: number; // diagnostic only in canonical v2.3
+  causalRedundancy: number; // diagnostic only in canonical v2.3
   financingCorrelation: number;
   robustness: number;
   worstScenarioImpact: number;
@@ -121,11 +121,15 @@ export type PortfolioFrontierPointV2 = {
 export type PortfolioEngineResultV2 = {
   status: 'SELECTED' | 'EVIDENCE_PENDING' | 'INSUFFICIENT_ELIGIBLE_CANDIDATES';
   selectedTickers: string[];
-  optimalN: number | null;
+  /** Cardinality produced by the declared local-search path. */
+  selectedN: number | null;
+  /** Reserved for a genuine globally certified optimum. This engine cannot populate it. */
+  optimalN: null;
   frontier: PortfolioFrontierPointV2[];
   classifications: Record<string, PortfolioClass>;
   reasonNPlusOne: string | null;
   searchMode: 'DETERMINISTIC_LOCAL_SEARCH';
+  searchNeighborhood: 'ONE_ADD_FIXED_N_ONE_SWAP';
   globalOptimalityProven: false;
   emitsTargetWeights: false;
   emitsEntryTiming: false;
@@ -159,6 +163,9 @@ const DEFAULT_POLICY: NormalizedPolicyV2 = {
   replacementThreshold: { GREEN: 0.30, ORANGE: 0.15, RED: 0.01 },
   maxLocalSearchIterations: 6,
 };
+
+const SEARCH_MODE = 'DETERMINISTIC_LOCAL_SEARCH' as const;
+const SEARCH_NEIGHBORHOOD = 'ONE_ADD_FIXED_N_ONE_SWAP' as const;
 
 function finite(x: number): boolean { return Number.isFinite(x); }
 function mean(xs: number[]): number { return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0; }
@@ -286,8 +293,9 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
   const causalRedundancy = averagePairwise(candidates, (a, b) => cosineAbs(a.causalDrivers, b.causalDrivers));
   const causalDiversification = 1 - causalRedundancy;
 
-  // Financing correlation remains a risk input because the same financed
-  // dollar can create common fragility even across different sectors.
+  // Financing correlation remains a research risk input because the same financed
+  // dollar can create common fragility even across different sectors. B5 remains
+  // open: its unit semantics/authority are not canonically validated yet.
   const financingCorrelation = averagePairwise(candidates, (a, b) => jaccard(a.fundingSources, b.fundingSources));
 
   const scenarioMeans = CANONICAL_SCENARIOS.map(s => mean(candidates.map(c => c.scenarios[s])));
@@ -298,7 +306,8 @@ export function evaluatePortfolioSetV2(candidates: PortfolioCandidateV2[], polic
     const pos = candidates.filter(c => c.scenarios[s] > 0).reduce((sum, c) => sum + c.scenarios[s], 0);
     return neg === 0 ? (pos > 0 ? 1 : 0) : clamp(pos / neg, 0, 1);
   }));
-  // Robustness has authority only as modeled risk reduction.
+  // Robustness has authority only as modeled risk reduction. B5 still blocks
+  // canonical publication until these units/weights are validated.
   const robustness = worstScenarioImpact + offsetCapacity - simultaneousAffectedMax / n;
   const complexity = Math.max(0, n - 1);
   const meanConfidence = mean(candidates.map(c => c.confidence));
@@ -384,10 +393,26 @@ function classifyUniverse(selected: PortfolioCandidateV2[], eligible: PortfolioC
   return out;
 }
 
+function emptyResult(): PortfolioEngineResultV2 {
+  return {
+    status: 'EVIDENCE_PENDING',
+    selectedTickers: [],
+    selectedN: null,
+    optimalN: null,
+    frontier: [],
+    classifications: {},
+    reasonNPlusOne: null,
+    searchMode: SEARCH_MODE,
+    searchNeighborhood: SEARCH_NEIGHBORHOOD,
+    globalOptimalityProven: false,
+    emitsTargetWeights: false,
+    emitsEntryTiming: false,
+  };
+}
+
 export function runEndogenousPortfolioEngineV2(candidates: PortfolioCandidateV2[], policy: PortfolioEnginePolicyV2 = {}): PortfolioEngineResultV2 {
   const p = normalizePolicy(policy);
-  const empty: PortfolioEngineResultV2 = { status: 'EVIDENCE_PENDING', selectedTickers: [], optimalN: null, frontier: [], classifications: {}, reasonNPlusOne: null,
-    searchMode: 'DETERMINISTIC_LOCAL_SEARCH', globalOptimalityProven: false, emitsTargetWeights: false, emitsEntryTiming: false };
+  const empty = emptyResult();
   if (!p || candidates.some(c => !validateCandidate(c))) return empty;
 
   const deduplicated = deduplicateEntities(candidates);
@@ -397,7 +422,7 @@ export function runEndogenousPortfolioEngineV2(candidates: PortfolioCandidateV2[
   if (eligible.length === 0) return {
     ...empty,
     status: 'INSUFFICIENT_ELIGIBLE_CANDIDATES',
-    optimalN: 0,
+    selectedN: 0,
     classifications: Object.fromEntries(candidates.map(c => [c.ticker, (!c.hardGatesPassed || !c.falsifierVetoPassed) ? 'REJECTED' : 'BORDERLINE'])) as Record<string, PortfolioClass>,
     reasonNPlusOne: 'No eligible canonical entity passed hard gates and falsifier veto.',
   };
@@ -405,23 +430,28 @@ export function runEndogenousPortfolioEngineV2(candidates: PortfolioCandidateV2[
   const frontier: PortfolioFrontierPointV2[] = [];
   let chosen: PortfolioFrontierPointV2 | null = null;
   let previousUtility = 0; // Point Zero empty-portfolio baseline.
-  let reason = 'Every eligible addition improved utility; OPTIMAL_N equals the eligible canonical-entity count, not a preset ceiling.';
+  let reason = 'Every eligible one-step addition on the declared local-search path improved utility; selectedN equals the eligible canonical-entity count. This is not a global optimality claim.';
 
+  // IMPORTANT LIMITATION: this is a deterministic local path, not a global
+  // combinatorial solver. It stops when the next cardinality on the one-add /
+  // fixed-N one-swap path does not improve utility. Non-monotone complementarity
+  // can therefore hide a superior set reachable only through a coordinated
+  // multi-add move. That limitation is explicitly disclosed in the result.
   for (let n = 1; n <= eligible.length; n++) {
     const set = localBestForN(eligible, n, p);
     const point: PortfolioFrontierPointV2 = {
       n,
       tickers: set.map(c => c.ticker),
       metrics: evaluatePortfolioSetV2(set, p),
-      searchMode: 'DETERMINISTIC_LOCAL_SEARCH',
+      searchMode: SEARCH_MODE,
     };
     frontier.push(point);
 
     const delta = point.metrics.utility - previousUtility;
     if (delta <= p.marginalUtilityThreshold) {
       reason = n === 1
-        ? `OPTIMAL_N=0 because the best singleton ΔU=${delta.toFixed(4)} does not exceed threshold ${p.marginalUtilityThreshold.toFixed(4)}.`
-        : `N=${n - 1} selected because ΔU to N+1=${delta.toFixed(4)} does not exceed threshold ${p.marginalUtilityThreshold.toFixed(4)}. No fixed-N, sector, diversification or missing-driver exception is permitted.`;
+        ? `selectedN=0 on the declared local path because the best singleton ΔU=${delta.toFixed(4)} does not exceed threshold ${p.marginalUtilityThreshold.toFixed(4)}. No global optimum is claimed.`
+        : `selectedN=${n - 1} on the declared local path because ΔU to the next cardinality=${delta.toFixed(4)} does not exceed threshold ${p.marginalUtilityThreshold.toFixed(4)}. Coordinated multi-add improvements may exist; globalOptimalityProven=false.`;
       break;
     }
 
@@ -431,16 +461,12 @@ export function runEndogenousPortfolioEngineV2(candidates: PortfolioCandidateV2[
 
   if (!chosen) {
     return {
+      ...empty,
       status: 'SELECTED',
-      selectedTickers: [],
-      optimalN: 0,
+      selectedN: 0,
       frontier,
       classifications: classifyUniverse([], eligible, candidates, p),
       reasonNPlusOne: reason,
-      searchMode: 'DETERMINISTIC_LOCAL_SEARCH',
-      globalOptimalityProven: false,
-      emitsTargetWeights: false,
-      emitsEntryTiming: false,
     };
   }
 
@@ -448,11 +474,13 @@ export function runEndogenousPortfolioEngineV2(candidates: PortfolioCandidateV2[
   return {
     status: 'SELECTED',
     selectedTickers: chosen.tickers,
-    optimalN: chosen.n,
+    selectedN: chosen.n,
+    optimalN: null,
     frontier,
     classifications: classifyUniverse(selected, eligible, candidates, p),
     reasonNPlusOne: reason,
-    searchMode: 'DETERMINISTIC_LOCAL_SEARCH',
+    searchMode: SEARCH_MODE,
+    searchNeighborhood: SEARCH_NEIGHBORHOOD,
     globalOptimalityProven: false,
     emitsTargetWeights: false,
     emitsEntryTiming: false,
