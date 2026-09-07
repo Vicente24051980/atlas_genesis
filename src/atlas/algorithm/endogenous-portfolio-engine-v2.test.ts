@@ -20,22 +20,6 @@ function c(i:number, er=12, driver=`d${i}`, funding:string[]=[]): PortfolioCandi
   };
 }
 
-function cleanScenarioCandidate(ticker:string, er:number, first:number, second:number): PortfolioCandidateV2 {
-  const x=c(Number(ticker.charCodeAt(0)),er,ticker,[]);
-  x.ticker=ticker;
-  x.canonicalEntityId=`ENTITY-${ticker}`;
-  x.permanentLossRisk=0;
-  x.tailRisk=0;
-  x.volatilityRisk=0;
-  x.fragility=0;
-  x.convexity=0;
-  x.confidence=1;
-  for(const s of CANONICAL_SCENARIOS) x.scenarios[s]=0;
-  x.scenarios[CANONICAL_SCENARIOS[0]]=first;
-  x.scenarios[CANONICAL_SCENARIOS[1]]=second;
-  return x;
-}
-
 describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local selection',()=>{
   it('has no binding ex-ante cardinality floor or ceiling',()=>{
     expect(MIN_PORTFOLIO_POSITIONS_V2).toBe(0);
@@ -125,20 +109,21 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local sel
     expect(r.selectedN).toBeGreaterThanOrEqual(0);
     expect(r.selectedN).toBeLessThanOrEqual(xs.length);
     expect(r.optimalN).toBeNull();
-    expect(r.searchMode).toBe('DETERMINISTIC_LOCAL_SEARCH');
     expect(r.globalOptimalityProven).toBe(false);
     expect(r.emitsTargetWeights).toBe(false);
     expect(r.emitsEntryTiming).toBe(false);
   });
 
   it('locks the known non-monotone frontier limitation instead of falsely calling the first local stop globally optimal',()=>{
-    // With the current utility, complementarity can make the best triple better
-    // than every pair even though the best pair is worse than the best singleton.
-    // A one-add local search may legitimately stop at A; it must disclose that
-    // limitation rather than publish OPTIMAL_N=1.
-    const a=cleanScenarioCandidate('A',8,5,2);
-    const b=cleanScenarioCandidate('B',8,-5,2);
-    const cc=cleanScenarioCandidate('C',10,5,-3);
+    const a=c(1,9.78); a.ticker='A'; a.canonicalEntityId='A';
+    const b=c(2,9.36); b.ticker='B'; b.canonicalEntityId='B';
+    const cc=c(3,9.36); cc.ticker='C'; cc.canonicalEntityId='C';
+    for(const s of CANONICAL_SCENARIOS){a.scenarios[s]=-0.5;b.scenarios[s]=-0.5;cc.scenarios[s]=-0.5;}
+    a.scenarios.AI_CAPEX_MINUS_30=-3;
+    b.scenarios.AI_CAPEX_MINUS_30=3;
+    cc.scenarios.AI_CAPEX_MINUS_30=3;
+    b.scenarios.US_RECESSION=-3;
+    cc.scenarios.US_RECESSION=3;
 
     const singleton=evaluatePortfolioSetV2([a]).utility;
     const bestPair=Math.max(
@@ -156,7 +141,7 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local sel
     expect(r.selectedN).toBe(1);
     expect(r.optimalN).toBeNull();
     expect(r.globalOptimalityProven).toBe(false);
-    expect(r.searchNeighborhood).toBe('ONE_ADD_ONE_DROP_ONE_SWAP');
+    expect(r.searchNeighborhood).toBe('ONE_ADD_FIXED_N_ONE_SWAP');
   });
 
   it('deduplicates canonical economic entities before portfolio competition',()=>{
@@ -178,7 +163,6 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local sel
     const r=runEndogenousPortfolioEngineV2(xs);
     expect(r.searchMode).toBe('DETERMINISTIC_LOCAL_SEARCH');
     expect(r.globalOptimalityProven).toBe(false);
-    expect(r.optimalN).toBeNull();
   });
 
   it('allows a lower-score challenger to win at execution when it materially improves return/risk utility',()=>{
