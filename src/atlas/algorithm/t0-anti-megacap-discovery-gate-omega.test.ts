@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ATLAS_CANONICAL_DECISION_SEQUENCE,
-  ATLAS_PRIMARY_ENGINE_HIERARCHY,
-} from './atlas-primary-engine-hierarchy';
-import {
   classifyMarketCapBucket,
   evaluateT0DiscoveryGate,
   rankAfterT0,
@@ -37,12 +33,9 @@ const balancedTen = (): T0DiscoveryCandidate[] => [
 ];
 
 describe('T0 Anti-Megacap Discovery Gate Ω v1.1', () => {
-  it('is the constitutional first gate in v4.18', () => {
-    expect(ATLAS_PRIMARY_ENGINE_HIERARCHY.version).toBe('2026-09-05-v4.18.0');
-    expect(ATLAS_PRIMARY_ENGINE_HIERARCHY.firstConstitutionalGate)
-      .toBe('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1_1');
-    expect(ATLAS_CANONICAL_DECISION_SEQUENCE[0]).toBe('INPUT');
-    expect(ATLAS_CANONICAL_DECISION_SEQUENCE[1]).toBe('T0_ANTI_MEGACAP_DISCOVERY_GATE_OMEGA_V1_1');
+  it('is a zero-score discovery-bias control, not an independent selection engine', () => {
+    expect(T0_POLICY_V1_1.directScoreContribution).toBe(0);
+    expect(T0_POLICY_V1_1.marketCapContribution).toBe(0);
   });
 
   it('uses the auditable five-bucket policy', () => {
