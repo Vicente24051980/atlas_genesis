@@ -177,3 +177,34 @@ Until then:
 **Facts first. Mechanism second. Scenarios before false certainty.**
 
 In ATLAS terms: source admission and PIT provenance precede interpretation; interpretation precedes scenario analysis; scenario analysis never masquerades as forecast or decision authority.
+
+## 11. E1 immediate source verification — 2026-09-07
+
+A first evidence-alignment pass was run immediately after preregistration. This section verifies anchors; it does **not** alter the frozen hypotheses or scenarios above.
+
+| Anchor | E1 status | Verification |
+|---|---|---|
+| US Aug payrolls +162k | `VERIFIED_PRIMARY` | BLS Employment Situation, 2026-09-04: total nonfarm payroll employment increased by 162,000 in August. |
+| US unemployment 4.1% | `VERIFIED_PRIMARY` | Same BLS release: unemployment rate unchanged at 4.1%. |
+| Wage growth 3.1% y/y | `VERIFIED_PRIMARY` | Same BLS release: average hourly earnings +3.1% over the year. |
+| Reuters consensus +56k | `VERIFIED_MARKET_SOURCE` | Reuters poll reported +56,000 expected before the BLS release. |
+| UST 2Y 4.37% on 2026-09-04 | `VERIFIED_PRIMARY` | U.S. Treasury Daily Treasury Par Yield Curve Rates: 2-year = 4.37% on 2026-09-04. |
+| Euro area HICP 3.3% y/y | `VERIFIED_PRIMARY` | Eurostat flash estimate for Aug 2026: 3.3%. |
+| Euro area energy 14.3% y/y | `VERIFIED_PRIMARY` | Eurostat Aug 2026 component: energy 14.3%; services 3.0%. |
+| CCC & lower OAS 10.53 pp | `VERIFIED_SERIES_WITH_TIMESTAMP_CAVEAT` | FRED/ICE BofA series BAMLH0A3HYC: 10.53 on 2026-09-02, 10.51 on 2026-09-03. Therefore 10.53 is a verified weekly level, not the latest available close at the report cutoff. |
+| Brent $96.28, +7.6% week | `VERIFIED_MARKET_SOURCE` | Reuters 2026-09-04 reports Brent ended the week at $96.28, +7.6%. Exact instrument/settlement convention should still be retained with the source rather than silently equated to EIA spot. |
+
+### E1 source references
+
+- BLS — Employment Situation, August 2026: https://www.bls.gov/news.release/archives/empsit_09042026.htm
+- U.S. Treasury — Daily Treasury Par Yield Curve Rates, 2026: https://home.treasury.gov/resource-center/data-chart-center/interest-rates/TextView?field_tdr_date_value=2026&type=daily_treasury_yield_curve
+- Eurostat — Euro area annual inflation up to 3.3%, 2026-09-01: https://ec.europa.eu/eurostat/en/web/products-euro-indicators/w/2-01092026-ap
+- FRED / ICE BofA — CCC & Lower US High Yield Index OAS: https://fred.stlouisfed.org/series/BAMLH0A3HYC
+- Reuters — Strong August jobs report / Reuters poll, 2026-09-04.
+- Reuters — Oil ends week higher on renewed US-Iran strikes, 2026-09-04.
+
+### E1 finding
+
+The report's principal macro anchors are substantially source-aligned. One precision correction matters: **CCC OAS = 10.53 pp is a verified intra-week observation (2 Sep), not the latest close shown by the series (10.51 on 3 Sep).** ATLAS therefore records timestamps per datum and does not collapse “weekly high/observation” into “Friday/latest close.”
+
+This is exactly the type of semantic/PIT distinction E1 must enforce before P-III interpretation.
