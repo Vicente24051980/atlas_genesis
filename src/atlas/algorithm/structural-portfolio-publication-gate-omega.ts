@@ -5,6 +5,10 @@ import {
   type PortfolioEnginePolicyV2,
 } from './endogenous-portfolio-engine-v2';
 import {
+  getUnresolvedScoringOwnershipFactors,
+  isFactorOwnershipCanonicalPublicationReady,
+} from './atlas-factor-ownership-ledger-omega';
+import {
   resolveStructuralUniverseAuthority,
   type StructuralUniverseAuthorityVersion,
 } from './structural-universe-authority-omega';
@@ -14,7 +18,7 @@ import {
   type StructuralSizingAttestation,
 } from './structural-sizing-authority-omega';
 
-export const STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_VERSION = '2026-09-06-v1.2.0' as const;
+export const STRUCTURAL_PORTFOLIO_PUBLICATION_GATE_VERSION = '2026-09-07-v1.3.0' as const;
 
 export type StructuralPublicationState =
   | 'CANONICAL_READY'
@@ -26,6 +30,7 @@ export type StructuralPublicationState =
   | 'FAIL_NON_DETERMINISTIC_PORTFOLIO_SELECTION'
   | 'BLOCKED_SIZING_NOT_IMPLEMENTED'
   | 'BLOCKED_INVALID_SIZING'
+  | 'BLOCKED_FACTOR_OWNERSHIP_UNRESOLVED'
   | 'BLOCKED_SIZING_POLICY_UNVALIDATED';
 
 export type MarginalRow = {
@@ -167,6 +172,10 @@ export function canonicalSizingAttestationState(sizing?: StructuralSizingEvidenc
   return null;
 }
 
+export function canonicalFactorOwnershipState(): StructuralPublicationState | null {
+  return isFactorOwnershipCanonicalPublicationReady() ? null : 'BLOCKED_FACTOR_OWNERSHIP_UNRESOLVED';
+}
+
 function marginalRanking(
   canonical: PortfolioCandidateV2[],
   selectedTickers: string[],
@@ -302,6 +311,8 @@ export function runStructuralPortfolioPublicationGateUnsafe(req: StructuralPortf
  * Universe whitelist, entity count, source and normalized hash are resolved
  * from the versioned ATLAS authority registry and cannot be caller supplied.
  * Sizing is separately attested by the versioned sizing authority.
+ * Factor Ownership is also binding here: unresolved scoring ownership blocks
+ * promotion even if low-level selection mechanics are otherwise reproducible.
  */
 export function runStructuralPortfolioPublicationGate(req: CanonicalStructuralPortfolioRunRequest): StructuralPortfolioRun {
   const authority = resolveStructuralUniverseAuthority(req.universeVersion);
@@ -320,6 +331,14 @@ export function runStructuralPortfolioPublicationGate(req: CanonicalStructuralPo
 
   if (result.publicationState !== 'CANONICAL_READY') return result;
 
+  const factorState = canonicalFactorOwnershipState();
+  if (factorState) return {
+    ...result,
+    publicationState: factorState,
+    reason: `Canonical publication blocked until Factor Ownership scoring owners are resolved for: ${getUnresolvedScoringOwnershipFactors().join(', ')}. Low-level mechanics remain research/test evidence only.`,
+    weights: null,
+  };
+
   const attestationState = canonicalSizingAttestationState(req.sizing);
   if (attestationState) return {
     ...result,
@@ -331,7 +350,7 @@ export function runStructuralPortfolioPublicationGate(req: CanonicalStructuralPo
   return {
     ...result,
     publicationState: 'CANONICAL_READY',
-    reason: 'Universe, PIT snapshot, deterministic selection, marginal ledger and canonically attested covariance-aware sizing gates passed.',
+    reason: 'Universe, PIT snapshot, deterministic selection, Factor Ownership, marginal ledger and canonically attested covariance-aware sizing gates passed.',
   };
 }
 
