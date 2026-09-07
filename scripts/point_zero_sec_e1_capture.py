@@ -13,8 +13,10 @@ from typing import Any
 UNIVERSE_VERSION = 'ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06'
 DEFAULT_UNIVERSE = Path('data/atlas-core-universe-economic-entities-2026-09-06.txt')
 SEC_TICKERS_URL = 'https://www.sec.gov/files/company_tickers.json'
+SEC_DERIVED_TICKER_TO_CIK_URL = 'https://raw.githubusercontent.com/jadchaar/sec-cik-mapper/main/mappings/stocks/ticker_to_cik.json'
+SEC_DERIVED_TICKER_TO_NAME_URL = 'https://raw.githubusercontent.com/jadchaar/sec-cik-mapper/main/mappings/stocks/ticker_to_company_name.json'
 SEC_FACTS_URL = 'https://data.sec.gov/api/xbrl/companyfacts/CIK{cik}.json'
-USER_AGENT = 'ATLAS-Research/1.0 github.com/Vicente24051980/atlas_genesis'
+USER_AGENT = 'ATLAS-Research/1.1 (contact via github.com/Vicente24051980/atlas_genesis/issues)'
 
 FLOW_TAGS = {
     'revenue': [
@@ -86,18 +88,63 @@ def _get_json(url: str, *, retries: int = 4, timeout: int = 30) -> Any:
             if isinstance(exc, urllib.error.HTTPError) and exc.code not in {403, 429, 500, 502, 503, 504}:
                 break
             time.sleep(min(8.0, 0.75 * (2 ** attempt)))
-    raise RuntimeError(f'FETCH_FAILED:{url}:{last.__class__.__name__ if last else "UNKNOWN"}')
+    if isinstance(last, urllib.error.HTTPError):
+        detail = f'HTTP_{last.code}'
+    else:
+        detail = last.__class__.__name__ if last else 'UNKNOWN'
+    raise RuntimeError(f'FETCH_FAILED:{url}:{detail}')
 
 
-def _ticker_map(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def _official_ticker_map(payload: dict[str, Any]) -> dict[str, dict[str, Any]]:
     out: dict[str, dict[str, Any]] = {}
     for row in payload.values():
         if not isinstance(row, dict):
             continue
         ticker = str(row.get('ticker', '')).upper().strip()
         if ticker:
-            out[ticker] = row
+            out[ticker] = {
+                'cik_str': row.get('cik_str'),
+                'title': row.get('title'),
+                'mapping_source': 'SEC_OFFICIAL_COMPANY_TICKERS',
+            }
     return out
+
+
+def _derived_ticker_map(cik_payload: dict[str, Any], name_payload: dict[str, Any] | None) -> dict[str, dict[str, Any]]:
+    out: dict[str, dict[str, Any]] = {}
+    names = name_payload if isinstance(name_payload, dict) else {}
+    for ticker_raw, cik_raw in cik_payload.items():
+        ticker = str(ticker_raw).upper().strip()
+        cik = str(cik_raw).strip()
+        if not ticker or not cik:
+            continue
+        out[ticker] = {
+            'cik_str': cik,
+            'title': names.get(ticker),
+            'mapping_source': 'SEC_DERIVED_DAILY_MAPPING_SEC_CIK_MAPPER_GITHUB',
+        }
+    return out
+
+
+def _load_ticker_map() -> tuple[dict[str, dict[str, Any]], str, str | None]:
+    try:
+        official = _official_ticker_map(_get_json(SEC_TICKERS_URL))
+        if official:
+            return official, 'SEC_OFFICIAL_COMPANY_TICKERS', None
+    except Exception as exc:
+        official_error = str(exc)
+    else:
+        official_error = 'SEC_OFFICIAL_MAPPING_EMPTY'
+
+    cik_payload = _get_json(SEC_DERIVED_TICKER_TO_CIK_URL)
+    try:
+        name_payload = _get_json(SEC_DERIVED_TICKER_TO_NAME_URL)
+    except Exception:
+        name_payload = None
+    derived = _derived_ticker_map(cik_payload, name_payload)
+    if not derived:
+        raise RuntimeError('SEC_DERIVED_TICKER_MAPPING_EMPTY')
+    return derived, 'SEC_DERIVED_DAILY_MAPPING_SEC_CIK_MAPPER_GITHUB', official_error
 
 
 def _units_for_tag(facts: dict[str, Any], tag: str) -> dict[str, list[dict[str, Any]]]:
@@ -144,7 +191,6 @@ def _latest_annual(facts: dict[str, Any], tags: list[str]) -> tuple[Observation 
         fp = str(obs.get('fp', ''))
         if form in {'10-K', '20-F', '40-F'} and fp == 'FY' and isinstance(obs.get('fy'), int):
             rows.append(_to_observation(tag, unit, obs))
-    # Deduplicate amended/duplicate facts by FY and prefer latest filing.
     by_fy: dict[int, Observation] = {}
     for row in rows:
         existing = by_fy.get(row.fy or -1)
@@ -201,6 +247,7 @@ def _record(ticker: str, cik_row: dict[str, Any] | None, companyfacts: dict[str,
         return {**base, 'status': 'UNKNOWN_NO_SEC_TICKER_MAPPING', 'e2Ready': False}
     base['cik'] = str(cik_row.get('cik_str', '')).zfill(10)
     base['secTitle'] = cik_row.get('title')
+    base['tickerMappingSource'] = cik_row.get('mapping_source')
     if companyfacts is None:
         return {**base, 'e2Ready': False}
 
@@ -239,7 +286,6 @@ def _record(ticker: str, cik_row: dict[str, Any] | None, companyfacts: dict[str,
         'descriptors': descriptors,
         'missingFields': sorted(set(missing)),
         'fundamentalCoverageReady': fundamental_ready,
-        # Valuation/expected-return evidence is deliberately absent from SEC Company Facts.
         'valuationEvidenceStatus': 'UNKNOWN_REQUIRES_SEPARATE_PRICE_AND_VALUATION_LAYER',
         'e2Ready': False,
     }
@@ -261,8 +307,7 @@ def main() -> int:
     end = len(universe) if args.limit <= 0 else min(len(universe), args.offset + args.limit)
     selected = universe[args.offset:end]
 
-    ticker_payload = _get_json(SEC_TICKERS_URL)
-    ticker_map = _ticker_map(ticker_payload)
+    ticker_map, mapping_source, mapping_fallback_reason = _load_ticker_map()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     records: list[dict[str, Any]] = []
 
@@ -275,8 +320,8 @@ def main() -> int:
         try:
             payload = _get_json(SEC_FACTS_URL.format(cik=cik))
             records.append(_record(ticker, cik_row, payload, None))
-        except Exception as exc:  # fail row closed, not whole universe capture
-            records.append(_record(ticker, cik_row, None, exc.__class__.__name__))
+        except Exception as exc:
+            records.append(_record(ticker, cik_row, None, str(exc)))
         time.sleep(max(0.0, args.sleep))
 
     with args.output.open('w', encoding='utf-8') as fh:
@@ -291,6 +336,8 @@ def main() -> int:
         'universeVersion': UNIVERSE_VERSION,
         'requestedOffset': args.offset,
         'requestedCount': len(selected),
+        'tickerMappingSource': mapping_source,
+        'tickerMappingFallbackReason': mapping_fallback_reason,
         'secMappedCount': mapped,
         'capturedCount': captured,
         'fundamentalCoverageReadyCount': fundamental_ready,
