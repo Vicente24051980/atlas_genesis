@@ -12,7 +12,8 @@ describe('ATLAS Ω Structural Risk Unit Authority', () => {
     expect(STRUCTURAL_RISK_UNIT_AUTHORITY.tailRiskUnit).toBeNull();
     expect(STRUCTURAL_RISK_UNIT_AUTHORITY.volatilityRiskUnit).toBeNull();
     expect(STRUCTURAL_RISK_UNIT_AUTHORITY.fragilityUnit).toBeNull();
-    expect(STRUCTURAL_RISK_UNIT_AUTHORITY.requirementsToActivate.length).toBeGreaterThanOrEqual(6);
+    expect(STRUCTURAL_RISK_UNIT_AUTHORITY.financingCorrelationUnit).toBeNull();
+    expect(STRUCTURAL_RISK_UNIT_AUTHORITY.requirementsToActivate.length).toBeGreaterThanOrEqual(7);
   });
 
   it('keeps forward expected return explicitly in percentage-point semantics', () => {
