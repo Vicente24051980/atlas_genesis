@@ -1,0 +1,33 @@
+name: ASTRA Phase B Authority + Factor Ledger CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/atlas/governance/atlas-authority-registry-projection-omega.ts'
+      - 'src/atlas/governance/atlas-authority-registry-projection-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-factor-ownership-ledger-omega.ts'
+      - 'src/atlas/algorithm/atlas-factor-ownership-ledger-omega.test.ts'
+      - '.github/workflows/astra-phase-b-authority-factor-ledger-ci.yml'
+  push:
+    branches:
+      - astra-phase-b-authority-factor-ledger-v1
+    paths:
+      - 'src/atlas/governance/atlas-authority-registry-projection-omega.ts'
+      - 'src/atlas/governance/atlas-authority-registry-projection-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-factor-ownership-ledger-omega.ts'
+      - 'src/atlas/algorithm/atlas-factor-ownership-ledger-omega.test.ts'
+      - '.github/workflows/astra-phase-b-authority-factor-ledger-ci.yml'
+
+jobs:
+  authority-factor-ledger:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run Authority Registry and Factor Ownership invariants
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/governance/atlas-authority-registry-projection-omega.test.ts
+          src/atlas/algorithm/atlas-factor-ownership-ledger-omega.test.ts
