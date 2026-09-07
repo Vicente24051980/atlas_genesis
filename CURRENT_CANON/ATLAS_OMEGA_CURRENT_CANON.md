@@ -21,11 +21,23 @@ ATLAS reconoce exactamente seis motores canónicos:
 
 Todo concepto previo debe clasificarse como motor E1–E6, research family, shadow signal, hard gate, stress test, evaluation test, hypothesis generator, documentation only, redundant o reject. Ningún nombre Ω conserva derecho arquitectónico por antigüedad o trabajo invertido.
 
-Separación inviolable:
+### 0.1 Pipeline, control y assurance
+
+El **pipeline decisorio** es:
+
+`R0 RESEARCH → E1 EVIDENCE → E2 ASSESSMENT → E3 GATE → E4 DECISION → EXECUTION`
+
+`E5 CONTROL Ω` es **transversal**: gobierna permisos, aprobación humana, capabilities, persistencia, scheduling, revocación, shutdown y condiciones de ejecución. E5 no genera la tesis ni la decisión de inversión.
+
+`E6 ASSURANCE Ω` es un **plano independiente de evaluación**: audita E1–E5 y los resultados de ejecución mediante harness, pruebas PIT, backtesting y controles negativos. E6 no es una etapa final de decisión, no aprueba órdenes y no confiere autoridad BUY/SELL.
+
+La cadena:
 
 `RESEARCH → SIGNAL → SCORE → GATE → PORTFOLIO_SELECTION → EXECUTION`
 
-Prohibiciones estructurales: research no puntúa directamente; señales nuevas nacen shadow; un gate no puede convertirse en bonus; un stress test no es pronóstico; simulación no cuenta como evidencia real; Learning Ω sólo puede proponer hipótesis; ningún componente automático posee `MODIFY_CANON`.
+es una **regla de separación de tipos**, no un mapeo biunívoco de motores a fases.
+
+Prohibiciones estructurales: research no puntúa directamente; señales nuevas nacen shadow; un gate no puede convertirse en bonus; un stress test no es pronóstico; simulación no cuenta como evidencia real; Learning Ω sólo puede proponer hipótesis; ningún componente automático posee `MODIFY_CANON`; E5 no puede emitir decisiones de inversión; E6 no puede autorizar decisiones o ejecución.
 
 Por cada objeto lógico puede existir exactamente **una** autoridad `CURRENT/FROZEN`. Todo predecesor pasa a `SUPERSEDED/HISTORICAL` conservando provenance.
 
