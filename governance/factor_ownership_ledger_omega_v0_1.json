@@ -1,0 +1,21 @@
+{
+  "schema_version": "0.1",
+  "fail_closed": true,
+  "factors": [
+    {"factor":"VALUATION","owner":"Valuation / Expectation Gap authority","direct_score_allowed":true},
+    {"factor":"FCF","owner":"Fundamental Quality authority","direct_score_allowed":true},
+    {"factor":"ROIC","owner":"Fundamental Quality authority","direct_score_allowed":true},
+    {"factor":"BALANCE_SHEET_LEVERAGE","owner":"Fundamental Quality authority","direct_score_allowed":true},
+    {"factor":"MARGINS_CONVERSION","owner":"Fundamental Quality authority","direct_score_allowed":true},
+    {"factor":"BACKLOG_QUALITY","owner":"Capital Transmission authority","direct_score_allowed":true},
+    {"factor":"CAPEX_BOTTLENECK_CAPTURE","owner":"Capital Transmission authority","direct_score_allowed":true},
+    {"factor":"CAPITAL_FLOW_STAGE","owner":"Capital Transmission authority","direct_score_allowed":true},
+    {"factor":"EARNINGS_REVISIONS_CONSENSUS_CHANGE","owner":"Expectation Gap authority","direct_score_allowed":true},
+    {"factor":"MOMENTUM_PRICE_TAPE","owner":"Technical/Price authority","direct_score_allowed":true},
+    {"factor":"MACRO_RISK","owner":"Macro Transmission authority","direct_score_allowed":true},
+    {"factor":"CREDIT_RISK","owner":"Macro/Credit authority","direct_score_allowed":true},
+    {"factor":"CUSTOMER_CONCENTRATION","owner":"Fundamental Quality authority","direct_score_allowed":true},
+    {"factor":"CUSTOMER_MIGRATION_SHARE_CAPTURE","owner":"Customer Migration research until validated","direct_score_allowed":false},
+    {"factor":"TECHNOLOGY_STAGE","owner":"Technology Stage research until validated","direct_score_allowed":false}
+  ]
+}
