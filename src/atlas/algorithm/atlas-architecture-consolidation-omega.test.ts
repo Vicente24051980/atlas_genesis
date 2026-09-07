@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA } from './atlas-kernel-contract-registry-omega';
+import { FACTOR_OWNERSHIP_HARD_RULES } from './factor-ownership-ledger-omega';
 
 describe('ATLAS architecture consolidation Ω', () => {
   const r = ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA;
@@ -8,6 +9,12 @@ describe('ATLAS architecture consolidation Ω', () => {
     const engines = Object.values(r.canonicalArchitecture).filter((x) => x.kind === 'CANONICAL_ENGINE');
     expect(engines).toHaveLength(6);
     expect(r.canonicalArchitecture.R0.kind).toBe('RESEARCH_SUBSTRATE');
+  });
+
+  it('keeps the factor ownership ledger inside E2 rather than creating a seventh engine', () => {
+    expect(FACTOR_OWNERSHIP_HARD_RULES.canonicalEngine).toBe('E2_ASSESSMENT_OMEGA');
+    expect(FACTOR_OWNERSHIP_HARD_RULES.createsNewEngine).toBe(false);
+    expect(FACTOR_OWNERSHIP_HARD_RULES.oneDirectScoreClaimPerFactor).toBe(true);
   });
 
   it('keeps research, signals, score, gates, selection and execution as distinct planes', () => {
