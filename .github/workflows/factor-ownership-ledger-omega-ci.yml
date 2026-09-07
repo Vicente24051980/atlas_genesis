@@ -1,0 +1,31 @@
+name: Factor Ownership Ledger Omega CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/atlas/algorithm/factor-ownership-ledger-omega.ts'
+      - 'src/atlas/algorithm/factor-ownership-ledger-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-architecture-consolidation-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-07_FACTOR_OWNERSHIP_LEDGER_OMEGA_V1.md'
+      - '.github/workflows/factor-ownership-ledger-omega-ci.yml'
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/factor-ownership-ledger-omega.ts'
+      - 'src/atlas/algorithm/factor-ownership-ledger-omega.test.ts'
+      - 'src/atlas/algorithm/atlas-architecture-consolidation-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-07_FACTOR_OWNERSHIP_LEDGER_OMEGA_V1.md'
+      - '.github/workflows/factor-ownership-ledger-omega-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run factor ownership and architecture invariants
+        run: >-
+          npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/factor-ownership-ledger-omega.test.ts
+          src/atlas/algorithm/atlas-architecture-consolidation-omega.test.ts
