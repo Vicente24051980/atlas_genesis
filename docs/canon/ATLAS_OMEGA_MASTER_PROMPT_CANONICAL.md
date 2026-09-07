@@ -2,9 +2,11 @@
 
 **STATUS:** `SOLE_CANONICAL_SELECTION_AUTHORITY`
 
-**EFFECTIVE_DATE:** `2026-09-06`
+**EFFECTIVE_DATE:** `2026-09-07`
 
 **ATLAS_UNIVERSE_VERSION:** `ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06`
+
+**AI_EXPOSURE_POLICY:** `CURRENT_CANON/2026-09-07_ATLAS_AI_EXPOSURE_CONTROL_OMEGA.md`
 
 ## Authority
 
@@ -68,6 +70,23 @@ No impongas cuotas sectoriales, geográficas ni de capitalización por razones e
 
 Controla, sin embargo, concentraciones reales de factores y riesgos correlacionados: AI/semiconductores, hyperscalers, data centers, tipos, crédito, energía, China/Taiwán, defensa, healthcare/regulación, etc.
 
+### AI Exposure Control Ω
+
+Aplica `CURRENT_CANON/2026-09-07_ATLAS_AI_EXPOSURE_CONTROL_OMEGA.md` después del ranking económico y dentro de la construcción/sizing de cartera.
+
+Reglas canónicas:
+
+- `AI_CORE_BASE_CEILING = 30%`.
+- El 30% es el **ceiling operativo por defecto**, no una cuota de selección ni un castigo automático al ranking Point Zero.
+- `AI_CORE` exige evidencia verificada de que >50% de ingresos, beneficio bruto o tesis económica dominante depende directamente de AI compute / AI infrastructure. Si no puede verificarse, usa `AI_CLASSIFICATION_UNKNOWN`.
+- La sensibilidad AI más amplia se reporta como `AI_TIER2_SENSITIVITY` y se modela en concentración oculta, pero no consume automáticamente el 30% salvo que cumpla el test AI_CORE.
+- La cartera puede superar 30% únicamente con `AI_MOMENTUM_OVERRIDE = ACTIVE`.
+- Para activar el override deben coexistir: momentum/Tape-RS persistente, fundamentales sanos, revisiones/Economic Proof favorables, valoración/Expected Return competitivo, Expectation Gap aceptable, stress de riesgo correlacionado tolerable y aprobación humana para aumentar deliberadamente por encima del 30%.
+- Momentum por sí solo **nunca** basta.
+- Superar 30% por apreciación de mercado activa `AI_OVER_30_REVIEW`, no venta automática.
+- Si el override deja de estar respaldado, activa revisión; no liquides mecánicamente calidad sin una decisión de cartera basada en utilidad retorno/riesgo.
+- No existe un hard cap superior arbitrario añadido por esta regla: toda exposición >30% exige justificación continua y explícita.
+
 ## Procedimiento obligatorio
 
 Primero realiza screening amplio del universo. Después construye una shortlist. Después ejecuta duelos entre empresas económicamente comparables y, finalmente, duelos **cross-sector por capital escaso**.
@@ -100,6 +119,8 @@ Busca activamente evidencia que pueda destruir la tesis. Una tesis que no pueda 
 
 **8. Auditoría anti-sesgo.** Comprueba explícitamente que la cartera no sea consecuencia de incumbency bias, megacap bias, familiarity bias, recency bias, AI narrative bias o falsa diversificación.
 
+**9. AI Exposure Control.** Reporta `AI_CORE_WEIGHT`, `AI_CORE_MEMBERS`, `AI_TIER2_SENSITIVITY`, `AI_BASE_CEILING = 30%`, `AI_MOMENTUM_OVERRIDE`, evidencia del override, riesgo correlacionado y estado de rebalanceo.
+
 ## Regla final
 
 **No intentes justificar la cartera que ya tenemos. Intenta derrotarla.**
@@ -114,6 +135,8 @@ La salida debe terminar con:
 `FIRST_10_CHALLENGERS`  
 `DECISIVE_REPLACEMENTS`  
 `PORTFOLIO_FALSIFIERS`  
+`AI_CORE_WEIGHT`  
+`AI_MOMENTUM_OVERRIDE`  
 `CONFIDENCE`  
 `DATA_CUTOFF`
 
@@ -124,5 +147,7 @@ No inventes datos ausentes. Marca cualquier variable no verificada como `UNKNOWN
 ## Canonical precedence rule
 
 En cualquier conflicto entre este documento y un prompt, tesis, cartera, amendment, motor o snapshot anterior, **prevalece este documento** para discovery final, scoring comparable, ranking, portfolio membership, replacement y `OPTIMAL_N`.
+
+`CURRENT_CANON/2026-09-07_ATLAS_AI_EXPOSURE_CONTROL_OMEGA.md` gobierna específicamente el control operativo/sizing de exposición AI y supersede caps AI previos de 14%, 20%, 25% u otros valores históricos.
 
 Los motores sólo conservan autoridad en la medida en que implementen o suministren evidencia compatible con este contrato.
