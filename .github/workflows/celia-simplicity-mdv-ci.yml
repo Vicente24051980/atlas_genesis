@@ -1,0 +1,25 @@
+name: Celia Simplicity + MDV CI
+
+on:
+  pull_request:
+    paths:
+      - 'research/benchmarks/2026-09-06_CELIA_RUBIO_PUBLIC_METHOD_BENCHMARK_PROTOCOL.md'
+      - 'runtime/agentic_omega/marginal_decision_value.py'
+      - 'runtime/agentic_omega/test_marginal_decision_value.py'
+      - '.github/workflows/celia-simplicity-mdv-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'runtime/agentic_omega/marginal_decision_value.py'
+      - 'runtime/agentic_omega/test_marginal_decision_value.py'
+
+jobs:
+  focused-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --upgrade pip pytest
+      - run: pytest -q runtime/agentic_omega/test_marginal_decision_value.py
