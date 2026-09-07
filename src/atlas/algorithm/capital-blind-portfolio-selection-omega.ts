@@ -1,4 +1,4 @@
-export const CAPITAL_BLIND_PORTFOLIO_SELECTION_OMEGA_VERSION = '2026-09-06-v2.0.0' as const;
+export const CAPITAL_BLIND_PORTFOLIO_SELECTION_OMEGA_VERSION = '2026-09-07-v2.1.0' as const;
 
 // Legacy compatibility exports only. They are deliberately non-binding.
 // Canonical selection has no ex-ante cardinality floor or ceiling.
@@ -13,8 +13,16 @@ export type CapitalBlindCandidate = {
   permanentLossRiskPct: number;
   fragilityPenaltyPct: number;
   robustnessBenefitPct?: number;
+
+  /**
+   * @deprecated Diagnostic/provenance field only. Point Zero forbids granting
+   * selection utility merely because a candidate adds causal-driver variety.
+   */
   causalDiversificationBenefitPct?: number;
+
   complexityPenaltyPct?: number;
+
+  /** Diagnostic exposure labels only; shared labels are not risk proof. */
   causalDrivers?: string[];
 
   // Explicitly non-authoritative personal-state fields. They are accepted only
@@ -32,14 +40,29 @@ export type CapitalBlindSelectionPolicy = {
   /** @deprecated Fixed-N bounds are forbidden by the 2026-09-06 master canon. */
   maxPositions?: number;
   marginalUtilityThreshold?: number;
+
+  /**
+   * @deprecated Forbidden as clean-selection authority. Generic redundancy or
+   * causal-driver overlap is not a measured correlated-risk estimate. Real
+   * correlated risk must be modeled in validated risk inputs / portfolio risk
+   * machinery with provenance, not injected as an unlabeled pair penalty.
+   */
   pairwiseRedundancyPenaltyPct?: Record<string, number>;
 };
 
 export type CapitalBlindSelectionResult = {
   status: 'SELECTED' | 'INSUFFICIENT_ELIGIBLE_CANDIDATES' | 'EVIDENCE_PENDING';
   selectedTickers: string[];
-  optimalN: number | null;
+  /** Cardinality returned by this heuristic run. */
+  selectedN: number | null;
+  /**
+   * Compatibility field. This module does not prove global combinatorial
+   * optimality, so it must never publish an OPTIMAL_N claim.
+   */
+  optimalN: null;
   marginalUtilityByTicker: Record<string, number>;
+  selectionMode: 'GREEDY_MARGINAL_HEURISTIC';
+  globalOptimalityProven: false;
   ignoredPersonalStateFields: readonly [
     'currentInvestedEur',
     'currentPositionWeight',
@@ -59,12 +82,33 @@ const IGNORED_PERSONAL_STATE_FIELDS = [
   'isCurrentlyHeld',
 ] as const;
 
+const SELECTION_MODE = 'GREEDY_MARGINAL_HEURISTIC' as const;
+
 function finite(x: number | undefined): x is number {
   return typeof x === 'number' && Number.isFinite(x);
 }
 
 function optionalFinite(x: number | undefined): boolean {
   return x === undefined || finite(x);
+}
+
+function hasForbiddenPairwiseRedundancyAuthority(policy: CapitalBlindSelectionPolicy): boolean {
+  return policy.pairwiseRedundancyPenaltyPct !== undefined;
+}
+
+function invalidResult(): CapitalBlindSelectionResult {
+  return {
+    status: 'EVIDENCE_PENDING',
+    selectedTickers: [],
+    selectedN: null,
+    optimalN: null,
+    marginalUtilityByTicker: {},
+    selectionMode: SELECTION_MODE,
+    globalOptimalityProven: false,
+    ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
+    emitsTargetWeights: false,
+    emitsEntryTiming: false,
+  };
 }
 
 function validateCandidate(c: CapitalBlindCandidate): boolean {
@@ -78,16 +122,17 @@ function validateCandidate(c: CapitalBlindCandidate): boolean {
 }
 
 function baseUtility(c: CapitalBlindCandidate): number {
+  // INVIOLABLE POINT ZERO RULE:
+  // - no causal-diversification bonus;
+  // - no sector/driver/narrative variety bonus;
+  // - no automatic penalty for shared causal labels.
+  // Real correlated risk belongs in validated risk inputs / portfolio-risk
+  // machinery, not in label overlap.
   return c.expectedCompoundReturnPct
     - c.permanentLossRiskPct
     - c.fragilityPenaltyPct
     + (c.robustnessBenefitPct ?? 0)
-    + (c.causalDiversificationBenefitPct ?? 0)
     - (c.complexityPenaltyPct ?? 0);
-}
-
-function pairKey(a: string, b: string): string {
-  return [a.toUpperCase(), b.toUpperCase()].sort().join('::');
 }
 
 function entityKey(c: CapitalBlindCandidate): string {
@@ -135,72 +180,53 @@ function deduplicateEntities(candidates: CapitalBlindCandidate[]): CapitalBlindC
   return [...byEntity.values()];
 }
 
-function redundancyPenalty(
-  candidate: CapitalBlindCandidate,
-  selected: CapitalBlindCandidate[],
-  policy: CapitalBlindSelectionPolicy,
-): number {
-  const explicit = policy.pairwiseRedundancyPenaltyPct ?? {};
-  let penalty = 0;
-  for (const existing of selected) {
-    const configured = explicit[pairKey(candidate.ticker, existing.ticker)];
-    if (finite(configured)) penalty += configured;
-
-    const a = new Set((candidate.causalDrivers ?? []).map(x => x.toLowerCase()));
-    const b = new Set((existing.causalDrivers ?? []).map(x => x.toLowerCase()));
-    const overlap = [...a].filter(x => b.has(x)).length;
-    const denom = Math.max(1, Math.min(a.size || 1, b.size || 1));
-    penalty += overlap / denom;
-  }
-  return penalty;
-}
-
 export function calculateMarginalPortfolioContribution(
   candidate: CapitalBlindCandidate,
-  selected: CapitalBlindCandidate[],
+  _selected: CapitalBlindCandidate[],
   policy: CapitalBlindSelectionPolicy = {},
 ): number {
-  return baseUtility(candidate) - redundancyPenalty(candidate, selected, policy);
+  if (hasForbiddenPairwiseRedundancyAuthority(policy)) {
+    throw new Error('PAIRWISE_REDUNDANCY_WITHOUT_MEASURED_RISK_FORBIDDEN');
+  }
+  return baseUtility(candidate);
 }
 
 export function selectCapitalBlindPortfolioOmega(
   candidates: CapitalBlindCandidate[],
   policy: CapitalBlindSelectionPolicy = {},
 ): CapitalBlindSelectionResult {
-  // A caller may not smuggle a fixed cardinality target into clean selection.
-  if (policy.minPositions !== undefined || policy.maxPositions !== undefined) {
-    return {
-      status: 'EVIDENCE_PENDING', selectedTickers: [], optimalN: null,
-      marginalUtilityByTicker: {}, ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
-      emitsTargetWeights: false, emitsEntryTiming: false,
-    };
+  // A caller may not smuggle a fixed cardinality target or unproven
+  // diversification/redundancy authority into clean Point-Zero selection.
+  if (
+    policy.minPositions !== undefined ||
+    policy.maxPositions !== undefined ||
+    hasForbiddenPairwiseRedundancyAuthority(policy)
+  ) {
+    return invalidResult();
   }
 
   const marginalUtilityThreshold = policy.marginalUtilityThreshold ?? 0;
   if (!finite(marginalUtilityThreshold) || marginalUtilityThreshold < 0 ||
       candidates.some(c => !validateCandidate(c))) {
-    return {
-      status: 'EVIDENCE_PENDING', selectedTickers: [], optimalN: null,
-      marginalUtilityByTicker: {}, ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
-      emitsTargetWeights: false, emitsEntryTiming: false,
-    };
+    return invalidResult();
   }
 
   const deduplicated = deduplicateEntities(candidates);
-  if (!deduplicated) {
-    return {
-      status: 'EVIDENCE_PENDING', selectedTickers: [], optimalN: null,
-      marginalUtilityByTicker: {}, ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
-      emitsTargetWeights: false, emitsEntryTiming: false,
-    };
-  }
+  if (!deduplicated) return invalidResult();
 
   const eligible = deduplicated.filter(c => c.hardGatesPassed);
   if (eligible.length === 0) {
     return {
-      status: 'INSUFFICIENT_ELIGIBLE_CANDIDATES', selectedTickers: [], optimalN: 0,
-      marginalUtilityByTicker: {}, ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
-      emitsTargetWeights: false, emitsEntryTiming: false,
+      status: 'INSUFFICIENT_ELIGIBLE_CANDIDATES',
+      selectedTickers: [],
+      selectedN: 0,
+      optimalN: null,
+      marginalUtilityByTicker: {},
+      selectionMode: SELECTION_MODE,
+      globalOptimalityProven: false,
+      ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
+      emitsTargetWeights: false,
+      emitsEntryTiming: false,
     };
   }
 
@@ -208,9 +234,9 @@ export function selectCapitalBlindPortfolioOmega(
   const selected: CapitalBlindCandidate[] = [];
   const marginalUtilityByTicker: Record<string, number> = {};
 
-  // Point Zero: begin with an empty portfolio. At every step all remaining
-  // entities compete for the next scarce slot. Expansion stops immediately
-  // when even the best available addition fails the marginal-utility test.
+  // Point Zero: begin with an empty portfolio. This module is deliberately a
+  // deterministic greedy marginal heuristic. It may produce a useful selected
+  // set, but it cannot label that set or its cardinality globally optimal.
   while (remaining.length > 0) {
     const ranked = remaining
       .map(c => ({ c, marginal: calculateMarginalPortfolioContribution(c, selected, policy) }))
@@ -228,8 +254,11 @@ export function selectCapitalBlindPortfolioOmega(
   return {
     status: 'SELECTED',
     selectedTickers: selected.map(c => c.ticker),
-    optimalN: selected.length,
+    selectedN: selected.length,
+    optimalN: null,
     marginalUtilityByTicker,
+    selectionMode: SELECTION_MODE,
+    globalOptimalityProven: false,
     ignoredPersonalStateFields: IGNORED_PERSONAL_STATE_FIELDS,
     emitsTargetWeights: false,
     emitsEntryTiming: false,
