@@ -1,4 +1,4 @@
-export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-07-v4.1.0' as const;
+export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-07-v4.2.0' as const;
 
 export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
   governanceStatus: 'ACTIVE_CANONICAL',
@@ -72,6 +72,16 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     priorTopNAuthority: 'SUPERSEDED',
   },
   contracts: {
+    economicImplementation: {
+      authority: 'CURRENT_CANON/2026-09-07_ECONOMIC_CONTRACT_IMPLEMENTATION.md',
+      scenarioReturn: {host:'E2', implementation:'scenario-owner-return-omega.ts', status:'IMPLEMENTED_CONDITIONAL_ASSESSMENT'},
+      netRotation: {host:'E3', implementation:'net-rotation-advantage-omega.ts', executionAuthority:false},
+      aiControl: {host:'E5', implementation:'e5-control-policy-omega.ts', orderAuthority:false},
+      measuredCovariance: {host:'E2', implementation:'structural-risk-unit-authority-omega.ts'},
+      sizing: {host:'E4', implementation:'structural-sizing-authority-omega.ts', status:'SHADOW_ONLY'},
+      exactSmallUniverseReference: {host:'E6', implementation:'e6-assurance-harness-policy-omega.ts', status:'EVALUATION_ONLY'},
+      economicCalibrationPromoted:false,
+    },
     delta: { id: 'DELTA_DIVERGENCE_OMEGA_V1_1', runtimeAuthority: 'SHADOW_ONLY' },
     kappa: { id: 'KAPPA_CALIBRATION_OMEGA_V1_1', runtimeAuthority: 'CALIBRATION_ONLY' },
     gamma: { id: 'GAMMA_VIGENCIA_OMEGA_V1_2', runtimeAuthority: 'VIGENCIA_ONLY' },

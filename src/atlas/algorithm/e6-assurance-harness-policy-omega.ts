@@ -52,3 +52,25 @@ export const E6_ASSURANCE_HARNESS_POLICY_OMEGA = {
   ],
   promotionRule: 'NO_SIGNAL_OR_COMPONENT_PROMOTION_FROM_SYNTHETIC_ONLY_EVIDENCE',
 } as const;
+
+// E6 bounded exact reference for measuring heuristic search error, not promotion.
+import {runEndogenousPortfolioEngineV2,evaluatePortfolioSetV2,type PortfolioCandidateV2,type PortfolioEnginePolicyV2} from './endogenous-portfolio-engine-v2';
+export function auditSmallUniverseSearchGap(candidates:PortfolioCandidateV2[],policy:PortfolioEnginePolicyV2={}) {
+  const pending={status:'EVIDENCE_PENDING' as const,authority:'E6_EVALUATION_ONLY' as const};
+  if(candidates.length>12 || candidates.some(c=>!c.hardGatesPassed||!c.falsifierVetoPassed) || new Set(candidates.map(c=>(c.canonicalEntityId||c.ticker).trim().toUpperCase())).size!==candidates.length) return pending;
+  const heuristic=runEndogenousPortfolioEngineV2(candidates,policy);
+  if(heuristic.status!=='SELECTED') return pending;
+  let bestUtility=0,bestTickers:string[]=[];
+  for(let mask=1;mask<2**candidates.length;mask++) {
+    const set=candidates.filter((_,i)=>(mask & (1<<i))!==0);
+    const utility=evaluatePortfolioSetV2(set,policy).utility;
+    if(!Number.isFinite(utility)) return pending;
+    if(utility>bestUtility){bestUtility=utility;bestTickers=set.map(c=>c.ticker);}
+  }
+  const selected=candidates.filter(c=>heuristic.selectedTickers.includes(c.ticker));
+  const heuristicUtility=selected.length?evaluatePortfolioSetV2(selected,policy).utility:0;
+  return {status:'CALCULATED' as const,authority:'E6_EVALUATION_ONLY' as const,scope:'SUPPLIED_SMALL_UNIVERSE_AND_OBJECTIVE_ONLY',
+    heuristicN:heuristic.selectedN,referenceN:bestTickers.length,referenceTickers:bestTickers,
+    utilityGap:bestUtility-heuristicUtility,combinationsEvaluated:2**candidates.length,
+    productionGlobalOptimalityProven:false};
+}

@@ -86,3 +86,8 @@ If the best opportunities genuinely cluster in AI, ATLAS may select them. The po
 This policy supersedes all prior **14%, 20%, 25% or other fixed AI hard-cap language** wherever those values were used as binding current portfolio policy.
 
 Historical documents retain provenance but have no authority to reinstate an older cap.
+
+
+## Executable implementation · 7-Sep-2026
+
+`evaluateAiExposureControl` in `src/atlas/algorithm/e5-control-policy-omega.ts` implements this policy as an E5/E4 evidence-consuming function. Canonical structural publication and net-rotation assessment call it. Dominant direct-dependency basis, temporal validity, exact proposed weights and decision-bound approval are checked. Unknown classification fails closed. No output is a broker execution capability. Full implementation contract: `CURRENT_CANON/2026-09-07_ECONOMIC_CONTRACT_IMPLEMENTATION.md`.
