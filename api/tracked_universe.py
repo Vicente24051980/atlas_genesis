@@ -11,60 +11,54 @@ class TrackedTicker(TypedDict, total=False):
     state: str
 
 
-# Bootstrap snapshot only. The mobile client reads this remotely so the tracked
-# universe can be corrected without rebuilding the APK. Exact broker quantities,
-# cost basis and P/L always come from Trading 212 when that connection is enabled.
-SNAPSHOT_ID = "ATLAS-TRACKED-2026-08-12-BOOTSTRAP-v2"
-SNAPSHOT_STATUS = "AWAITING_USER_CONFIRMATION"
+# Current operational snapshot confirmed by Vicente. This is execution/monitoring
+# state only and MUST NOT be supplied as a Point-Zero selection prior.
+# Broker quantities, cost basis and P/L remain VOLATILE and must be refreshed
+# from the broker before any material action.
+SNAPSHOT_ID = "ATLAS-CURRENT-OPERATIONAL-27-2026-09-06-GLW-OUT-VRT-IN-v1"
+SNAPSHOT_STATUS = "USER_CONFIRMED_OPERATIONAL_STATE_BROKER_RECONCILIATION_REQUIRED_BEFORE_ACTION"
 
 PORTFOLIO: list[TrackedTicker] = [
-    {"ticker": "MSFT", "name": "Microsoft", "sector": "Cloud / Software"},
-    {"ticker": "AMZN", "name": "Amazon", "sector": "Cloud / Consumer"},
-    {"ticker": "GOOG", "name": "Alphabet", "sector": "Cloud / Internet"},
-    {"ticker": "ORCL", "name": "Oracle", "sector": "Cloud / Software"},
-    {"ticker": "NOW", "name": "ServiceNow", "sector": "Software"},
-    {"ticker": "NVDA", "name": "NVIDIA", "sector": "AI / Semiconductors"},
-    {"ticker": "AVGO", "name": "Broadcom", "sector": "AI / Semiconductors"},
-    {"ticker": "PLTR", "name": "Palantir", "sector": "AI / Software"},
-    {"ticker": "TSM", "name": "Taiwan Semiconductor", "sector": "Semiconductors"},
-    {"ticker": "ASML", "name": "ASML Holding", "sector": "Semiconductor Equipment"},
-    {"ticker": "AMAT", "name": "Applied Materials", "sector": "Semiconductor Equipment"},
-    {"ticker": "LRCX", "name": "Lam Research", "sector": "Semiconductor Equipment"},
-    {"ticker": "KLAC", "name": "KLA", "sector": "Semiconductor Equipment"},
-    {"ticker": "CDNS", "name": "Cadence Design Systems", "sector": "EDA"},
-    {"ticker": "COHR", "name": "Coherent", "sector": "Optics"},
-    {"ticker": "ANET", "name": "Arista Networks", "sector": "Networks"},
-    {"ticker": "APH", "name": "Amphenol", "sector": "Connectivity"},
-    {"ticker": "CLS", "name": "Celestica", "sector": "Infrastructure"},
-    {"ticker": "FN", "name": "Fabrinet", "sector": "Infrastructure"},
-    {"ticker": "ETN", "name": "Eaton", "sector": "Electrical Infrastructure"},
-    {"ticker": "SU", "symbol": "SU.PA", "name": "Schneider Electric", "sector": "Electrical Infrastructure"},
-    {"ticker": "GE", "name": "GE Aerospace", "sector": "Aerospace"},
-    {"ticker": "CSL", "name": "Carlisle Companies", "sector": "Industrials"},
-    {"ticker": "CAT", "name": "Caterpillar", "sector": "Industrials"},
-    {"ticker": "ZBRA", "name": "Zebra Technologies", "sector": "Industrials / Automation"},
-    {"ticker": "LLY", "name": "Eli Lilly", "sector": "Health"},
-    {"ticker": "ABBV", "name": "AbbVie", "sector": "Health"},
-    {"ticker": "TMO", "name": "Thermo Fisher Scientific", "sector": "Health"},
-    {"ticker": "DHR", "name": "Danaher", "sector": "Health"},
-    {"ticker": "V", "name": "Visa", "sector": "Payments"},
-    {"ticker": "MA", "name": "Mastercard", "sector": "Payments"},
-    {"ticker": "BAE", "symbol": "BA.L", "name": "BAE Systems", "sector": "Defense"},
-    {"ticker": "QLYS", "name": "Qualys", "sector": "Cybersecurity"},
+    {"ticker": "AXON", "name": "Axon Enterprise", "sector": "Industrials"},
+    {"ticker": "MELI", "name": "MercadoLibre", "sector": "Consumer Discretionary"},
+    {"ticker": "CRWD", "name": "CrowdStrike Holdings", "sector": "Information Technology"},
+    {"ticker": "LRCX", "name": "Lam Research", "sector": "Information Technology"},
+    {"ticker": "PWR", "name": "Quanta Services", "sector": "Industrials"},
+    {"ticker": "GEV", "name": "GE Vernova", "sector": "Industrials"},
+    {"ticker": "AVGO", "name": "Broadcom", "sector": "Information Technology"},
+    {"ticker": "PANW", "name": "Palo Alto Networks", "sector": "Information Technology"},
+    {"ticker": "SYK", "name": "Stryker", "sector": "Health Care"},
+    {"ticker": "MA", "name": "Mastercard", "sector": "Financials"},
+    {"ticker": "ANET", "name": "Arista Networks", "sector": "Information Technology"},
+    {"ticker": "CDNS", "name": "Cadence Design Systems", "sector": "Information Technology"},
+    {"ticker": "ISRG", "name": "Intuitive Surgical", "sector": "Health Care"},
+    {"ticker": "APH", "name": "Amphenol", "sector": "Information Technology"},
+    {"ticker": "HWM", "name": "Howmet Aerospace", "sector": "Industrials"},
+    {"ticker": "VRT", "name": "Vertiv Holdings", "sector": "Industrials"},
+    {"ticker": "TT", "name": "Trane Technologies", "sector": "Industrials"},
+    {"ticker": "VRTX", "name": "Vertex Pharmaceuticals", "sector": "Health Care"},
+    {"ticker": "BSX", "name": "Boston Scientific", "sector": "Health Care"},
+    {"ticker": "INTU", "name": "Intuit", "sector": "Information Technology"},
+    {"ticker": "TRGP", "name": "Targa Resources", "sector": "Energy"},
+    {"ticker": "LLY", "name": "Eli Lilly", "sector": "Health Care"},
+    {"ticker": "GE", "name": "GE Aerospace", "sector": "Industrials"},
+    {"ticker": "ETN", "name": "Eaton", "sector": "Industrials"},
+    {"ticker": "ICE", "name": "Intercontinental Exchange", "sector": "Financials"},
+    {"ticker": "V", "name": "Visa", "sector": "Financials"},
+    {"ticker": "BKNG", "name": "Booking Holdings", "sector": "Consumer Discretionary"},
 ]
 
-PORTFOLIO_PENDING: list[TrackedTicker] = [
-    {"ticker": "MCK", "name": "McKesson", "sector": "Health", "state": "PENDING"},
-]
+PORTFOLIO_PENDING: list[TrackedTicker] = []
 
+# Non-selection monitoring/research queue. Current holdings are intentionally
+# excluded here because the mobile validator treats portfolio/watchlist overlap
+# as a state-integrity error. This queue has zero canonical selection authority.
 WATCHLIST: list[TrackedTicker] = [
     {"ticker": "MU", "name": "Micron Technology", "sector": "Semiconductors"},
     {"ticker": "TER", "name": "Teradyne", "sector": "Semiconductor Equipment"},
-    {"ticker": "VRT", "name": "Vertiv", "sector": "Data Centers"},
     {"ticker": "IRM", "name": "Iron Mountain", "sector": "Data Centers"},
     {"ticker": "DLR", "name": "Digital Realty", "sector": "Data Centers"},
     {"ticker": "EQIX", "name": "Equinix", "sector": "Data Centers"},
-    {"ticker": "PWR", "name": "Quanta Services", "sector": "Electrical Infrastructure"},
     {"ticker": "CEG", "name": "Constellation Energy", "sector": "Power"},
     {"ticker": "BE", "name": "Bloom Energy", "sector": "Power"},
     {"ticker": "CCJ", "name": "Cameco", "sector": "Uranium"},
@@ -103,7 +97,6 @@ WATCHLIST: list[TrackedTicker] = [
     {"ticker": "ALNY", "name": "Alnylam Pharmaceuticals", "sector": "Biotech"},
     {"ticker": "IONS", "name": "Ionis Pharmaceuticals", "sector": "Biotech"},
     {"ticker": "REGN", "name": "Regeneron Pharmaceuticals", "sector": "Biotech"},
-    {"ticker": "VRTX", "name": "Vertex Pharmaceuticals", "sector": "Biotech"},
     {"ticker": "ARGX", "name": "argenx", "sector": "Biotech"},
     {"ticker": "CYTK", "name": "Cytokinetics", "sector": "Biotech"},
     {"ticker": "PRTA", "name": "Prothena", "sector": "Biotech"},
@@ -115,7 +108,6 @@ WATCHLIST: list[TrackedTicker] = [
     {"ticker": "APP", "name": "AppLovin", "sector": "Software / Ads"},
     {"ticker": "HUBS", "name": "HubSpot", "sector": "Software"},
     {"ticker": "DT", "name": "Dynatrace", "sector": "Software"},
-    {"ticker": "MELI", "name": "MercadoLibre", "sector": "Commerce / Fintech"},
     {"ticker": "ABB", "name": "ABB", "sector": "Automation"},
     {"ticker": "DDOG", "name": "Datadog", "sector": "Observability"},
     {"ticker": "NET", "name": "Cloudflare", "sector": "Cloud / Security"},
@@ -129,10 +121,8 @@ WATCHLIST: list[TrackedTicker] = [
     {"ticker": "BHP", "name": "BHP Group", "sector": "Materials"},
     {"ticker": "COR", "name": "Cencora", "sector": "Health"},
     {"ticker": "ABT", "name": "Abbott Laboratories", "sector": "Health"},
-    {"ticker": "BSX", "name": "Boston Scientific", "sector": "Health"},
     {"ticker": "LMT", "name": "Lockheed Martin", "sector": "Defense"},
     {"ticker": "OVV", "name": "Ovintiv", "sector": "Energy"},
-    {"ticker": "ICE", "name": "Intercontinental Exchange", "sector": "Financial Infrastructure"},
     {"ticker": "IBM", "name": "IBM", "sector": "Technology"},
     {"ticker": "GFS", "name": "GlobalFoundries", "sector": "Semiconductors"},
     {"ticker": "IONQ", "name": "IonQ", "sector": "Quantum"},
@@ -147,6 +137,8 @@ def validate_universe() -> None:
     watch = [item["ticker"] for item in WATCHLIST]
     if len(portfolio) != len(PORTFOLIO):
         raise RuntimeError("duplicate portfolio ticker")
+    if len(PORTFOLIO) != 27:
+        raise RuntimeError("current operational portfolio must contain 27 tickers")
     if len(set(watch)) != len(watch):
         raise RuntimeError("duplicate watchlist ticker")
     overlap = sorted(portfolio.intersection(watch))
