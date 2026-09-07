@@ -1,4 +1,4 @@
-export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-07-v4.0.0' as const;
+export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-07-v4.1.0' as const;
 
 export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
   governanceStatus: 'ACTIVE_CANONICAL',
@@ -42,6 +42,16 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     breadthRotationAuthority: 'SHADOW_SIGNAL_DISCOVERY_ONLY',
     learningOmegaAuthority: 'HYPOTHESIS_GENERATOR_ONLY',
     frozenAuthorityRule: 'EXACTLY_ONE_CURRENT_FROZEN_AUTHORITY_PER_LOGICAL_OBJECT',
+    aiExposureControl: {
+      authority: 'CURRENT_CANON/2026-09-07_ATLAS_AI_EXPOSURE_CONTROL_OMEGA.md',
+      aiCoreBaseCeiling: 0.30,
+      ceilingType: 'DEFAULT_OPERATIONAL_CEILING_NOT_SELECTION_QUOTA',
+      conditionalOverride: 'AI_MOMENTUM_OVERRIDE',
+      momentumAloneSufficient: false,
+      passiveDriftAboveCeilingAutoSell: false,
+      deliberateIncreaseAboveCeilingRequiresHumanApproval: true,
+      legacyFixedAiCapsSuperseded: true,
+    },
   },
   permissionModel: {
     permissions: ['READ','WRITE','EXECUTE','COMMUNICATE','PERSIST','SCHEDULE','DELEGATE','MODIFY_CANON'],
@@ -51,7 +61,7 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     predictiveAccuracyCannotExpandPermissions: true,
   },
   masterSelectionAuthority: {
-    id: 'ATLAS_OMEGA_MASTER_UNIVERSE_PROMPT_2026_09_06',
+    id: 'ATLAS_OMEGA_MASTER_UNIVERSE_PROMPT_2026_09_07',
     path: 'docs/canon/ATLAS_OMEGA_MASTER_PROMPT_CANONICAL.md',
     universeVersion: 'ATLAS_CORE_650_RAW_490_UNIQUE_487_ENTITY_2026-09-06',
     authority: 'SOLE_CLEAN_REBUILD_RANKING_MEMBERSHIP_REPLACEMENT_AND_OPTIMAL_N_AUTHORITY',
@@ -67,6 +77,24 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     gamma: { id: 'GAMMA_VIGENCIA_OMEGA_V1_2', runtimeAuthority: 'VIGENCIA_ONLY' },
     upsilon: { id: 'UPSILON_ALLOCATION_OMEGA_V1', runtimeAuthority: 'ALLOCATION_ONLY' },
     rho: { id: 'RHO_COUNTERPARTY_EXPOSURE_OMEGA_V1', runtimeAuthority: 'EXPOSURE_AGGREGATION_ONLY' },
+    aiExposureControl: {
+      id: 'AI_EXPOSURE_CONTROL_OMEGA_2026_09_07',
+      runtimeAuthority: 'PORTFOLIO_SIZING_AND_CORRELATED_RISK_CONTROL_ONLY',
+      aiCoreBaseCeiling: 0.30,
+      overrideStatus: 'AI_MOMENTUM_OVERRIDE',
+      pointZeroRankingPenaltyAuthority: false,
+      nonAiDiversificationBonusAuthority: false,
+      momentumAloneSufficient: false,
+      requiredOverrideEvidence: [
+        'PERSISTENT_TAPE_RS_MOMENTUM',
+        'FUNDAMENTALS_HEALTHY',
+        'REVISIONS_AND_ECONOMIC_PROOF_SUPPORTIVE',
+        'VALUATION_AND_EXPECTED_RETURN_PASS',
+        'EXPECTATION_GAP_ACCEPTABLE',
+        'CORRELATED_RISK_STRESS_ACCEPTABLE',
+        'HUMAN_APPROVAL_FOR_DELIBERATE_OVER_30_INCREASE',
+      ],
+    },
     durableRevisionGap: {
       id: 'DURABLE_REVISION_GAP_OMEGA_V1',
       runtimeAuthority: 'SUBORDINATE_SELECTION_INPUT',
@@ -134,6 +162,12 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     externalChallengerStatusCreatesZeroScore: true,
     aestheticDiversificationQuotaForbidden: true,
     realCorrelatedRiskMustBeModeled: true,
+    aiBaseCeilingCannotCreatePointZeroRankingPenalty: true,
+    aiBaseCeilingCannotCreateNonAiDiversificationBonus: true,
+    aiAbove30RequiresConditionalOverrideForDeliberateNewSizing: true,
+    aiMomentumOverrideRequiresFullEvidenceStack: true,
+    aiMomentumAloneCannotOverride: true,
+    aiPassiveDriftAbove30CannotAutoSell: true,
     tapeRsCannotReplaceFundamentals: true,
     unknownDataMustReduceConfidence: true,
     researchCannotScoreDirectly: true,
@@ -203,6 +237,7 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
   executionOnlySequence: [
     'WORLD_STATE_REFRESH',
     'REAL_BROKER_RECONCILIATION',
+    'AI_EXPOSURE_CONTROL_30_BASE_WITH_CONDITIONAL_MOMENTUM_OVERRIDE',
     'TAX_AND_TRANSACTION_FRICTION',
     'LEGACY_ANTI_CHURN_REPLACEMENT_HURDLES_IF_USED',
     'REPLACEMENT_HYSTERESIS',
