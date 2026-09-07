@@ -79,15 +79,24 @@ def run_point_zero_rebuild(
     """Canonical runtime entrypoint for clean Point-Zero ranking.
 
     Every security must arrive as a versioned SecuritySnapshot. The function
-    fails closed per security on future publications, invalid timestamps,
-    schema mismatch or absent score bindings. It never consumes incumbent or
-    broker state for clean selection.
+    fails closed per security on raw provider objects, future publications,
+    invalid timestamps, schema mismatch or absent score bindings. It never
+    consumes incumbent or broker state for clean selection.
     """
     materialized = tuple(snapshots)
     accepted: list[UniverseCandidate] = []
     rejected: list[dict] = []
 
-    for snapshot in materialized:
+    for raw in materialized:
+        if not isinstance(raw, SecuritySnapshot):
+            rejected.append({
+                "ticker": None,
+                "security_id": None,
+                "reasons": ("RAW_PROVIDER_OBJECT_FORBIDDEN",),
+            })
+            continue
+
+        snapshot = raw
         ok, reasons = validate_snapshot(snapshot, as_of_timestamp)
         if not ok:
             rejected.append({
