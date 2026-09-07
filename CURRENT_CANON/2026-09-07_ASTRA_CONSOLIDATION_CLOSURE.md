@@ -1,7 +1,7 @@
 # ASTRA_MASTER_AUDIT Ω — CONSOLIDATION CLOSURE
 
 **Date:** `2026-09-07`  
-**Status:** `ARCHITECTURAL_CONSOLIDATION_IMPLEMENTED / EMPIRICAL_VALIDATION_PENDING`  
+**Status:** `ARCHITECTURAL_CONSOLIDATION_IMPLEMENTED / CI_VALIDATED`  
 **Human authority:** Vicente ratification D1–D7  
 **Scope:** ATLAS OS architecture globally; specialized domains remain subordinate domains, not additional canonical engines.
 
@@ -52,7 +52,7 @@ Operational portfolio state:
 
 The 27-name portfolio is monitoring/execution state only and has zero Point-Zero prior authority.
 
-`OPTIMAL_N` is fully endogenous with no fixed floor/ceiling.
+`OPTIMAL_N` is fully endogenous with no fixed floor/ceiling. Publication as true `OPTIMAL_N` still requires global-optimality proof or an equivalent certificate; heuristic/local-search outputs must not overclaim.
 
 ## 4. Authority debt removed
 
@@ -71,9 +71,7 @@ Historical material remains provenance. It is not silently deleted.
 
 ## 5. E5 Control contract
 
-Source:
-
-`src/atlas/algorithm/e5-control-policy-omega.ts`
+Source: `src/atlas/algorithm/e5-control-policy-omega.ts`
 
 Core guarantees encoded:
 
@@ -90,9 +88,7 @@ Broker routes are fail-closed for live material orders/cancellations until a per
 
 ## 6. E6 Assurance contract
 
-Source:
-
-`src/atlas/algorithm/e6-assurance-harness-policy-omega.ts`
+Source: `src/atlas/algorithm/e6-assurance-harness-policy-omega.ts`
 
 Encoded:
 
@@ -116,8 +112,6 @@ Encoded:
 
 Destructive deletion is denied while `provenanceDeletionAuthorized = false`.
 
-This is intentionally reversible at the navigation/authority layer while preserving audit history.
-
 ## 8. Public runtime boundaries
 
 - current tracked portfolio = confirmed 27;
@@ -129,34 +123,41 @@ This is intentionally reversible at the navigation/authority layer while preserv
 - raw Trading212 broker router is not mounted directly on the material mobile route;
 - live broker material actions remain fail-closed.
 
-## 9. Tests added
+## 9. Empirical CI validation
 
-- `api/test_atlas_consolidated_boundary.py`
-- `api/test_broker_mount_authority.py`
-- `src/atlas/algorithm/atlas-kernel-contract-registry-omega.test.ts`
-- `src/atlas/algorithm/e5-control-policy-omega.test.ts`
-- `src/atlas/algorithm/e6-assurance-harness-policy-omega.test.ts`
-- existing Point-Zero/endogenous portfolio tests retained and aligned.
+Dedicated workflow: `.github/workflows/architecture-consolidation-ci.yml`.
 
-## 10. Empirical status — do not overclaim
+Validated suites include:
 
-### CI / runtime suite
+- kernel E1–E6 contract registry;
+- E5 Control policy;
+- E6 Assurance harness policy;
+- Capital-Blind Portfolio Selection Ω;
+- Portfolio Selection Canon Ω;
+- Endogenous Portfolio Engine v2.2;
+- public API boundary suppression;
+- broker mount authority and Trading212 fail-closed tests;
+- deterministic universe integrity: `650 raw → 490 unique tickers → 487 canonical economic entities` with aliases `GOOG→GOOGL`, `FOX→FOXA`, `NWS→NWSA`.
 
-`NOT_EXECUTED_IN_THIS_CONSOLIDATION_PASS`
+Empirical result:
 
-GitHub returned no workflow associated with the latest commits. The local execution environment could not clone the repository because external DNS resolution was unavailable. Therefore tests are **specified and committed, not empirically passed**.
+`ATLAS Architecture Consolidation CI / run 34096982563 / SUCCESS / 2026-09-07`
+
+The first dedicated run failed only because the GitHub runner lacked repository-root `PYTHONPATH`; TypeScript contracts passed in that run. The workflow was corrected (`PYTHONPATH=.` / `python -m pytest`) and subsequent runs passed. This was a CI-environment defect, not a hidden architecture pass.
+
+## 10. Remaining empirical limitation
 
 ### Shutdown drill
 
 `SPECIFIED_NOT_EXECUTED`
 
-S1–S8 are encoded, but no real shutdown drill has been observed across a full external scheduling interval. Specification is not evidence of success.
+S1–S8 are encoded, but no real shutdown drill has been observed across a full external scheduling interval. Specification and unit tests are not evidence that external processes, scheduled jobs, delegated agents, temporary credentials and restart paths all terminate correctly in a live environment.
 
 ### 487-entity investment rebuild
 
-`NOT_PART_OF_ARCHITECTURE_CLOSURE / STILL_REQUIRES_EVIDENCE_MATRIX`
+`LAUNCHED / E1_EVIDENCE_MATRIX_REQUIRED_BEFORE_RANKING`
 
-Architectural consolidation does not prove any specific portfolio is optimal.
+The canonical universe identity is now reproducibly validated. That does not imply evidence coverage for every company and does not prove any portfolio. Missing material inputs remain `UNKNOWN`; ranking is forbidden until the required comparable evidence exists.
 
 ## 11. Closure rule
 
