@@ -20,7 +20,7 @@ function candidate(i: number, utility = 10): CapitalBlindCandidate {
   };
 }
 
-describe('Capital-Blind Portfolio Selection Ω — Point Zero / endogenous N', () => {
+describe('Capital-Blind Portfolio Selection Ω — Point Zero / endogenous cardinality', () => {
   it('is invariant to invested euros, current weight, P/L, cost basis and holding status', () => {
     const base = Array.from({ length: 24 }, (_, i) => candidate(i + 1, 20 - i * 0.2));
     const richPersonalState = base.map((c, i) => ({
@@ -44,7 +44,9 @@ describe('Capital-Blind Portfolio Selection Ω — Point Zero / endogenous N', (
     const b = selectCapitalBlindPortfolioOmega(zeroState);
     expect(a.status).toBe('SELECTED');
     expect(a.selectedTickers).toEqual(b.selectedTickers);
-    expect(a.optimalN).toBe(b.optimalN);
+    expect(a.selectedN).toBe(b.selectedN);
+    expect(a.optimalN).toBeNull();
+    expect(b.optimalN).toBeNull();
     expect(a.marginalUtilityByTicker).toEqual(b.marginalUtilityByTicker);
   });
 
@@ -55,7 +57,8 @@ describe('Capital-Blind Portfolio Selection Ω — Point Zero / endogenous N', (
       candidate(3, -5),
     ]);
     expect(result.status).toBe('SELECTED');
-    expect(result.optimalN).toBe(1);
+    expect(result.selectedN).toBe(1);
+    expect(result.optimalN).toBeNull();
     expect(result.selectedTickers).toEqual(['T01']);
   });
 
@@ -63,14 +66,14 @@ describe('Capital-Blind Portfolio Selection Ω — Point Zero / endogenous N', (
     const universe = Array.from({ length: 60 }, (_, i) => candidate(i + 1, 10));
     const result = selectCapitalBlindPortfolioOmega(universe);
     expect(result.status).toBe('SELECTED');
-    expect(result.optimalN).toBe(60);
+    expect(result.selectedN).toBe(60);
   });
 
   it('stops exactly when the best next candidate fails the marginal-utility test', () => {
     const positive = Array.from({ length: 7 }, (_, i) => candidate(i + 1, 8));
     const negative = Array.from({ length: 8 }, (_, i) => candidate(i + 8, -5));
     const result = selectCapitalBlindPortfolioOmega([...positive, ...negative]);
-    expect(result.optimalN).toBe(7);
+    expect(result.selectedN).toBe(7);
   });
 
   it('rejects caller-supplied fixed cardinality bounds', () => {
@@ -84,7 +87,7 @@ describe('Capital-Blind Portfolio Selection Ω — Point Zero / endogenous N', (
     const duplicate = { ...a, ticker: 'ALT_SHARE_CLASS' };
     const result = selectCapitalBlindPortfolioOmega([a, duplicate, candidate(2, 9)]);
     expect(result.status).toBe('SELECTED');
-    expect(result.optimalN).toBe(2);
+    expect(result.selectedN).toBe(2);
     expect(result.selectedTickers.filter(t => t === 'T01' || t === 'ALT_SHARE_CLASS')).toHaveLength(1);
   });
 
@@ -108,12 +111,40 @@ describe('Capital-Blind Portfolio Selection Ω — Point Zero / endogenous N', (
     expect(result.emitsEntryTiming).toBe(false);
   });
 
-  it('charges pairwise redundancy only after candidates meet quality/hard gates', () => {
-    const a = { ...candidate(1, 10), ticker: 'AAA', causalDrivers: ['grid'] };
-    const b = { ...candidate(2, 10), ticker: 'BBB', causalDrivers: ['grid'] };
+  it('does not penalize two companies merely because causal-driver labels overlap', () => {
+    const a = { ...candidate(1, 10), ticker: 'AAA', causalDrivers: ['grid', 'data-center'] };
+    const b = { ...candidate(2, 10), ticker: 'BBB', causalDrivers: ['grid', 'data-center'] };
     const c = { ...candidate(3, 10), ticker: 'CCC', causalDrivers: ['payments'] };
-    expect(calculateMarginalPortfolioContribution(b, [a])).toBeLessThan(
+
+    expect(calculateMarginalPortfolioContribution(b, [a])).toBe(
       calculateMarginalPortfolioContribution(c, [a]),
     );
+  });
+
+  it('does not reward causal-driver variety as a standalone selection benefit', () => {
+    const plain = { ...candidate(1, 10), ticker: 'PLAIN', causalDiversificationBenefitPct: 0 };
+    const decorated = { ...candidate(2, 10), ticker: 'DECORATED', causalDiversificationBenefitPct: 999 };
+
+    expect(calculateMarginalPortfolioContribution(plain, [])).toBe(
+      calculateMarginalPortfolioContribution(decorated, []),
+    );
+  });
+
+  it('fails closed if a caller tries to reintroduce a generic pairwise redundancy penalty', () => {
+    const universe = [candidate(1, 10), candidate(2, 9)];
+    const policy = { pairwiseRedundancyPenaltyPct: { 'T01::T02': 5 } };
+
+    expect(selectCapitalBlindPortfolioOmega(universe, policy).status).toBe('EVIDENCE_PENDING');
+    expect(() => calculateMarginalPortfolioContribution(universe[1], [universe[0]], policy)).toThrow(
+      'PAIRWISE_REDUNDANCY_WITHOUT_MEASURED_RISK_FORBIDDEN',
+    );
+  });
+
+  it('discloses heuristic search and never publishes a false global OPTIMAL_N claim', () => {
+    const result = selectCapitalBlindPortfolioOmega(Array.from({ length: 10 }, (_, i) => candidate(i + 1, 10)));
+    expect(result.selectionMode).toBe('GREEDY_MARGINAL_HEURISTIC');
+    expect(result.globalOptimalityProven).toBe(false);
+    expect(result.optimalN).toBeNull();
+    expect(result.selectedN).toBe(10);
   });
 });
