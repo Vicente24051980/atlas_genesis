@@ -20,7 +20,23 @@ function c(i:number, er=12, driver=`d${i}`, funding:string[]=[]): PortfolioCandi
   };
 }
 
-describe('Endogenous Portfolio Engine v2.2 — Point Zero / fully endogenous N',()=>{
+function cleanScenarioCandidate(ticker:string, er:number, first:number, second:number): PortfolioCandidateV2 {
+  const x=c(Number(ticker.charCodeAt(0)),er,ticker,[]);
+  x.ticker=ticker;
+  x.canonicalEntityId=`ENTITY-${ticker}`;
+  x.permanentLossRisk=0;
+  x.tailRisk=0;
+  x.volatilityRisk=0;
+  x.fragility=0;
+  x.convexity=0;
+  x.confidence=1;
+  for(const s of CANONICAL_SCENARIOS) x.scenarios[s]=0;
+  x.scenarios[CANONICAL_SCENARIOS[0]]=first;
+  x.scenarios[CANONICAL_SCENARIOS[1]]=second;
+  return x;
+}
+
+describe('Endogenous Portfolio Engine v2.2 — Point Zero / endogenous local selection',()=>{
   it('has no binding ex-ante cardinality floor or ceiling',()=>{
     expect(MIN_PORTFOLIO_POSITIONS_V2).toBe(0);
     expect(MAX_PORTFOLIO_POSITIONS_V2).toBe(Number.POSITIVE_INFINITY);
@@ -102,15 +118,45 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / fully endogenous N',
     expect(r.classifications.T100).toBe('REJECTED');
   });
 
-  it('builds the frontier from Point Zero and stops at the first non-improving N+1',()=>{
+  it('reports its cardinality as local/heuristic and never as globally proven OPTIMAL_N',()=>{
     const xs=Array.from({length:35},(_,i)=>c(i+1,16-i*0.4));
     const r=runEndogenousPortfolioEngineV2(xs);
     expect(r.frontier[0].n).toBe(1);
-    expect(r.optimalN).toBeGreaterThanOrEqual(0);
-    expect(r.optimalN).toBeLessThanOrEqual(xs.length);
-    expect(r.frontier.at(-1)!.n).toBeGreaterThanOrEqual(r.optimalN ?? 0);
+    expect(r.selectedN).toBeGreaterThanOrEqual(0);
+    expect(r.selectedN).toBeLessThanOrEqual(xs.length);
+    expect(r.optimalN).toBeNull();
+    expect(r.searchMode).toBe('DETERMINISTIC_LOCAL_SEARCH');
+    expect(r.globalOptimalityProven).toBe(false);
     expect(r.emitsTargetWeights).toBe(false);
     expect(r.emitsEntryTiming).toBe(false);
+  });
+
+  it('locks the known non-monotone frontier limitation instead of falsely calling the first local stop globally optimal',()=>{
+    // With the current utility, complementarity can make the best triple better
+    // than every pair even though the best pair is worse than the best singleton.
+    // A one-add local search may legitimately stop at A; it must disclose that
+    // limitation rather than publish OPTIMAL_N=1.
+    const a=cleanScenarioCandidate('A',8,5,2);
+    const b=cleanScenarioCandidate('B',8,-5,2);
+    const cc=cleanScenarioCandidate('C',10,5,-3);
+
+    const singleton=evaluatePortfolioSetV2([a]).utility;
+    const bestPair=Math.max(
+      evaluatePortfolioSetV2([a,b]).utility,
+      evaluatePortfolioSetV2([a,cc]).utility,
+      evaluatePortfolioSetV2([b,cc]).utility,
+    );
+    const triple=evaluatePortfolioSetV2([a,b,cc]).utility;
+
+    expect(bestPair).toBeLessThan(singleton);
+    expect(triple).toBeGreaterThan(singleton);
+
+    const r=runEndogenousPortfolioEngineV2([a,b,cc]);
+    expect(r.selectedTickers).toEqual(['A']);
+    expect(r.selectedN).toBe(1);
+    expect(r.optimalN).toBeNull();
+    expect(r.globalOptimalityProven).toBe(false);
+    expect(r.searchNeighborhood).toBe('ONE_ADD_ONE_DROP_ONE_SWAP');
   });
 
   it('deduplicates canonical economic entities before portfolio competition',()=>{
@@ -132,6 +178,7 @@ describe('Endogenous Portfolio Engine v2.2 — Point Zero / fully endogenous N',
     const r=runEndogenousPortfolioEngineV2(xs);
     expect(r.searchMode).toBe('DETERMINISTIC_LOCAL_SEARCH');
     expect(r.globalOptimalityProven).toBe(false);
+    expect(r.optimalN).toBeNull();
   });
 
   it('allows a lower-score challenger to win at execution when it materially improves return/risk utility',()=>{
