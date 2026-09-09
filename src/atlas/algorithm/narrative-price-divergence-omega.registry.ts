@@ -1,0 +1,30 @@
+export const NARRATIVE_PRICE_DIVERGENCE_OMEGA_REGISTRY={
+  version:'2026-09-09-v1.0.0',
+  status:'ACTIVE_CANONICAL_DIAGNOSTIC',
+  module:'NARRATIVE_PRICE_DIVERGENCE_OMEGA_V1',
+  placement:'MARKET_RISK_SIGNAL_SUITE_UPSTREAM_OF_TACTICAL_INTERPRETATION',
+  directCapitalAuthority:false,
+  states:['EVIDENCE_PENDING','NO_DIVERGENCE','RESILIENCE_UNCONFIRMED','RESILIENCE_CONFIRMED','FRAGILE_RESILIENCE','BREAKDOWN_CONFIRMING'] as const,
+  thresholds:{
+    macroStressMin:60,indexResilienceMaxDrawdownPct:3,breakdownDrawdownPct:5,
+    breadthHealthyMax:45,breadthFragileMin:55,breadthBreakdownMin:60,
+    sectorRsConfirmationMin:55,positiveDseShareMinPct:30,negativeDseFragileMinPct:30,
+    creditContainedMax:50,creditStressMin:55,longEndYieldContainedMax:60,longEndYieldStressMin:70,
+  } as const,
+  relationships:{
+    macroOptionsLiquidity:'CONFIRMATION_AND_CONTEXT_ONLY',
+    dseOmega:'DYNAMIC_CONFIRMATION_SENSOR',
+    reverseScreenerDiscovery:'NO_DIRECT_SCORE_TRANSFER',
+    portfolio:'NO_DIRECT_BUY_SELL_WEIGHT_AUTHORITY',
+  } as const,
+  invariants:[
+    'BAD_NEWS_LEVEL_IS_NOT_NEGATIVE_SURPRISE',
+    'INDEX_RESILIENCE_IS_NOT_BROAD_MARKET_STRENGTH',
+    'RESILIENCE_REQUIRES_INTERNAL_CONFIRMATION',
+    'MACRO_STRESS_ALONE_NEVER_SELLS',
+    'ONE_SESSION_NEVER_DEFINES_REGIME',
+  ] as const,
+  implementation:'src/atlas/algorithm/narrative-price-divergence-omega.ts',
+  tests:'src/atlas/algorithm/narrative-price-divergence-omega.test.ts',
+  canonicalDocument:'CURRENT_CANON/2026-09-09_NARRATIVE_PRICE_DIVERGENCE_OMEGA_V1_0.md',
+} as const;
