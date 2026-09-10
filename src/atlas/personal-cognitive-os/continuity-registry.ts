@@ -5,6 +5,7 @@ export type ContinuityRegistryState = 'ACTIVE' | 'WAITING' | 'BLOCKED' | 'CLOSED
 export type ContinuityRegistryRecord = {
   projectId: string;
   name: string;
+  aliases?: string[];
   state: ContinuityRegistryState;
   active: boolean;
   established: string[];
@@ -48,6 +49,7 @@ function lexicalScore(query: string, record: ContinuityRegistryRecord): number {
   const corpus = new Set(tokenize([
     record.projectId,
     record.name,
+    ...(record.aliases ?? []),
     record.openLoop ?? '',
     record.nextBestAction ?? '',
     ...record.established,
@@ -99,7 +101,9 @@ export function retrieveContinuityFromRegistry(
   if (explicitHint) {
     const normalizedHint = normalize(explicitHint);
     const exact = available.filter((record) =>
-      normalize(record.projectId) === normalizedHint || normalize(record.name) === normalizedHint,
+      normalize(record.projectId) === normalizedHint ||
+      normalize(record.name) === normalizedHint ||
+      (record.aliases ?? []).some((alias) => normalize(alias) === normalizedHint),
     );
     if (exact.length === 1) {
       return {
@@ -116,7 +120,9 @@ export function retrieveContinuityFromRegistry(
     if (input.activeProjectHint) {
       const normalizedHint = normalize(input.activeProjectHint);
       const active = available.filter((record) =>
-        normalize(record.projectId) === normalizedHint || normalize(record.name) === normalizedHint,
+        normalize(record.projectId) === normalizedHint ||
+        normalize(record.name) === normalizedHint ||
+        (record.aliases ?? []).some((alias) => normalize(alias) === normalizedHint),
       );
       if (active.length === 1) {
         return {
