@@ -79,7 +79,7 @@ describe('AI Data Center Risk Transfer Omega v1', () => {
     expect(result.hunterClasses).toEqual(['H6_SECOND_ORDER_CAPTOR', 'H5_CONTRACTUAL_CAPTOR']);
   });
 
-  it('hands off attributable revenue/margin to FRU-MATH without changing FRU-MATH', () => {
+  it('hands attributable revenue/margin to the existing T5 contract before standard ATLAS assessment and FRU-MATH', () => {
     const result = evaluateDataCenterRiskTransfer({
       ...baseCase,
       attributableTransaction: true,
@@ -89,7 +89,7 @@ describe('AI Data Center Risk Transfer Omega v1', () => {
     });
     expect(result.companyProof).toBe('DCRT_C3_ATTRIBUTABLE_REVENUE_MARGIN');
     expect(result.parentEconomicProofLevel).toBe('E3_REVENUE_MARGIN');
-    expect(result.action).toBe('HANDOFF_TO_FRU_MATH');
+    expect(result.action).toBe('HANDOFF_TO_T5');
   });
 
   it('rejects a broken economic-proof chain', () => {
