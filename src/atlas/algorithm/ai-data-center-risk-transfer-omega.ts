@@ -97,7 +97,7 @@ export type DataCenterRiskTransferResult = {
   riskTransferFragilityScore: number;
   perilModelabilityState: PerilModelabilityState;
   independentFundingPoolCredit: 'DERIVED_DO_NOT_COUNT_AS_NEW_POOL';
-  action: 'EVIDENCE_REQUIRED' | 'WATCH' | 'ADVANCE_DEEP_RESEARCH' | 'HANDOFF_TO_FRU_MATH';
+  action: 'EVIDENCE_REQUIRED' | 'WATCH' | 'ADVANCE_DEEP_RESEARCH' | 'HANDOFF_TO_T5';
   reasons: string[];
   falsifiers: string[];
 };
@@ -140,7 +140,7 @@ function validateEconomicProofChain(input: DataCenterRiskTransferInput): void {
   if (input.attributableRevenueMargin && !input.attributableTransaction) {
     throw new Error('dcrt_revenue_margin_requires_attributable_transaction');
   }
-  // A dedicated alternative-capital deal is, by definition, a transaction-level market event.
+  // A dedicated alternative-capital deal is a transaction-level market event.
   // It need not be attributable to the audited listed company, so it does not imply company C2.
   if (input.dedicatedAlternativeCapitalTransaction && !input.protectionGapEvidence) {
     throw new Error('dcrt_alternative_capital_requires_protection_gap_evidence');
@@ -274,13 +274,13 @@ export function evaluateDataCenterRiskTransfer(input: DataCenterRiskTransferInpu
     'pricing_softens_faster_than_volume_grows',
     'loss_experience_or_model_error_erases_underwriting_economics',
     'client_or_geographic_accumulation_creates_unacceptable_tail_risk',
-    'valuation_prices_in_more_capture_than the company can economically realize',
+    'valuation_prices_in_more_capture_than_company_can_economically_realize',
   ];
 
   let action: DataCenterRiskTransferResult['action'];
   if (companyProof === 'DCRT_C4_MULTI_PERIOD_FCF_ROIC' || companyProof === 'DCRT_C3_ATTRIBUTABLE_REVENUE_MARGIN') {
-    action = 'HANDOFF_TO_FRU_MATH';
-    reasons.push('Company-level economics are attributable; hand off to E2/FRU-MATH without changing FRU-MATH itself.');
+    action = 'HANDOFF_TO_T5';
+    reasons.push('Company-level economics are attributable; hand off to the existing T5 CRTA contract. T5 then governs continuation to the standard ATLAS assessment stack and FRU-MATH.');
   } else if (companyProof === 'DCRT_C2_ATTRIBUTABLE_TRANSACTION' && evidenceGate === 'CONFIRMED') {
     action = 'ADVANCE_DEEP_RESEARCH';
     reasons.push('Attributable transaction proof exists, but revenue/margin/FCF conversion still requires verification.');
@@ -348,6 +348,7 @@ export const AI_DATA_CENTER_RISK_TRANSFER_OMEGA = {
     'MARKET_GROWTH_IS_NOT_COMPANY_ALPHA',
     'BROKER_FEE_REVENUE_IS_NOT_UNDERWRITING_PROFIT',
     'OPPORTUNITY_AND_RETAINED_TAIL_RISK_REMAIN_SEPARATE',
+    'C3_OR_C4_HANDOFF_MUST_GO_TO_EXISTING_T5_BEFORE_STANDARD_ATLAS_ASSESSMENT_AND_FRU',
     'NO_OUTPUT_IS_A_BUY_SIGNAL',
     'VALUATION_AND_EXPECTED_RETURN_REMAIN_EXTERNAL',
   ],
