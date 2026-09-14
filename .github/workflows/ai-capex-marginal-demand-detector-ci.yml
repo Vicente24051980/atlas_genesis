@@ -1,0 +1,25 @@
+name: AI CAPEX Marginal Demand Detector CI
+
+on:
+  push:
+    paths:
+      - 'src/atlas/algorithm/ai-capex-marginal-demand-detector-omega.ts'
+      - 'src/atlas/algorithm/ai-capex-marginal-demand-detector-omega.test.ts'
+      - 'CURRENT_CANON/AI_CAPEX_MARGINAL_DEMAND_DETECTOR_OMEGA.md'
+      - 'docs/atlas/AI_CAPEX_PAYBACK_OMEGA.md'
+      - '.github/workflows/ai-capex-marginal-demand-detector-ci.yml'
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/ai-capex-marginal-demand-detector-omega.ts'
+      - 'src/atlas/algorithm/ai-capex-marginal-demand-detector-omega.test.ts'
+      - 'CURRENT_CANON/AI_CAPEX_MARGINAL_DEMAND_DETECTOR_OMEGA.md'
+      - 'docs/atlas/AI_CAPEX_PAYBACK_OMEGA.md'
+      - '.github/workflows/ai-capex-marginal-demand-detector-ci.yml'
+
+jobs:
+  detector:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run marginal-demand detector tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/ai-capex-marginal-demand-detector-omega.test.ts
