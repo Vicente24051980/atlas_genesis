@@ -1,0 +1,23 @@
+name: AI Burry Adversarial Monitor CI
+
+on:
+  push:
+    paths:
+      - 'src/atlas/algorithm/ai-burry-adversarial-monitor-omega.ts'
+      - 'src/atlas/algorithm/ai-burry-adversarial-monitor-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-15_AI_BURRY_ADVERSARIAL_MONITOR_OMEGA.md'
+      - '.github/workflows/ai-burry-adversarial-monitor-ci.yml'
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/ai-burry-adversarial-monitor-omega.ts'
+      - 'src/atlas/algorithm/ai-burry-adversarial-monitor-omega.test.ts'
+      - 'CURRENT_CANON/2026-09-15_AI_BURRY_ADVERSARIAL_MONITOR_OMEGA.md'
+      - '.github/workflows/ai-burry-adversarial-monitor-ci.yml'
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Burry adversarial monitor tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/ai-burry-adversarial-monitor-omega.test.ts
