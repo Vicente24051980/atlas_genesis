@@ -148,3 +148,28 @@ Documented sequence supplied and independently checked during design:
 ## 12. PURPOSE
 
 R0-GIR does not predict winners. It ensures that material, observable economic changes reach the evidence and assessment system early enough to be evaluated. Its objective is discovery recall with bounded research capacity while preserving all downstream evidence, scoring, FRU, sizing, timing, and human capital-decision gates.
+
+## 13. OPERATING RADAR ROUTING — 2026-09-15
+
+The live IPO / private / macro radar is maintained in `CURRENT_CANON/2026-09-15_RADAR_IPO_PRIVATE_REGIME_OMEGA.md` and is subordinate to this R0 governance where applicable.
+
+Routing rules:
+- `IPO_2026_2027`: use the existing Future IPO Gate lifecycle F0-F6. A confidential filing is a research-state transition, not GIR-1 Economic Proof and not a BUY signal.
+- `PRIVATE_WATCH`: may be ordered by research priority, but private funding valuation, famous investors, technical claims or TAM do not satisfy GIR-1 contractuality by themselves.
+- `MACRO`: regime observations such as `RISK_FREE_REPRICING` modify valuation context only; they do not create R0 admission points or capital authority.
+- `EVIDENCE_ONLY`: non-investable universes may inform demand, supply-chain or competitive evidence but are excluded from candidate admission unless the human explicitly expands the investable universe.
+
+Current priority routing:
+- Anthropic: `F1_CONFIDENTIAL_FILING_REPORTED / PRIORITY MAX / WAIT_FOR_PUBLIC_FILING`.
+- Altera: `F1_CONFIDENTIAL_FILING_REPORTED / PRIORITY HIGH / WAIT_FOR_PUBLIC_FILING`.
+- Agility Robotics: `F0_PRIVATE_DISCOVERY / 12M_CANDIDATE / PRIORITY HIGH`; reported orders and operating hours increase research priority but remain subject to independent unit-economic and commercialization gates.
+- Temporal: `F0_PRIVATE_DISCOVERY / PRIORITY HIGH`.
+- Euclyd and Exein: `F0_PRIVATE_DISCOVERY / PRIORITY MEDIUM-HIGH`.
+- OpenAI: `F0_PRIVATE_DISCOVERY`; 2026 IPO window off, 2027+ unconfirmed.
+- China-only securities: `NON_INVESTABLE_EVIDENCE_ONLY`.
+
+Additional invariants:
+- `RESEARCH_PRIORITY != INVESTMENT_SCORE`
+- `PRIVATE_VALUATION != POINT_ZERO`
+- `CONFIDENTIAL_FILING != PUBLIC_AUDITED_EVIDENCE`
+- `ANALYSIS != EXECUTION`
