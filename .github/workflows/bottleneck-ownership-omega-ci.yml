@@ -1,0 +1,23 @@
+name: Bottleneck Ownership Omega CI
+
+on:
+  push:
+    paths:
+      - 'src/atlas/algorithm/bottleneck-ownership-omega.ts'
+      - 'src/atlas/algorithm/bottleneck-ownership-omega.test.ts'
+      - 'CURRENT_CANON/BOTTLENECK_OWNERSHIP_OMEGA.md'
+      - '.github/workflows/bottleneck-ownership-omega-ci.yml'
+  pull_request:
+    paths:
+      - 'src/atlas/algorithm/bottleneck-ownership-omega.ts'
+      - 'src/atlas/algorithm/bottleneck-ownership-omega.test.ts'
+      - 'CURRENT_CANON/BOTTLENECK_OWNERSHIP_OMEGA.md'
+      - '.github/workflows/bottleneck-ownership-omega-ci.yml'
+
+jobs:
+  bottleneck-ownership:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Bottleneck Ownership Omega tests
+        run: npx --yes vitest@3.2.4 run --globals src/atlas/algorithm/bottleneck-ownership-omega.test.ts
