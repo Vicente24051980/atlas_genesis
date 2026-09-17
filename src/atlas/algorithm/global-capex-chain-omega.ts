@@ -364,3 +364,274 @@ export const GLOBAL_CAPEX_CHAIN_OMEGA = {
     },
   },
 } as const;
+
+// 2026-09-17 — PRICE_PATH / FUNDAMENTAL_PATH evidence separation.
+// This block adds no score and has no independent decision authority.
+export type ChainBreadthStatus =
+  | 'INSUFFICIENT_EVIDENCE'
+  | 'NOT_CONFIRMED'
+  | 'PROVISIONAL_MULTI_LAYER'
+  | 'CONFIRMED_MULTI_LAYER';
+
+export type MarketSession = 'PREMARKET' | 'RTH' | 'AFTER_HOURS';
+export type MarketSessionContext = MarketSession | 'MIXED' | 'UNKNOWN';
+
+export type ChainCatalystScope = 'IDIOSYNCRATIC' | 'CHAIN' | 'MACRO' | 'NONE';
+
+export interface ChainBreadthObservation {
+  symbol: string;
+  layer: string;
+  returnPct: number | null;
+  benchmarkReturnPct: number | null;
+  session: MarketSession;
+  volume?: number | null;
+  catalystScope?: ChainCatalystScope;
+}
+
+export interface ChainBreadthPolicy {
+  minExcessReturnPct: number;
+  minLayerParticipation: number;
+  minIndependentLayers: number;
+  minIndependentTickers: number;
+  minMembersPerLayer: number;
+  requireRthForConfirmation: boolean;
+}
+
+export interface ChainBreadthResult {
+  status: ChainBreadthStatus;
+  eligibleTickers: number;
+  participatingTickers: string[];
+  confirmationTickers: string[];
+  idiosyncraticTickers: string[];
+  eligibleLayers: string[];
+  participatingLayers: string[];
+  sessions: MarketSession[];
+  session: MarketSessionContext;
+  fundamentalAuthority: 'NONE';
+  canConfirmFundamentalBottom: false;
+  magnitudeWeighted: false;
+  benchmarkNormalized: true;
+  outlierDominanceBlocked: true;
+  rthRevalidationRequired: boolean;
+}
+
+export function evaluateChainBreadth(
+  observations: ChainBreadthObservation[],
+  policy: ChainBreadthPolicy,
+): ChainBreadthResult {
+  const eligible = observations.filter(
+    (x) => Number.isFinite(x.returnPct) && Number.isFinite(x.benchmarkReturnPct),
+  );
+
+  if (eligible.length === 0) {
+    return {
+      status: 'INSUFFICIENT_EVIDENCE',
+      eligibleTickers: 0,
+      participatingTickers: [],
+      confirmationTickers: [],
+      idiosyncraticTickers: [],
+      eligibleLayers: [],
+      participatingLayers: [],
+      sessions: [],
+      session: 'UNKNOWN',
+      fundamentalAuthority: 'NONE',
+      canConfirmFundamentalBottom: false,
+      magnitudeWeighted: false,
+      benchmarkNormalized: true,
+      outlierDominanceBlocked: true,
+      rthRevalidationRequired: false,
+    };
+  }
+
+  const enriched = eligible.map((x) => ({
+    ...x,
+    excessReturnPct: (x.returnPct as number) - (x.benchmarkReturnPct as number),
+  }));
+
+  // Equal-weight participation: one ticker, one vote. Magnitude cannot dominate.
+  const participating = enriched.filter(
+    (x) => x.excessReturnPct >= policy.minExcessReturnPct,
+  );
+
+  // Idiosyncratic catalysts are reported but cannot vote to confirm chain breadth.
+  const confirmationEligible = enriched.filter(
+    (x) => x.catalystScope !== 'IDIOSYNCRATIC',
+  );
+  const confirmationParticipants = confirmationEligible.filter(
+    (x) => x.excessReturnPct >= policy.minExcessReturnPct,
+  );
+
+  const layers = new Map<string, typeof enriched>();
+  for (const obs of enriched) {
+    const current = layers.get(obs.layer) ?? [];
+    current.push(obs);
+    layers.set(obs.layer, current);
+  }
+
+  const participatingLayers: string[] = [];
+  for (const [layer, rawMembers] of layers.entries()) {
+    const members = rawMembers.filter(
+      (x) => x.catalystScope !== 'IDIOSYNCRATIC',
+    );
+    if (members.length < policy.minMembersPerLayer) continue;
+
+    const positives = members.filter(
+      (x) => x.excessReturnPct >= policy.minExcessReturnPct,
+    );
+    const participation = positives.length / members.length;
+
+    if (participation >= policy.minLayerParticipation) {
+      participatingLayers.push(layer);
+    }
+  }
+
+  const structuralBreadth =
+    confirmationParticipants.length >= policy.minIndependentTickers &&
+    participatingLayers.length >= policy.minIndependentLayers;
+
+  const sessions = [...new Set(eligible.map((x) => x.session))];
+  const session: MarketSessionContext =
+    sessions.length === 1 ? sessions[0] : 'MIXED';
+
+  const allConfirmationParticipantsRth =
+    confirmationParticipants.length > 0 &&
+    confirmationParticipants.every((x) => x.session === 'RTH');
+
+  let status: ChainBreadthStatus = 'NOT_CONFIRMED';
+  if (structuralBreadth) {
+    status =
+      policy.requireRthForConfirmation && !allConfirmationParticipantsRth
+        ? 'PROVISIONAL_MULTI_LAYER'
+        : 'CONFIRMED_MULTI_LAYER';
+  }
+
+  return {
+    status,
+    eligibleTickers: eligible.length,
+    participatingTickers: participating.map((x) => x.symbol),
+    confirmationTickers: confirmationParticipants.map((x) => x.symbol),
+    idiosyncraticTickers: enriched
+      .filter((x) => x.catalystScope === 'IDIOSYNCRATIC')
+      .map((x) => x.symbol),
+    eligibleLayers: [...layers.keys()],
+    participatingLayers,
+    sessions,
+    session,
+    fundamentalAuthority: 'NONE',
+    canConfirmFundamentalBottom: false,
+    magnitudeWeighted: false,
+    benchmarkNormalized: true,
+    outlierDominanceBlocked: true,
+    rthRevalidationRequired:
+      structuralBreadth && policy.requireRthForConfirmation && !allConfirmationParticipantsRth,
+  };
+}
+
+export type MediaLagState =
+  | 'NOT_ASSESSED'
+  | 'PRICE_LEADS_MEDIA'
+  | 'SYNCHRONOUS'
+  | 'MEDIA_LEADS_PRICE'
+  | 'CONFLICTING';
+
+export interface MediaLagEvidence {
+  state: MediaLagState;
+  priceSignalAt?: string | null;
+  mediaSignalAt?: string | null;
+  authority: 'DISCOVERY_ONLY';
+  canAlterEconomicProof: false;
+}
+
+export type CapitalCompetitionFeedbackState =
+  | 'NOT_ASSESSED'
+  | 'BENIGN'
+  | 'TIGHTENING'
+  | 'STRESSED'
+  | 'RELIEF';
+
+export interface CapitalCompetitionFeedbackEvidence {
+  state: CapitalCompetitionFeedbackState;
+  source: 'AI_CAPEX_FINANCING' | 'MACRO' | 'MIXED' | 'UNSPECIFIED';
+  externalFinancingPressure: boolean | null;
+  bondSupplyPressure: boolean | null;
+  creditSpreadPressure: boolean | null;
+  longEndYieldPressure: boolean | null;
+  selfFundingAdequate: boolean | null;
+  authority: 'RISK_CONTEXT_ONLY';
+  canConfirmFundamentalBreak: false;
+}
+
+export type IndividualPricePathState =
+  | 'NOT_ASSESSED'
+  | 'DETERIORATING'
+  | 'MIXED'
+  | 'IMPROVING';
+
+export type PersistenceAfterOpenState =
+  | 'NOT_ASSESSED'
+  | 'PENDING'
+  | 'FAILED'
+  | 'CONFIRMED';
+
+export interface GlobalCapexPricePath {
+  individualPricePath: IndividualPricePathState;
+  relativeReturnPct: number | null;
+  chainBreadth: ChainBreadthResult;
+  persistenceAfterOpen: PersistenceAfterOpenState;
+  mediaLag: MediaLagEvidence;
+  capitalCompetitionFeedback: CapitalCompetitionFeedbackEvidence;
+  fundamentalAuthority: 'NONE';
+}
+
+export type FundamentalTransmissionState =
+  | 'NOT_ASSESSED'
+  | 'INTACT'
+  | 'DETERIORATING'
+  | 'BROKEN'
+  | 'MIXED';
+
+export interface GlobalCapexFundamentalPath {
+  demand: FundamentalTransmissionState;
+  backlogOrUsage: FundamentalTransmissionState;
+  revenue: FundamentalTransmissionState;
+  margins: FundamentalTransmissionState;
+  fcf: FundamentalTransmissionState;
+  roic: FundamentalTransmissionState;
+  fundamentalBottom: 'UNCONFIRMED' | 'SUPPORTED' | 'CONFIRMED';
+  aiCapexBreak: 'NOT_ESTABLISHED' | 'EVIDENCE_EMERGING' | 'ESTABLISHED';
+  pricePathAuthority: 'NONE';
+}
+
+export type GlobalCapexChainWithMarketEvidence = GlobalCapexChainResult & {
+  pricePath: GlobalCapexPricePath;
+  fundamentalPath: GlobalCapexFundamentalPath;
+  decisionAuthority: 'NONE';
+};
+
+export function integrateGlobalCapexMarketEvidence(
+  base: GlobalCapexChainResult,
+  pricePath: GlobalCapexPricePath,
+  fundamentalPath: GlobalCapexFundamentalPath,
+): GlobalCapexChainWithMarketEvidence {
+  return {
+    ...base,
+    pricePath,
+    fundamentalPath,
+    decisionAuthority: 'NONE',
+  };
+}
+
+export const GLOBAL_CAPEX_CHAIN_MARKET_EVIDENCE_POLICY = {
+  id: 'GLOBAL_CAPEX_CHAIN_MARKET_EVIDENCE_2026_09_17',
+  rules: [
+    'PRICE_IS_NOT_FUNDAMENTAL_EVIDENCE',
+    'CHAIN_BREADTH_IS_EQUAL_WEIGHTED_NOT_MAGNITUDE_WEIGHTED',
+    'CHAIN_BREADTH_IS_BENCHMARK_RELATIVE',
+    'IDIOSYNCRATIC_CATALYSTS_CANNOT_CONFIRM_CHAIN_BREADTH',
+    'PREMARKET_MULTI_LAYER_REQUIRES_RTH_REVALIDATION',
+    'MEDIA_LAG_IS_DISCOVERY_ONLY',
+    'CAPITAL_COMPETITION_FEEDBACK_IS_RISK_CONTEXT_ONLY',
+    'PRICE_PATH_CANNOT_CONFIRM_FUNDAMENTAL_BOTTOM',
+    'PRICE_PATH_AND_FUNDAMENTAL_PATH_HAVE_NO_DECISION_AUTHORITY',
+  ],
+} as const;
