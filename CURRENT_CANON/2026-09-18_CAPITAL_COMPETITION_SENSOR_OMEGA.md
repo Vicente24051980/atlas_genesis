@@ -254,8 +254,9 @@ Specific implications:
 
 - MU / MRVL: ordinary Point Zero candidates; no preallocated AI slots.
 - BAC / RCL: no CORE label before E2/E3/E4.
+- BAC / RCL / MU / MRVL: `BROKER_REALITY_UNKNOWN` relative to the last confirmed 17-SEP 21:15 portfolio capture until a newer broker capture reconciles them.
 - GOOG / MSFT / ANET / COHR: common exposure to the same parent financing factor must be mapped in E5.
-- Broker reality remains separate from analytical candidacy.
+- Broker reality remains separate from analytical candidacy. A research candidate can never be treated as an executed holding without reconciliation.
 
 ## 10. Falsifiers
 
