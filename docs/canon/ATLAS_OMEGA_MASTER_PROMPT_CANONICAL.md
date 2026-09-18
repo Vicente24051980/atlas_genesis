@@ -1,3 +1,15 @@
+# AUTHORITY UPDATE — 18-SEP-2026
+
+**This legacy master is superseded as top-level financial authority by:**
+
+`CURRENT_CANON/PROMPT_MAESTRO_ATLAS_OMEGA_V3_4_SIMPLIFIED_CORE.md`
+
+**Current authority:** ATLAS Ω v3.4 SIMPLIFIED CORE — ACTIVE / SOLE CURRENT FINANCIAL CANON.
+
+This file remains as provenance and specialized legacy specification. Any conflicting 07-SEP/v2.1/MASTER-UNIVERSE authority language is historical. Where no conflict exists, specialized definitions may continue to be consumed subject to v3.4 governance.
+
+---
+
 # ATLAS FINANCIERO Ω
 
 ## MASTER PROMPT OPERATIVO AUTOCONTENIDO
