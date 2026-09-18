@@ -1,4 +1,4 @@
-export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-07-v4.1.0' as const;
+export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA_VERSION = '2026-09-18-v4.2.0' as const;
 
 export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
   governanceStatus: 'ACTIVE_CANONICAL',
@@ -128,6 +128,19 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
       runtimeAuthority: 'AUTHORIZED_DISCOVERY_AND_CORROBORATIVE_EVIDENCE_ONLY',
       directScoreWeight: 0,
     },
+    capitalCompetitionSensor: {
+      id: 'CAPITAL_COMPETITION_SENSOR_OMEGA_V1',
+      runtimeAuthority: 'E2_SCENARIO_INPUT_AND_E5_CAUSAL_FACTOR_MAP_ONLY',
+      placement: 'CAPITAL_FORMATION_SENSOR_NOT_NEW_ENGINE',
+      directScoreWeight: 0,
+      irrBonusPenalty: 0,
+      buySellAuthority: false,
+      portfolioQuotaAuthority: false,
+      coreLabelAuthority: false,
+      rationingRequiresQuantityFailureEvidence: true,
+      yieldAttributionRequiresFedAndTermPremiumConfounderControl: true,
+      sameEconomicDollarCountsOnce: true,
+    },
     traderIntelligence: {
       id: 'TRADER_INTELLIGENCE_OMEGA_V1',
       runtimeAuthority: 'AUTHORIZED_DISCOVERY_RESEARCH_PRIORITY_AND_FALSIFICATION_ONLY',
@@ -193,6 +206,16 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     revealedCapitalCannotBypassFundamentals: true,
     revealedCapitalCannotBypassValuation: true,
     revealedCapitalCannotBypassFalsifierVeto: true,
+    capitalCompetitionCannotCreateDirectScore: true,
+    capitalCompetitionCannotCreateBuySell: true,
+    capitalCompetitionCannotCreatePortfolioQuota: true,
+    capitalCompetitionCannotCreateCoreLabelBeforeAssessment: true,
+    capitalCompetitionPricePressureCannotImplyRationing: true,
+    capitalCompetitionYieldAttributionMustControlForFedAndTermPremium: true,
+    sameEconomicCapitalDollarCannotCreateMultipleFundingPools: true,
+    fixedAiSlotQuotaForbidden: true,
+    eventGateCannotPromoteUnselectedCandidate: true,
+    brokerRealityUnknownBlocksExecution: true,
     traderIdentityCannotCreateDirectScore: true,
     traderIntelligenceCannotBuySell: true,
     traderIntelligenceCannotSetWeight: true,
@@ -222,6 +245,7 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     'MOAT_AND_DISRUPTION_RISK',
     'AI_VALUE_MIGRATION_WHEN_APPLICABLE',
     'AI_CAPITAL_FORMATION_WHEN_APPLICABLE',
+    'CAPITAL_COMPETITION_SENSOR_WHEN_FINANCING_IS_MATERIAL',
     'EXPECTATION_GAP_OMEGA',
     'TAPE_RS_COMPLEMENTARY_ONLY',
     'MACRO_REGULATORY_GEOPOLITICAL_FINANCING_RISK',
@@ -243,6 +267,8 @@ export const ATLAS_KERNEL_CONTRACT_REGISTRY_OMEGA = {
     'REPLACEMENT_HYSTERESIS',
     'POSITION_SIZING',
     'ENTRY_TIMING',
+    'EVENT_GATES_ONLY_FOR_ALREADY_SELECTED_CANDIDATES',
+    'BROKER_REALITY_MUST_BE_CONFIRMED_BEFORE_EXECUTION',
     'HUMAN_APPROVAL_FOR_MATERIAL_ACTION',
   ],
   aiCapexPreScoreSequence: [

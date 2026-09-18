@@ -161,3 +161,50 @@ The addendum is covered for:
 **PRICE ≠ FUNDAMENTAL EVIDENCE.**
 
 Chain breadth can describe how broadly the market is repricing an economic chain. It cannot, by itself, demonstrate a fundamental bottom, an AI-CAPEX break, or economic value creation.
+
+
+## 18-SEP correction — event-window confounders
+
+The 16–18 SEP window is treated as a contaminated price-discovery window when both of the following are active:
+
+- FOMC rate decision / policy-path repricing;
+- quarterly options expiry / large dealer-hedging reset.
+
+Canonical states:
+
+```text
+MARKET_EVENT_CONFOUNDERS:
+  FOMC_RATE_DECISION
+  QUARTERLY_OPTIONS_EXPIRY
+
+PRICE_DISCOVERY_QUALITY = HEAVILY_CONFOUNDED
+CAN_CONFIRM_FLOOR_ALONE = FALSE
+POST_EVENT_PERSISTENCE_REQUIRED = TRUE
+```
+
+This does **not** invalidate observed breadth, absorption or relative strength. It changes their authority.
+
+A strong SOX/Nasdaq session inside the window can support:
+
+- `ABSORPTION`;
+- `BREADTH`;
+- `PRICE_PATH`.
+
+It cannot, by itself, promote:
+
+- `FUNDAMENTAL_BOTTOM`;
+- `AI_CAPEX_BREAK`;
+- `DURABLE_PRICE_FLOOR`.
+
+The post-event session must show persistence, especially:
+
+- higher-low behavior;
+- no renewed break of recent lows;
+- contraction in the 52-week new-low tail;
+- breadth surviving outside mechanically favored index names.
+
+Therefore:
+
+`EVENT_WINDOW_STRENGTH ≠ CLEAN_FLOOR_CONFIRMATION`.
+
+Implementation: `evaluateMarketEventConfounders()` in `src/atlas/algorithm/global-capex-chain-omega.ts`.

@@ -573,6 +573,45 @@ export type PersistenceAfterOpenState =
   | 'FAILED'
   | 'CONFIRMED';
 
+export type MarketEventConfounder =
+  | 'FOMC_RATE_DECISION'
+  | 'QUARTERLY_OPTIONS_EXPIRY'
+  | 'MAJOR_MACRO_RELEASE'
+  | 'OTHER';
+
+export type MarketPriceDiscoveryQuality =
+  | 'NORMAL'
+  | 'CONFOUNDED'
+  | 'HEAVILY_CONFOUNDED';
+
+export interface MarketEventConfounderEvidence {
+  active: MarketEventConfounder[];
+  priceDiscoveryQuality: MarketPriceDiscoveryQuality;
+  canConfirmFloorAlone: false;
+  requiresPostEventPersistence: boolean;
+  authority: 'TIMING_CONTEXT_ONLY';
+}
+
+export function evaluateMarketEventConfounders(
+  active: MarketEventConfounder[],
+): MarketEventConfounderEvidence {
+  const unique = [...new Set(active)];
+  const priceDiscoveryQuality: MarketPriceDiscoveryQuality =
+    unique.length >= 2
+      ? 'HEAVILY_CONFOUNDED'
+      : unique.length === 1
+        ? 'CONFOUNDED'
+        : 'NORMAL';
+
+  return {
+    active: unique,
+    priceDiscoveryQuality,
+    canConfirmFloorAlone: false,
+    requiresPostEventPersistence: unique.length > 0,
+    authority: 'TIMING_CONTEXT_ONLY',
+  };
+}
+
 export interface GlobalCapexPricePath {
   individualPricePath: IndividualPricePathState;
   relativeReturnPct: number | null;
@@ -580,6 +619,7 @@ export interface GlobalCapexPricePath {
   persistenceAfterOpen: PersistenceAfterOpenState;
   mediaLag: MediaLagEvidence;
   capitalCompetitionFeedback: CapitalCompetitionFeedbackEvidence;
+  marketEventConfounders?: MarketEventConfounderEvidence;
   fundamentalAuthority: 'NONE';
 }
 
@@ -631,6 +671,8 @@ export const GLOBAL_CAPEX_CHAIN_MARKET_EVIDENCE_POLICY = {
     'PREMARKET_MULTI_LAYER_REQUIRES_RTH_REVALIDATION',
     'MEDIA_LAG_IS_DISCOVERY_ONLY',
     'CAPITAL_COMPETITION_FEEDBACK_IS_RISK_CONTEXT_ONLY',
+    'FOMC_AND_OPTIONS_EXPIRY_ARE_MANDATORY_PRICE_DISCOVERY_CONFOUNDERS_WHEN_ACTIVE',
+    'CONFOUNDED_EVENT_WINDOW_REQUIRES_POST_EVENT_PERSISTENCE',
     'PRICE_PATH_CANNOT_CONFIRM_FUNDAMENTAL_BOTTOM',
     'PRICE_PATH_AND_FUNDAMENTAL_PATH_HAVE_NO_DECISION_AUTHORITY',
   ],
