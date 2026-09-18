@@ -1,5 +1,6 @@
 import {
   evaluateChainBreadth,
+  evaluateMarketEventConfounders,
   integrateGlobalCapexMarketEvidence,
   type ChainBreadthObservation,
   type ChainBreadthPolicy,
@@ -74,6 +75,18 @@ describe('Global CAPEX Chain market evidence separation', () => {
     expect(result.status).toBe('NOT_CONFIRMED');
     expect(result.benchmarkNormalized).toBe(true);
     expect(result.magnitudeWeighted).toBe(false);
+  });
+
+  it('treats a FOMC plus quarterly-expiry window as heavily confounded price discovery', () => {
+    const result = evaluateMarketEventConfounders([
+      'FOMC_RATE_DECISION',
+      'QUARTERLY_OPTIONS_EXPIRY',
+    ]);
+
+    expect(result.priceDiscoveryQuality).toBe('HEAVILY_CONFOUNDED');
+    expect(result.canConfirmFloorAlone).toBe(false);
+    expect(result.requiresPostEventPersistence).toBe(true);
+    expect(result.authority).toBe('TIMING_CONTEXT_ONLY');
   });
 
   it('preserves zero decision authority when market evidence is attached to the base result', () => {
