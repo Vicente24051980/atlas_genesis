@@ -2,8 +2,10 @@
 
 **Status:** CANONICAL / ACTIVE / TRANSVERSAL  
 **Effective date:** 2026-08-28  
-**Authority:** ATLAS Ω v4.0  
+**Authority:** SUBORDINATE IMPLEMENTATION LAYER under PROMPT MAESTRO ATLAS Ω v3.4 SIMPLIFIED CORE  
 **Scope:** market-regime detection, discount-rate transmission, sovereign-duration flows, Treasury plumbing, energy-inflation pass-through and real-asset signal interpretation.
+
+**v3.4 compatibility law (18-SEP-2026):** this document retains legacy field names containing `GATE` for backward traceability only. They are **sensors/checks feeding E1/E2 and E5 controls**, not independent decision gates. `E3` is the sole canonical decision gate; no macro sensor may issue BUY/SELL or bypass `R0 → E1 → E2 → E3 → E4`, with E5 control and E6 assurance.
 
 ## 1. Objective
 
@@ -381,3 +383,52 @@ Insert into the active pipeline after `Sovereign Liquidity Plumbing Ω / Global 
 `Macro Raw Data -> Evidence Integrity -> JAPAN CAPITAL REPATRIATION -> TREASURY LIQUIDITY/MANAGEMENT -> ENERGY-INFLATION PASS-THROUGH -> GOLD/REAL-ASSET -> MACRO DISCOUNT-RATE -> ROTATION CONFIRMATION -> REGIME SYNTHESIS -> PORTFOLIO TRANSMISSION -> NOTIFICATION GATE`.
 
 **Canonical rule:** the module changes posture only when evidence is sufficient; otherwise it remains silent.
+## 17. Runtime regime snapshot — 18-SEP-2026
+
+**Source packet:** Reuters Morning Bid Europe supplied 18-SEP-2026. This section is a runtime observation, not a new engine and not a permanent law.
+
+```text
+SYNCHRONIZED_GLOBAL_TIGHTENING = ACTIVE / MATERIAL_CHANGE
+
+BOJ_POLICY_RATE = 1.25% / REALIZED
+BOJ_DECISION_SHOCK = LOW / CONFIRMED
+BOJ_PATH_SHOCK = LOW_CANDIDATE / PATH_STILL_MONITORED
+BOJ_DOVISH_DISSENTS = 2
+
+GLOBAL_HIKING_PATH = BROAD / PARTLY_REALIZED + PARTLY_MARKET_PRICED
+ENERGY_INFLATION_PRESSURE = HIGH / BRENT_ABOVE_100
+LONG_END_STRESS = HIGH / POLICY_RESPONSE_DETECTED
+RISK_FREE_REPRICING = ACTIVE / HIGH
+
+MACRO_TOP_LEVEL_RECLASSIFICATION = PENDING_FULL_CROSS_CONFIRMATION
+PORTFOLIO_ACTION = NONE_AUTOMATIC
+```
+
+### Evidence separation
+
+- **Realized policy:** BOJ raised rates to 1.25%; the decision did not produce the feared immediate yen/risk-asset shock.
+- **Market pricing, not realized policy:** additional hikes are priced across the U.S., Europe, Britain, Japan and Australia; pricing must not be represented as completed central-bank action.
+- **Energy:** crude remains above $100, so the energy-to-inflation channel remains active even if oil eases intraday.
+- **Long-end duration:** the Bank of England's halt to active long-dated gilt sales is classified as `POLICY_RESPONSE_DETECTED`; it is not proof that global duration stress has cleared.
+- **Japan repatriation:** no claim of Japanese Treasury selling or confirmed repatriation is permitted without direct flow/holdings evidence.
+- **Equities:** resilient equity prices do not cancel discount-rate pressure; company fundamentals and valuation regime remain separate.
+
+### Current transmission
+
+`SYNCHRONIZED_GLOBAL_TIGHTENING → HIGHER_EXPECTED_DISCOUNT_RATE → HIGHER_HURDLE_FOR_LONG_DURATION_ASSETS`
+
+This can tighten valuation/entry discipline and trigger risk-budget review through E2/E5, but it cannot falsify a company thesis or authorize a trade without company-level evidence and the canonical E3/E4 sequence.
+
+### Falsifiers / downgrade conditions
+
+Downgrade the tightening overlay if several independent channels confirm relief, including:
+
+1. sustained fall in Brent/refined-product stress plus easing inflation expectations;
+2. persistent compression in U.S. 10Y/30Y yields without a growth-break signal;
+3. central-bank path repricing that removes a meaningful share of expected hikes;
+4. easing credit/rates volatility with broad equity confirmation;
+5. no confirmed Japan repatriation pressure and no renewed duration-demand shock.
+
+### Next confirmation required
+
+Ueda press conference; Brent and refined products; U.S. 10Y/30Y; USDJPY; credit spreads/rates volatility; U.S. industrial production; Fed Bowman/Schmid communication; regular-session breadth.
