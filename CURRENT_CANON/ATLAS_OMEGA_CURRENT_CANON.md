@@ -1,3 +1,14 @@
+# ATLAS Ω — CURRENT CANON POINTER
+
+**SOLE CURRENT FINANCIAL CANON:** [PROMPT MAESTRO ATLAS Ω v3.4 — SIMPLIFIED CORE](./PROMPT_MAESTRO_ATLAS_OMEGA_V3_4_SIMPLIFIED_CORE.md)  
+**Promoted:** 18-SEP-2026  
+**Authority:** ACTIVE / SOLE CURRENT FINANCIAL CANON  
+**Supersedes:** v3.3 and all earlier financial prompt versions where contradictory.
+
+> This pointer overrides stale 07-SEP/v2.1 authority language below. Historical material is preserved for provenance only. The six-engine E1–E6 architecture remains; v3.4 governs simplification, Point Zero, one canonical gate, endogenous N, evidence sufficiency, and sensor/module authority.
+
+---
+
 # ATLAS Ω — CURRENT CANON
 
 **Status:** `SOLE_CANON / ACTIVE`  
