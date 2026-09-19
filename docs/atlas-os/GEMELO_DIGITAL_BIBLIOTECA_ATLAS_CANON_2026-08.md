@@ -376,3 +376,32 @@ Atlas OS debe evolucionar desde una aplicación que almacena información hacia 
 - ayudar a tomar decisiones coherentes con la Constitución y los principios acumulados.
 
 La lectura diaria es una de las fuentes permanentes de alimentación de ese sistema.
+
+---
+
+## 13. ATLAS RESPONSE FILTER Ω
+
+Módulo transversal del Gemelo Digital integrado el **19-SEP-2026**.
+
+Objetivo: impedir que una percepción, interpretación, emoción o creencia se convierta directamente en acción sin separación epistemológica y revisión posterior.
+
+Cadena canónica:
+
+`REALIDAD → PERCEPCIÓN → INTERPRETACIÓN → EMOCIÓN → HIPÓTESIS → OBJETIVO → RESPUESTA → ACCIÓN → RESULTADO → CORRECCIÓN`
+
+Antipatrón:
+
+`LO PIENSO → ES VERDAD → REACCIONO`
+
+Reglas mínimas:
+
+- pensamiento ≠ hecho;
+- emoción ≠ evidencia del hecho externo;
+- creencia contrastable = hipótesis operativa;
+- pausa deliberada antes de acciones irreversibles bajo alta activación emocional;
+- silencio es una opción, no una obligación;
+- registrar expectativa y resultado en decisiones materiales;
+- corregir el modelo cuando la realidad contradiga la interpretación;
+- aplicar Ley Ω-060 como regla de depuración rápida.
+
+Documento operativo: `docs/atlas-os/GEMELO_RESPONSE_FILTER_OMEGA_2026-09-19.md`.
