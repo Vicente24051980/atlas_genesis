@@ -148,6 +148,20 @@ CAPEX
 Toda cantidad derivada de otra ya contada:
 `DERIVED_DO_NOT_COUNT_AS_NEW_POOL`.
 
+### 8.1 · AI Safety / Regulatory Transmission Ω
+
+`AI_SAFETY_REGULATORY_TRANSMISSION Ω` es instrumentación transversal R0/E1→E2/E5; no crea motor, gate, score ni autoridad BUY/SELL.
+
+Variables observables: `AI_SAFETY_INCIDENT_SEVERITY`, `FRONTIER_REGULATORY_PRESSURE`, `REGULATORY_CAPTURE_RISK`, `AI_COMPLIANCE_COST`, `FRONTIER_CONCENTRATION`, `US_CHINA_AI_FRAGMENTATION`, `AI_DEPLOYMENT_RESTRICTION`, `AI_LABOR_SUBSTITUTION` y `ROBOTICS_PHYSICAL_AUTOMATION`.
+
+Leyes:
+- `SAFETY_RISK_REAL ≠ REGULATION_OPTIMAL ≠ REGULATORY_CAPTURE_FALSE`;
+- `CAPABILITY ≠ DEPLOYMENT ≠ MONETIZATION`;
+- predicciones AGI/desempleo/extinción permanecen `R0/HYPOTHESIS` hasta evidencia suficiente;
+- narrativa de seguridad o regulación no confirma `AI_CAPEX_SLOWDOWN` sin transmisión observable.
+
+Artefacto especializado: `CURRENT_CANON/2026-09-19_AI_SAFETY_REGULATORY_TRANSMISSION_OMEGA_V1_0.md`.
+
 ## 9 · Precio, suelo y timing
 `PRICE_PATH_SINCE_CATALYST / FUNDAMENTAL_PATH` es control obligatorio antes de interpretar upgrades o catalizadores.
 
