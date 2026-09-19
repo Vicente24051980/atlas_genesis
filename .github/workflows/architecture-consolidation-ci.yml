@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/architecture-consolidation-ci.yml'
+      - 'CURRENT_CANON/2026-09-19_METRIC_EVIDENCE_INTEGRITY_OMEGA_V3_4_EXTENSION.md'
+      - 'src/atlas/algorithm/metric-evidence-integrity-omega.ts'
+      - 'src/atlas/algorithm/metric-evidence-integrity-omega.test.ts'
       - 'src/atlas/algorithm/atlas-kernel-contract-registry-omega.ts'
       - 'src/atlas/algorithm/atlas-kernel-contract-registry-omega.test.ts'
       - 'src/atlas/algorithm/e5-control-policy-omega.ts'
@@ -38,6 +41,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/architecture-consolidation-ci.yml'
+      - 'CURRENT_CANON/2026-09-19_METRIC_EVIDENCE_INTEGRITY_OMEGA_V3_4_EXTENSION.md'
       - 'src/atlas/algorithm/**'
       - 'runtime/agentic_omega/**'
       - 'api/atlas_core_consolidated.py'
@@ -57,9 +61,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Run E1-E6 and Point Zero contracts
+      - name: Run E1-E6, Point Zero, and metric-evidence contracts
         run: >-
           npx --yes vitest@3.2.4 run --globals
+          src/atlas/algorithm/metric-evidence-integrity-omega.test.ts
           src/atlas/algorithm/atlas-kernel-contract-registry-omega.test.ts
           src/atlas/algorithm/e5-control-policy-omega.test.ts
           src/atlas/algorithm/e6-assurance-harness-policy-omega.test.ts
