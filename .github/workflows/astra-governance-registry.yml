@@ -1,0 +1,20 @@
+name: ASTRA Governance Registry CI
+
+on:
+  pull_request:
+    paths:
+      - 'governance/**'
+      - 'scripts/validate_astra_governance.py'
+      - '.github/workflows/astra-governance-registry.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate authority and factor ownership registries
+        run: python scripts/validate_astra_governance.py
