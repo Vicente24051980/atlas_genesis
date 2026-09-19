@@ -66,6 +66,21 @@ Fast-track epistemic puede acelerar la ingestión cuando la evidencia es fuerte,
 
 `CUSTOMER_COMMITMENT ≠ BACKLOG/RPO ≠ REVENUE`.
 
+
+### 5.1 · Ampliación oficial — METRIC EVIDENCE INTEGRITY Ω
+
+`METRIC_EVIDENCE_INTEGRITY Ω` es un guardrail transversal subordinado a v3.4. No crea motor, gate, score ni autoridad BUY/SELL.
+
+Reglas mínimas:
+- métrica crítica sin fuente trazable → `BLOCK / EVIDENCE_PENDING`;
+- `available_at > decision_as_of` → `LOOK_AHEAD_BLOCKED`;
+- `EPS` sin base contable explícita → `EPS_ACCOUNTING_BASIS_AMBIGUOUS / BLOCK`;
+- `NON_GAAP EPS` explícitamente identificado puede aceptarse como evidencia si provenance y temporalidad pasan;
+- GAAP, non-GAAP/adjusted, IFRS y otras bases no se normalizan silenciosamente como equivalentes;
+- ante identidad, temporalidad o provenance irresoluble: fail-closed.
+
+Artefacto especializado: `CURRENT_CANON/2026-09-19_METRIC_EVIDENCE_INTEGRITY_OMEGA_V3_4_EXTENSION.md`.
+
 ## 6 · Assessment E2
 E2 integra:
 - calidad;
