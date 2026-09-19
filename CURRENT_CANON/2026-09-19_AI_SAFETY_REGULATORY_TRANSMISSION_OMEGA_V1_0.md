@@ -91,3 +91,42 @@ PORTFOLIO_QUOTA      = FALSE
 ```
 
 Gobierna v3.4 ante cualquier conflicto.
+
+
+## 10 · Evidence update — Reuters Breakingviews · 19-SEP-2026
+
+### Estado de señales
+```text
+AI_SAFETY_RISK               = EVIDENCE_SUPPORTED
+COORDINATED_SLOWDOWN_PROPOSAL= VERIFIED
+REGULATORY_CAPTURE_RISK      = INVESTIGATE / MATERIAL
+AI_CARTEL                    = NOT_PROVEN
+EXISTENTIAL_RISK             = UNPROVEN
+AI_CAPEX_SLOWDOWN            = NOT_CONFIRMED
+```
+
+### Evidencia incorporada
+- Reuters Breakingviews documenta el debate sobre una ralentización coordinada de la frontera IA y el posible beneficio financiero para laboratorios intensivos en compute.
+- La existencia de incidentes/evaluaciones de agentes con comportamiento no previsto eleva `AI_SAFETY_INCIDENT_SEVERITY`, pero no prueba escape autónomo general ni riesgo existencial.
+- La hipótesis de captura/cartel conserva contraevidencia material: los frontier labs no controlan por sí solos semiconductores, data centers, energía ni talento, y una pausa parcial puede transferir ventaja a otros laboratorios y geografías.
+- La competencia china/europea actúa como falsificador de una lectura lineal `US_SLOWDOWN → GLOBAL_AI_CAPEX_DESTRUCTION`.
+
+### Falsificadores / discriminadores nuevos
+1. Si una ralentización de frontier labs de EE. UU. coincide con aceleración de China/Europa, clasificar primero como `GEOGRAPHIC_CAPEX_REALLOCATION`, no como destrucción global de demanda.
+2. `REGULATORY_CAPTURE_RISK` sólo escala si aparecen reglas concretas con costes de compliance asimétricos, mecanismo de exclusión y evidencia causal de influencia.
+3. `AI_CAPEX_SLOWDOWN` sólo escala con transmisión observable a financiación, cancelaciones/retrasos, capacidad energizada, backlog/RPO, revenue, margen o FCF.
+4. Narrativa/caída de precio sin deterioro de esos observables permanece `PRICE/NARRATIVE_SHOCK`.
+5. Incidente en eval/test debe etiquetar las condiciones del entorno; no extrapolar automáticamente a despliegue real.
+
+### Interacción macro
+Mantener separados:
+```text
+AI SAFETY / REGULATION NARRATIVE → PRICE / SENTIMENT
+MACRO / OIL / YIELDS / FINANCING → WACC / CAPEX CONVERSION
+OBSERVED REGULATORY CONSTRAINT   → DEPLOYMENT / COMPETITION / MONETIZATION
+```
+
+No hacer doble conteo entre Global Macro Regime, Capital Competition y este módulo.
+
+### Próximo observable
+Comparecencias, propuestas regulatorias, compromisos multilaterales o cambios formales de política de frontier labs entran como `FRONTIER_REGULATORY_PRESSURE`; sólo cambian el estado económico cuando exista mecanismo de transmisión verificable.
