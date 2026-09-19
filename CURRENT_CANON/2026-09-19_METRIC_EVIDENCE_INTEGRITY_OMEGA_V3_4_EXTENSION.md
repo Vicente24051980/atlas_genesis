@@ -3,7 +3,7 @@
 **Fecha:** 19-SEP-2026  
 **Estado:** ACTIVE / OFFICIAL v3.4 EXTENSION  
 **Autoridad padre:** PROMPT MAESTRO ATLAS Ω v3.4 — SIMPLIFIED CORE  
-**Rol:** guardrail transversal de integridad de evidencia métrica  
+**Rol:** guardrail transversal R0/E1 de integridad de evidencia métrica; soporte de E6 Assurance  
 **Motores nuevos:** 0  
 **Gates nuevos:** 0  
 **Direct score weight:** 0  
@@ -27,22 +27,33 @@ Si una regla de esta ampliación contradijera v3.4, prevalece v3.4.
 
 `METRIC_EVIDENCE_INTEGRITY Ω` opera antes de que una métrica pueda adquirir autoridad en E1/E2. Su función es impedir que valores numéricos correctos o plausibles entren con identidad contable, provenance o temporalidad ambiguas.
 
-No selecciona activos, no asigna score, no crea señales de compra/venta y no reemplaza E3.
+No selecciona activos, no asigna score, no crea señales de compra/venta, no reemplaza E3 y no crea un gate adicional.
 
 ## 2 · Contrato mínimo de una métrica
 
-Para que una métrica crítica pueda ser aceptada debe conservar, cuando aplique:
+Para toda métrica cuantitativa material que pueda afectar assessment, estados, valoración, Expected Return, Conviction Ω, sizing o cartera, el mínimo canónico es:
+
+```text
+METRIC_VALUE + ACCOUNTING_BASIS + SOURCE + AVAILABLE_AT
+```
+
+Además debe conservar, cuando aplique:
 
 - nombre de métrica;
-- valor;
 - periodo económico;
-- base contable explícita cuando la identidad pueda ser ambigua;
 - `observed_at`;
-- `available_at`;
-- `decision_as_of`;
-- fuente trazable.
+- `decision_as_of` / T0;
+- definición/unidad/moneda necesarias para reconciliación.
 
-`available_at` representa el momento más temprano en que la información estaba realmente disponible para ATLAS. La fecha de recuperación posterior no puede retroceder artificialmente ese instante.
+`available_at` es el instante más temprano **verificable** en que el dato exacto estaba públicamente disponible. `observed_at` es cuándo ATLAS lo observó o recuperó.
+
+Si la disponibilidad pública original no puede verificarse:
+
+```text
+available_at = observed_at
+```
+
+como cota conservadora. Nunca se retrofecha por conveniencia.
 
 ## 3 · Point-in-time / look-ahead
 
@@ -61,43 +72,55 @@ REASON = LOOK_AHEAD_BLOCKED
 
 Datos posteriores pueden usarse para evaluación ex post en E6, nunca para reescribir una decisión ex ante.
 
-## 4 · EPS y base contable
+### 3.1 · Corrección temporal canónica
 
-`EPS` sin base contable identificable es ambiguo y se bloquea.
+`observed_at > available_at` **no es una inconsistencia por sí misma**. Es normal recuperar hoy un dato publicado semanas antes. El código no puede bloquearlo si existe evidencia independiente de `available_at`.
 
-Ejemplos válidos:
+Igualmente, `period_end > available_at` no implica look-ahead por sí solo: una estimación o consenso puede referirse a un periodo fiscal futuro y ser conocido en T0. La prueba de PIT se hace contra `available_at`, no contra `period_end`.
 
-- `GAAP EPS`;
-- `NON_GAAP EPS`;
-- `IFRS EPS`;
-- `EPS` con campo estructurado `accountingBasis`.
+## 4 · Base contable y definicional
 
-Ejemplo inválido:
-
-- `EPS = 2.15` sin indicar si es GAAP, non-GAAP/adjusted, IFRS u otra base relevante.
-
-Regla:
+Una métrica sensible a convención contable/normalización con base `UNKNOWN` o no identificable se bloquea para uso canónico:
 
 ```text
-EPS_AMBIGUOUS -> BLOCK
-EPS_WITH_EXPLICIT_BASIS -> MAY_PASS_OTHER_GATES
+ACCOUNTING_BASIS_AMBIGUOUS -> BLOCK / EVIDENCE_PENDING
 ```
+
+Esto incluye, cuando aplique, EPS, revenue, net income, operating income, EBITDA/EBIT, gross profit, OCF, FCF, márgenes, ROIC y ROE.
+
+Ejemplos válidos de basis explícita:
+
+- `GAAP`;
+- `IFRS`;
+- `NON_GAAP`;
+- `ADJUSTED`;
+- `MANAGEMENT_DEFINED`;
+- `CONSENSUS_NORMALIZED`;
+- `NOT_APPLICABLE` cuando corresponda.
+
+GAAP/IFRS y non-GAAP/adjusted son series separadas. No se sustituyen, promedian ni comparan silenciosamente como si su definición fuera idéntica.
 
 ## 5 · Non-GAAP
 
-Una métrica non-GAAP **puede ser evidencia válida** si está identificada explícitamente y conserva su fuente y definición. No se convierte silenciosamente en GAAP ni se compara como equivalente entre emisores si las definiciones difieren.
+Una métrica non-GAAP **puede ser evidencia válida** si está identificada explícitamente y conserva fuente, definición, periodo y temporalidad. No se convierte silenciosamente en GAAP ni se compara como equivalente entre emisores si las definiciones difieren.
 
 ```text
 NON_GAAP_EXPLICIT = ACCEPTABLE_EVIDENCE_CLASS
 NON_GAAP_IMPLICIT_OR_MISLABELED = BLOCKED
 ```
 
-## 6 · Fuente
+## 6 · Fuente y valor
 
-Una métrica crítica sin fuente trazable se bloquea.
+Una métrica crítica sin fuente trazable se bloquea:
 
 ```text
 SOURCE_MISSING -> BLOCKED
+```
+
+Una métrica sin valor material presente también se bloquea:
+
+```text
+METRIC_VALUE_MISSING -> BLOCKED
 ```
 
 Una narrativa, memoria o valor copiado sin provenance no adquiere autoridad por repetición.
@@ -116,16 +139,30 @@ Nunca:
 UNKNOWN -> ASSUMED_VALID
 ```
 
-## 8 · Casos de regresión obligatorios
+## 8 · Leyes
+
+```text
+NUMERIC MATCH ≠ DEFINITIONAL MATCH
+UNKNOWN ACCOUNTING BASIS ≠ VERIFIED METRIC
+RETRIEVAL TIME ≠ PUBLIC AVAILABILITY
+POST-T0 VALIDATION ≠ EX-ANTE EVIDENCE
+```
+
+## 9 · Casos de regresión obligatorios
 
 La implementación debe conservar al menos estos casos:
 
 1. `EPS` ambiguo sin base contable → **BLOCKED**.
 2. `NON_GAAP EPS` explícito con fuente y temporalidad válida → **ACCEPTED**.
-3. `available_at > decision_as_of` → **BLOCKED / LOOK_AHEAD_BLOCKED**.
-4. fuente ausente → **BLOCKED / SOURCE_MISSING**.
+3. `GAAP EPS` explícito → **ACCEPTED**.
+4. `observed_at > available_at`, con disponibilidad pública demostrada → **ACCEPTED**.
+5. estimación de periodo futuro disponible antes de T0 → **ACCEPTED**.
+6. `available_at > decision_as_of` → **BLOCKED / LOOK_AHEAD_BLOCKED**.
+7. fuente ausente → **BLOCKED / SOURCE_MISSING**.
+8. valor ausente → **BLOCKED / METRIC_VALUE_MISSING**.
+9. `available_at` ausente → **BLOCKED / AVAILABLE_AT_MISSING**.
 
-## 9 · Integración arquitectónica
+## 10 · Integración arquitectónica
 
 ```text
 R0 / INGESTION
@@ -138,6 +175,9 @@ R0 / INGESTION
 
 Es un guardrail de entrada y assurance, no un séptimo motor.
 
+**Implementación:** `src/atlas/algorithm/metric-evidence-integrity-omega.ts`  
+**Regresión:** `src/atlas/algorithm/metric-evidence-integrity-omega.test.ts`
+
 ## Ley final
 
-> Ninguna cifra obtiene autoridad porque parezca precisa. Debe ser identificable, trazable y disponible en el momento correcto.
+> Ninguna cifra obtiene autoridad porque parezca precisa. Debe ser identificable, trazable, definicionalmente reconciliada y disponible en el momento correcto.
